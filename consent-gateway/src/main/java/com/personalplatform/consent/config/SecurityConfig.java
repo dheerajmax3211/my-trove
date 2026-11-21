@@ -3,13 +3,13 @@ package com.personalplatform.consent.config;
 import com.personalplatform.consent.keys.GatewayJwtDecoderFactory;
 import com.personalplatform.consent.keys.SigningKeyService;
 import com.personalplatform.consent.token.GatewayTokenConverter;
-import com.personalplatform.security.FirebaseJwtDecoderFactory;
-import com.personalplatform.security.FirebaseProperties;
+import com.personalplatform.security.IdentityDecoderFactory;
 import java.time.Clock;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -24,7 +24,8 @@ import org.springframework.security.web.SecurityFilterChain;
  *   <li>everything else (owner APIs): Firebase ID tokens, exactly like the other services.</li>
  * </ol>
  * Because this service declares its own {@code JwtDecoder} beans, the platform-security default decoder backs off, so
- * the Firebase decoder is declared here explicitly. Decoders are selected by qualifier, never by type.
+ * the owner-API decoder is declared here explicitly (qualifier {@code firebase}; the mode-aware
+ * {@link IdentityDecoderFactory} makes it a platform-token decoder when {@code app.security.mode=platform}). Decoders are selected by qualifier, never by type.
  */
 @Configuration
 public class SecurityConfig {
@@ -34,8 +35,9 @@ public class SecurityConfig {
 
     @Bean
     @Qualifier("firebase")
-    JwtDecoder firebaseJwtDecoder(FirebaseProperties props) {
-        return FirebaseJwtDecoderFactory.create(props);
+    JwtDecoder firebaseJwtDecoder(Environment environment) {
+        // Firebase ID tokens by default; platform tokens when app.security.mode=platform
+        return IdentityDecoderFactory.create(environment);
     }
 
     @Bean
