@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { CommandPalette, scoreItem, type CommandItem } from './CommandPalette'
 
-function makeItems(onSelect = vi.fn()): CommandItem[] {
+function makeItems(onSelect: (id: string) => void = () => {}): CommandItem[] {
   return [
     { id: 'today', label: 'Today', group: 'Go to', onSelect: () => onSelect('today') },
     {
@@ -26,7 +26,7 @@ function makeItems(onSelect = vi.fn()): CommandItem[] {
   ]
 }
 
-function Harness({ items, onSelect }: { items?: CommandItem[]; onSelect?: () => void }) {
+function Harness({ items, onSelect }: { items?: CommandItem[]; onSelect?: (id: string) => void }) {
   const [open, setOpen] = useState(false)
   return (
     <>

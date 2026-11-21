@@ -13,6 +13,12 @@ import { Button, Field, Input } from '@platform/ui'
 </Field>
 ```
 
+- **Identity**: "vault and brass", see [`docs/design/brand.md`](../../../docs/design/brand.md). Fonts (Young Serif, Instrument
+  Sans, JetBrains Mono) are self-hosted through `@fontsource` packages that `styles.css` imports; the build copies the font
+  files to `dist/assets` so they load lazily by subset.
+- **New in v2**: Logo, ProductMark, Section / SectionHeader / Container, Stat, Sparkline, Avatar, PersonaBadge, Stepper,
+  CommandPalette (+ `useHotkey`), Callout, KeyValueList, Timeline, EmptyState with an `illustration` slot, six Illustrations,
+  KeyCut / VaultRings patterns, `useReducedMotion`, and about 30 more icons.
 - **Components**: Button, IconButton, Input, Textarea, Select, Checkbox, Switch, Field / Label / FieldError, Card
   (+ Header/Title/Description/Content/Footer), Badge, Tabs, Dialog, Toast (`ToastProvider`, `useToast`), Tooltip,
   Skeleton, Spinner, EmptyState, DataTable, AppShell (+ SidebarNav / SidebarSection / SidebarLink), PageHeader,

@@ -32,7 +32,6 @@ import {
   type SectionSize,
   type SectionTone,
   type StatTrend,
-  type TimelineTone,
 } from '@platform/ui'
 import { useState, type ReactNode } from 'react'
 import type { ComponentDoc } from './index'
@@ -469,14 +468,14 @@ export const identityDocs: readonly ComponentDoc[] = [
             description: 'Scopes: read transactions',
             time: 'Today, 9:14 am',
             dateTime: '2026-11-21T09:14',
-            tone: 'accent' as TimelineTone,
+            tone: 'accent',
           },
           {
             id: '2',
             title: 'Reminder sent to Marcus',
             time: 'Yesterday',
             dateTime: '2026-11-20',
-            tone: 'warning' as TimelineTone,
+            tone: 'warning',
           },
           {
             id: '3',
@@ -484,7 +483,7 @@ export const identityDocs: readonly ComponentDoc[] = [
             description: 'Marked done by you',
             time: '12 Nov',
             dateTime: '2026-11-12',
-            tone: 'success' as TimelineTone,
+            tone: 'success',
           },
           { id: '4', title: 'Request created', time: '3 Nov', dateTime: '2026-11-03' },
         ]}

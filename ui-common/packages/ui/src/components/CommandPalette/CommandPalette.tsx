@@ -84,12 +84,6 @@ export function CommandPalette({
   emptyLabel = 'No matches',
 }: CommandPaletteProps) {
   const container = usePortalContainer()
-  const reduced = useReducedMotion()
-  const baseId = useId()
-  const listId = `${baseId}-list`
-  const [query, setQuery] = useState('')
-  const [active, setActive] = useState(0)
-  const listRef = useRef<HTMLDivElement>(null)
   const returnFocusTo = useRef<HTMLElement | null>(null)
 
   // Remember what had focus before the dialog takes it (there is no Trigger, so Radix cannot).
@@ -97,13 +91,45 @@ export function CommandPalette({
     if (open) returnFocusTo.current = document.activeElement as HTMLElement | null
   }, [open])
 
-  // Fresh start every time it opens.
-  useEffect(() => {
-    if (open) {
-      setQuery('')
-      setActive(0)
-    }
-  }, [open])
+  return (
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+      <DialogPrimitive.Portal container={container}>
+        <DialogPrimitive.Overlay className={styles.overlay} />
+        <DialogPrimitive.Content
+          className={styles.content}
+          aria-describedby={undefined}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            returnFocusTo.current?.focus()
+          }}
+        >
+          {/* Mounted only while open, so the query and highlight start fresh every time. */}
+          <PaletteBody
+            onOpenChange={onOpenChange}
+            items={items}
+            placeholder={placeholder}
+            label={label}
+            emptyLabel={emptyLabel}
+          />
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
+  )
+}
+
+function PaletteBody({
+  onOpenChange,
+  items,
+  placeholder,
+  label,
+  emptyLabel,
+}: Required<Omit<CommandPaletteProps, 'open'>>) {
+  const reduced = useReducedMotion()
+  const baseId = useId()
+  const listId = `${baseId}-list`
+  const [query, setQuery] = useState('')
+  const [active, setActive] = useState(0)
+  const listRef = useRef<HTMLDivElement>(null)
 
   const { groups, flat } = useMemo(() => {
     const scored = items
@@ -177,112 +203,102 @@ export function CommandPalette({
   }
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal container={container}>
-        <DialogPrimitive.Overlay className={styles.overlay} />
-        <DialogPrimitive.Content
-          className={styles.content}
-          aria-describedby={undefined}
-          onCloseAutoFocus={(event) => {
-            event.preventDefault()
-            returnFocusTo.current?.focus()
+    <>
+      <VisuallyHidden asChild>
+        <DialogPrimitive.Title>{label}</DialogPrimitive.Title>
+      </VisuallyHidden>
+      <div className={styles.search}>
+        <SearchIcon size={18} className={styles.searchIcon} />
+        <input
+          className={styles.input}
+          type="text"
+          role="combobox"
+          aria-label={label}
+          aria-expanded="true"
+          aria-controls={listId}
+          aria-autocomplete="list"
+          aria-activedescendant={activeId}
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+          placeholder={placeholder}
+          value={query}
+          onChange={(event) => {
+            setQuery(event.target.value)
+            setActive(0)
           }}
-        >
-          <VisuallyHidden asChild>
-            <DialogPrimitive.Title>{label}</DialogPrimitive.Title>
-          </VisuallyHidden>
-          <div className={styles.search}>
-            <SearchIcon size={18} className={styles.searchIcon} />
-            <input
-              className={styles.input}
-              type="text"
-              role="combobox"
-              aria-label={label}
-              aria-expanded="true"
-              aria-controls={listId}
-              aria-autocomplete="list"
-              aria-activedescendant={activeId}
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck={false}
-              placeholder={placeholder}
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value)
-                setActive(0)
-              }}
-              onKeyDown={onKeyDown}
-            />
-          </div>
-          <div
-            id={listId}
-            ref={listRef}
-            role="listbox"
-            aria-label={label}
-            className={styles.list}
-            // Keep focus in the input when the pointer presses an option.
-            onMouseDown={(event) => event.preventDefault()}
-          >
-            {flat.length === 0 ? (
-              <p className={styles.empty}>{emptyLabel}</p>
-            ) : (
-              groups.map((group, groupIndex) => {
-                const headingId = `${baseId}-group-${groupIndex}`
-                return (
-                  <div
-                    key={group.name ?? `__none-${groupIndex}`}
-                    role="group"
-                    aria-labelledby={group.name ? headingId : undefined}
-                    className={styles.group}
-                  >
-                    {group.name ? (
-                      <div id={headingId} role="presentation" className={styles.groupTitle}>
-                        {group.name}
-                      </div>
-                    ) : null}
-                    {group.rows.map(({ item, index }) => (
-                      <div
-                        key={item.id}
-                        id={`${baseId}-opt-${index}`}
-                        role="option"
-                        aria-selected={index === clamped}
-                        data-index={index}
-                        className={cx(styles.option, index === clamped && styles.active)}
-                        onMouseMove={() => index !== clamped && setActive(index)}
-                        onClick={() => run({ item, index })}
-                      >
-                        {item.icon ? (
-                          <span className={styles.optionIcon} aria-hidden="true">
-                            {item.icon}
-                          </span>
-                        ) : null}
-                        <span className={styles.optionLabel}>{item.label}</span>
-                        {item.hint ? <span className={styles.optionHint}>{item.hint}</span> : null}
-                      </div>
-                    ))}
+          onKeyDown={onKeyDown}
+        />
+      </div>
+      {/* eslint-disable-next-line jsx-a11y/interactive-supports-focus -- combobox pattern: focus stays in the input and options are reached through aria-activedescendant */}
+      <div
+        id={listId}
+        ref={listRef}
+        role="listbox"
+        aria-label={label}
+        className={styles.list}
+        // Keep focus in the input when the pointer presses an option.
+        onMouseDown={(event) => event.preventDefault()}
+      >
+        {flat.length === 0 ? (
+          <p className={styles.empty}>{emptyLabel}</p>
+        ) : (
+          groups.map((group, groupIndex) => {
+            const headingId = `${baseId}-group-${groupIndex}`
+            return (
+              <div
+                key={group.name ?? `__none-${groupIndex}`}
+                role="group"
+                aria-labelledby={group.name ? headingId : undefined}
+                className={styles.group}
+              >
+                {group.name ? (
+                  <div id={headingId} role="presentation" className={styles.groupTitle}>
+                    {group.name}
                   </div>
-                )
-              })
-            )}
-          </div>
-          <VisuallyHidden>
-            <div role="status" aria-live="polite">
-              {flat.length === 0 ? emptyLabel : `${flat.length} results`}
-            </div>
-          </VisuallyHidden>
-          <div className={styles.footer} aria-hidden="true">
-            <span>
-              <kbd>↑</kbd> <kbd>↓</kbd> move
-            </span>
-            <span>
-              <kbd>Enter</kbd> open
-            </span>
-            <span>
-              <kbd>Esc</kbd> close
-            </span>
-          </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+                ) : null}
+                {group.rows.map(({ item, index }) => (
+                  // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus -- keyboard is handled on the combobox input (arrows, Enter)
+                  <div
+                    key={item.id}
+                    id={`${baseId}-opt-${index}`}
+                    role="option"
+                    aria-selected={index === clamped}
+                    data-index={index}
+                    className={cx(styles.option, index === clamped && styles.active)}
+                    onMouseMove={() => index !== clamped && setActive(index)}
+                    onClick={() => run({ item, index })}
+                  >
+                    {item.icon ? (
+                      <span className={styles.optionIcon} aria-hidden="true">
+                        {item.icon}
+                      </span>
+                    ) : null}
+                    <span className={styles.optionLabel}>{item.label}</span>
+                    {item.hint ? <span className={styles.optionHint}>{item.hint}</span> : null}
+                  </div>
+                ))}
+              </div>
+            )
+          })
+        )}
+      </div>
+      <VisuallyHidden>
+        <div role="status" aria-live="polite">
+          {flat.length === 0 ? emptyLabel : `${flat.length} results`}
+        </div>
+      </VisuallyHidden>
+      <div className={styles.footer} aria-hidden="true">
+        <span>
+          <kbd>↑</kbd> <kbd>↓</kbd> move
+        </span>
+        <span>
+          <kbd>Enter</kbd> open
+        </span>
+        <span>
+          <kbd>Esc</kbd> close
+        </span>
+      </div>
+    </>
   )
 }

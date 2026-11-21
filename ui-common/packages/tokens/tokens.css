@@ -182,6 +182,7 @@
   --pp-color-vault-accent-subtle: #1D3D36;
   --pp-color-on-vault-accent: #06201B;
   --pp-color-vault-brass: #DDB968;
+  --pp-color-vault-brass-subtle: #3A2F14;
   --pp-color-product-waiting-on: #8A5A0A;
   --pp-color-product-waiting-on-hover: #714A08;
   --pp-color-product-waiting-on-active: #5E3D07;
@@ -280,6 +281,7 @@
     --pp-color-vault-accent-subtle: #1A3832;
     --pp-color-on-vault-accent: #06201B;
     --pp-color-vault-brass: #DDB968;
+    --pp-color-vault-brass-subtle: #34290F;
     --pp-color-product-waiting-on: #E3AE55;
     --pp-color-product-waiting-on-hover: #E8BD74;
     --pp-color-product-waiting-on-active: #ECC88B;
@@ -378,6 +380,7 @@
   --pp-color-vault-accent-subtle: #1A3832;
   --pp-color-on-vault-accent: #06201B;
   --pp-color-vault-brass: #DDB968;
+  --pp-color-vault-brass-subtle: #34290F;
   --pp-color-product-waiting-on: #E3AE55;
   --pp-color-product-waiting-on-hover: #E8BD74;
   --pp-color-product-waiting-on-active: #ECC88B;
@@ -497,6 +500,7 @@
   --pp-color-accent-text: var(--pp-color-vault-accent);
   --pp-color-on-accent: var(--pp-color-on-vault-accent);
   --pp-color-brass: var(--pp-color-vault-brass);
+  --pp-color-brass-subtle: var(--pp-color-vault-brass-subtle);
   --pp-color-brass-text: var(--pp-color-vault-brass);
   --pp-color-focus-ring: var(--pp-color-vault-brass);
 }
