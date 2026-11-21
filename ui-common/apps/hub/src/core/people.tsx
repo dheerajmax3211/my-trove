@@ -1,5 +1,5 @@
 import { useAuth } from '@platform/auth-web'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { useCoreEnv } from './env'
 
 /**
@@ -13,33 +13,51 @@ export interface People {
   isSelf: (uid: string) => boolean
   /** "You", a nickname, a directory name or "Member abcd". */
   nameOf: (uid: string) => string
-  /** The name without the "You" shortcut, for avatars and places that read "Rename Bob". */
+  /** The name without the "You" shortcut, for avatars and places that read "Name Bob". */
   plainNameOf: (uid: string) => string
   nicknameOf: (uid: string) => string | undefined
   setNickname: (uid: string, name: string) => void
 }
 
 const STORAGE_PREFIX = 'pp.core.people.'
+type Nicknames = Readonly<Record<string, string>>
 
-function readNicknames(key: string): Record<string, string> {
+function readStored(key: string): Nicknames {
   try {
     const raw = window.localStorage.getItem(key)
     const parsed: unknown = raw ? JSON.parse(raw) : {}
     if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {}
     return Object.fromEntries(
-      Object.entries(parsed).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+      Object.entries(parsed).filter(
+        (entry): entry is [string, string] => typeof entry[1] === 'string',
+      ),
     )
   } catch {
     return {}
   }
 }
 
-function writeNicknames(key: string, value: Record<string, string>): void {
+function writeStored(key: string, value: Nicknames): void {
   try {
     window.localStorage.setItem(key, JSON.stringify(value))
   } catch {
     /* storage can be blocked; the name then lasts until the page closes */
   }
+}
+
+/**
+ * Every component that shows a person shares one small store per signed-in user, so naming someone in one
+ * place renames them everywhere at once. Kept in memory and mirrored to localStorage.
+ */
+const stores = new Map<string, { value: Nicknames; listeners: Set<() => void> }>()
+
+function storeFor(key: string) {
+  let store = stores.get(key)
+  if (!store) {
+    store = { value: readStored(key), listeners: new Set() }
+    stores.set(key, store)
+  }
+  return store
 }
 
 export const memberLabel = (uid: string): string => `Member ${uid.slice(-4)}`
@@ -49,22 +67,26 @@ export function usePeople(): People {
   const { directory } = useCoreEnv()
   const selfUid = user?.uid
   const storageKey = `${STORAGE_PREFIX}${selfUid ?? 'anonymous'}`
-  const [nicknames, setNicknames] = useState<Record<string, string>>(() => readNicknames(storageKey))
-
-  useEffect(() => {
-    setNicknames(readNicknames(storageKey))
-  }, [storageKey])
+  const subscribe = useCallback(
+    (listener: () => void) => {
+      const { listeners } = storeFor(storageKey)
+      listeners.add(listener)
+      return () => void listeners.delete(listener)
+    },
+    [storageKey],
+  )
+  const nicknames = useSyncExternalStore(subscribe, () => storeFor(storageKey).value)
 
   const setNickname = useCallback(
     (uid: string, name: string) => {
-      setNicknames((current) => {
-        const next = { ...current }
-        const trimmed = name.trim()
-        if (trimmed) next[uid] = trimmed
-        else delete next[uid]
-        writeNicknames(storageKey, next)
-        return next
-      })
+      const store = storeFor(storageKey)
+      const next: Record<string, string> = { ...store.value }
+      const trimmed = name.trim()
+      if (trimmed) next[uid] = trimmed
+      else delete next[uid]
+      store.value = next
+      writeStored(storageKey, next)
+      store.listeners.forEach((listener) => listener())
     },
     [storageKey],
   )
@@ -82,4 +104,9 @@ export function usePeople(): People {
       setNickname,
     }
   }, [selfUid, user?.displayName, user?.email, nicknames, directory, setNickname])
+}
+
+/** Test hook: forget the in-memory copies so a test starts from whatever is in localStorage. */
+export function resetPeopleStores(): void {
+  stores.clear()
 }

@@ -14,7 +14,7 @@ import { SessionGate } from './features/session/SessionGate'
 import { SignIn } from './features/session/SignIn'
 import { HubShell } from './layout/HubShell'
 import { RequireAdmin } from './layout/guards'
-import { RuntimeProvider, useRuntime } from './runtime/context'
+import { RuntimeProvider, SharedQueryClientContext, useRuntime } from './runtime/context'
 import type { HubRuntime } from './runtime/runtime'
 
 /**
@@ -75,9 +75,11 @@ function SignedInTree({ runtime }: { runtime: HubRuntime }) {
   const [sharedQueryClient] = useState(() => runtime.createQueryClient())
   return (
     <ApiProvider client={runtime.authApi} queryClient={queryClient}>
-      <SessionGate>
-        <HubRoutes sharedQueryClient={sharedQueryClient} />
-      </SessionGate>
+      <SharedQueryClientContext value={sharedQueryClient}>
+        <SessionGate>
+          <HubRoutes sharedQueryClient={sharedQueryClient} />
+        </SessionGate>
+      </SharedQueryClientContext>
     </ApiProvider>
   )
 }

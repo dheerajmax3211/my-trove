@@ -13,6 +13,20 @@ const DEMO_UID = WORKSPACE_DEMO_USERS[0]?.uid ?? 'demo-user'
 export function createCoreDemoFetch(): typeof fetch {
   const backend = createMockBackend({ users: WORKSPACE_DEMO_USERS, seed: 'demo' })
   const demoFetch: typeof fetch = (input, init) => {
+    const raw = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+    // The module's backend is the shared service only; the mock's auth routes are not part of it.
+    if (!/\/shared\/v1\//.test(new URL(raw, 'http://demo.invalid').pathname))
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            type: 'about:blank',
+            title: 'Not Found',
+            status: 404,
+            detail: 'Not found',
+          }),
+          { status: 404, headers: { 'content-type': 'application/problem+json' } },
+        ),
+      )
     const headers = new Headers(init?.headers)
     const token = headers.get('authorization')?.replace(/^Bearer /, '')
     if (token && !token.startsWith(DEMO_TOKEN_PREFIX)) {

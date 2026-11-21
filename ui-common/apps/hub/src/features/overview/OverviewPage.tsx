@@ -31,6 +31,11 @@ import { FirstRun } from './FirstRun'
 import { nextStep } from './nextStep'
 import styles from './Overview.module.css'
 
+const DEFAULT_HEADER = {
+  title: 'Your household',
+  description: 'The people you share with, and what you share.',
+}
+
 const WEEK_MS = 7 * 86_400_000
 
 /** The household the page leads with: one you own, otherwise the oldest you belong to. */
@@ -123,9 +128,7 @@ function ComingUp({
 }) {
   const { now } = useCoreEnv()
   const nowMs = now()
-  const upcoming = [...reminders]
-    .sort((a, b) => a.dueAt.localeCompare(b.dueAt))
-    .slice(0, 4)
+  const upcoming = [...reminders].sort((a, b) => a.dueAt.localeCompare(b.dueAt)).slice(0, 4)
   return (
     <section className={styles.panel} aria-labelledby="coming-up-title">
       <div className={styles.panelHead}>
@@ -205,7 +208,14 @@ function Lately({ household }: { household: Household }) {
 }
 
 /** The module's home: who you share with, what is shared, and the one thing to do next. */
-export function OverviewPage({ footer }: { footer?: ReactNode }) {
+export function OverviewPage({
+  footer,
+  header,
+}: {
+  footer?: ReactNode
+  /** Replaces the title and standfirst (the standalone hub greets the signed-in person). */
+  header?: { title: string; description: ReactNode }
+}) {
   usePageTitle('Overview')
   const { now } = useCoreEnv()
   const households = useHouseholds()
@@ -218,21 +228,28 @@ export function OverviewPage({ footer }: { footer?: ReactNode }) {
   if (households.isPending)
     return (
       <>
-        <PageHeader title="Your household" description="The people you share with, and what you share." />
+        <PageHeader {...(header ?? DEFAULT_HEADER)} />
         <Loading />
+        {footer}
       </>
     )
   if (households.isError)
     return (
       <>
-        <PageHeader title="Your household" description="The people you share with, and what you share." />
+        <PageHeader {...(header ?? DEFAULT_HEADER)} />
         <ErrorState error={households.error} onRetry={() => void households.refetch()} />
+        {footer}
       </>
     )
   if (!primary)
     return (
       <>
-        <PageHeader title="Welcome" description="Households, reminders and files, shared with the people you choose." />
+        <PageHeader
+          {...(header ?? {
+            title: 'Welcome',
+            description: 'Households, reminders and files, shared with the people you choose.',
+          })}
+        />
         <FirstRun />
         {footer}
       </>
@@ -267,8 +284,10 @@ export function OverviewPage({ footer }: { footer?: ReactNode }) {
   return (
     <>
       <PageHeader
-        title={list.length > 1 ? 'Your households' : 'Your household'}
-        description="The people you share with, and what you share."
+        {...(header ?? {
+          title: list.length > 1 ? 'Your households' : 'Your household',
+          description: DEFAULT_HEADER.description,
+        })}
         actions={
           <Button variant="secondary" asChild>
             <ModuleLink to="/households">All households</ModuleLink>
@@ -281,14 +300,21 @@ export function OverviewPage({ footer }: { footer?: ReactNode }) {
         {overdue.length > 0 ? (
           <Callout
             variant="warning"
-            title={overdue.length === 1 ? '1 reminder is overdue' : `${overdue.length} reminders are overdue`}
+            title={
+              overdue.length === 1
+                ? '1 reminder is overdue'
+                : `${overdue.length} reminders are overdue`
+            }
             action={
               <Button size="sm" variant="secondary" asChild>
                 <ModuleLink to="/reminders">Open reminders</ModuleLink>
               </Button>
             }
           >
-            {overdue.slice(0, 3).map((r) => r.title).join(', ')}
+            {overdue
+              .slice(0, 3)
+              .map((r) => r.title)
+              .join(', ')}
             {overdue.length > 3 ? ' and more' : ''}.
           </Callout>
         ) : null}

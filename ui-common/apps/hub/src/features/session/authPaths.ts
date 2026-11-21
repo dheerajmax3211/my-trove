@@ -13,4 +13,3 @@ export const authPaths = {
   adminUserRole: (userId: string, role: string) =>
     `${AUTH}/admin/users/${seg(userId)}/roles/${seg(role)}`,
 }
-

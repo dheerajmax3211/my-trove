@@ -23,7 +23,9 @@ export function QuickAdd({
   const { now } = useCoreEnv()
   const create = useCreateReminder()
   const [title, setTitle] = useState('')
-  const [due, setDue] = useState(() => toLocalInputValue(new Date(now() + 24 * HOUR_MS).toISOString()))
+  const [due, setDue] = useState(() =>
+    toLocalInputValue(new Date(now() + 24 * HOUR_MS).toISOString()),
+  )
   const [scope, setScope] = useState(defaultScope ?? SCOPE_PERSONAL)
   const [errors, setErrors] = useState<{ title?: string; due?: string }>({})
 

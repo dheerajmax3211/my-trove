@@ -4,7 +4,7 @@ import { callsTo, navLink, pageHeading, renderHub } from '../../test/renderHub'
 
 const REMINDERS = '/api/shared/v1/reminders'
 type Harness = ReturnType<typeof renderHub>
-const table = () => screen.getByRole('table', { name: 'Reminders' })
+const agenda = () => screen.getByRole('main')
 
 async function openNewReminder(user: Harness['user']) {
   await pageHeading('Reminders')
@@ -60,11 +60,8 @@ describe('reminders', () => {
       dueAt: new Date('2026-11-25T08:30').toISOString(),
       recurrence: { unit: 'WEEKLY', interval: 2 },
     })
-    const table = await screen.findByRole('table', { name: 'Reminders' })
-    const row = within(table).getByRole('row', { name: /Water the plants/ })
-    expect(within(row).getByText('Every 2 weeks')).toBeInTheDocument()
-    expect(within(row).getByText('Personal')).toBeInTheDocument()
-    expect(within(row).getByText('Active')).toBeInTheDocument()
+    const item = (await within(agenda()).findByText('Water the plants')).closest('li')!
+    expect(within(item).getByText(/Personal, Every 2 weeks/)).toBeInTheDocument()
   })
 
   it('edits a reminder and re-sends its schedule', async () => {
@@ -79,7 +76,7 @@ describe('reminders', () => {
     expect(await screen.findByText('Reminder updated')).toBeInTheDocument()
     const put = callsTo(requests, 'PUT', /\/reminders\/[^/]+$/)[0]
     expect(put?.body).toMatchObject({ title: 'Renew passport at the embassy', recurrence: null })
-    expect(await within(table()).findByText('Renew passport at the embassy')).toBeInTheDocument()
+    expect(await within(agenda()).findByText('Renew passport at the embassy')).toBeInTheDocument()
   })
 
   it('cancels a reminder after confirmation and finds it under Cancelled', async () => {
@@ -91,11 +88,11 @@ describe('reminders', () => {
     expect(await screen.findByText('Reminder cancelled')).toBeInTheDocument()
     expect(callsTo(requests, 'POST', /\/cancel$/)).toHaveLength(1)
     await waitFor(() =>
-      expect(within(table()).queryByText('Renew passport')).not.toBeInTheDocument(),
+      expect(within(agenda()).queryByText('Renew passport')).not.toBeInTheDocument(),
     )
 
     await user.click(screen.getByRole('tab', { name: 'Cancelled' }))
-    const row = await screen.findByRole('row', { name: /Renew passport/ })
+    const row = (await within(agenda()).findByText('Renew passport')).closest('li')!
     expect(within(row).getByText('Cancelled')).toBeInTheDocument()
     expect(within(row).queryByRole('button')).not.toBeInTheDocument()
   })
@@ -112,17 +109,19 @@ describe('reminders', () => {
     await user.click(await navLink('Reminders'))
 
     await waitFor(() =>
-      expect(within(table()).queryByText('Renew passport')).not.toBeInTheDocument(),
+      expect(within(agenda()).queryByText('Renew passport')).not.toBeInTheDocument(),
     )
-    const plants = within(table()).getByRole('row', { name: /Water the plants/ })
-    expect(within(plants).getByText('Every week')).toBeInTheDocument()
-    expect(within(plants).getByText('Active')).toBeInTheDocument()
-    expect(within(table()).getByRole('row', { name: /Pay property tax/ })).toBeInTheDocument()
+    const plants = within(agenda()).getByText('Water the plants').closest('li')!
+    expect(within(plants).getByText(/Every week/)).toBeInTheDocument()
+    expect(
+      within(plants).getByRole('button', { name: 'Edit Water the plants' }),
+    ).toBeInTheDocument()
+    expect(within(agenda()).getByText('Pay property tax')).toBeInTheDocument()
 
     await user.click(screen.getByRole('tab', { name: 'Completed' }))
-    const done = await screen.findByRole('row', { name: /Renew passport/ })
+    const done = (await within(agenda()).findByText('Renew passport')).closest('li')!
     expect(within(done).getByText('Completed')).toBeInTheDocument()
-    expect(screen.getByRole('row', { name: /Book dentist/ })).toBeInTheDocument()
+    expect(within(agenda()).getByText('Book dentist')).toBeInTheDocument()
     // Completed reminders can no longer be edited or cancelled.
     expect(within(done).queryByRole('button')).not.toBeInTheDocument()
   })
@@ -146,16 +145,16 @@ describe('reminders', () => {
       'Personal only',
     )
     await waitFor(() =>
-      expect(within(table()).queryByText('Family dinner')).not.toBeInTheDocument(),
+      expect(within(agenda()).queryByText('Family dinner')).not.toBeInTheDocument(),
     )
-    expect(within(table()).getByText('Renew passport')).toBeInTheDocument()
+    expect(within(agenda()).getByText('Renew passport')).toBeInTheDocument()
 
     await user.selectOptions(
       screen.getByRole('combobox', { name: 'Show reminders for' }),
       'Rivera household',
     )
-    expect(await within(table()).findByText('Family dinner')).toBeInTheDocument()
-    expect(within(table()).queryByText('Renew passport')).not.toBeInTheDocument()
+    expect(await within(agenda()).findByText('Family dinner')).toBeInTheDocument()
+    expect(within(agenda()).queryByText('Renew passport')).not.toBeInTheDocument()
   })
 
   it('lets only creators and household owners change a household reminder', async () => {
@@ -163,7 +162,7 @@ describe('reminders', () => {
     // Alice (owner) can change the household reminder she created; Bob (member, not creator) cannot.
     expect(await screen.findByRole('button', { name: 'Edit Pay property tax' })).toBeInTheDocument()
     await user.selectOptions(screen.getByRole('combobox', { name: 'Switch demo user' }), 'demo-bob')
-    expect(await screen.findByRole('row', { name: /Pay property tax/ })).toBeInTheDocument()
+    expect(await screen.findByText('Pay property tax')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Edit Pay property tax' })).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Cancel Pay property tax' }),

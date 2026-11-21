@@ -74,7 +74,11 @@ export function groupByDay<T>(
   })
 }
 
-const dayName = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short' })
+const dayName = new Intl.DateTimeFormat(undefined, {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+})
 const timeOnly = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' })
 
 /** "Fri 27 Nov". */
@@ -90,6 +94,13 @@ export function formatTime(ms: number): string {
 /** "Today, 9:00 am", "Tomorrow, 9:00 am", "Fri 27 Nov, 9:00 am". */
 export function formatWhen(dueMs: number, nowMs: number): string {
   const offset = dayOffset(dueMs, nowMs)
-  const day = offset === 0 ? 'Today' : offset === 1 ? 'Tomorrow' : offset === -1 ? 'Yesterday' : formatDay(dueMs)
+  const day =
+    offset === 0
+      ? 'Today'
+      : offset === 1
+        ? 'Tomorrow'
+        : offset === -1
+          ? 'Yesterday'
+          : formatDay(dueMs)
   return `${day}, ${formatTime(dueMs)}`
 }

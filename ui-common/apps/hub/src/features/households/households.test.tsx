@@ -102,14 +102,14 @@ describe('invite and accept flow', () => {
     await user.click(await navLink('Households'))
     await user.click(await screen.findByRole('link', { name: 'Lake house' }))
     await user.selectOptions(
-      await screen.findByRole('combobox', { name: 'Role for demo-bob' }),
+      await screen.findByRole('combobox', { name: 'Role for Bob Rivera' }),
       'OWNER',
     )
     expect(await screen.findByText('Role updated')).toBeInTheDocument()
     const put = callsTo(requests, 'PUT', /members\/demo-bob\/role$/)[0]
     expect(put?.body).toEqual({ role: 'OWNER' })
     await waitFor(() =>
-      expect(screen.getByRole('combobox', { name: 'Role for demo-bob' })).toHaveValue('OWNER'),
+      expect(screen.getByRole('combobox', { name: 'Role for Bob Rivera' })).toHaveValue('OWNER'),
     )
   })
 
@@ -171,7 +171,7 @@ describe('roles, last owner and leaving', () => {
     const { user } = renderHub({ route: '/households' })
     await createHousehold(user, 'Cabin')
 
-    const role = await screen.findByRole('combobox', { name: 'Role for demo-alice' })
+    const role = await screen.findByRole('combobox', { name: 'Role for Alice Rivera' })
     expect(role).toBeDisabled()
     expect(screen.getByText(/Only one owner right now/)).toBeInTheDocument()
     const leave = screen.getByRole('button', { name: 'Leave household' })
@@ -193,14 +193,16 @@ describe('roles, last owner and leaving', () => {
     await user.click(await navLink('Households'))
     await user.click(await screen.findByRole('link', { name: 'Cabin' }))
 
-    await user.click(await screen.findByRole('button', { name: 'Remove demo-bob' }))
+    await user.click(await screen.findByRole('button', { name: 'Remove Bob Rivera' }))
     await user.click(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Remove member' }),
     )
     expect(await screen.findByText('Member removed')).toBeInTheDocument()
     expect(callsTo(requests, 'DELETE', /members\/demo-bob$/)).toHaveLength(1)
     await waitFor(() =>
-      expect(screen.queryByRole('combobox', { name: 'Role for demo-bob' })).not.toBeInTheDocument(),
+      expect(
+        screen.queryByRole('combobox', { name: 'Role for Bob Rivera' }),
+      ).not.toBeInTheDocument(),
     )
   })
 

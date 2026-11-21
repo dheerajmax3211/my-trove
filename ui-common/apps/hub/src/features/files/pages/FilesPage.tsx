@@ -1,11 +1,4 @@
-import {
-  Button,
-  EmptyState,
-  IllustrationEmpty,
-  PageHeader,
-  Skeleton,
-  useToast,
-} from '@platform/ui'
+import { Button, EmptyState, IllustrationEmpty, PageHeader, Skeleton, useToast } from '@platform/ui'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'

@@ -1,4 +1,4 @@
-import { Button, EmptyState, IllustrationSearch } from '@platform/ui'
+import { Button, EmptyState, IllustrationSearch, PageHeader } from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
 import { Route, Routes } from 'react-router-dom'
 import { ActivityPage } from '../features/activity/pages/ActivityPage'
@@ -13,16 +13,19 @@ import './core.css'
 export function NotFoundPage() {
   usePageTitle('Page not found')
   return (
-    <EmptyState
-      illustration={<IllustrationSearch />}
-      title="Page not found"
-      description="That address does not lead anywhere in Household."
-      action={
-        <Button asChild>
-          <ModuleLink to="/">Back to the overview</ModuleLink>
-        </Button>
-      }
-    />
+    <>
+      <PageHeader title="Page not found" />
+      <EmptyState
+        illustration={<IllustrationSearch />}
+        title="Nothing lives at this address"
+        description="Use the navigation to find what you were looking for, or go back to the overview."
+        action={
+          <Button asChild>
+            <ModuleLink to="/">Back to the overview</ModuleLink>
+          </Button>
+        }
+      />
+    </>
   )
 }
 

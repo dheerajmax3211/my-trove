@@ -55,7 +55,11 @@ export function UploadForm({
 
   return (
     <form className={styles.form} onSubmit={submit} noValidate aria-label="Upload a file">
-      <div className={styles.zone} data-over={over || undefined} data-filled={file ? '' : undefined}>
+      <div
+        className={styles.zone}
+        data-over={over || undefined}
+        data-filled={file ? '' : undefined}
+      >
         <input
           key={inputKey}
           type="file"

@@ -1,6 +1,15 @@
-import { Card, CardDescription, CardHeader, CardTitle, ProductMark, type ProductMarkId } from '@platform/ui'
+import {
+  Badge,
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  ProductMark,
+  type ProductMarkId,
+} from '@platform/ui'
 import { useRuntime } from '../../runtime/context'
 import { OverviewPage } from '../overview/OverviewPage'
+import { useProfile } from '../session/profile'
 
 /** Standalone only: links to the six product apps, which the workspace replaces with its own launcher. */
 function Launcher() {
@@ -29,7 +38,33 @@ function Launcher() {
   )
 }
 
-/** The standalone hub's home: the household overview, with the product launcher underneath. */
+function greeting(hour: number): string {
+  if (hour < 12) return 'Good morning'
+  if (hour < 18) return 'Good afternoon'
+  return 'Good evening'
+}
+
+/** The standalone hub's home: a greeting, the household overview, and the product launcher underneath. */
 export function HomePage() {
-  return <OverviewPage footer={<Launcher />} />
+  const profile = useProfile()
+  const { now } = useRuntime()
+  const name = (profile.displayName ?? profile.email ?? 'there').split(' ')[0]
+  return (
+    <OverviewPage
+      header={{
+        title: `${greeting(new Date(now()).getHours())}, ${name}`,
+        description: (
+          <span className="hub-row">
+            <span>Your roles:</span>
+            {profile.roles.map((role) => (
+              <Badge key={role} variant={role === 'ADMIN' ? 'accent' : 'neutral'}>
+                {role}
+              </Badge>
+            ))}
+          </span>
+        ),
+      }}
+      footer={<Launcher />}
+    />
+  )
 }
