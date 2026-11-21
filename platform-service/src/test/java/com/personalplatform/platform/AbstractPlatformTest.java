@@ -1,5 +1,7 @@
 package com.personalplatform.platform;
 
+import com.personalplatform.platform.usage.PrincipalType;
+import com.personalplatform.platform.usage.UsageEvent;
 import com.personalplatform.platform.usage.UsageRepository;
 import java.time.Instant;
 import java.util.Map;
@@ -24,6 +26,10 @@ import tools.jackson.databind.json.JsonMapper;
  * One Spring context, one TimescaleDB container and one Kafka container shared by every integration test (a second
  * context would start a second consumer in the same group and rebalance the first one mid-test). Each test starts from
  * an empty {@code usage_events} table and uses timestamps in 2031 and later.
+ *
+ * <p>Continuous aggregates: a refresh moves the view's watermark, and raw rows behind the watermark stay invisible to the
+ * real-time view until the next refresh. Only {@code QuotaTest.usedAddsTheDailyAggregateAndTodaysRawRows} refreshes, and
+ * only inside January 2031; every other test keeps its data after 2031-02-01 so it is never behind a watermark.
  */
 @Import(TestSupportConfig.class)
 @SpringBootTest
@@ -65,6 +71,17 @@ abstract class AbstractPlatformTest {
 
     protected long rowCount(UUID eventId) {
         return ((Number) dsl.fetchValue("select count(*) from platform.usage_events where event_id = ?", eventId)).longValue();
+    }
+
+    /** Stores one event straight through the repository (no Kafka), as a USER principal on plan FREE. */
+    protected void store(String principalId, String ts, String service, int status, int latencyMs) {
+        store(PrincipalType.USER, principalId, ts, service, status, latencyMs, false, "FREE");
+    }
+
+    protected void store(PrincipalType type, String principalId, String ts, String service, int status, int latencyMs,
+                         boolean rateLimited, String plan) {
+        usageRepository.insertIdempotent(new UsageEvent(UUID.randomUUID(), Instant.parse(ts), null, type, principalId, null,
+                service, "GET", "/v1/items/{id}", status, latencyMs, 0, 0, plan, rateLimited));
     }
 
     /** A valid usage event as the gateway would publish it (design 5.4). */
