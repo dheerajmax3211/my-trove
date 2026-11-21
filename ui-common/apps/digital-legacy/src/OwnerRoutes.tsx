@@ -1,4 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
+// The workspace imports this module without main.tsx, so the pages bring their own styles.
+import './app.css'
+import './switch.css'
 import { OverviewPage } from './features/overview/OverviewPage'
 import { PolicyPage } from './features/policy/PolicyPage'
 import { TimelinePage } from './features/timeline/TimelinePage'

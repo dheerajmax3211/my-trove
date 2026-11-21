@@ -371,8 +371,8 @@ function PolicyForm({
 
       <Callout tone="info" title={`Quorum: ${quorum} trustee${quorum === 1 ? '' : 's'} must agree`}>
         <p>
-          Change it on the <ModuleLink to="/trustees">Trustees</ModuleLink> page, where you can see what each
-          choice means.
+          Change it on the <ModuleLink to="/trustees">Trustees</ModuleLink> page, where you can see
+          what each choice means.
         </p>
       </Callout>
       {save.error ? (

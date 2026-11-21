@@ -59,7 +59,8 @@ export function QuorumCard({ state, trusteeCount }: { state: StateView; trusteeC
             <Callout tone="info">
               <p>
                 The quorum is part of your check-in policy. Set that up first on the{' '}
-                <ModuleLink to="/policy">Check-in policy</ModuleLink> page, then come back to choose it.
+                <ModuleLink to="/policy">Check-in policy</ModuleLink> page, then come back to choose
+                it.
               </p>
             </Callout>
           ) : null}
