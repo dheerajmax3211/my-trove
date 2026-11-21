@@ -1,0 +1,14 @@
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 1.375rem;
+}
+.dot {
+  width: 0.3125rem;
+  height: 0.3125rem;
+  border-radius: var(--pp-radius-full);
+  background: currentColor;
+  opacity: 0.6;
+}

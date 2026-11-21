@@ -1,0 +1,75 @@
+.brand {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--pp-radius-md);
+  color: inherit;
+  text-decoration: none;
+}
+
+/* A search field that is really a button: it opens the command palette. */
+.search {
+  margin-inline-end: auto;
+  min-width: 0;
+  max-width: 24rem;
+  flex: 1 1 14rem;
+  justify-content: flex-start;
+  color: var(--pp-color-text-muted);
+  font-weight: var(--pp-weight-regular);
+}
+.searchText {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kbd {
+  flex: none;
+  padding: 0 var(--pp-space-2);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-sm);
+  background: var(--pp-color-surface-sunken);
+  color: var(--pp-color-text-muted);
+  font-family: var(--pp-font-sans);
+  font-size: var(--pp-text-caption-size);
+  line-height: 1.375rem;
+}
+.theme {
+  display: block;
+}
+.demoNote {
+  margin: 0;
+  padding: var(--pp-space-3);
+  border: 1px solid var(--pp-color-vault-border);
+  border-radius: var(--pp-radius-md);
+  background: var(--pp-color-vault-raised);
+  color: var(--pp-color-on-vault-muted);
+  font-size: var(--pp-text-caption-size);
+  line-height: var(--pp-text-caption-line);
+}
+.demoNote strong {
+  color: var(--pp-color-vault-brass);
+  font-weight: var(--pp-weight-semibold);
+}
+
+@media (max-width: 47.99rem) {
+  .theme {
+    display: none;
+  }
+  .search {
+    flex: 0 0 auto;
+    min-width: var(--pp-control-sm);
+    margin-inline-start: auto;
+    margin-inline-end: 0;
+  }
+  .searchText,
+  .kbd {
+    display: none;
+  }
+}
+@media (max-width: 35.99rem) {
+  .persona {
+    display: none;
+  }
+}
