@@ -3,13 +3,12 @@ import { ThemeProvider, ToastProvider } from '@platform/ui'
 import { ModuleBaseProvider } from '@platform/workspace-kit'
 import { QueryClient } from '@tanstack/react-query'
 import { render, renderHook, screen, waitFor } from '@testing-library/react'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { createConsentDemoFetch } from './demo'
 import { createMockBackend } from './mock/backend'
 import { productModule } from './module'
-import { ConsentRoutes } from './routes'
 import type { AccessRequest, Grant } from './shared/api/types'
 import { buildTodayItems } from './today'
 
@@ -161,13 +160,14 @@ function ModuleHarness({
   children: ReactNode
   seed?: 'demo' | 'empty'
 }) {
-  const backend = createMockBackend({ seed })
-  const client = createApiClient({
-    baseUrl: 'http://gateway.test/api/consent',
-    getToken: async () => 'token',
-    fetch: backend.fetch,
-  })
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const [{ client, queryClient }] = useState(() => ({
+    client: createApiClient({
+      baseUrl: 'http://gateway.test/api/consent',
+      getToken: () => Promise.resolve('token'),
+      fetch: createMockBackend({ seed }).fetch,
+    }),
+    queryClient: new QueryClient({ defaultOptions: { queries: { retry: false } } }),
+  }))
   return (
     <ThemeProvider>
       <ApiProvider client={client} queryClient={queryClient}>
