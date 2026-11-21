@@ -52,10 +52,10 @@ Contracts to honour are in design doc section 5. Workstreams run in parallel aft
 Plan: `docs/superpowers/plans/2026-11-21-phase-2-front-door.md` (module contract is in it and in `packages/workspace-kit`). Order: 2.1 alone, then 2.2/2.3/2.4/2.5 in parallel, then 2.6 in batches. **No new dependencies after 2.1 merges** (lockfile conflicts); ask the coordinator.
 Deferred on purpose (not built in Phase 2): support "view as user" sessions (needs a token `act` flow end to end); mention honestly in docs, do not fake in UI.
 - [x] 2.0 Pre-wiring: `packages/workspace-kit`, `module.tsx` stubs in all 7 apps, skeletons `apps/site` (5191), `apps/workspace` (5190), `packages/admin-console`; frontend 1,193 tests green
-- [~] 2.1 Design language v2 (agent D, dispatched, branch `phase-2/design`): tokens, restyled UI kit, new components (Stat, Sparkline, Avatar, PersonaBadge, Stepper, CommandPalette, Logo, ProductMark...), gallery, `docs/design/brand.md`
-- [ ] 2.2 Public site (agent S): home, six product pages, platform, security, pricing, docs landing, about, 404, SEO tags, screenshots
-- [ ] 2.3 Workspace shell (agent W): sign-in, session from `/me`, persona-aware nav, module mounting + per-module API client, Today feed, onboarding, ⌘K, account, demo mode
-- [ ] 2.4 Admin console (agent A): users, roles matrix, usage analytics, audit, flags, plans
+- [x] 2.1 Design language v2 (merged): "a vault you can lend from" identity (stone-green paper, patina accent, brass, dark vault surface, Young Serif + Instrument Sans), 15 new components, ~30 icons, illustrations, `docs/design/brand.md`; frontend 1,525 tests green. Use `data-product="<id>"` to apply a product accent and `data-surface="vault"` for the dark surface; apps do not set these yet (workspace and module agents wire them)
+- [~] 2.2 Public site (agent S, wave 2, branch `phase-2/site`): home, six product pages, platform, security, pricing, docs landing, about, 404, SEO tags, screenshots
+- [~] 2.3 Workspace shell (agent W, wave 2, branch `phase-2/workspace`): sign-in, session from `/me`, persona-aware nav, module mounting + per-module API client, Today feed, onboarding, ⌘K, account, demo mode
+- [~] 2.4 Admin console (agent A, wave 2, branch `phase-2/admin`): users, roles matrix, usage analytics, audit, flags, plans
 - [x] 2.5 Backend: feature flags in platform-service (+ evaluate endpoint, audit table), `GET /v1/admin/users/lookup` (merged; platform-service 84, auth 63, sql-jooq 70 tests; flags: ADMIN and OWNER hold `flags:manage`): feature flags in platform-service (+ evaluate endpoint), `GET /v1/admin/users/lookup`
 - [ ] 2.6 Product modules + redesign pass, one agent per app: waiting-on, consent, home-pulse, ask-your-life, digital-legacy, family-treasury, hub→core
 - [ ] 2.7 Integration and QA: merges green, `dev/up.sh` starts workspace + site, browser pass as MEMBER/DEVELOPER/ADMIN/OWNER, screenshots, docs, commit (ask before push)
