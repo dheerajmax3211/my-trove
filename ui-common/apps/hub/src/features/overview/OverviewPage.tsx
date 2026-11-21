@@ -218,6 +218,7 @@ export function OverviewPage({
 }) {
   usePageTitle('Overview')
   const { now } = useCoreEnv()
+  const people = usePeople()
   const households = useHouseholds()
   const list = useMemo(() => households.data ?? [], [households.data])
   const primary = pickPrimary(list)
@@ -265,7 +266,9 @@ export function OverviewPage({
   const overdue = allReminders.filter((r) => new Date(r.dueAt).getTime() < nowMs)
   const sharedFiles = (files.data ?? []).filter((f) => f.householdId !== null)
   const peopleCount = new Set(
-    details.flatMap((d) => (d.data ? d.data.members.map((m) => m.uid) : [])),
+    details.flatMap((d) =>
+      d.data ? d.data.members.map((m) => m.uid).filter((uid) => !people.isSelf(uid)) : [],
+    ),
   ).size
   const soonest = [...householdReminders].sort((a, b) => a.dueAt.localeCompare(b.dueAt))[0]
   const step =
@@ -323,7 +326,7 @@ export function OverviewPage({
           <Stat
             label="People you share with"
             value={String(peopleCount)}
-            hint={list.length > 1 ? `across ${list.length} households` : 'in your household'}
+            hint={list.length > 1 ? `across ${list.length} households` : 'besides you'}
           />
           <Stat
             label="Reminders due this week"
