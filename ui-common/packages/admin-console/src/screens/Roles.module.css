@@ -1,0 +1,87 @@
+.personas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--pp-space-6) var(--pp-space-8);
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+.persona {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--pp-space-2);
+  padding-top: var(--pp-space-3);
+  border-top: 1px solid var(--pp-color-border);
+}
+.scroll {
+  overflow-x: auto;
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-lg);
+  box-shadow: var(--pp-shadow-xs);
+}
+.matrix {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 44rem;
+  font-size: var(--pp-text-body-small-size);
+}
+.corner,
+.roleHead {
+  position: sticky;
+  top: 0;
+  background: var(--pp-color-surface-sunken);
+  padding: var(--pp-space-3) var(--pp-space-4);
+  text-align: start;
+  font-weight: var(--pp-weight-semibold);
+  border-bottom: 1px solid var(--pp-color-border);
+}
+.roleHead {
+  text-align: center;
+  font-size: var(--pp-text-caption-size);
+}
+.corner {
+  inset-inline-start: 0;
+  z-index: 2;
+}
+.group {
+  text-align: start;
+  padding: var(--pp-space-3) var(--pp-space-4);
+  font-family: var(--pp-font-display);
+  font-weight: 400;
+  font-size: var(--pp-text-h4-size);
+  color: var(--pp-color-brass-text);
+  background: var(--pp-color-brass-subtle);
+}
+.permission {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--pp-space-3) var(--pp-space-4);
+  text-align: start;
+  font-weight: var(--pp-weight-regular);
+  background: var(--pp-color-surface);
+  border-top: 1px solid var(--pp-color-hairline);
+  min-width: 15rem;
+}
+.yes,
+.no {
+  text-align: center;
+  padding: var(--pp-space-3) var(--pp-space-2);
+  border-top: 1px solid var(--pp-color-hairline);
+}
+.yes {
+  color: var(--pp-color-accent-text);
+  background: var(--pp-color-accent-subtle);
+}
+.no {
+  color: var(--pp-color-text-subtle);
+}
+.yes svg {
+  vertical-align: middle;
+}

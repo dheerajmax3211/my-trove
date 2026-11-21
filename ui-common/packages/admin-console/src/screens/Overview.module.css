@@ -1,0 +1,63 @@
+.identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pp-space-5);
+}
+.who {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-2);
+  min-width: 0;
+}
+.name {
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-h2-size);
+  line-height: var(--pp-text-h2-line);
+  overflow-wrap: anywhere;
+}
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pp-space-2);
+}
+.links {
+  list-style: none;
+  margin: var(--pp-space-4) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--pp-space-2) var(--pp-space-8);
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+}
+.link {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-3) 0;
+  border-top: 1px solid var(--pp-color-border);
+  color: var(--pp-color-text);
+  text-decoration: none;
+  border-radius: var(--pp-radius-sm);
+}
+.link svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--pp-color-brass-text);
+}
+.link:hover .linkLabel {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link:focus-visible {
+  outline: 2px solid var(--pp-color-focus-ring);
+  outline-offset: 2px;
+}
+.linkText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.linkLabel {
+  font-weight: var(--pp-weight-semibold);
+}
