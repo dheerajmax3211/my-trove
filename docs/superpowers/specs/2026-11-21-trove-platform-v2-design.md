@@ -131,7 +131,8 @@ Permissions live in Postgres (`auth.roles`, `auth.role_permissions`, `auth.user_
 Claims: `sub` (Firebase uid), `uid` (internal user UUID), `email`, `name`, `roles[]`, `permissions[]`, `plan`,
 `workspaces[]`, `pv` (permissions version), optional `act` (impersonator uid). Service principals get
 `token_use` = `service`, `sub` = `app:<appId>`, `scopes[]` instead of roles. The gateway caches exchanges
-(key = SHA-256 of the incoming credential, TTL <= 5 min, evicted on `pv` change) so `auth` is not hit per request.
+(key = SHA-256 of the incoming credential, TTL 60 s) so `auth` is not hit per request; role changes and suspension
+therefore take effect within a minute. `pv` stays in the token so Phase 3 can add active eviction.
 Services run with `app.security.mode=platform` and `app.platform.jwk-set-uri`; the default stays `firebase`, so
 all existing tests and standalone runs are unchanged.
 
@@ -142,7 +143,7 @@ routeTemplate, status, latencyMs, requestBytes, responseBytes, plan, rateLimited
 `routeTemplate` is the matched route pattern (`/v1/items/{id}`), never the raw path, to bound cardinality and keep
 ids out of analytics. `platform-service` consumes idempotently (insert on `eventId`) into
 `platform.usage_events` (Timescale hypertable) with continuous aggregates at 1 minute, 1 hour and 1 day by
-service, principal, status. A second topic `platform.audit.v1` carries role changes and impersonation events.
+service, principal, status. Role changes and impersonation are audited in the `auth` database in Phase 1; a `platform.audit.v1` topic is added in Phase 3 for webhooks.
 
 ### 5.5 Quotas and rate limits
 Plans: `FREE`, `PRO`, `DEVELOPER` in `platform.plans` (requests/minute, requests/month, API keys, webhooks).

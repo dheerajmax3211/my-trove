@@ -27,6 +27,8 @@
 		<module>ask-your-life</module>
 		<module>digital-legacy</module>
 		<module>family-treasury</module>
+		<module>platform-service</module>
+		<module>gateway</module>
 	</modules>
 
 	<properties>
