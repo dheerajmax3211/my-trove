@@ -25,12 +25,13 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done and verified · `[!]` bloc
 ## Phase 0: setup
 - [x] Design doc written and approved
 - [x] Tracker written (this file)
-- [ ] Colima resized to 4 CPU / 10 GB (needed for Kafka + observability)
-- [ ] Phase 1 plan written
+- [x] Colima resized to 4 CPU / 10 GB (needed for Kafka + observability)
+- [x] Phase 1 plan written: `docs/superpowers/plans/2026-11-21-phase-1-platform-core.md`
 
 ## Phase 1: Platform core
+Execution: 4 agents in git worktrees after pre-wiring: A-auth (plan tasks 1-3, branch `phase-1/auth`), A-lib (tasks 4-5, `phase-1/lib`), B (tasks 6-8, `phase-1/gateway`), C (tasks 9-11, `phase-1/platform`). Coordinator merges, then tasks 12-13. Status of each agent is noted below as it changes.
 Contracts to honour are in design doc section 5. Workstreams run in parallel after pre-wiring.
-- [ ] 1.0 Pre-wire: new modules in root pom (`gateway`, `platform-service`), `platform` schema + jOOQ execution, compose Kafka
+- [x] 1.0 Pre-wire: new modules in root pom (`gateway`, `platform-service`), `platform` schema + jOOQ execution, compose Kafka (commit 63befa5; Spring Cloud 2026.0.0 BOM resolves on Boot 4.1.2)
 - [ ] 1.A RBAC in `auth`: roles/permissions/user_roles migration, seed personas, USER→MEMBER, bootstrap→OWNER, permission catalogue
 - [ ] 1.A Token exchange endpoint + JWKS + `permissions_version`; admin APIs (list users, assign/revoke role, suspend) with guardrails and audit table
 - [ ] 1.A `platform-security`: `app.security.mode=platform`, platform-token decoder, `@RequiresPermission`, authorities converter, test helpers
