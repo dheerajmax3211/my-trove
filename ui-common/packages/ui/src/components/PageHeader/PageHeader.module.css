@@ -1,27 +1,49 @@
 .header {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--pp-space-4);
-  padding-bottom: var(--pp-space-5);
-  margin-bottom: var(--pp-space-6);
+  gap: var(--pp-space-5) var(--pp-space-6);
+  padding-bottom: var(--pp-space-6);
+  margin-bottom: var(--pp-space-8);
   border-bottom: 1px solid var(--pp-color-border);
+}
+/* A short brass tab on the rule: the one recurring mark that says "this is a My-Trove page". */
+.header::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: -1px;
+  width: 3.5rem;
+  height: 2px;
+  background: var(--pp-color-brass);
 }
 .text {
   display: flex;
   flex-direction: column;
-  gap: var(--pp-space-1);
+  gap: var(--pp-space-2);
   min-width: 0;
   flex: 1 1 18rem;
 }
 .eyebrow {
-  font-size: var(--pp-text-caption-size);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pp-space-2);
+  font-size: var(--pp-text-body-small-size);
   line-height: var(--pp-text-caption-line);
   font-weight: var(--pp-weight-semibold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.005em;
   color: var(--pp-color-accent-text);
+}
+/* A key-bit notch, the same shape as the logo's. */
+.eyebrow::before {
+  content: '';
+  flex: none;
+  width: 0.5rem;
+  height: 0.75rem;
+  background: currentColor;
+  clip-path: polygon(0 0, 100% 0, 100% 45%, 55% 45%, 55% 70%, 100% 70%, 100% 100%, 0 100%);
 }
 .title {
   font-family: var(--pp-font-display);
@@ -34,6 +56,7 @@
 .description {
   color: var(--pp-color-text-muted);
   max-width: 62ch;
+  font-size: var(--pp-text-body-size);
 }
 .actions {
   display: flex;
@@ -41,8 +64,7 @@
   gap: var(--pp-space-2);
 }
 @media (max-width: 480px) {
-  .title {
-    font-size: var(--pp-text-h2-size);
-    line-height: var(--pp-text-h2-line);
+  .header {
+    margin-bottom: var(--pp-space-6);
   }
 }

@@ -15,6 +15,7 @@ import {
   EmptyState,
   Field,
   IconButton,
+  Illustration,
   InboxIcon,
   Input,
   PageHeader,
@@ -43,6 +44,7 @@ import {
 } from '@platform/ui'
 import type { ReactNode } from 'react'
 import type { ControlDef, Values } from '../components/Playground'
+import { identityDocs } from './identity-docs'
 import { sampleRequests, type SampleRequest } from './sample-data'
 
 export interface ComponentDoc {
@@ -563,14 +565,27 @@ export const componentDocs: readonly ComponentDoc[] = [
   {
     slug: 'empty-state',
     title: 'EmptyState',
-    description: 'Friendly message for empty lists, with an optional primary action.',
+    description:
+      'An invitation, not a dead end: what belongs here and the one thing to do next. Use an illustration for a page or main panel, an icon for a small card.',
     controls: [
-      { name: 'icon', type: 'boolean', default: true },
+      {
+        name: 'art',
+        label: 'illustration',
+        type: 'select',
+        options: ['none', 'icon', 'empty', 'search', 'letter', 'key', 'allClear', 'locked'],
+        default: 'letter',
+      },
       { name: 'action', type: 'boolean', default: true },
     ],
     render: (v) => (
       <EmptyState
-        icon={v.icon ? <InboxIcon size={24} /> : undefined}
+        {...(v.art === 'icon'
+          ? { icon: <InboxIcon size={24} /> }
+          : v.art !== 'none'
+            ? {
+                illustration: <Illustration name={v.art as 'empty'} size={200} />,
+              }
+            : {})}
         title="Nothing is waiting on you"
         description="When someone owes you a reply, a document or money, it shows up here."
         action={
@@ -580,9 +595,9 @@ export const componentDocs: readonly ComponentDoc[] = [
       />
     ),
     a11y: [
-      'Title is a real heading (h2 by default, configurable); decorative icon is hidden from AT.',
+      'Title is a real heading (h2 by default, configurable); the illustration or icon is hidden from AT.',
     ],
-    usage: `<EmptyState icon={<InboxIcon />} title="No requests" description="..." action={<Button>New</Button>} />`,
+    usage: `<EmptyState illustration={<Illustration name="letter" />} title="No requests" description="..." action={<Button>New</Button>} />`,
   },
   {
     slug: 'data-table',
@@ -662,6 +677,7 @@ export const componentDocs: readonly ComponentDoc[] = [
     ],
     usage: `<AppShell brand="Waiting On" sidebar={<SidebarNav>...</SidebarNav>} topbar={<UserMenu />}>{children}</AppShell>`,
   },
+  ...identityDocs,
 ]
 
 /** Tiny AppShell used by the responsive preview iframe. */

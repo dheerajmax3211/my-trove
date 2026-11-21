@@ -41,8 +41,6 @@
   border-bottom: 1px solid var(--pp-color-border);
   font-size: var(--pp-text-caption-size);
   font-weight: var(--pp-weight-semibold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--pp-color-text-muted);
 }
 
@@ -102,7 +100,7 @@
 /* ---- token swatches ---- */
 .sw-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
   gap: var(--pp-space-3);
 }
 .sw {
@@ -220,4 +218,225 @@
   .hide-sm {
     display: none !important;
   }
+}
+
+/* ---- identity overview ---- */
+.ov {
+  gap: var(--pp-space-16);
+}
+.ov-hero {
+  padding-block: 0;
+  border-radius: var(--pp-radius-2xl);
+  border: 1px solid var(--pp-color-vault-border);
+  box-shadow: var(--pp-shadow-lg);
+}
+.ov-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-10);
+  padding: var(--pp-space-12) var(--pp-space-12) calc(var(--pp-space-12) + 24px);
+}
+.ov-keycut {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  color: var(--pp-color-vault-border);
+}
+.ov-marks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--pp-space-3) var(--pp-space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ov-marks li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 'mark name' 'mark note';
+  column-gap: var(--pp-space-3);
+  align-items: center;
+}
+.ov-marks li > :first-child {
+  grid-area: mark;
+}
+.ov-mark-name {
+  grid-area: name;
+  font-weight: var(--pp-weight-semibold);
+}
+.ov-mark-note {
+  grid-area: note;
+  font-size: var(--pp-text-body-small-size);
+  line-height: var(--pp-text-body-small-line);
+  color: var(--pp-color-text-muted);
+}
+.ov-palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: var(--pp-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ov-palette li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--pp-text-body-small-size);
+}
+.ov-chip {
+  display: block;
+  height: 5rem;
+  margin-bottom: var(--pp-space-2);
+  border-radius: var(--pp-radius-lg);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--pp-color-text) 14%, transparent),
+    var(--pp-shadow-sm);
+}
+.ov-accents {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+  gap: var(--pp-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ov-accents li {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-2);
+  font-size: var(--pp-text-body-small-size);
+}
+.ov-accent-chip {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--pp-radius-md);
+  font-family: var(--pp-font-display);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 20%, transparent);
+}
+.ov-type {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--pp-space-10);
+  align-items: center;
+}
+.ov-specimen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-4);
+  padding: var(--pp-space-8);
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-xl);
+  box-shadow: var(--pp-shadow-md);
+}
+.ov-spec-display {
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-display-size);
+  line-height: var(--pp-text-display-line);
+  letter-spacing: var(--pp-text-display-tracking);
+}
+.ov-spec-lead {
+  font-size: var(--pp-text-lead-size);
+  line-height: var(--pp-text-lead-line);
+  color: var(--pp-color-text-muted);
+}
+.ov-spec-mono {
+  font-family: var(--pp-font-mono);
+  font-size: var(--pp-text-code-size);
+  color: var(--pp-color-brass-text);
+  overflow-wrap: anywhere;
+}
+.ov-use {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: var(--pp-space-5);
+  align-items: start;
+}
+.ov-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-6);
+}
+.ov-person {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+}
+.ov-person span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.ov-art {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: var(--pp-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ov-art li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--pp-space-2);
+  padding: var(--pp-space-4);
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-xl);
+  font-size: var(--pp-text-body-small-size);
+  color: var(--pp-color-text-muted);
+}
+.ov-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pp-space-1);
+  font-weight: var(--pp-weight-semibold);
+}
+
+@media (max-width: 900px) {
+  .ov-type {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ov {
+    gap: var(--pp-space-12);
+  }
+}
+@media (max-width: 640px) {
+  .ov-hero-inner {
+    padding: var(--pp-space-8) var(--pp-space-5) var(--pp-space-14);
+  }
+  .ov-hero {
+    border-radius: var(--pp-radius-xl);
+  }
+}
+
+.pg-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--pp-text-body-small-size);
+}
+.pg-table caption {
+  text-align: start;
+  font-weight: var(--pp-weight-semibold);
+  padding-bottom: var(--pp-space-2);
+}
+.pg-table th {
+  text-align: start;
+  font-weight: var(--pp-weight-medium);
+  padding: var(--pp-space-1) var(--pp-space-2) var(--pp-space-1) 0;
+}
+.pg-table td {
+  padding: var(--pp-space-1) var(--pp-space-2) var(--pp-space-1) 0;
+}
+.pg-chip {
+  display: inline-block;
+  padding: 2px var(--pp-space-2);
+  border-radius: var(--pp-radius-sm);
+  font-family: var(--pp-font-mono);
+  font-size: var(--pp-text-caption-size);
 }

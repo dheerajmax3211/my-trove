@@ -1,7 +1,12 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-const external = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, /^radix-ui(\/.*)?$/]
+const external = [
+  /^react(\/.*)?$/,
+  /^react-dom(\/.*)?$/,
+  /^radix-ui(\/.*)?$/,
+  /^@platform\/tokens$/,
+]
 
 // Library build: preserved ES modules (tree-shakeable) + one extracted stylesheet (dist/styles.css).
 export default defineConfig({

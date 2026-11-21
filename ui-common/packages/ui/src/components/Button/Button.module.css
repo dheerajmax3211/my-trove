@@ -1,6 +1,7 @@
 .button {
   --_h: var(--pp-control-md);
   --_px: var(--pp-space-4);
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -11,7 +12,7 @@
   border-radius: var(--pp-radius-md);
   font: inherit;
   font-size: var(--pp-text-label-size);
-  font-weight: var(--pp-weight-semibold);
+  font-weight: var(--pp-text-label-weight);
   line-height: 1;
   letter-spacing: var(--pp-text-label-tracking);
   white-space: nowrap;
@@ -25,6 +26,7 @@
     transform var(--pp-duration-fast) var(--pp-ease-standard);
 }
 
+/* Pressed: the key sits into the lock. A hair of travel, the shadow tightens. */
 .button:active:not([aria-disabled='true']):not(:disabled) {
   transform: translateY(1px);
 }
@@ -62,22 +64,34 @@
 .primary {
   background: var(--pp-color-accent);
   color: var(--pp-color-on-accent);
-  box-shadow: var(--pp-shadow-sm);
+  border-color: color-mix(in srgb, var(--pp-color-accent) 78%, #000);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    var(--pp-shadow-sm);
 }
 .primary:hover:not(:disabled):not([aria-disabled='true']) {
   background: var(--pp-color-accent-hover);
 }
 .primary:active:not(:disabled):not([aria-disabled='true']) {
   background: var(--pp-color-accent-active);
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.28),
+    0 0 0 transparent;
 }
 
 .secondary {
   background: var(--pp-color-surface);
   color: var(--pp-color-text);
   border-color: var(--pp-color-border-strong);
+  box-shadow:
+    inset 0 1px 0 var(--pp-color-highlight),
+    var(--pp-shadow-xs);
 }
 .secondary:hover:not(:disabled):not([aria-disabled='true']) {
   background: var(--pp-color-surface-sunken);
+}
+.secondary:active:not(:disabled):not([aria-disabled='true']) {
+  box-shadow: var(--pp-shadow-inset);
 }
 
 .ghost {
@@ -91,7 +105,10 @@
 .danger {
   background: var(--pp-color-danger);
   color: var(--pp-color-on-danger);
-  box-shadow: var(--pp-shadow-sm);
+  border-color: color-mix(in srgb, var(--pp-color-danger) 78%, #000);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    var(--pp-shadow-sm);
 }
 .danger:hover:not(:disabled):not([aria-disabled='true']) {
   background: var(--pp-color-danger-hover);

@@ -105,7 +105,7 @@ export function AppShell({
           {skipLinkLabel}
         </a>
 
-        <aside className={styles.sidebar}>
+        <aside className={cx(styles.sidebar, 'pp-grain')} data-surface="vault">
           <div className={styles.brand}>{brand}</div>
           <div className={styles.sidebarBody}>{sidebar}</div>
           {sidebarFooter ? <div className={styles.sidebarFooter}>{sidebarFooter}</div> : null}
@@ -119,7 +119,11 @@ export function AppShell({
               </DialogPrimitive.Trigger>
               <DialogPrimitive.Portal container={container}>
                 <DialogPrimitive.Overlay className={styles.drawerOverlay} />
-                <DialogPrimitive.Content className={styles.drawer} aria-describedby={undefined}>
+                <DialogPrimitive.Content
+                  className={styles.drawer}
+                  data-surface="vault"
+                  aria-describedby={undefined}
+                >
                   <VisuallyHidden asChild>
                     <DialogPrimitive.Title>{drawerLabel}</DialogPrimitive.Title>
                   </VisuallyHidden>

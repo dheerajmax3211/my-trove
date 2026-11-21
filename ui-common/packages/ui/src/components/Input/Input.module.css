@@ -1,3 +1,4 @@
+/* Inputs are carved into the paper: an inset well with a firm edge. */
 .input {
   display: block;
   width: 100%;
@@ -7,11 +8,12 @@
   color: var(--pp-color-text);
   border: 1px solid var(--pp-color-border-strong);
   border-radius: var(--pp-radius-md);
+  box-shadow: var(--pp-shadow-inset);
   font: inherit;
   font-size: var(--pp-text-body-size);
   transition:
     border-color var(--pp-duration-fast) var(--pp-ease-standard),
-    box-shadow var(--pp-duration-fast) var(--pp-ease-standard);
+    background-color var(--pp-duration-fast) var(--pp-ease-standard);
 }
 .input::placeholder {
   color: var(--pp-color-text-subtle);
@@ -27,11 +29,14 @@
   background: var(--pp-color-surface-sunken);
   color: var(--pp-color-text-subtle);
   border-color: var(--pp-color-border);
+  box-shadow: none;
   cursor: not-allowed;
 }
 .input[aria-invalid='true'] {
   border-color: var(--pp-color-danger);
-  box-shadow: inset 0 0 0 1px var(--pp-color-danger);
+  box-shadow:
+    var(--pp-shadow-inset),
+    0 0 0 1px var(--pp-color-danger);
 }
 .sm {
   min-height: var(--pp-control-sm);

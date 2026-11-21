@@ -86,6 +86,7 @@ export interface BaseThemeColors {
   vaultAccentSubtle: string
   onVaultAccent: string
   vaultBrass: string
+  vaultBrassSubtle: string
 }
 
 export type ProductColorSuffix = '' | 'Hover' | 'Active' | 'Subtle' | 'Text' | 'On'
@@ -212,6 +213,7 @@ export const lightColors: ThemeColors = {
   vaultAccentSubtle: '#1D3D36',
   onVaultAccent: '#06201B',
   vaultBrass: '#DDB968',
+  vaultBrassSubtle: '#3A2F14',
 
   ...lightProducts,
 }
@@ -277,6 +279,7 @@ export const darkColors: ThemeColors = {
   vaultAccentSubtle: '#1A3832',
   onVaultAccent: '#06201B',
   vaultBrass: '#DDB968',
+  vaultBrassSubtle: '#34290F',
 
   ...darkProducts,
 }

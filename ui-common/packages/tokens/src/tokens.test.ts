@@ -73,6 +73,7 @@ const TEXT_PAIRS: Pair[] = [
   ['onVaultAccent', 'vaultAccent'],
   ['vaultBrass', 'vault'],
   ['vaultBrass', 'vaultRaised'],
+  ['vaultBrass', 'vaultBrassSubtle'],
 ]
 
 const cap = (key: string): string => key.charAt(0).toUpperCase() + key.slice(1)

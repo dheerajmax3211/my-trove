@@ -182,6 +182,7 @@ export function scopeCss(): string {
     ['accent-text', 'vault-accent'],
     ['on-accent', 'on-vault-accent'],
     ['brass', 'vault-brass'],
+    ['brass-subtle', 'vault-brass-subtle'],
     ['brass-text', 'vault-brass'],
     ['focus-ring', 'vault-brass'],
   ].map(([role, source]) => [`--pp-color-${role}`, `var(--pp-color-${source})`] as const)

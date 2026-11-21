@@ -1,0 +1,175 @@
+.stepper {
+  display: flex;
+  gap: var(--pp-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.horizontal {
+  flex-direction: row;
+  align-items: flex-start;
+}
+.vertical {
+  flex-direction: column;
+  gap: 0;
+}
+
+.step {
+  position: relative;
+  min-width: 0;
+}
+.horizontal .step {
+  flex: 1 1 0;
+}
+
+.button,
+.static {
+  display: flex;
+  gap: var(--pp-space-3);
+  align-items: flex-start;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--pp-radius-md);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+.horizontal .button,
+.horizontal .static {
+  flex-direction: column;
+  gap: var(--pp-space-2);
+}
+.button {
+  cursor: pointer;
+}
+.button:hover .label {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* the rail between steps */
+.horizontal .step::before {
+  content: '';
+  position: absolute;
+  top: 0.875rem;
+  inset-inline: calc(1.75rem + var(--pp-space-2)) calc(var(--pp-space-2) * -1);
+  height: 2px;
+  border-radius: 1px;
+  background: var(--pp-color-border);
+}
+.horizontal .step:last-child::before {
+  display: none;
+}
+.horizontal .step[data-state='complete']::before {
+  background: var(--pp-color-accent);
+}
+.vertical .step {
+  padding-bottom: var(--pp-space-6);
+}
+.vertical .step::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0.8125rem;
+  top: 2rem;
+  bottom: 0.25rem;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--pp-color-border);
+}
+.vertical .step:last-child {
+  padding-bottom: 0;
+}
+.vertical .step:last-child::before {
+  display: none;
+}
+.vertical .step[data-state='complete']::before {
+  background: var(--pp-color-accent);
+}
+
+.marker {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-surface);
+  border: 1.5px solid var(--pp-color-border-strong);
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-caption-size);
+  font-weight: var(--pp-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color var(--pp-duration-normal) var(--pp-ease-standard),
+    border-color var(--pp-duration-normal) var(--pp-ease-standard);
+}
+.step[data-state='complete'] .marker {
+  background: var(--pp-color-accent);
+  border-color: var(--pp-color-accent);
+  color: var(--pp-color-on-accent);
+}
+.step[data-state='current'] .marker {
+  border-color: var(--pp-color-accent);
+  color: var(--pp-color-accent-text);
+  box-shadow: 0 0 0 4px var(--pp-color-accent-subtle);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-top: 0.2rem;
+}
+.horizontal .text {
+  padding-top: 0;
+}
+.label {
+  font-size: var(--pp-text-label-size);
+  line-height: var(--pp-text-label-line);
+  font-weight: var(--pp-weight-semibold);
+  color: var(--pp-color-text);
+}
+.step[data-state='upcoming'] .label {
+  color: var(--pp-color-text-muted);
+  font-weight: var(--pp-text-label-weight);
+}
+.description {
+  font-size: var(--pp-text-body-small-size);
+  line-height: var(--pp-text-body-small-line);
+  color: var(--pp-color-text-muted);
+}
+
+/* On a phone the horizontal stepper becomes a vertical one so labels never truncate. */
+@media (max-width: 575.98px) {
+  .horizontal {
+    flex-direction: column;
+    gap: 0;
+  }
+  .horizontal .step {
+    padding-bottom: var(--pp-space-5);
+  }
+  .horizontal .step:last-child {
+    padding-bottom: 0;
+  }
+  .horizontal .button,
+  .horizontal .static {
+    flex-direction: row;
+    gap: var(--pp-space-3);
+  }
+  .horizontal .text {
+    padding-top: 0.2rem;
+  }
+  .horizontal .step::before {
+    inset-inline: auto;
+    inset-inline-start: 0.8125rem;
+    top: 2rem;
+    bottom: 0.25rem;
+    width: 2px;
+    height: auto;
+  }
+}
