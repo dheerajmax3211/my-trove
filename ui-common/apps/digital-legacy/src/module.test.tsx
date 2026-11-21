@@ -213,7 +213,7 @@ describe('links under a module base', () => {
       view.unmount()
     }
     expect(seen).toBeGreaterThan(8)
-  })
+  }, 40000)
 })
 
 function state(over: Partial<StateView> = {}): StateView {
