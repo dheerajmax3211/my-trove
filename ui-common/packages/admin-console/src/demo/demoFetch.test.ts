@@ -27,7 +27,9 @@ describe('createAdminDemoFetch serves every endpoint the screens use', () => {
     expect((await call('GET', `${A}/v1/admin/users?page=0&size=5`)).status).toBe(200)
     expect((await call('GET', `${A}/v1/admin/users/${demoId(2)}`)).status).toBe(200)
     expect((await call('GET', `${A}/v1/admin/roles`)).status).toBe(200)
-    expect((await call('GET', `${A}/v1/admin/users/lookup?ids=${demoId(1)},${demoId(2)}`)).status).toBe(200)
+    expect(
+      (await call('GET', `${A}/v1/admin/users/lookup?ids=${demoId(1)},${demoId(2)}`)).status,
+    ).toBe(200)
     expect((await call('GET', `${A}/v1/admin/audit?page=0&size=5`)).status).toBe(200)
   })
 
@@ -36,7 +38,12 @@ describe('createAdminDemoFetch serves every endpoint the screens use', () => {
     const range = `from=${encodeURIComponent('2026-11-20T00:00:00Z')}&to=${encodeURIComponent('2026-11-21T00:00:00Z')}`
     const summary = await call('GET', `${A}/v1/usage/summary?${range}`.replace(A, P))
     expect(summary.status).toBe(200)
-    const s = summary.body as { totalRequests: number; series: unknown[]; byService: unknown[]; resolution: string }
+    const s = summary.body as {
+      totalRequests: number
+      series: unknown[]
+      byService: unknown[]
+      resolution: string
+    }
     expect(s.totalRequests).toBeGreaterThan(0)
     expect(s.series.length).toBeGreaterThan(10)
     expect(s.byService).toHaveLength(6)
@@ -87,14 +94,20 @@ describe('guardrails match the auth service', () => {
       code: 'PRIVILEGED_ROLE_REQUIRED',
       detail: 'Only an OWNER can grant or revoke ADMIN or OWNER, or change an ADMIN or OWNER',
     })
-    expect((await admin('PUT', `${A}/v1/admin/users/${demoId(6)}/roles/DEVELOPER`)).status).toBe(200)
+    expect((await admin('PUT', `${A}/v1/admin/users/${demoId(6)}/roles/DEVELOPER`)).status).toBe(
+      200,
+    )
     // an admin cannot touch an admin either
-    expect((await admin('PUT', `${A}/v1/admin/users/${demoId(2)}/roles/DEVELOPER`)).status).toBe(403)
+    expect((await admin('PUT', `${A}/v1/admin/users/${demoId(2)}/roles/DEVELOPER`)).status).toBe(
+      403,
+    )
   })
 
   it('the MEMBER role cannot be revoked, the last owner cannot be removed or suspended, nobody suspends themselves', async () => {
     const owner = client()
-    expect((await owner('DELETE', `${A}/v1/admin/users/${demoId(6)}/roles/MEMBER`)).body).toMatchObject({
+    expect(
+      (await owner('DELETE', `${A}/v1/admin/users/${demoId(6)}/roles/MEMBER`)).body,
+    ).toMatchObject({
       code: 'BASELINE_ROLE',
     })
     const last = await owner('DELETE', `${A}/v1/admin/users/${demoId(1)}/roles/OWNER`)
@@ -142,20 +155,30 @@ describe('lookup', () => {
   it('accepts up to 100 ids, rejects more, rejects bad ids and omits unknown ones', async () => {
     const call = client()
     const ids = Array.from({ length: 101 }, (_, n) => demoId(n + 1))
-    expect((await call('GET', `${A}/v1/admin/users/lookup?ids=${ids.join(',')}`)).body).toMatchObject({
+    expect(
+      (await call('GET', `${A}/v1/admin/users/lookup?ids=${ids.join(',')}`)).body,
+    ).toMatchObject({
       code: 'TOO_MANY_IDS',
     })
-    expect((await call('GET', `${A}/v1/admin/users/lookup?ids=nope`)).body).toMatchObject({ code: 'INVALID_ID' })
+    expect((await call('GET', `${A}/v1/admin/users/lookup?ids=nope`)).body).toMatchObject({
+      code: 'INVALID_ID',
+    })
     const ok = await call('GET', `${A}/v1/admin/users/lookup?ids=${demoId(1)},${demoId(9999)}`)
     expect((ok.body as unknown[]).length).toBe(1)
-    expect(ok.body).not.toContainEqual(expect.objectContaining({ firebaseUid: expect.anything() as unknown }))
+    expect(ok.body).not.toContainEqual(
+      expect.objectContaining({ firebaseUid: expect.anything() as unknown }),
+    )
   })
 })
 
 describe('users and audit paging', () => {
   it('filters by name or email and pages', async () => {
     const call = client()
-    const all = (await call('GET', `${A}/v1/admin/users?size=10&page=1`)).body as { total: number; items: unknown[]; page: number }
+    const all = (await call('GET', `${A}/v1/admin/users?size=10&page=1`)).body as {
+      total: number
+      items: unknown[]
+      page: number
+    }
     expect(all.total).toBe(24)
     expect(all.items).toHaveLength(10)
     expect(all.page).toBe(1)
@@ -168,15 +191,29 @@ describe('users and audit paging', () => {
 describe('flags', () => {
   it('creates, rejects duplicates and bad keys, updates, evaluates and deletes', async () => {
     const call = client()
-    const created = await call('POST', `${P}/v1/flags`, { key: 'beta-x', enabled: true, rolloutPercent: 100 })
+    const created = await call('POST', `${P}/v1/flags`, {
+      key: 'beta-x',
+      enabled: true,
+      rolloutPercent: 100,
+    })
     expect(created.status).toBe(201)
     expect((await call('POST', `${P}/v1/flags`, { key: 'beta-x' })).status).toBe(409)
     expect((await call('POST', `${P}/v1/flags`, { key: 'Bad Key' })).status).toBe(400)
-    expect((await call('PUT', `${P}/v1/flags/beta-x`, { enabled: false, rolloutPercent: 30, description: 'd' })).body).toMatchObject({
+    expect(
+      (
+        await call('PUT', `${P}/v1/flags/beta-x`, {
+          enabled: false,
+          rolloutPercent: 30,
+          description: 'd',
+        })
+      ).body,
+    ).toMatchObject({
       enabled: false,
       rolloutPercent: 30,
     })
-    const evaluated = (await call('GET', `${P}/v1/flags/evaluate`)).body as { flags: Record<string, boolean> }
+    const evaluated = (await call('GET', `${P}/v1/flags/evaluate`)).body as {
+      flags: Record<string, boolean>
+    }
     expect(evaluated.flags['beta-x']).toBe(false)
     expect((await call('DELETE', `${P}/v1/flags/beta-x`)).status).toBe(204)
     expect((await call('DELETE', `${P}/v1/flags/beta-x`)).status).toBe(404)

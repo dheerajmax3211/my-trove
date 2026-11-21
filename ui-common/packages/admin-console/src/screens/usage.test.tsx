@@ -21,8 +21,12 @@ describe('Usage', () => {
     const requestsStat = await within(headline).findByRole('group', { name: 'Requests' })
     expect(requestsStat).toHaveTextContent(/\d{1,3}(,\d{3})*/)
     expect(within(headline).getByRole('group', { name: 'Error rate' })).toHaveTextContent('%')
-    expect(within(headline).getByRole('group', { name: 'Latency, p95' })).toHaveTextContent(/\d+ ms/)
-    expect(within(headline).getByRole('group', { name: 'Latency, p95' })).toHaveTextContent('Median')
+    expect(within(headline).getByRole('group', { name: 'Latency, p95' })).toHaveTextContent(
+      /\d+ ms/,
+    )
+    expect(within(headline).getByRole('group', { name: 'Latency, p95' })).toHaveTextContent(
+      'Median',
+    )
     expect(within(headline).getByRole('group', { name: 'Active users' })).toBeInTheDocument()
     // every call goes to the platform service, reached through the same client
     const summaries = callsTo(requests, 'GET', '/v1/usage/summary')
@@ -63,7 +67,7 @@ describe('Usage', () => {
     await user.keyboard('{Home}')
     expect(slider).toHaveAttribute('aria-valuenow', '0')
     await user.keyboard('{End}')
-    expect(slider).toHaveAttribute('aria-valuenow', last as string)
+    expect(slider).toHaveAttribute('aria-valuenow', last)
     // and a tooltip appears while it is active
     expect(screen.getByText(/requests$/, { selector: 'p' })).toBeInTheDocument()
   })
@@ -78,26 +82,39 @@ describe('Usage', () => {
     )
     await user.click(within(group).getByRole('button', { name: 'Show the last 7 days' }))
     await waitFor(() =>
-      expect(callsTo(requests, 'GET', '/v1/usage/summary').some((r) => spanOf(r) === 7 * 24 * HOUR)).toBe(true),
+      expect(
+        callsTo(requests, 'GET', '/v1/usage/summary').some((r) => spanOf(r) === 7 * 24 * HOUR),
+      ).toBe(true),
     )
     await screen.findByRole('slider', { name: /last 7 days/ })
     expect(screen.getByTestId('where')).toHaveTextContent('range=7d')
-    expect(within(group).getByRole('button', { name: 'Show the last 7 days' })).toHaveAttribute('aria-pressed', 'true')
+    expect(within(group).getByRole('button', { name: 'Show the last 7 days' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
     // top users and "your usage" follow the same window
     await waitFor(() =>
-      expect(callsTo(requests, 'GET', '/v1/usage/top-users').some((r) => spanOf(r) === 7 * 24 * HOUR)).toBe(true),
+      expect(
+        callsTo(requests, 'GET', '/v1/usage/top-users').some((r) => spanOf(r) === 7 * 24 * HOUR),
+      ).toBe(true),
     )
     await waitFor(() =>
-      expect(callsTo(requests, 'GET', '/v1/usage/me').some((r) => spanOf(r) === 7 * 24 * HOUR)).toBe(true),
+      expect(
+        callsTo(requests, 'GET', '/v1/usage/me').some((r) => spanOf(r) === 7 * 24 * HOUR),
+      ).toBe(true),
     )
 
     await user.click(within(group).getByRole('button', { name: 'Show the last hour' }))
     await waitFor(() =>
-      expect(callsTo(requests, 'GET', '/v1/usage/summary').some((r) => spanOf(r) === HOUR)).toBe(true),
+      expect(callsTo(requests, 'GET', '/v1/usage/summary').some((r) => spanOf(r) === HOUR)).toBe(
+        true,
+      ),
     )
     await user.click(within(group).getByRole('button', { name: 'Show the last 30 days' }))
     await waitFor(() =>
-      expect(callsTo(requests, 'GET', '/v1/usage/summary').some((r) => spanOf(r) === 30 * 24 * HOUR)).toBe(true),
+      expect(
+        callsTo(requests, 'GET', '/v1/usage/summary').some((r) => spanOf(r) === 30 * 24 * HOUR),
+      ).toBe(true),
     )
     await screen.findByRole('slider', { name: /last 30 days/ })
   })
@@ -105,7 +122,9 @@ describe('Usage', () => {
   it('opens on the range in the link', async () => {
     const { requests } = renderAdmin({ route: '/usage?range=30d' })
     await screen.findByRole('slider', { name: /last 30 days/ })
-    expect(spanOf(callsTo(requests, 'GET', '/v1/usage/summary')[0] as RecordedRequest)).toBe(30 * 24 * HOUR)
+    expect(spanOf(callsTo(requests, 'GET', '/v1/usage/summary')[0] as RecordedRequest)).toBe(
+      30 * 24 * HOUR,
+    )
   })
 
   it('lists services and status classes with their numbers', async () => {
@@ -114,7 +133,9 @@ describe('Usage', () => {
     await within(services).findByText('home-pulse')
     expect(within(services).getAllByRole('row')).toHaveLength(7) // header + 6 services
     expect(within(services).getByRole('columnheader', { name: /Error rate/ })).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Share of responses by status class' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('img', { name: 'Share of responses by status class' }),
+    ).toBeInTheDocument()
     expect(screen.getByText('2xx Succeeded')).toBeInTheDocument()
     expect(screen.getByText('5xx Failed (server errors)')).toBeInTheDocument()
   })
@@ -135,7 +156,9 @@ describe('Usage', () => {
     const { requests } = renderAdmin({ route: '/usage', persona: 'ADMIN' })
     expect(await screen.findByRole('heading', { name: 'Your usage' })).toBeInTheDocument()
     await waitFor(() => expect(callsTo(requests, 'GET', '/v1/usage/me').length).toBeGreaterThan(0))
-    const mine = (await screen.findByRole('heading', { name: 'Your usage' })).closest('section') as HTMLElement
+    const mine = (await screen.findByRole('heading', { name: 'Your usage' })).closest(
+      'section',
+    ) as HTMLElement
     expect(await within(mine).findByRole('group', { name: 'Requests' })).toBeInTheDocument()
     expect(within(mine).queryByRole('group', { name: 'Active users' })).not.toBeInTheDocument()
   })
@@ -175,7 +198,9 @@ describe('Usage', () => {
       route: '/usage?range=1h',
       intercept: (r) => (r.path === '/v1/usage/summary' ? jsonResponse(empty) : undefined),
     })
-    expect(await screen.findByRole('heading', { name: 'No requests in the last hour' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'No requests in the last hour' }),
+    ).toBeInTheDocument()
     expect(screen.queryByTestId('usage-chart')).not.toBeInTheDocument()
     expect(screen.getAllByText('n/a').length).toBeGreaterThan(0) // no latency to report
     await user.click(screen.getByText('Show the last 30 days', { selector: 'button' }))
@@ -185,13 +210,20 @@ describe('Usage', () => {
   it('a 403 from the summary is shown as not allowed', async () => {
     renderAdmin({
       route: '/usage',
-      intercept: (r) => (r.path === '/v1/usage/summary' ? problem(403, 'Access Denied') : undefined),
+      intercept: (r) =>
+        r.path === '/v1/usage/summary' ? problem(403, 'Access Denied') : undefined,
     })
-    expect(await screen.findByRole('heading', { name: 'The platform did not allow this' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'The platform did not allow this' }),
+    ).toBeInTheDocument()
   })
 
   it('a network error offers a retry', async () => {
-    renderAdmin({ route: '/usage', intercept: (r) => (r.path.startsWith('/v1/usage') ? Promise.reject(new TypeError('x')) : undefined) })
+    renderAdmin({
+      route: '/usage',
+      intercept: (r) =>
+        r.path.startsWith('/v1/usage') ? Promise.reject(new TypeError('x')) : undefined,
+    })
     expect(await screen.findByText("Can't reach the platform")).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
@@ -200,7 +232,8 @@ describe('Usage', () => {
     let n = 0
     renderAdmin({
       route: '/usage',
-      intercept: (r) => (r.path === '/v1/usage/summary' && ++n === 2 ? problem(500, 'nope') : undefined),
+      intercept: (r) =>
+        r.path === '/v1/usage/summary' && ++n === 2 ? problem(500, 'nope') : undefined,
     })
     expect(await screen.findByTestId('usage-chart')).toBeInTheDocument()
   })
@@ -208,7 +241,17 @@ describe('Usage', () => {
   it('moving the pointer over the chart reads the nearest point', async () => {
     renderAdmin({ route: '/usage' })
     const svg = await screen.findByTestId('usage-chart')
-    svg.getBoundingClientRect = () => ({ left: 0, top: 0, width: 720, height: 300, right: 720, bottom: 300, x: 0, y: 0, toJSON: () => ({}) })
+    svg.getBoundingClientRect = () => ({
+      left: 0,
+      top: 0,
+      width: 720,
+      height: 300,
+      right: 720,
+      bottom: 300,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    })
     fireEvent.pointerMove(svg, { clientX: 100, clientY: 50 })
     expect(await screen.findByText(/errors \(/)).toBeInTheDocument()
   })

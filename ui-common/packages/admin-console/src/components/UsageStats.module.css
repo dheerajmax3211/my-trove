@@ -3,9 +3,17 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--pp-space-6) var(--pp-space-6);
 }
+/* the first figure carries a sparkline: on a phone it takes the whole row so the digits never wrap */
+.row > *:first-child {
+  grid-column: 1 / -1;
+}
 @media (min-width: 64rem) {
+  .row > *:first-child {
+    grid-column: auto;
+  }
   .row {
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    /* the first figure carries a sparkline, so it gets more room than the plain numbers */
+    grid-template-columns: minmax(15rem, 1.6fr) repeat(auto-fit, minmax(9rem, 1fr));
   }
   .row > * {
     padding-inline-start: var(--pp-space-6);

@@ -41,7 +41,11 @@ describe('Audit log', () => {
     await user.type(screen.getByRole('textbox', { name: 'Filter by user id' }), HANNAH)
     await user.click(screen.getByRole('button', { name: 'Apply filter' }))
     await waitFor(() =>
-      expect(callsTo(requests, 'GET', '/v1/admin/audit').some((r) => r.search.get('targetId') === HANNAH)).toBe(true),
+      expect(
+        callsTo(requests, 'GET', '/v1/admin/audit').some(
+          (r) => r.search.get('targetId') === HANNAH,
+        ),
+      ).toBe(true),
     )
     await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(2)) // header + her one change
     expect(await screen.findByText(/Showing changes to/)).toHaveTextContent('Hannah Lindqvist')
@@ -72,7 +76,9 @@ describe('Audit log', () => {
 
   it('says so when a user has no recorded changes', async () => {
     renderAdmin({ route: `/audit?target=${demoId(22)}` })
-    expect(await screen.findByRole('heading', { name: 'No recorded changes for this user' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'No recorded changes for this user' }),
+    ).toBeInTheDocument()
   })
 
   it('pages through a long log', async () => {
@@ -116,7 +122,14 @@ describe('Audit log', () => {
         r.path === '/v1/admin/audit'
           ? jsonResponse({
               items: [
-                { id: 'a', at: '2026-11-20T10:00:00Z', actorId: null, action: 'SOMETHING_NEW', targetId: null, detail: { why: 'test' } },
+                {
+                  id: 'a',
+                  at: '2026-11-20T10:00:00Z',
+                  actorId: null,
+                  action: 'SOMETHING_NEW',
+                  targetId: null,
+                  detail: { why: 'test' },
+                },
               ],
               page: 0,
               size: 20,
@@ -131,10 +144,19 @@ describe('Audit log', () => {
   })
 
   it('403 and network errors are handled', async () => {
-    const first = renderAdmin({ route: '/audit', intercept: (r) => (r.path === '/v1/admin/audit' ? problem(403, 'Access Denied') : undefined) })
-    expect(await screen.findByRole('heading', { name: 'The platform did not allow this' })).toBeInTheDocument()
+    const first = renderAdmin({
+      route: '/audit',
+      intercept: (r) => (r.path === '/v1/admin/audit' ? problem(403, 'Access Denied') : undefined),
+    })
+    expect(
+      await screen.findByRole('heading', { name: 'The platform did not allow this' }),
+    ).toBeInTheDocument()
     first.unmount()
-    renderAdmin({ route: '/audit', intercept: (r) => (r.path === '/v1/admin/audit' ? Promise.reject(new TypeError('x')) : undefined) })
+    renderAdmin({
+      route: '/audit',
+      intercept: (r) =>
+        r.path === '/v1/admin/audit' ? Promise.reject(new TypeError('x')) : undefined,
+    })
     expect(await screen.findByText("Can't reach the platform")).toBeInTheDocument()
   })
 })

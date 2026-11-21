@@ -12,7 +12,11 @@ describe('Overview', () => {
     for (const label of ['Requests', 'Error rate', 'Latency, p95', 'Active users'])
       expect(await within(headline).findByRole('group', { name: label })).toBeInTheDocument()
     const nav = screen.getByRole('navigation', { name: 'Admin screens' })
-    expect(within(nav).getAllByRole('link').map((a) => a.textContent)).toEqual([
+    expect(
+      within(nav)
+        .getAllByRole('link')
+        .map((a) => a.textContent),
+    ).toEqual([
       expect.stringContaining('Users'),
       expect.stringContaining('Roles'),
       expect.stringContaining('Usage'),
@@ -20,7 +24,10 @@ describe('Overview', () => {
       expect.stringContaining('Flags'),
       expect.stringContaining('Plans'),
     ])
-    expect(within(nav).getByRole('link', { name: /Users/ })).toHaveAttribute('href', '/app/admin/users')
+    expect(within(nav).getByRole('link', { name: /Users/ })).toHaveAttribute(
+      'href',
+      '/app/admin/users',
+    )
   })
 
   it('an auditor sees read links only: no flags', async () => {
@@ -53,10 +60,13 @@ describe('Overview', () => {
       persona: 'OWNER',
       intercept: (r) =>
         r.path === '/v1/usage/summary'
-          ? new Response(JSON.stringify({ title: 'Boom', status: 500, detail: 'Database is down' }), {
-              status: 500,
-              headers: { 'content-type': 'application/problem+json' },
-            })
+          ? new Response(
+              JSON.stringify({ title: 'Boom', status: 500, detail: 'Database is down' }),
+              {
+                status: 500,
+                headers: { 'content-type': 'application/problem+json' },
+              },
+            )
           : undefined,
     })
     expect(await screen.findByText('Database is down')).toBeInTheDocument()

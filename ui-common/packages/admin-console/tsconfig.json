@@ -1,5 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "types": ["vite/client", "@testing-library/jest-dom/vitest"] },
-  "include": ["src"]
+  "compilerOptions": {
+    "types": ["vite/client", "@testing-library/jest-dom/vitest"]
+  },
+  "include": ["src", "harness", "vite.harness.config.ts"]
 }

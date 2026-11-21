@@ -99,7 +99,7 @@ function AuditLog() {
       id: 'action',
       header: 'What',
       cell: (e) => (
-        <span className={shared.stackTight}>
+        <span className={shared.cellStack}>
           <Badge variant={ACTION_VARIANT[e.action] ?? 'neutral'}>{auditTitle(e)}</Badge>
           {auditDetail(e) ? <span className={shared.subtle}>{auditDetail(e)}</span> : null}
         </span>

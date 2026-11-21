@@ -7,7 +7,9 @@ describe('Roles', () => {
     renderAdmin({ route: '/roles' })
     const personas = await screen.findByRole('list', { name: 'Roles and what they are for' })
     expect(
-      within(personas).getByText(/Operator and support: manages users and roles, but cannot grant ADMIN or OWNER/),
+      within(personas).getByText(
+        /Operator and support: manages users and roles, but cannot grant ADMIN or OWNER/,
+      ),
     ).toBeInTheDocument()
     const matrix = screen.getByRole('table')
     for (const role of ['OWNER', 'ADMIN', 'DEVELOPER', 'AUDITOR', 'MEMBER'])
@@ -34,7 +36,9 @@ describe('Roles', () => {
 
   it('handles a 403 and a network failure', async () => {
     renderAdmin({ route: '/roles', intercept: () => problem(403, 'Access Denied') })
-    expect(await screen.findByRole('heading', { name: 'The platform did not allow this' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'The platform did not allow this' }),
+    ).toBeInTheDocument()
   })
 
   it('network error', async () => {

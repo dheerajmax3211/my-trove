@@ -40,7 +40,9 @@ describe('Feature flags: list and toggle', () => {
     const toggle = await screen.findByRole('switch', { name: 'Enable ask-your-life-beta' })
     expect(toggle).not.toBeChecked()
     await user.click(toggle)
-    await waitFor(() => expect(screen.getByRole('switch', { name: 'Enable ask-your-life-beta' })).toBeChecked())
+    await waitFor(() =>
+      expect(screen.getByRole('switch', { name: 'Enable ask-your-life-beta' })).toBeChecked(),
+    )
     const put = callsTo(requests, 'PUT', '/v1/flags/ask-your-life-beta')
     expect(put).toHaveLength(1)
     expect(put[0]?.service).toBe('platform')
@@ -57,17 +59,21 @@ describe('Feature flags: list and toggle', () => {
   it('a failed toggle says what failed and leaves the switch alone', async () => {
     const { user } = renderAdmin({
       route: '/flags',
-      intercept: (r) => (r.method === 'PUT' ? problem(404, "No flag with key 'ask-your-life-beta'") : undefined),
+      intercept: (r) =>
+        r.method === 'PUT' ? problem(404, "No flag with key 'ask-your-life-beta'") : undefined,
     })
     await user.click(await screen.findByRole('switch', { name: 'Enable ask-your-life-beta' }))
-    expect(await screen.findByText(/Could not change ask-your-life-beta: No flag with key/)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/Could not change ask-your-life-beta: No flag with key/),
+    ).toBeInTheDocument()
     expect(screen.getByRole('switch', { name: 'Enable ask-your-life-beta' })).not.toBeChecked()
   })
 
   it('first-run empty state invites the first flag', async () => {
     const { user } = renderAdmin({
       route: '/flags',
-      intercept: (r) => (r.path === '/v1/flags' && r.method === 'GET' ? jsonResponse([]) : undefined),
+      intercept: (r) =>
+        r.path === '/v1/flags' && r.method === 'GET' ? jsonResponse([]) : undefined,
     })
     expect(await screen.findByRole('heading', { name: 'No feature flags yet' })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Create the first flag' }))
@@ -75,10 +81,18 @@ describe('Feature flags: list and toggle', () => {
   })
 
   it('403 and network errors are handled', async () => {
-    const a = renderAdmin({ route: '/flags', intercept: (r) => (r.path === '/v1/flags' ? problem(403, 'Access Denied') : undefined) })
-    expect(await screen.findByRole('heading', { name: 'The platform did not allow this' })).toBeInTheDocument()
+    const a = renderAdmin({
+      route: '/flags',
+      intercept: (r) => (r.path === '/v1/flags' ? problem(403, 'Access Denied') : undefined),
+    })
+    expect(
+      await screen.findByRole('heading', { name: 'The platform did not allow this' }),
+    ).toBeInTheDocument()
     a.unmount()
-    renderAdmin({ route: '/flags', intercept: (r) => (r.path === '/v1/flags' ? Promise.reject(new TypeError('x')) : undefined) })
+    renderAdmin({
+      route: '/flags',
+      intercept: (r) => (r.path === '/v1/flags' ? Promise.reject(new TypeError('x')) : undefined),
+    })
     expect(await screen.findByText("Can't reach the platform")).toBeInTheDocument()
   })
 })
@@ -99,7 +113,9 @@ describe('Feature flags: create', () => {
     expect(await within(dialog).findByText(/Use 1 to 64 characters/)).toBeInTheDocument()
     await ctx.user.clear(key)
     await ctx.user.type(key, 'new-today-feed')
-    expect(await within(dialog).findByText('A flag with this key already exists.')).toBeInTheDocument()
+    expect(
+      await within(dialog).findByText('A flag with this key already exists.'),
+    ).toBeInTheDocument()
     expect(callsTo(ctx.requests, 'POST', '/v1/flags')).toHaveLength(0)
   })
 
@@ -111,7 +127,9 @@ describe('Feature flags: create', () => {
     await ctx.user.clear(rollout)
     await ctx.user.type(rollout, '150')
     await ctx.user.click(within(dialog).getByRole('button', { name: 'Create flag' }))
-    expect(await within(dialog).findByText('Enter a whole number from 0 to 100.')).toBeInTheDocument()
+    expect(
+      await within(dialog).findByText('Enter a whole number from 0 to 100.'),
+    ).toBeInTheDocument()
     expect(callsTo(ctx.requests, 'POST', '/v1/flags')).toHaveLength(0)
   })
 
@@ -119,7 +137,10 @@ describe('Feature flags: create', () => {
     const ctx = renderAdmin({ route: '/flags' })
     const dialog = await openNew(ctx)
     await ctx.user.type(within(dialog).getByRole('textbox', { name: /Key/ }), 'new-dashboard')
-    await ctx.user.type(within(dialog).getByRole('textbox', { name: 'Description' }), 'The new dashboard')
+    await ctx.user.type(
+      within(dialog).getByRole('textbox', { name: 'Description' }),
+      'The new dashboard',
+    )
     await ctx.user.click(within(dialog).getByRole('switch', { name: 'Enabled' }))
     const rollout = within(dialog).getByRole('spinbutton', { name: 'Rollout percentage' })
     await ctx.user.clear(rollout)
@@ -146,13 +167,17 @@ describe('Feature flags: create', () => {
     const ctx = renderAdmin({
       route: '/flags',
       intercept: (r) =>
-        r.method === 'POST' ? problem(409, "A flag with key 'race-condition' already exists", 'Conflict') : undefined,
+        r.method === 'POST'
+          ? problem(409, "A flag with key 'race-condition' already exists", 'Conflict')
+          : undefined,
     })
     const dialog = await openNew(ctx)
     await ctx.user.type(within(dialog).getByRole('textbox', { name: /Key/ }), 'race-condition')
     await ctx.user.click(within(dialog).getByRole('button', { name: 'Create flag' }))
     expect(await within(dialog).findByText('Could not create the flag')).toBeInTheDocument()
-    expect(within(dialog).getByText("A flag with key 'race-condition' already exists")).toBeInTheDocument()
+    expect(
+      within(dialog).getByText("A flag with key 'race-condition' already exists"),
+    ).toBeInTheDocument()
     expect(screen.getByRole('dialog')).toBeInTheDocument() // stays open so nothing typed is lost
   })
 
@@ -180,14 +205,21 @@ describe('Feature flags: edit and delete', () => {
     await ctx.user.clear(rollout)
     await ctx.user.type(rollout, '75')
     await ctx.user.click(
-      within(within(dialog).getByRole('group', { name: 'Only these plans' })).getByRole('checkbox', {
-        name: 'DEVELOPER',
-      }),
+      within(within(dialog).getByRole('group', { name: 'Only these plans' })).getByRole(
+        'checkbox',
+        {
+          name: 'DEVELOPER',
+        },
+      ),
     )
     await ctx.user.click(within(dialog).getByRole('button', { name: 'Save changes' }))
     await screen.findByText('75% of eligible people')
     const put = callsTo(ctx.requests, 'PUT', '/v1/flags/new-today-feed')
-    expect(put[0]?.body).toMatchObject({ rolloutPercent: 75, allowedPlans: ['DEVELOPER'], enabled: true })
+    expect(put[0]?.body).toMatchObject({
+      rolloutPercent: 75,
+      allowedPlans: ['DEVELOPER'],
+      enabled: true,
+    })
   })
 
   it('delete asks first; cancelling deletes nothing, confirming deletes', async () => {
@@ -199,7 +231,9 @@ describe('Feature flags: edit and delete', () => {
     expect(screen.getByText('ask-your-life-beta')).toBeInTheDocument()
 
     await ctx.user.click(screen.getByRole('button', { name: 'Delete ask-your-life-beta' }))
-    await ctx.user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete flag' }))
+    await ctx.user.click(
+      within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete flag' }),
+    )
     await waitFor(() => expect(screen.queryByText('ask-your-life-beta')).not.toBeInTheDocument())
     expect(callsTo(ctx.requests, 'DELETE', '/v1/flags/ask-your-life-beta')).toHaveLength(1)
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
@@ -208,11 +242,16 @@ describe('Feature flags: edit and delete', () => {
   it('a failed delete is reported', async () => {
     const ctx = renderAdmin({
       route: '/flags',
-      intercept: (r) => (r.method === 'DELETE' ? problem(404, "No flag with key 'compact-tables'") : undefined),
+      intercept: (r) =>
+        r.method === 'DELETE' ? problem(404, "No flag with key 'compact-tables'") : undefined,
     })
     await ctx.user.click(await screen.findByRole('button', { name: 'Delete compact-tables' }))
-    await ctx.user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete flag' }))
-    expect(await screen.findByText(/Could not delete compact-tables: No flag with key/)).toBeInTheDocument()
+    await ctx.user.click(
+      within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete flag' }),
+    )
+    expect(
+      await screen.findByText(/Could not delete compact-tables: No flag with key/),
+    ).toBeInTheDocument()
   })
 })
 
@@ -228,7 +267,9 @@ describe('validateFlagForm', () => {
     expect(validateFlagForm({ ...base, key: 'Anything' }, false, []).key).toBeUndefined()
   })
   it('rollout must be a whole number from 0 to 100', () => {
-    for (const rollout of ['0', '100', '37']) expect(validateFlagForm({ ...base, rollout }, true, []).rollout).toBeUndefined()
-    for (const rollout of ['', '-1', '101', '1.5', 'abc']) expect(validateFlagForm({ ...base, rollout }, true, []).rollout).toBeDefined()
+    for (const rollout of ['0', '100', '37'])
+      expect(validateFlagForm({ ...base, rollout }, true, []).rollout).toBeUndefined()
+    for (const rollout of ['', '-1', '101', '1.5', 'abc'])
+      expect(validateFlagForm({ ...base, rollout }, true, []).rollout).toBeDefined()
   })
 })

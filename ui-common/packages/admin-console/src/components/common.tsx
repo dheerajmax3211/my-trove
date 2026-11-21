@@ -46,17 +46,14 @@ export function RoleBadges({
 
 /** Shown in place of a screen the session may not open. */
 export function Forbidden({ area, permission }: { area: string; permission: string }) {
-  const session = useWorkspaceSession()
   return (
     <EmptyState
       illustration={<Illustration name="locked" />}
       title={`${area} is not available to your role`}
       description={
         <>
-          This screen needs the <code>{permission}</code> permission.
-          {session.roles.length > 0 ? ' Your roles: ' : ' '}
-          {session.roles.length > 0 ? <RoleBadges roles={session.roles} /> : null}
-          {' An owner can change your role from the Users screen.'}
+          This screen needs the <code>{permission}</code> permission. Ask an owner if you need
+          access.
         </>
       }
       action={

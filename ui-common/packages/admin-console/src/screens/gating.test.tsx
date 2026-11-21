@@ -49,6 +49,8 @@ describe('every screen gates itself on its own permission', () => {
 
   it('an unknown admin path shows a not-found page', async () => {
     renderAdmin({ route: '/nope' })
-    expect(await screen.findByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Page not found' }),
+    ).toBeInTheDocument()
   })
 })

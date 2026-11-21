@@ -76,14 +76,22 @@ function Where() {
 }
 
 /** Renders the console under `/app/admin` against the in-memory demo API, with a recorded request log. */
-export function renderAdmin({ persona = 'OWNER', route = '/', intercept, session }: HarnessOptions = {}) {
+export function renderAdmin({
+  persona = 'OWNER',
+  route = '/',
+  intercept,
+  session,
+}: HarnessOptions = {}) {
   const user = userEvent.setup()
   const requests: RecordedRequest[] = []
   const demo = createAdminDemoFetch()
   const actor = session?.uid ? Number(/(\d+)$/.exec(session.uid)?.[1] ?? 1) : ACTOR[persona]
 
   const fetchWithLog = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, 'http://gw.test')
+    const url = new URL(
+      typeof input === 'string' ? input : input instanceof URL ? input.href : input.url,
+      'http://gw.test',
+    )
     const service = url.pathname.startsWith('/api/auth/')
       ? 'auth'
       : url.pathname.startsWith('/api/platform/')
@@ -104,7 +112,7 @@ export function renderAdmin({ persona = 'OWNER', route = '/', intercept, session
   const client = createApiClient({
     baseUrl: 'http://gw.test/api/auth',
     getToken: () => `demo:${roles}:${actor}`,
-    fetch: fetchWithLog as typeof fetch,
+    fetch: fetchWithLog,
   })
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: 0 }, mutations: { retry: false } },

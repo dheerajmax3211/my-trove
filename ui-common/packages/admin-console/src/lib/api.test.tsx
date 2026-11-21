@@ -7,6 +7,9 @@ import { jsonResponse } from '../testing/harness'
 import { PlatformApiProvider, siblingClient, useNames, usePlatformQuery } from './api'
 import { formatPercent } from './format'
 
+const asUrl = (input: RequestInfo | URL): string =>
+  typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+
 const id = (n: number) => `0190d2a4-7a3e-7c1b-9f2e-${String(n).padStart(12, '0')}`
 
 function wrap(fetchImpl: typeof fetch, permissions = ['users:read'], extra?: React.ReactNode) {
@@ -45,7 +48,7 @@ describe('siblingClient', () => {
       baseUrl: 'http://gw.test/api/auth',
       getToken: () => 'tok',
       fetch: (input) => {
-        urls.push(String(input))
+        urls.push(asUrl(input))
         return Promise.resolve(jsonResponse({ ok: true }))
       },
     })
@@ -61,7 +64,7 @@ describe('siblingClient', () => {
       baseUrl: '/api/auth',
       getToken: () => 'tok',
       fetch: (input, init) => {
-        seen.push({ url: String(input), auth: new Headers(init?.headers).get('authorization') })
+        seen.push({ url: asUrl(input), auth: new Headers(init?.headers).get('authorization') })
         return Promise.resolve(jsonResponse([]))
       },
     })
@@ -76,7 +79,7 @@ describe('siblingClient', () => {
       baseUrl: 'http://platform.test/api/platform',
       getToken: () => 'x',
       fetch: (input) => {
-        calls.push(String(input))
+        calls.push(asUrl(input))
         return Promise.resolve(jsonResponse({ n: 1 }))
       },
     })
@@ -112,11 +115,13 @@ describe('useNames', () => {
   it('batches at most 100 ids per call, dedupes, and skips things that are not ids', async () => {
     const batches: string[][] = []
     const fetchImpl = ((input: RequestInfo | URL) => {
-      const url = new URL(String(input))
+      const url = new URL(asUrl(input))
       const ids = (url.searchParams.get('ids') ?? '').split(',')
       batches.push(ids)
       return Promise.resolve(
-        jsonResponse(ids.map((i) => ({ id: i, email: `${i.slice(-3)}@x.test`, displayName: null }))),
+        jsonResponse(
+          ids.map((i) => ({ id: i, email: `${i.slice(-3)}@x.test`, displayName: null })),
+        ),
       )
     }) as typeof fetch
     const ids = Array.from({ length: 250 }, (_, n) => id(n + 1))
