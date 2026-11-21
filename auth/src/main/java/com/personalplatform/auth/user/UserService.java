@@ -10,8 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserService {
 
-    public static final String ROLE_USER = "USER";
+    /** Baseline persona of every user; cannot be revoked. */
+    public static final String ROLE_MEMBER = "MEMBER";
     public static final String ROLE_ADMIN = "ADMIN";
+    public static final String ROLE_OWNER = "OWNER";
 
     private final UserRepository users;
     private final AppProperties props;
@@ -27,17 +29,22 @@ public class UserService {
         String email = jwt.getClaimAsString("email");
         String name = jwt.getClaimAsString("name");
         UUID id = users.upsertByFirebaseUid(jwt.getSubject(), email, name);
-        users.grantRole(id, ROLE_USER, null);
-        if (shouldBootstrapAdmin(jwt, email)) {
-            users.grantRole(id, ROLE_ADMIN, null);
+        users.grantRole(id, ROLE_MEMBER, null);
+        if (shouldBootstrapOwner(jwt, email) && users.grantRole(id, ROLE_OWNER, null)) {
+            users.bumpPermissionsVersion(id);
         }
         return users.findById(id).orElseThrow();
     }
 
-    /** Read-mostly path for per-request auth: only writes when the user is new. */
+    /**
+     * Read-mostly path for per-request auth: only writes when the user is new, or when a configured bootstrap owner
+     * (verified email) has not been made OWNER yet.
+     */
     @Transactional
     public AuthUser resolve(Jwt jwt) {
-        return users.findByFirebaseUid(jwt.getSubject()).orElseGet(() -> provision(jwt));
+        return users.findByFirebaseUid(jwt.getSubject())
+                .filter(u -> !needsBootstrapOwner(u, jwt))
+                .orElseGet(() -> provision(jwt));
     }
 
     @Transactional
@@ -47,7 +54,11 @@ public class UserService {
         return user;
     }
 
-    private boolean shouldBootstrapAdmin(Jwt jwt, String email) {
+    private boolean needsBootstrapOwner(AuthUser user, Jwt jwt) {
+        return !user.roles().contains(ROLE_OWNER) && shouldBootstrapOwner(jwt, jwt.getClaimAsString("email"));
+    }
+
+    private boolean shouldBootstrapOwner(Jwt jwt, String email) {
         if (email == null || !Boolean.TRUE.equals(jwt.getClaimAsBoolean("email_verified"))) {
             return false;
         }

@@ -47,11 +47,11 @@ public class AdminUserController {
     public AuthUser revoke(@PathVariable UUID id, @PathVariable String role, @AuthenticationPrincipal Jwt jwt) {
         AuthUser actor = userService.resolve(jwt);
         requireUserAndRole(id, role);
-        if (UserService.ROLE_USER.equals(role)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "USER role cannot be revoked");
+        if (UserService.ROLE_MEMBER.equals(role)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "MEMBER role cannot be revoked");
         }
-        if (actor.id().equals(id) && UserService.ROLE_ADMIN.equals(role)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Admins cannot revoke their own ADMIN role");
+        if (actor.id().equals(id) && (UserService.ROLE_ADMIN.equals(role) || UserService.ROLE_OWNER.equals(role))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Admins cannot revoke their own ADMIN or OWNER role");
         }
         users.revokeRole(id, role);
         return users.findById(id).orElseThrow();

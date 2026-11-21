@@ -14,25 +14,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-@Import({TestcontainersConfiguration.class, StubJwtConfig.class})
-@SpringBootTest
-@AutoConfigureMockMvc
-@TestPropertySource(properties = "app.auth.bootstrap-admin-emails=boss@example.com")
+@AuthIntegrationTest
 class AuthServiceApplicationTests {
 
     @Autowired MockMvc mvc;
     @Autowired org.jooq.DSLContext dsl;
 
     private static String bearer(String uid, String email, boolean verified) {
-        String raw = uid + "|" + email + "|" + verified;
-        return "Bearer " + java.util.Base64.getUrlEncoder().withoutPadding()
-                .encodeToString(raw.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        return TestUsers.bearer(uid, email, verified);
     }
 
     private String idOf(String authHeader) throws Exception {
@@ -59,54 +50,54 @@ class AuthServiceApplicationTests {
     }
 
     @Test
-    void firstSignInProvisionsUserWithUserRoleOnly() throws Exception {
+    void firstSignInProvisionsUserWithMemberRoleOnly() throws Exception {
         mvc.perform(post("/v1/auth/session").header("Authorization", bearer("uid-alice", "alice@example.com", true)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("alice@example.com"))
-                .andExpect(jsonPath("$.roles", containsInAnyOrder("USER")));
+                .andExpect(jsonPath("$.roles", containsInAnyOrder("MEMBER")));
     }
 
     @Test
-    void bootstrapAdminRequiresVerifiedEmail() throws Exception {
+    void bootstrapOwnerRequiresVerifiedEmail() throws Exception {
         mvc.perform(get("/v1/me").header("Authorization", bearer("uid-fake-boss", "boss@example.com", false)))
-                .andExpect(jsonPath("$.roles", not(hasItem("ADMIN"))));
+                .andExpect(jsonPath("$.roles", not(hasItem("OWNER"))));
         mvc.perform(get("/v1/me").header("Authorization", bearer("uid-boss", "boss@example.com", true)))
-                .andExpect(jsonPath("$.roles", hasItem("ADMIN")));
+                .andExpect(jsonPath("$.roles", hasItem("OWNER")));
     }
 
     @Test
     void adminEndpointsAreForbiddenToPlainUsers() throws Exception {
         String bob = bearer("uid-bob", "bob@example.com", true);
         String bobId = idOf(bob);
-        mvc.perform(get("/v1/admin/users/" + bobId).header("Authorization", bob)).andExpect(status().isForbidden());
+        mvc.perform(get("/v1/admin/users/" + bobId).header("Authorization", bob))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403));
     }
 
     @Test
-    void adminCanGrantAndRevokeRoles() throws Exception {
-        String admin = bearer("uid-boss", "boss@example.com", true);
-        idOf(admin);
+    void ownerCanGrantAndRevokeRolesAndTheyTakeEffectImmediately() throws Exception {
+        String owner = bearer("uid-boss", "boss@example.com", true);
+        idOf(owner);
         String carol = bearer("uid-carol", "carol@example.com", true);
         String carolId = idOf(carol);
 
-        mvc.perform(put("/v1/admin/users/" + carolId + "/roles/ADMIN").header("Authorization", admin))
+        mvc.perform(put("/v1/admin/users/" + carolId + "/roles/ADMIN").header("Authorization", owner))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.roles", hasItem("ADMIN")));
         // new role takes effect immediately: roles are read from the DB, not baked into the token
         mvc.perform(get("/v1/admin/users/" + carolId).header("Authorization", carol)).andExpect(status().isOk());
 
-        mvc.perform(delete("/v1/admin/users/" + carolId + "/roles/ADMIN").header("Authorization", admin))
+        mvc.perform(delete("/v1/admin/users/" + carolId + "/roles/ADMIN").header("Authorization", owner))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.roles", not(hasItem("ADMIN"))));
         mvc.perform(get("/v1/admin/users/" + carolId).header("Authorization", carol)).andExpect(status().isForbidden());
     }
 
     @Test
-    void adminGuardrails() throws Exception {
-        String admin = bearer("uid-boss", "boss@example.com", true);
-        String adminId = idOf(admin);
-        mvc.perform(delete("/v1/admin/users/" + adminId + "/roles/ADMIN").header("Authorization", admin))
+    void roleGuardrails() throws Exception {
+        String owner = bearer("uid-boss", "boss@example.com", true);
+        String ownerId = idOf(owner);
+        mvc.perform(delete("/v1/admin/users/" + ownerId + "/roles/MEMBER").header("Authorization", owner))
                 .andExpect(status().isBadRequest());
-        mvc.perform(delete("/v1/admin/users/" + adminId + "/roles/USER").header("Authorization", admin))
-                .andExpect(status().isBadRequest());
-        mvc.perform(put("/v1/admin/users/" + adminId + "/roles/NOPE").header("Authorization", admin))
+        mvc.perform(put("/v1/admin/users/" + ownerId + "/roles/NOPE").header("Authorization", owner))
                 .andExpect(status().isNotFound());
     }
 }
