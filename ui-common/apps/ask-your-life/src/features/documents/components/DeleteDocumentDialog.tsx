@@ -1,4 +1,5 @@
 import { Button, Dialog, DialogClose, useToast } from '@platform/ui'
+import { FailureCallout } from '../../../components/FailureCallout'
 import { describeIngestError } from '../api/documentsApi'
 import type { DocumentResponse } from '../api/types'
 import { useDeleteDocument } from '../hooks/useDocuments'

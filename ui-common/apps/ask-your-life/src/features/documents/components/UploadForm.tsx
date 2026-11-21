@@ -10,7 +10,11 @@ import { ExternalIdField, SourceSelect } from './CommonFields'
 const ACCEPT = '.txt,.md,.markdown,.html,.htm,.csv,.log,.eml,text/*'
 
 const formatSize = (bytes: number): string =>
-  bytes < 1024 ? `${bytes} bytes` : bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  bytes < 1024
+    ? `${bytes} bytes`
+    : bytes < 1024 * 1024
+      ? `${Math.round(bytes / 1024)} KB`
+      : `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 
 export function UploadForm({ onAdded }: { onAdded: (response: IngestResponse) => void }) {
   const { toast } = useToast()

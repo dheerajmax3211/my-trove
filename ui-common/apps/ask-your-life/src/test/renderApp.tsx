@@ -23,6 +23,8 @@ export function renderApp({
   signedIn,
   userOptions,
 }: RenderOptions = {}) {
+  // Recent searches live in localStorage; every test starts with none.
+  window.localStorage.clear()
   const runtime = createDemoRuntime({
     mock: { latencyMs: 0, ...mock },
     ...(wrapFetch ? { wrapFetch } : {}),

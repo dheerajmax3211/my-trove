@@ -33,11 +33,18 @@ export function useDocumentList(sourceType: SourceType | null, offset: number, l
   })
 }
 
-/** Whether the library has at least one document (used for the first-use state). */
-export function useHasDocuments() {
-  return useApiQuery<DocumentResponse[], boolean>(DOCUMENTS_PATH, {
-    query: { limit: 1, offset: 0 },
-    select: (docs) => docs.length > 0,
+/**
+ * The newest few documents. The home uses it twice: an empty answer means first use, and otherwise
+ * it is the "Recently added" list. Re-checks while anything is still indexing.
+ */
+export function useRecentDocuments(limit = 5) {
+  const { pollIntervalMs } = useSettings()
+  return useApiQuery<DocumentResponse[]>(DOCUMENTS_PATH, {
+    query: listQuery(null, 0, limit),
+    refetchInterval: (query) =>
+      query.state.status !== 'error' && query.state.data?.some((d) => d.status === 'PENDING')
+        ? pollIntervalMs
+        : false,
   })
 }
 
