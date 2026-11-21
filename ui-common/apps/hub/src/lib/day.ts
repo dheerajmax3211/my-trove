@@ -79,7 +79,7 @@ const dayName = new Intl.DateTimeFormat(undefined, {
   day: 'numeric',
   month: 'short',
 })
-const timeOnly = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' })
+const timeOnly = new Intl.DateTimeFormat(undefined, { timeStyle: 'short' })
 
 /** "Fri 27 Nov". */
 export function formatDay(ms: number): string {

@@ -123,9 +123,18 @@ export function createSeededState(
       lastFiredAt: status === 'COMPLETED' ? dueAt : null,
       createdAt: now - createdDaysAgo * DAY,
     })
-    recordAudit(state, now - createdDaysAgo * DAY, owner, householdId, 'reminder.created', 'reminder', id, {
-      title,
-    })
+    recordAudit(
+      state,
+      now - createdDaysAgo * DAY,
+      owner,
+      householdId,
+      'reminder.created',
+      'reminder',
+      id,
+      {
+        title,
+      },
+    )
   }
   addReminder('Put the bins out', 0.15, home, { unit: 'WEEKLY', interval: 1 }, 'ACTIVE', 0.3)
   addReminder('Book the boiler service', 1.2, home, null, 'ACTIVE', 1)

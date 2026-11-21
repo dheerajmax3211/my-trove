@@ -230,16 +230,20 @@ export function OverviewPage({
     return (
       <>
         <PageHeader {...(header ?? DEFAULT_HEADER)} />
-        <Loading />
-        {footer}
+        <div className={styles.page}>
+          <Loading />
+          {footer}
+        </div>
       </>
     )
   if (households.isError)
     return (
       <>
         <PageHeader {...(header ?? DEFAULT_HEADER)} />
-        <ErrorState error={households.error} onRetry={() => void households.refetch()} />
-        {footer}
+        <div className={styles.page}>
+          <ErrorState error={households.error} onRetry={() => void households.refetch()} />
+          {footer}
+        </div>
       </>
     )
   if (!primary)
@@ -251,8 +255,10 @@ export function OverviewPage({
             description: 'Households, reminders and files, shared with the people you choose.',
           })}
         />
-        <FirstRun />
-        {footer}
+        <div className={styles.page}>
+          <FirstRun />
+          {footer}
+        </div>
       </>
     )
 
