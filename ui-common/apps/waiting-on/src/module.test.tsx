@@ -3,7 +3,7 @@ import { ToastProvider } from '@platform/ui'
 import { ModuleBaseProvider } from '@platform/workspace-kit'
 import { QueryClient } from '@tanstack/react-query'
 import { render, renderHook, screen, waitFor } from '@testing-library/react'
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { createDemoFetch, productModule } from './module'
@@ -81,11 +81,11 @@ describe('createDemoFetch', () => {
 function mount(route: string, ui: ReactNode, fetchImpl: typeof fetch = createDemoFetch()) {
   const client = createApiClient({
     baseUrl: 'http://gw.test/api/waiting-on',
-    getToken: async () => 'token',
+    getToken: () => Promise.resolve('token'),
     fetch: fetchImpl,
   })
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  const { Providers } = productModule
+  const Providers = productModule.Providers ?? Fragment
   return {
     queryClient,
     wrapper: ({ children }: { children: ReactNode }) => (
@@ -178,7 +178,7 @@ const withToken = (init?: RequestInit): RequestInit => ({
 
 describe('todayItemsFrom', () => {
   const items = demoSeed(NOW)
-    .map((e) => ({ ...e.item, replyAddress: 'x', followUp: null }) as unknown as Item)
+    .map((e) => ({ ...e.item, replyAddress: 'x', followUp: null }))
     .filter((i) => (i as unknown as { ownerUid: string }).ownerUid === 'demo-user')
 
   it('lists overdue, due-soon and soon-to-be-followed-up items, most urgent first', () => {
@@ -256,11 +256,13 @@ describe('useTodayItems', () => {
   })
 
   it('returns no items, and stops loading, when the service fails', async () => {
-    const failing: typeof fetch = async () =>
-      new Response(JSON.stringify({ title: 'x', status: 500 }), {
-        status: 500,
-        headers: { 'content-type': 'application/problem+json' },
-      })
+    const failing: typeof fetch = () =>
+      Promise.resolve(
+        new Response(JSON.stringify({ title: 'x', status: 500 }), {
+          status: 500,
+          headers: { 'content-type': 'application/problem+json' },
+        }),
+      )
     const { wrapper } = mount(BASE, null, failing)
     const { result } = renderHook(() => productModule.useTodayItems!(), { wrapper })
     await waitFor(() => expect(result.current.loading).toBe(false))
