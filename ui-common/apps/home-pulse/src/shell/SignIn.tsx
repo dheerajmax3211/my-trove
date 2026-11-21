@@ -46,7 +46,7 @@ export function SignIn() {
           Home Pulse
         </span>
         <p aria-hidden="true" className="hp-signin-keycut">
-          <KeyCut />
+          <KeyCut style={{ color: 'var(--pp-color-vault-brass)' }} />
         </p>
         <p className="hp-signin-promise">
           Smart plugs report how much power each appliance draws. Home Pulse learns what normal

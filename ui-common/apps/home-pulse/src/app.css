@@ -662,3 +662,46 @@ ul.hp-plain-list:not(.hp-stack-3) > li + li {
   place-items: center;
   padding: var(--pp-space-6);
 }
+
+.hp-card-facts.hp-card-facts > div {
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  column-gap: var(--pp-space-3);
+}
+.hp-card-facts dd {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--pp-space-1);
+}
+
+.hp-service-list dd {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pp-space-1) var(--pp-space-2);
+}
+.hp-compare-table th,
+.hp-compare-table td {
+  padding-inline: var(--pp-space-1);
+}
+
+@media (max-width: 479.98px) {
+  .hp-brand {
+    font-size: var(--pp-text-body-size);
+    gap: var(--pp-space-1);
+    white-space: nowrap;
+  }
+  .hp-theme-select select {
+    max-width: 6.5rem;
+  }
+}
+
+.hp-table-scroll {
+  position: relative;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.hp-table-scroll:focus-visible {
+  outline: 2px solid var(--pp-color-focus-ring);
+  outline-offset: 2px;
+}

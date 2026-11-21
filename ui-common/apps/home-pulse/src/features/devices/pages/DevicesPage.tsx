@@ -173,23 +173,27 @@ export function DevicesPage() {
             {d.applianceName}.
           </Callout>
         ))}
-        <DataTable
-          caption="Devices"
-          columns={columns}
-          data={rows}
-          getRowId={(d) => d.id}
-          loading={devicesLoading}
-          defaultSort={{ columnId: 'status', direction: 'asc' }}
-          emptyState={
-            <EmptyState
-              headingAs="h2"
-              illustration={<Illustration name="key" size={180} />}
-              title="No devices yet"
-              description="Register the smart plug or sensor that measures an appliance. We will show you a one-time token to put on it."
-              action={<Button onClick={() => setRegistering(true)}>Register a device</Button>}
-            />
-          }
-        />
+        {/* Scrollable region: keyboard focusable so the wide table can be reached on a phone (WCAG 2.1.1). */}
+        {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}
+        <div className="hp-table-scroll" role="region" aria-label="Devices table" tabIndex={0}>
+          <DataTable
+            caption="Devices"
+            columns={columns}
+            data={rows}
+            getRowId={(d) => d.id}
+            loading={devicesLoading}
+            defaultSort={{ columnId: 'status', direction: 'asc' }}
+            emptyState={
+              <EmptyState
+                headingAs="h2"
+                illustration={<Illustration name="key" size={180} />}
+                title="No devices yet"
+                description="Register the smart plug or sensor that measures an appliance. We will show you a one-time token to put on it."
+                action={<Button onClick={() => setRegistering(true)}>Register a device</Button>}
+              />
+            }
+          />
+        </div>
       </div>
     )
 

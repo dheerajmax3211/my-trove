@@ -34,6 +34,7 @@ export function ServicePanel({ appliance, service, reminders }: ServicePanelProp
       <CardContent>
         <div className="hp-stack-4">
           <KeyValueList
+            className="hp-service-list"
             dense
             layout="stacked"
             items={[
