@@ -11,13 +11,13 @@ describe('sign-in and shell', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('Demo mode')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Continue as the demo user' }))
-    await pageHeading('Overview')
+    await pageHeading('Who can see what')
     expect(screen.getByText('demo@example.test')).toBeInTheDocument()
   })
 
   it('signs out and clears cached data', async () => {
     const { user, runtime } = renderApp()
-    await pageHeading('Overview')
+    await pageHeading('Who can see what')
     await user.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(await screen.findByRole('heading', { name: 'Sign in to Consent' })).toBeInTheDocument()
     expect(runtime.queryClient.getQueryCache().getAll()).toHaveLength(0)
@@ -25,7 +25,7 @@ describe('sign-in and shell', () => {
 
   it('navigates every screen from the sidebar and moves focus to the new heading', async () => {
     const { user } = renderApp()
-    await pageHeading('Overview')
+    await pageHeading('Who can see what')
     const nav = screen.getByRole('navigation', { name: 'Consent' })
     const screens: [string, string][] = [
       ['Requests', 'Requests'],
