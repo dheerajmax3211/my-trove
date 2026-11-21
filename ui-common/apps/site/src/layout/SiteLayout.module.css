@@ -1,0 +1,31 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+}
+.main:focus {
+  outline: none;
+}
+
+/* Visible only while it has focus, then it drops in over the header. */
+.skip {
+  position: fixed;
+  z-index: var(--pp-z-tooltip);
+  top: var(--pp-space-3);
+  inset-inline-start: var(--pp-space-3);
+  padding: var(--pp-space-3) var(--pp-space-5);
+  border-radius: var(--pp-radius-md);
+  background: var(--pp-color-vault);
+  color: var(--pp-color-on-vault);
+  font-weight: var(--pp-weight-semibold);
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+.skip:focus {
+  transform: none;
+}

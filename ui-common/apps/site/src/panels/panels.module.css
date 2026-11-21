@@ -1,0 +1,170 @@
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pp-space-3);
+}
+.headText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.title {
+  font-size: var(--pp-text-h3-size);
+  line-height: var(--pp-text-h3-line);
+  font-weight: var(--pp-text-h3-weight);
+}
+.muted {
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+}
+.mono {
+  font-family: var(--pp-font-mono);
+  font-size: 0.85em;
+  color: var(--pp-color-brass-text);
+}
+.sectionLabel {
+  margin-bottom: var(--pp-space-2);
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-body-small-size);
+  font-weight: var(--pp-weight-semibold);
+}
+.draft {
+  margin: 0;
+  padding: var(--pp-space-4);
+  border: 1px dashed var(--pp-color-border-strong);
+  border-radius: var(--pp-radius-md);
+  background: var(--pp-color-surface-sunken);
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+  line-height: 1.55;
+}
+.draftTag {
+  display: block;
+  margin-bottom: var(--pp-space-1);
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-caption-size);
+  font-weight: var(--pp-weight-semibold);
+}
+
+/* Home Pulse */
+.figure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--pp-space-4);
+}
+.chart {
+  width: 100%;
+  height: auto;
+}
+
+/* Ask Your Life */
+.query {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+  min-height: var(--pp-control-lg);
+  padding: 0 var(--pp-space-4);
+  border: 1px solid var(--pp-color-border-strong);
+  border-radius: var(--pp-radius-md);
+  background: var(--pp-color-surface-overlay);
+  box-shadow: var(--pp-shadow-inset);
+}
+.results {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.result {
+  display: grid;
+  gap: var(--pp-space-1);
+  padding-block: var(--pp-space-3);
+  border-bottom: 1px solid var(--pp-color-hairline);
+}
+.result:first-child {
+  padding-top: 0;
+}
+.result:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.resultTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pp-space-2);
+  font-weight: var(--pp-weight-semibold);
+}
+.snippet {
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+  line-height: 1.5;
+}
+.snippet mark {
+  padding: 0 2px;
+  border-radius: 2px;
+  background: var(--pp-color-brass-subtle);
+  color: var(--pp-color-text);
+}
+
+/* Digital Legacy */
+.trustees {
+  display: grid;
+  gap: var(--pp-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.trustee {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+}
+.trusteeName {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--pp-text-body-small-size);
+  font-weight: var(--pp-weight-semibold);
+}
+.stepperWrap {
+  overflow-x: auto;
+  padding-bottom: var(--pp-space-1);
+}
+
+/* Family Treasury */
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--pp-text-body-small-size);
+  font-variant-numeric: tabular-nums;
+}
+.ledger caption {
+  padding-bottom: var(--pp-space-2);
+  text-align: start;
+  font-weight: var(--pp-weight-semibold);
+}
+.ledger th,
+.ledger td {
+  padding: var(--pp-space-2) var(--pp-space-3);
+  border-bottom: 1px solid var(--pp-color-hairline);
+  text-align: start;
+}
+.ledger thead th {
+  background: var(--pp-color-surface-sunken);
+  color: var(--pp-color-text-muted);
+  font-weight: var(--pp-weight-semibold);
+}
+.ledger .num {
+  text-align: end;
+}
+.ledger tfoot th,
+.ledger tfoot td {
+  border-bottom: 0;
+  border-top: 1px solid var(--pp-color-border-strong);
+  font-weight: var(--pp-weight-semibold);
+}

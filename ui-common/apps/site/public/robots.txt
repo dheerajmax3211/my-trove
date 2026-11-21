@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Replace my-trove.example with the real origin when the site is deployed.
+Sitemap: https://my-trove.example/sitemap.xml

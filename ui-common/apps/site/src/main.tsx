@@ -1,15 +1,19 @@
+import { ThemeProvider } from '@platform/ui'
+import '@platform/ui/styles.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import '@platform/ui/styles.css'
+import { BrowserRouter } from 'react-router-dom'
+import { App } from './App'
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Missing #root element')
 
-// Placeholder from the Phase 2 pre-wiring; the real app is built in plan task 2.2.
 createRoot(root).render(
   <StrictMode>
-    <main>
-      <h1>My-Trove</h1>
-    </main>
+    <ThemeProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </ThemeProvider>
   </StrictMode>,
 )

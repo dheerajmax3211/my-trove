@@ -1,0 +1,72 @@
+.svg {
+  display: block;
+  width: 100%;
+  min-width: 52rem;
+  height: auto;
+  font-family: var(--pp-font-sans);
+}
+
+.box {
+  fill: var(--pp-color-surface);
+  stroke: var(--pp-color-border-strong);
+  stroke-width: 1.5;
+}
+.gateway {
+  fill: var(--pp-color-accent-subtle);
+  stroke: var(--pp-color-accent);
+  stroke-width: 1.75;
+}
+.ghost {
+  fill: none;
+  stroke: var(--pp-color-border-strong);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+}
+.brass {
+  fill: var(--pp-color-brass);
+}
+.dot {
+  fill: var(--pp-color-accent);
+}
+.neutralBar {
+  fill: var(--pp-color-border-strong);
+}
+
+.line {
+  fill: none;
+  stroke: var(--pp-color-text-muted);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+}
+.ghostLine {
+  fill: none;
+  stroke: var(--pp-color-border-strong);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+}
+.arrowHead {
+  fill: none;
+  stroke: var(--pp-color-text-muted);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.heading {
+  fill: var(--pp-color-text);
+  font-family: var(--pp-font-display);
+  font-size: 26px;
+}
+.strong {
+  fill: var(--pp-color-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+.body {
+  fill: var(--pp-color-text);
+  font-size: 14px;
+}
+.small {
+  fill: var(--pp-color-text-muted);
+  font-size: 13px;
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Replace my-trove.example with the real origin when the site is deployed. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://my-trove.example/</loc></url>
+  <url><loc>https://my-trove.example/products/waiting-on</loc></url>
+  <url><loc>https://my-trove.example/products/consent</loc></url>
+  <url><loc>https://my-trove.example/products/home-pulse</loc></url>
+  <url><loc>https://my-trove.example/products/ask-your-life</loc></url>
+  <url><loc>https://my-trove.example/products/digital-legacy</loc></url>
+  <url><loc>https://my-trove.example/products/family-treasury</loc></url>
+  <url><loc>https://my-trove.example/platform</loc></url>
+  <url><loc>https://my-trove.example/security</loc></url>
+  <url><loc>https://my-trove.example/pricing</loc></url>
+  <url><loc>https://my-trove.example/docs</loc></url>
+  <url><loc>https://my-trove.example/about</loc></url>
+</urlset>

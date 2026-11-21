@@ -1,0 +1,165 @@
+/* ---- Rows: a definition list with hairlines ---- */
+.rows {
+  margin: 0;
+  border-top: 1px solid var(--pp-color-border);
+}
+.row {
+  display: grid;
+  gap: var(--pp-space-2);
+  padding-block: var(--pp-space-5);
+  border-bottom: 1px solid var(--pp-color-border);
+}
+.row dt {
+  font-size: var(--pp-text-h3-size);
+  line-height: var(--pp-text-h3-line);
+  font-weight: var(--pp-text-h3-weight);
+  letter-spacing: var(--pp-text-h3-tracking);
+}
+.row dd {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--pp-color-text-muted);
+}
+@media (min-width: 48rem) {
+  .row {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--pp-space-8);
+  }
+}
+
+/* ---- Steps ---- */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13.5rem), 1fr));
+  gap: var(--pp-space-8) var(--pp-space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.step {
+  position: relative;
+  padding-top: var(--pp-space-5);
+  border-top: 1px solid var(--pp-color-border-strong);
+}
+/* A brass tab on the rule, the same mark the page titles carry. */
+.step::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  inset-inline-start: 0;
+  width: 2.5rem;
+  height: 3px;
+  background: var(--pp-color-brass);
+}
+.stepNumber {
+  display: block;
+  margin-bottom: var(--pp-space-3);
+  color: var(--pp-color-accent-text);
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-stat-size);
+  line-height: 1;
+  font-variant-numeric: lining-nums;
+}
+.stepTitle {
+  margin-bottom: var(--pp-space-2);
+  font-size: var(--pp-text-h3-size);
+  line-height: var(--pp-text-h3-line);
+}
+.stepText {
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+  line-height: 1.55;
+}
+
+/* ---- Technology ---- */
+.tech {
+  display: grid;
+  gap: var(--pp-space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.techItem {
+  display: grid;
+  gap: var(--pp-space-2);
+  max-width: 62ch;
+  padding-inline-start: var(--pp-space-5);
+  border-inline-start: 3px solid var(--pp-color-accent);
+}
+.techName {
+  font-size: var(--pp-text-h3-size);
+  line-height: var(--pp-text-h3-line);
+}
+.techItem p {
+  color: var(--pp-color-text-muted);
+}
+.techItem .techWhy {
+  color: var(--pp-color-text);
+}
+@media (min-width: 64rem) {
+  .tech {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--pp-space-10);
+  }
+  .techItem {
+    align-content: start;
+  }
+}
+
+/* ---- Not yet ---- */
+.notYet {
+  display: grid;
+  gap: var(--pp-space-4);
+  max-width: 54rem;
+}
+.notYetTitle {
+  font-size: var(--pp-text-h1-size);
+  line-height: var(--pp-text-h1-line);
+  letter-spacing: var(--pp-text-h1-tracking);
+}
+.notYetList {
+  display: grid;
+  gap: var(--pp-space-2);
+  margin: 0;
+  padding-inline-start: var(--pp-space-5);
+}
+
+/* ---- Panel frame ---- */
+.panel {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-xl);
+  background: var(--pp-color-surface);
+  box-shadow:
+    inset 0 1px 0 var(--pp-color-highlight),
+    var(--pp-shadow-lg);
+}
+.panelBar {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-3) var(--pp-space-4);
+  border-bottom: 1px solid var(--pp-color-hairline);
+  background: var(--pp-color-surface-sunken);
+}
+.panelTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--pp-text-label-size);
+  font-weight: var(--pp-weight-semibold);
+}
+.sample {
+  flex: none;
+  padding: 2px var(--pp-space-2);
+  border: 1px dashed var(--pp-color-border-strong);
+  border-radius: var(--pp-radius-full);
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-caption-size);
+  font-weight: var(--pp-weight-medium);
+}
+.panelBody {
+  display: grid;
+  gap: var(--pp-space-5);
+  padding: var(--pp-space-5);
+}
