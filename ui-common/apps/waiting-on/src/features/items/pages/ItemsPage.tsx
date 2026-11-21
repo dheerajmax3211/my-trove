@@ -171,7 +171,7 @@ export function ItemsPage() {
         actions={addLink}
       />
       <div className="wo-page">
-        {home && items.isSuccess && !neverUsed ? <HomeSummary active={items.data} /> : null}
+        {home && items.isSuccess && !isEmpty ? <HomeSummary active={items.data} /> : null}
         {neverUsed ? null : (
           <div className="wo-filters" role="group" aria-label="Filters">
             <Field label="Status">
