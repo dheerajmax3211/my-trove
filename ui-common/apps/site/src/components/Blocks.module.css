@@ -30,7 +30,7 @@
 /* ---- Steps ---- */
 .steps {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13.5rem), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
   gap: var(--pp-space-8) var(--pp-space-6);
   margin: 0;
   padding: 0;

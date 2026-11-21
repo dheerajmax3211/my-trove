@@ -12,9 +12,7 @@
 .inner {
   display: grid;
   gap: var(--pp-space-12);
-  max-width: var(--pp-layout-content);
-  margin-inline: auto;
-  padding: var(--pp-space-16) var(--pp-space-4) var(--pp-space-12);
+  padding-block: var(--pp-space-16) var(--pp-space-12);
 }
 .about {
   display: grid;
@@ -67,14 +65,8 @@
 @media (min-width: 48rem) {
   .inner {
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    padding-inline: var(--pp-space-6);
   }
   .cols {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-@media (min-width: 64rem) {
-  .inner {
-    padding-inline: var(--pp-space-10);
   }
 }

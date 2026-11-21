@@ -1,4 +1,4 @@
-import { KeyCut, Logo } from '@platform/ui'
+import { Container, KeyCut, Logo } from '@platform/ui'
 import { Link } from 'react-router-dom'
 import { demoUrl, repoUrl, workspaceUrl } from '../config'
 import { products } from '../content/products'
@@ -9,7 +9,7 @@ export function Footer() {
   return (
     <footer className={styles.footer}>
       <KeyCut className={styles.edge} height={20} />
-      <div className={styles.inner}>
+      <Container className={styles.inner}>
         <div className={styles.about}>
           <Logo size="lg" title="My-Trove" />
           <p className={styles.line}>A vault you can lend from.</p>
@@ -65,7 +65,7 @@ export function Footer() {
             </ul>
           </div>
         </nav>
-      </div>
+      </Container>
     </footer>
   )
 }
