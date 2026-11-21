@@ -11,7 +11,7 @@
 
 	<artifactId>platform-security</artifactId>
 	<name>platform-security</name>
-	<description>Shared Firebase ID-token verification and a default secure filter chain for all platform services</description>
+	<description>Shared Firebase ID-token and platform-token verification, permission authorities and a default secure filter chain for all platform services</description>
 
 	<dependencies>
 		<dependency>
@@ -29,6 +29,16 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
