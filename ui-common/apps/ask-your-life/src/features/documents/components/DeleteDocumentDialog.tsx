@@ -51,12 +51,7 @@ export function DeleteDocumentDialog({
         </>
       }
     >
-      {failure ? (
-        <div role="alert" className="ayl-callout" data-tone="danger">
-          <strong>{failure.title}</strong>
-          <span>{failure.message}</span>
-        </div>
-      ) : null}
+      {failure ? <FailureCallout failure={failure} /> : null}
     </Dialog>
   )
 }

@@ -110,6 +110,14 @@ function stripExtension(name: string): string | undefined {
   return dot > 0 ? name.slice(0, dot) : name
 }
 
+/**
+ * The service path of a request. The standalone app calls `/api/v1/...`; inside the workspace the
+ * client is bound to the gateway route, `<gateway>/api/ask-your-life/v1/...`. Both reach the same handlers.
+ */
+function apiPath(url: URL): string {
+  return url.pathname.replace(/^\/api(\/ask-your-life)?(?=\/|$)/, '')
+}
+
 export function createMockApi(options: MockApiOptions = {}): MockApi {
   const latencyMs = options.latencyMs ?? 200
   const indexAfterPolls = options.indexAfterPolls ?? 2
@@ -377,7 +385,7 @@ export function createMockApi(options: MockApiOptions = {}): MockApi {
       window.location.origin,
     )
     const method = (init?.method ?? 'GET').toUpperCase()
-    const path = url.pathname.replace(/^\/api/, '')
+    const path = apiPath(url)
     requests.push(`${method} ${path}${url.search}`)
     const token = new Headers(init?.headers).get('authorization')?.replace(/^Bearer /, '')
 
@@ -464,7 +472,7 @@ export function createMockApi(options: MockApiOptions = {}): MockApi {
   }
 
   const handleIngest = async (url: URL, init?: RequestInit): Promise<Response> => {
-    const path = url.pathname.replace(/^\/api/, '')
+    const path = apiPath(url)
     const body = init?.body
     if (body instanceof FormData) {
       const file = body.get('file')

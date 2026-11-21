@@ -66,12 +66,7 @@ function ReplaceContentForm({ document }: { document: DocumentResponse }) {
         >
           <Textarea rows={6} value={text} onChange={(e) => setText(e.target.value)} />
         </Field>
-        {failure ? (
-          <div role="alert" className="ayl-callout" data-tone="danger">
-            <strong>{failure.title}</strong>
-            <span>{failure.message}</span>
-          </div>
-        ) : null}
+        {failure ? <FailureCallout failure={failure} /> : null}
         <div>
           <Button type="submit" loading={replace.isPending}>
             Replace content

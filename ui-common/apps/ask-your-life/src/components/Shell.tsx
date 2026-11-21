@@ -2,9 +2,7 @@ import { useAuth } from '@platform/auth-web'
 import {
   AppShell,
   Button,
-  InboxIcon,
-  PlusIcon,
-  SearchIcon,
+  ProductMark,
   Select,
   SidebarLink,
   SidebarNav,
@@ -12,32 +10,9 @@ import {
   useTheme,
   type ThemePreference,
 } from '@platform/ui'
-import { useCallback, type ReactNode } from 'react'
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useSlashShortcut } from '../lib/useSlashShortcut'
-
-function NavItem({
-  to,
-  end,
-  icon,
-  children,
-}: {
-  to: string
-  end?: boolean
-  icon: ReactNode
-  children: ReactNode
-}) {
-  return (
-    <SidebarLink asChild>
-      <NavLink to={to} end={end ?? false}>
-        <span className="ayl-navicon" aria-hidden="true">
-          {icon}
-        </span>
-        {children}
-      </NavLink>
-    </SidebarLink>
-  )
-}
+import { ModuleLink, ModuleNavLink } from '@platform/workspace-kit'
+import type { ReactNode } from 'react'
+import { productModule } from '../module'
 
 function ThemeSelect() {
   const { theme, setTheme } = useTheme()
@@ -56,38 +31,35 @@ function ThemeSelect() {
   )
 }
 
-/** App frame: navigation, theme and account. "/" jumps to search from any page. */
-export function Shell() {
+/**
+ * The standalone app's frame: navigation, theme and account. The workspace provides its own frame
+ * and mounts only the product's routes, so nothing in here is needed there.
+ */
+export function Shell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth()
-  const navigate = useNavigate()
-  const { pathname } = useLocation()
-
-  // On the search page the page itself focuses the box; elsewhere, go there (it focuses on arrival).
-  useSlashShortcut(
-    useCallback(() => {
-      if (pathname !== '/') void navigate('/')
-    }, [pathname, navigate]),
-  )
-
   return (
     <AppShell
       brand={
-        <Link to="/" className="ayl-brand">
+        <ModuleLink to="/" className="ayl-brand">
+          <ProductMark product="ask-your-life" size={28} variant="solid" />
           Ask your life
-        </Link>
+        </ModuleLink>
       }
       sidebar={
         <SidebarNav label="Main">
           <SidebarSection>
-            <NavItem to="/" end icon={<SearchIcon />}>
-              Search
-            </NavItem>
-            <NavItem to="/add" icon={<PlusIcon />}>
-              Add content
-            </NavItem>
-            <NavItem to="/library" icon={<InboxIcon />}>
-              Library
-            </NavItem>
+            {productModule.nav.map(({ to, label, icon: Icon, end }) => (
+              <SidebarLink key={to} asChild>
+                <ModuleNavLink to={to} end={end ?? false}>
+                  {Icon ? (
+                    <span className="ayl-navicon" aria-hidden="true">
+                      <Icon />
+                    </span>
+                  ) : null}
+                  {label}
+                </ModuleNavLink>
+              </SidebarLink>
+            ))}
           </SidebarSection>
         </SidebarNav>
       }
@@ -101,7 +73,7 @@ export function Shell() {
         </>
       }
     >
-      <Outlet />
+      {children}
     </AppShell>
   )
 }
