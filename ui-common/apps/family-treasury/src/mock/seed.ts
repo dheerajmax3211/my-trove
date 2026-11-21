@@ -37,6 +37,9 @@ export const PERSONAS: readonly Persona[] = [
   },
 ]
 
+/** The persona the workspace's demo mode views the ledger as (the workspace signs in its own stub user). */
+export const DEMO_VIEWER_UID = 'u-maya'
+
 export const DEMO_HOUSEHOLD = 'Okafor family'
 export const DEMO_TRIP = 'Lisbon trip'
 

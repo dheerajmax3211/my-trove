@@ -26,7 +26,7 @@ export function seededBackend(clock: Clock = fixedClock()) {
 /** A typed API client for `uid` talking straight to the mock, with no UI. */
 export function apiFor(backend: MockBackend, uid: string) {
   const client = createApiClient({
-    baseUrl: '/api/v1',
+    baseUrl: '/api',
     getToken: () => `demo:${uid}`,
     fetch: backend.fetch,
   })

@@ -24,7 +24,7 @@ function setup(
     return Promise.resolve(respond())
   }
   const client = createApiClient({
-    baseUrl: '/api/v1',
+    baseUrl: '/api',
     getToken: () => 'tok',
     fetch: fetchSpy,
   })
@@ -193,7 +193,7 @@ describe('response handling', () => {
 
   it('maps a dropped connection to a network ApiError', async () => {
     const client = createApiClient({
-      baseUrl: '/api/v1',
+      baseUrl: '/api',
       getToken: () => 't',
       fetch: () => Promise.reject(new TypeError('Failed to fetch')),
     })

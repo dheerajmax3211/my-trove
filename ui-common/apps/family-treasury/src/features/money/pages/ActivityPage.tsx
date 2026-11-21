@@ -7,7 +7,7 @@ import {
   type DataTableColumn,
 } from '@platform/ui'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import type { EntryView } from '../../../api/types'
 import { AccessNotice } from '../../../components/AccessNotice'
 import { MoneyText } from '../../../components/MoneyText'
@@ -109,7 +109,7 @@ export function ActivityPage() {
                     description="Record a deposit or a spend and it will appear here."
                     action={
                       <Button asChild>
-                        <Link to={`/h/${h.household.id}/move`}>Move money</Link>
+                        <ModuleLink to={`/h/${h.household.id}/move`}>Move money</ModuleLink>
                       </Button>
                     }
                   />
