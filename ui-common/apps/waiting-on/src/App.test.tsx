@@ -2,15 +2,21 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { problem, renderApp, type RecordedRequest } from './testing/harness'
 
-const list = async () => within(await screen.findByRole('list', { name: 'Waiting items' }))
+const list = async () => within(await screen.findByRole('group', { name: 'Waiting items' }))
 const titles = async () =>
-  (await list()).getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
+  (await list()).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
 
 describe('first use', () => {
   it('explains the product and leads to the form when there are no items at all', async () => {
     const { user } = renderApp({ seed: [] })
-    expect(await screen.findByRole('heading', { name: /Stop chasing people/ })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: /Tell Waiting On what you are waiting for/ }),
+    ).toBeInTheDocument()
     expect(screen.getByText(/a friendly nudge, then a firm escalation letter/)).toBeInTheDocument()
+    expect(
+      screen.getByRole('list', { name: 'Follow-up schedule for a refund' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/does not email anyone for you/)).toBeInTheDocument()
     expect(screen.queryByRole('group', { name: 'Filters' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('link', { name: 'Add your first item' }))
     expect(
@@ -27,6 +33,7 @@ describe('waiting list', () => {
       'Refund for returned jacket',
       'Standing desk order #5521',
       'Conference travel expenses',
+      'Visa renewal decision',
     ])
     const jacket = within(
       (await list())
@@ -43,19 +50,19 @@ describe('waiting list', () => {
         .closest('li') as HTMLElement,
     )
     expect(expenses.getByText('Due in 5 days')).toBeInTheDocument()
-    expect(screen.getByText('4 items, 3 overdue')).toBeInTheDocument()
+    expect(screen.getByText('3 of 5 items are past their expected date.')).toBeInTheDocument()
   })
 
   it("never shows another user's items", async () => {
     const { user } = renderApp()
     await user.selectOptions(await screen.findByLabelText('Status'), 'ALL')
-    await waitFor(async () => expect(await titles()).toHaveLength(7))
+    await waitFor(async () => expect(await titles()).toHaveLength(8))
     expect(await titles()).not.toContain("Somebody else's refund")
   })
 
   it('filters by status through the service and keeps the choice in the address', async () => {
     const { user, requests } = renderApp()
-    await screen.findByRole('list', { name: 'Waiting items' })
+    await screen.findByRole('group', { name: 'Waiting items' })
     await user.selectOptions(screen.getByLabelText('Status'), 'RESOLVED')
     await waitFor(async () => expect(await titles()).toEqual(['Parking permit renewal']))
     const closed = within(
@@ -78,13 +85,13 @@ describe('waiting list', () => {
 
   it('filters by category on top of the status filter', async () => {
     const { user } = renderApp()
-    await screen.findByRole('list', { name: 'Waiting items' })
+    await screen.findByRole('group', { name: 'Waiting items' })
     await user.selectOptions(screen.getByLabelText('Category'), 'DELIVERY')
     await waitFor(async () => expect(await titles()).toEqual(['Standing desk order #5521']))
     await user.selectOptions(screen.getByLabelText('Status'), 'RESOLVED')
     expect(await screen.findByText('Nothing matches these filters')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Show everything' }))
-    await waitFor(async () => expect(await titles()).toHaveLength(7))
+    await waitFor(async () => expect(await titles()).toHaveLength(8))
   })
 
   it('shows a friendly message when filters match nothing', async () => {

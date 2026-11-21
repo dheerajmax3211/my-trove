@@ -1,18 +1,18 @@
 import { PageHeader, useToast } from '@platform/ui'
-import { Link, useNavigate } from 'react-router-dom'
+import { ModuleLink, useModuleNavigate } from '@platform/workspace-kit'
 import { usePageTitle } from '../../../lib/usePageTitle'
 import { ItemForm } from '../components/ItemForm'
 
 export function NewItemPage() {
-  usePageTitle('Add item')
-  const navigate = useNavigate()
+  usePageTitle('Add something')
+  const navigate = useModuleNavigate()
   const { toast } = useToast()
   return (
     <>
       <PageHeader
-        eyebrow={<Link to="/">Back to waiting list</Link>}
+        eyebrow={<ModuleLink to="/">Back to waiting list</ModuleLink>}
         title="Add something you are waiting for"
-        description="Tell us what is owed and when you expected it. We will set up the follow-ups."
+        description="Say what is owed, who owes it and when you expected it. Waiting On sets up the follow-ups from that date."
       />
       <div className="wo-page">
         <ItemForm
@@ -22,7 +22,7 @@ export function NewItemPage() {
               description: `We will follow up with ${item.counterparty} for you.`,
               variant: 'success',
             })
-            void navigate(`/items/${item.id}`)
+            navigate(`/items/${item.id}`)
           }}
         />
       </div>

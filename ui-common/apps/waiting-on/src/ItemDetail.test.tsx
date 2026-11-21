@@ -195,10 +195,13 @@ describe('resolve', () => {
     expect(await screen.findByText('Marked as resolved', { selector: 'p' })).toBeInTheDocument()
 
     await user.click(screen.getByRole('link', { name: 'Back to waiting list' }))
-    await screen.findByRole('list', { name: 'Waiting items' })
+    const waiting = within(await screen.findByRole('group', { name: 'Waiting items' }))
     expect(
-      screen.queryByRole('link', { name: 'Refund for returned jacket' }),
+      waiting.queryByRole('link', { name: 'Refund for returned jacket' }),
     ).not.toBeInTheDocument()
+    // it moved to the short list of recently closed items
+    const recent = within(await screen.findByRole('region', { name: /Recently closed/ }))
+    expect(recent.getByRole('link', { name: 'Refund for returned jacket' })).toBeInTheDocument()
     await user.selectOptions(screen.getByLabelText('Status'), 'RESOLVED')
     expect(
       await screen.findByRole('link', { name: 'Refund for returned jacket' }),
@@ -292,7 +295,7 @@ describe('failures', () => {
     expect(alert).not.toHaveTextContent('NullPointerException')
     broken = false
     await user.click(within(alert).getByRole('button', { name: 'Try again' }))
-    expect(await screen.findByRole('list', { name: 'Waiting items' })).toBeInTheDocument()
+    expect(await screen.findByRole('group', { name: 'Waiting items' })).toBeInTheDocument()
   })
 
   it('says so when the server cannot be reached', async () => {
@@ -339,8 +342,8 @@ describe('shell', () => {
 
   it('moves focus to the new page heading after navigating', async () => {
     const { user } = renderApp()
-    await screen.findByRole('list', { name: 'Waiting items' })
-    await user.click(screen.getAllByRole('link', { name: 'Add item' })[0]!)
+    await screen.findByRole('group', { name: 'Waiting items' })
+    await user.click(screen.getAllByRole('link', { name: 'Add something you are waiting for' })[0]!)
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Add something you are waiting for' }),
     ).toHaveFocus()

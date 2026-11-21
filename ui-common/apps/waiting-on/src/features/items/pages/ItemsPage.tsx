@@ -2,14 +2,16 @@ import {
   Button,
   EmptyState,
   Field,
+  Illustration,
   PageHeader,
   PlusIcon,
   Select,
   Skeleton,
   VisuallyHidden,
 } from '@platform/ui'
+import { ModuleLink } from '@platform/workspace-kit'
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { ErrorState } from '../../../components/ErrorState'
 import { useClock } from '../../../lib/clock'
 import { usePageTitle } from '../../../lib/usePageTitle'
@@ -17,16 +19,21 @@ import {
   ITEM_CATEGORIES,
   ITEM_STATUSES,
   ACTIVE_STATUSES,
+  type Item,
   type ItemCategory,
   type ItemStatus,
 } from '../api/types'
 import { FirstUse } from '../components/FirstUse'
-import { ItemRow } from '../components/ItemRow'
+import { HomeSummary } from '../components/HomeSummary'
+import { ItemGroup } from '../components/ItemGroup'
 import { PAGE_SIZE, useAnyItems, useItems } from '../hooks/useItems'
+import { GROUP_ORDER, groupItems } from '../logic/groups'
 import { CATEGORY_LABEL, STATUS_LABEL } from '../logic/labels'
-import { dueState } from '../logic/schedule'
 
 type StatusFilter = 'ACTIVE' | 'ALL' | ItemStatus
+
+const CLOSED_STATUSES: readonly ItemStatus[] = ['RESOLVED', 'EXPIRED', 'CANCELLED']
+const CLOSED_PREVIEW = 5
 
 const isStatusFilter = (v: string | null): v is StatusFilter =>
   v === 'ACTIVE' || v === 'ALL' || ITEM_STATUSES.includes(v as ItemStatus)
@@ -39,12 +46,13 @@ function statusesFor(filter: StatusFilter): readonly ItemStatus[] | null {
   return [filter]
 }
 
-function ListSkeleton() {
+function HomeSkeleton() {
   return (
-    <div className="wo-items" aria-busy="true">
+    <div aria-busy="true" className="wo-page">
       <VisuallyHidden role="status">Loading your items</VisuallyHidden>
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="wo-row" aria-hidden="true">
+      <Skeleton height={184} />
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="wo-row wo-row-skeleton" aria-hidden="true">
           <div className="wo-row-main">
             <Skeleton height={22} width="55%" />
             <Skeleton height={16} width="80%" />
@@ -57,7 +65,7 @@ function ListSkeleton() {
 }
 
 export function ItemsPage() {
-  usePageTitle('Waiting list')
+  usePageTitle('Waiting on')
   const clock = useClock()
   const [params, setParams] = useSearchParams()
   const statusParam = params.get('status')
@@ -67,13 +75,16 @@ export function ItemsPage() {
   const [limit, setLimit] = useState(PAGE_SIZE)
 
   const items = useItems(statusesFor(status), limit)
-  const filtered =
+  const filtered: Item[] | undefined =
     category === 'ALL' ? items.data : items.data?.filter((i) => i.category === category)
   const isEmpty = items.isSuccess && items.data.length === 0
   // Only when the (unfiltered by category) list is empty do we ask whether the user has any item at all.
   const anyItems = useAnyItems(isEmpty && category === 'ALL')
   const neverUsed =
     isEmpty && category === 'ALL' && anyItems.isSuccess && anyItems.data.length === 0
+  // The home view shows the active items by urgency, with a short list of what was closed lately.
+  const home = status === 'ACTIVE'
+  const closed = useItems(CLOSED_STATUSES, CLOSED_PREVIEW, home && items.isSuccess && !isEmpty)
 
   const setFilter = (key: 'status' | 'category', value: string, fallback: string) => {
     const next = new URLSearchParams(params)
@@ -86,10 +97,14 @@ export function ItemsPage() {
     setParams({ status: 'ALL' }, { replace: true })
   }
 
-  const overdue = filtered?.filter((i) => dueState(i, clock())?.kind === 'overdue').length ?? 0
+  const addLink = (
+    <Button asChild leftIcon={<PlusIcon size={18} />}>
+      <ModuleLink to="/new">Add something you are waiting for</ModuleLink>
+    </Button>
+  )
 
   let content
-  if (items.isPending) content = <ListSkeleton />
+  if (items.isPending) content = <HomeSkeleton />
   else if (items.isError)
     content = (
       <ErrorState
@@ -99,39 +114,45 @@ export function ItemsPage() {
       />
     )
   else if (neverUsed) content = <FirstUse />
-  else if (filtered && filtered.length === 0)
-    content = (
+  else if (filtered && filtered.length === 0) {
+    const nothingActive = home && category === 'ALL'
+    content = nothingActive ? (
       <EmptyState
+        illustration={<Illustration name="allClear" />}
+        title="You are not waiting on anyone"
+        description="Nothing is open right now. When the next refund, claim or approval is on its way, add it and the follow-ups start from the date you expect it."
+        action={addLink}
+      />
+    ) : (
+      <EmptyState
+        illustration={<Illustration name="search" />}
         title="Nothing matches these filters"
-        description={
-          status === 'ACTIVE' && category === 'ALL'
-            ? 'You have no active items right now. Closed items are still available under All statuses.'
-            : 'Try a different status or category.'
-        }
+        description="Try a different status or category, or show everything."
         action={
           <>
             <Button variant="secondary" onClick={clearFilters}>
               Show everything
             </Button>
-            <Button asChild>
-              <Link to="/new">Add item</Link>
-            </Button>
+            {addLink}
           </>
         }
       />
     )
-  else if (filtered)
+  } else if (filtered) {
+    const now = clock()
+    const groups = groupItems(filtered, now)
     content = (
       <>
-        <p className="wo-summary" role="status">
-          {filtered.length} {filtered.length === 1 ? 'item' : 'items'}
-          {overdue > 0 ? `, ${overdue} overdue` : ', none overdue'}
-        </p>
-        <ul className="wo-items" aria-label="Waiting items">
-          {filtered.map((item) => (
-            <ItemRow key={item.id} item={item} />
+        {home ? null : (
+          <p className="wo-summary" role="status">
+            {filtered.length} {filtered.length === 1 ? 'item' : 'items'} shown
+          </p>
+        )}
+        <div role="group" aria-label="Waiting items" className="wo-groups">
+          {GROUP_ORDER.map((key) => (
+            <ItemGroup key={key} group={key} items={groups[key]} />
           ))}
-        </ul>
+        </div>
         {items.data && items.data.length >= limit ? (
           <Button variant="secondary" onClick={() => setLimit(limit + PAGE_SIZE)}>
             Show more
@@ -139,19 +160,18 @@ export function ItemsPage() {
         ) : null}
       </>
     )
+  }
 
+  const closedItems = closed.data ?? []
   return (
     <>
       <PageHeader
-        title="Waiting list"
-        description="Everything you are waiting on other people for, and what happens next."
-        actions={
-          <Button asChild leftIcon={<PlusIcon size={18} />}>
-            <Link to="/new">Add item</Link>
-          </Button>
-        }
+        title="What you are waiting for"
+        description="Everything other people owe you, grouped by how late it is, with the next follow-up for each."
+        actions={addLink}
       />
       <div className="wo-page">
+        {home && items.isSuccess && !isEmpty ? <HomeSummary active={items.data} /> : null}
         {neverUsed ? null : (
           <div className="wo-filters" role="group" aria-label="Filters">
             <Field label="Status">
@@ -184,6 +204,19 @@ export function ItemsPage() {
           </div>
         )}
         {content}
+        {home && closedItems.length > 0 ? (
+          <div className="wo-recent">
+            <ItemGroup
+              group="closed"
+              items={closedItems}
+              title="Recently closed"
+              blurb="The last few items that are no longer waiting."
+            />
+            <Button variant="secondary" onClick={() => setFilter('status', 'ALL', 'ACTIVE')}>
+              Show every item, closed ones too
+            </Button>
+          </div>
+        ) : null}
       </div>
     </>
   )

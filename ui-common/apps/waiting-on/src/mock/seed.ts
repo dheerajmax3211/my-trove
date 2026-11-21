@@ -207,6 +207,17 @@ export function demoSeed(now: Date): SeedEntry[] {
       ],
     },
     {
+      n: 8,
+      title: 'Visa renewal decision',
+      counterparty: 'Home Office',
+      category: 'APPROVAL',
+      expectedInDays: 21,
+      createdDaysAgo: 3,
+      status: 'OPEN',
+      stage: 'AWAITING_NUDGE',
+      events: [started('Visa renewal decision', 'Home Office', 3)],
+    },
+    {
       n: 255,
       title: "Somebody else's refund",
       counterparty: 'Not yours',

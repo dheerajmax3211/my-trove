@@ -3,8 +3,7 @@ import {
   AppShell,
   Badge,
   Button,
-  InboxIcon,
-  PlusIcon,
+  ProductMark,
   Select,
   SidebarLink,
   SidebarNav,
@@ -12,31 +11,9 @@ import {
   useTheme,
   type ThemePreference,
 } from '@platform/ui'
-import { useEffect, useRef, type ReactNode } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-
-function NavItem({
-  to,
-  end,
-  icon,
-  children,
-}: {
-  to: string
-  end?: boolean
-  icon: ReactNode
-  children: ReactNode
-}) {
-  return (
-    <SidebarLink asChild>
-      <NavLink to={to} end={end ?? false}>
-        <span style={{ display: 'inline-flex' }} aria-hidden="true">
-          {icon}
-        </span>
-        {children}
-      </NavLink>
-    </SidebarLink>
-  )
-}
+import { ModuleLink, ModuleNavLink } from '@platform/workspace-kit'
+import { createElement, type ReactNode } from 'react'
+import { NAV } from '../navigation'
 
 function ThemeSelect() {
   const { theme, setTheme } = useTheme()
@@ -58,42 +35,34 @@ function ThemeSelect() {
   )
 }
 
-/** Moves focus to the page heading after each navigation so keyboard and screen reader users land on the new page. */
-function useFocusHeadingOnNavigate() {
-  const { pathname } = useLocation()
-  const previous = useRef(pathname)
-  useEffect(() => {
-    if (previous.current === pathname) return // first render: leave focus where the browser put it
-    previous.current = pathname
-    const heading = document.querySelector<HTMLElement>('main h1')
-    if (!heading) return
-    heading.tabIndex = -1
-    heading.focus({ preventScroll: false })
-  }, [pathname])
-}
-
-export function AppLayout({ demo }: { demo: boolean }) {
+/** The standalone frame. Inside the workspace the shell replaces this; the pages do not care which one wraps them. */
+export function AppLayout({ demo, children }: { demo: boolean; children: ReactNode }) {
   const { user, signOut } = useAuth()
-  useFocusHeadingOnNavigate()
   return (
     <AppShell
       brand={
-        <Link to="/" className="wo-brand">
+        <ModuleLink to="/" className="wo-brand">
           <span className="wo-hide-xs">
-            <InboxIcon />
-          </span>{' '}
+            <ProductMark product="waiting-on" size={28} variant="solid" />
+          </span>
           Waiting On
-        </Link>
+        </ModuleLink>
       }
       sidebar={
         <SidebarNav label="Main">
-          <SidebarSection title="Follow-ups">
-            <NavItem to="/" end icon={<InboxIcon />}>
-              Waiting list
-            </NavItem>
-            <NavItem to="/new" icon={<PlusIcon />}>
-              Add item
-            </NavItem>
+          <SidebarSection>
+            {NAV.map((item) => (
+              <SidebarLink asChild key={item.to}>
+                <ModuleNavLink to={item.to} end={item.end ?? false}>
+                  {item.icon ? (
+                    <span style={{ display: 'inline-flex' }} aria-hidden="true">
+                      {createElement(item.icon)}
+                    </span>
+                  ) : null}
+                  {item.label}
+                </ModuleNavLink>
+              </SidebarLink>
+            ))}
           </SidebarSection>
         </SidebarNav>
       }
@@ -112,7 +81,7 @@ export function AppLayout({ demo }: { demo: boolean }) {
         </>
       }
     >
-      <Outlet />
+      {children}
     </AppShell>
   )
 }

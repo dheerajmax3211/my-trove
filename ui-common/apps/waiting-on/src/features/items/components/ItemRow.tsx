@@ -1,10 +1,11 @@
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { useClock } from '../../../lib/clock'
 import { formatDate, parseCalendarDate } from '../../../lib/dates'
 import { isTerminal, type Item } from '../api/types'
 import { CATEGORY_LABEL, NEXT_ACTION_LABEL, formatAmount } from '../logic/labels'
 import { estimateNextStep } from '../logic/schedule'
 import { DueIndicator } from './DueIndicator'
+import { StageGauge } from './StageGauge'
 import { StatusBadge } from './StatusBadge'
 
 function Closing({ item }: { item: Item }) {
@@ -34,15 +35,16 @@ function NextStep({ item }: { item: Item }) {
   )
 }
 
+/** One item in a group. The whole row opens the item (the title link stretches over it). */
 export function ItemRow({ item }: { item: Item }) {
   const expected = parseCalendarDate(item.expectedBy)
   const amount = formatAmount(item.amount, item.currency)
   return (
     <li className="wo-row">
       <div className="wo-row-main">
-        <h2 className="wo-row-title">
-          <Link to={`/items/${item.id}`}>{item.title}</Link>
-        </h2>
+        <h3 className="wo-row-title">
+          <ModuleLink to={`/items/${item.id}`}>{item.title}</ModuleLink>
+        </h3>
         <p className="wo-row-meta">
           <span>Waiting on {item.counterparty}</span>
           <span>{CATEGORY_LABEL[item.category]}</span>
@@ -56,8 +58,9 @@ export function ItemRow({ item }: { item: Item }) {
         {isTerminal(item.status) ? <Closing item={item} /> : <NextStep item={item} />}
       </div>
       <div className="wo-row-status">
-        <StatusBadge status={item.status} />
         <DueIndicator item={item} />
+        <StatusBadge status={item.status} />
+        <StageGauge item={item} />
       </div>
     </li>
   )

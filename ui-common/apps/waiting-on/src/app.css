@@ -1,8 +1,18 @@
+/*
+ * Waiting On. Everything here sits on the design tokens; the product accent (ochre) comes from
+ * `data-product="waiting-on"` on the root (standalone) or on the module wrapper (workspace).
+ * The vault band on the home page is the one loud thing. The rest is paper, hairlines and type.
+ */
+
+.wo-root {
+  min-height: 100dvh;
+}
+
 .wo-page,
 .wo-stack {
   display: flex;
   flex-direction: column;
-  gap: var(--pp-space-5);
+  gap: var(--pp-space-6);
 }
 
 .wo-stack {
@@ -23,10 +33,8 @@
 .wo-label {
   margin: 0 0 var(--pp-space-1);
   color: var(--pp-color-text-muted);
-  font-size: var(--pp-text-caption-size);
+  font-size: var(--pp-text-label-size);
   font-weight: var(--pp-weight-semibold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .wo-subheading {
@@ -64,6 +72,8 @@
   align-items: center;
   gap: var(--pp-space-2);
   color: inherit;
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-h4-size);
   text-decoration: none;
 }
 
@@ -74,6 +84,7 @@
   font-size: var(--pp-text-body-small-size);
 }
 
+/* Sign-in */
 .wo-signin {
   display: grid;
   place-items: center;
@@ -82,7 +93,91 @@
 }
 
 .wo-signin-card {
-  width: min(100%, 26rem);
+  width: min(100%, 28rem);
+}
+
+.wo-signin-mark {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+  margin-bottom: var(--pp-space-4);
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-h2-size);
+}
+
+/* Home: the summary band */
+.wo-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-5);
+  padding: var(--pp-space-6) var(--pp-space-6) var(--pp-space-10);
+  border-radius: var(--pp-radius-xl);
+  box-shadow:
+    inset 0 1px 0 var(--pp-color-highlight),
+    var(--pp-shadow-lg);
+  overflow: hidden;
+}
+
+.wo-hero a {
+  color: var(--pp-color-vault-brass);
+  text-underline-offset: 0.2em;
+}
+
+.wo-hero-lead {
+  margin: 0;
+  max-width: 28ch;
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-display-size);
+  line-height: var(--pp-text-display-line);
+  letter-spacing: var(--pp-text-display-tracking);
+  text-wrap: balance;
+}
+
+.wo-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pp-space-5) var(--pp-space-8);
+}
+
+@media (max-width: 700px) {
+  .wo-hero-stats {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pp-space-4);
+  }
+  .wo-hero {
+    padding: var(--pp-space-5) var(--pp-space-4) var(--pp-space-8);
+  }
+}
+
+.wo-hero-note {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+  line-height: var(--pp-text-body-small-line);
+}
+
+.wo-hero-cut {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  color: var(--pp-color-vault-brass);
+  opacity: 0.55;
+}
+
+/* The one reveal on arrival: the band settles into place. */
+@media (prefers-reduced-motion: no-preference) {
+  .wo-hero {
+    animation: wo-settle var(--pp-duration-slow) var(--pp-ease-enter) both;
+  }
+}
+
+@keyframes wo-settle {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 
 /* Filters */
@@ -98,30 +193,109 @@
   color: var(--pp-color-text-muted);
 }
 
-/* Item list */
-.wo-items {
+/* Groups of items, by urgency */
+.wo-groups,
+.wo-recent {
   display: flex;
   flex-direction: column;
-  gap: var(--pp-space-3);
+  gap: var(--pp-space-8);
+}
+
+.wo-recent {
+  gap: var(--pp-space-4);
+  align-items: flex-start;
+}
+
+.wo-recent > .wo-group {
+  align-self: stretch;
+}
+
+.wo-group {
+  --wo-group-tone: var(--pp-color-border-strong);
+  min-width: 0;
+}
+
+.wo-group[data-group='overdue'] {
+  --wo-group-tone: var(--pp-color-danger);
+}
+
+.wo-group[data-group='soon'] {
+  --wo-group-tone: var(--pp-color-warning);
+}
+
+.wo-group[data-group='later'] {
+  --wo-group-tone: var(--pp-color-accent);
+}
+
+.wo-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--pp-space-1) var(--pp-space-4);
+  margin-bottom: var(--pp-space-3);
+  padding-inline-start: var(--pp-space-3);
+  border-inline-start: 4px solid var(--wo-group-tone);
+}
+
+.wo-group-title {
+  margin: 0;
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-h2-size);
+  line-height: var(--pp-text-h2-line);
+  font-weight: 400;
+  letter-spacing: var(--pp-text-h2-tracking);
+}
+
+.wo-group-count {
+  margin-inline-start: var(--pp-space-1);
+  color: var(--pp-color-text-subtle);
+  font-family: var(--pp-font-sans);
+  font-size: var(--pp-text-body-size);
+  font-variant-numeric: tabular-nums;
+}
+
+.wo-group-blurb {
+  margin: 0;
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+}
+
+/* Item rows: one surface per group, hairlines between rows, the title link covers the row. */
+.wo-items {
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.wo-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--pp-space-3);
-  padding: var(--pp-space-4);
   background: var(--pp-color-surface);
   border: 1px solid var(--pp-color-border);
   border-radius: var(--pp-radius-lg);
+  box-shadow:
+    inset 0 1px 0 var(--pp-color-highlight),
+    var(--pp-shadow-xs);
+  overflow: hidden;
+}
+
+.wo-row {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-space-3) var(--pp-space-5);
+  padding: var(--pp-space-4) var(--pp-space-5);
+}
+
+.wo-row + .wo-row {
+  border-top: 1px solid var(--pp-color-hairline);
 }
 
 .wo-row:hover {
-  border-color: var(--pp-color-border-strong);
+  background: var(--pp-color-surface-sunken);
+}
+
+.wo-row-skeleton {
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-lg);
 }
 
 .wo-row-main {
@@ -141,6 +315,27 @@
 
 .wo-row-title a {
   color: var(--pp-color-text);
+  text-decoration: none;
+}
+
+.wo-row-title a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.wo-row-title a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.wo-row-title a:focus-visible {
+  outline: none;
+}
+
+.wo-row:has(.wo-row-title a:focus-visible) {
+  outline: 2px solid var(--pp-color-focus-ring);
+  outline-offset: -2px;
 }
 
 .wo-row-meta {
@@ -164,32 +359,89 @@
   align-items: center;
 }
 
+/* The stage gauge: rising notches, one per follow-up letter. */
+.wo-gauge {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  block-size: 1.3rem;
+  padding-inline: var(--pp-space-1);
+}
+
+.wo-gauge-notch {
+  display: block;
+  inline-size: 6px;
+  border-radius: 1px 1px 0 0;
+  background: var(--pp-color-surface-sunken);
+  box-shadow: inset 0 0 0 1px var(--pp-color-border-strong);
+}
+
+.wo-gauge-notch[data-on='true'] {
+  background: var(--pp-color-accent);
+  box-shadow: none;
+}
+
+.wo-stage {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pp-space-2);
+}
+
 /* First use */
 .wo-first-use {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--pp-space-4);
-  max-width: 40rem;
-  padding: var(--pp-space-6);
-  background: var(--pp-color-surface);
-  border: 1px solid var(--pp-color-border);
-  border-radius: var(--pp-radius-xl);
+  gap: var(--pp-space-8);
+  max-width: var(--pp-layout-narrow);
 }
 
-.wo-first-use h2,
-.wo-first-use p {
+.wo-first-use-intro {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  align-items: center;
+  gap: var(--pp-space-6);
+}
+
+.wo-first-use-copy {
+  flex: 1 1 22rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--pp-space-4);
+}
+
+.wo-first-use-copy h2,
+.wo-first-use-copy p,
+.wo-first-use-how h3,
+.wo-first-use-how p {
   margin: 0;
 }
 
-.wo-first-use-icon {
-  display: inline-grid;
-  place-items: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: var(--pp-radius-full);
-  background: var(--pp-color-accent-subtle);
-  color: var(--pp-color-accent-text);
+.wo-first-use-copy h2 {
+  font-size: var(--pp-text-h1-size);
+  line-height: var(--pp-text-h1-line);
+  text-wrap: balance;
+}
+
+.wo-first-use-copy p {
+  max-width: 62ch;
+}
+
+.wo-first-use-art {
+  flex: 0 1 15rem;
+  max-width: 100%;
+  height: auto;
+}
+
+.wo-first-use-how {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-5) var(--pp-space-6);
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-lg);
 }
 
 .wo-steps {
@@ -248,7 +500,7 @@
   gap: var(--pp-space-2);
 }
 
-/* Schedule */
+/* Schedule preview in the form */
 .wo-schedule {
   margin: 0;
   padding: 0;
@@ -293,28 +545,6 @@
   min-width: 0;
 }
 
-.wo-dl {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pp-space-3);
-  margin: 0;
-}
-
-.wo-dl > div {
-  display: grid;
-  grid-template-columns: minmax(7rem, 1fr) minmax(0, 2fr);
-  gap: var(--pp-space-3);
-}
-
-.wo-dl dt {
-  color: var(--pp-color-text-muted);
-}
-
-.wo-dl dd {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
 .wo-address {
   display: flex;
   flex-wrap: wrap;
@@ -346,59 +576,18 @@
   overflow-wrap: anywhere;
 }
 
-/* Timeline */
-.wo-timeline {
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.wo-letter {
+  margin-top: var(--pp-space-1);
 }
 
-.wo-timeline-item {
-  position: relative;
-  padding: 0 0 var(--pp-space-5) var(--pp-space-5);
-  border-inline-start: 2px solid var(--pp-color-border);
-  margin-inline-start: var(--pp-space-2);
-}
-
-.wo-timeline-item::before {
-  content: '';
-  position: absolute;
-  inset-block-start: 0.35rem;
-  inset-inline-start: -0.4rem;
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: var(--pp-radius-full);
-  background: var(--pp-color-accent);
-  border: 2px solid var(--pp-color-canvas);
-}
-
-.wo-timeline-item:last-child {
-  padding-bottom: 0;
-}
-
-.wo-timeline-item p {
-  margin: var(--pp-space-1) 0 0;
-}
-
-.wo-timeline-head {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--pp-space-2);
-}
-
-.wo-timeline-head time {
-  color: var(--pp-color-text-muted);
-  font-size: var(--pp-text-body-small-size);
-}
-
-.wo-timeline details {
-  margin-top: var(--pp-space-2);
-}
-
-.wo-timeline summary {
+.wo-letter summary {
   cursor: pointer;
+  margin-bottom: var(--pp-space-2);
   color: var(--pp-color-accent-text);
+}
+
+.wo-timeline-detail {
+  margin: 0;
+  font-size: var(--pp-text-body-small-size);
+  line-height: var(--pp-text-body-small-line);
 }

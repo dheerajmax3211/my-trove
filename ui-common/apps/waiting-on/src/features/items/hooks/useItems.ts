@@ -24,10 +24,10 @@ import type {
 
 export const PAGE_SIZE = 100
 
-export function useItems(statuses: readonly ItemStatus[] | null, limit: number) {
+export function useItems(statuses: readonly ItemStatus[] | null, limit: number, enabled = true) {
   const query: QueryParams = { limit }
   if (statuses) query.status = statuses
-  return useApiQuery<Item[]>(itemsPath, { query })
+  return useApiQuery<Item[]>(itemsPath, { query, enabled })
 }
 
 /** Asks whether the user has any item at all; only runs when `enabled`. */
