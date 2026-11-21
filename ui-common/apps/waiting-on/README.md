@@ -10,18 +10,21 @@ that service (`/v1/items/**`, port 8083).
 ## Screens
 
 ```
-/                  Waiting list     filters (status, category), summary, one row per item, first-use explanation
-/new               Add item         form + live explanation of the follow-up schedule it will create
+/                  Waiting list     summary band, items grouped by urgency, filters, first-run guidance
+/new               Add something    form + live explanation of the follow-up schedule it will create
 /items/:id         Item             details, live follow-up status, actions, reply address, draft letters, timeline
 *                  Not found
 (signed out)       Sign in          Google or email link (stub in demo mode)
 ```
 
-- **Waiting list**: status filter (Active by default, All, or any of OPEN, NUDGED, ESCALATED, RESOLVED, EXPIRED,
-  CANCELLED; sent to the service as repeated `status` parameters) and category filter (applied in the browser, the
-  service has none). Filters live in the address (`?status=RESOLVED&category=REFUND`). Each row shows status, an
-  overdue indicator in words ("Overdue by 8 days"), the next scheduled step and the outcome for closed items.
-  When the user has never added anything, a first-use screen explains the product with a single next action.
+- **Waiting list (home)**: a dark summary band (how many items are past their date, open items, overdue, the next
+  follow-up and who it goes to), then the active items grouped by urgency: Overdue, Due soon (within 7 days), Later,
+  and a short Recently closed list. Each row shows status, an overdue indicator in words, a small gauge of how many
+  follow-up letters have been reached, the next scheduled step and the outcome for closed items. Status filter
+  (Active by default, All, or any single status; sent as repeated `status` parameters) and category filter (applied
+  in the browser). Filters live in the address (`?status=RESOLVED&category=REFUND`). A user who has never added
+  anything sees first-run guidance: what the product does, the default schedule of a refund, and a note that the
+  user sends the letters.
 - **Add item**: title, counterparty, optional email, category, optional amount and currency, expected-by date.
   The schedule card recomputes as you type, using the service's per-category defaults (offsets from the expected
   date). "Customise the follow-up schedule" exposes the four day offsets, validated with the same ordering rules as
@@ -29,8 +32,18 @@ that service (`/v1/items/**`, port 8083).
 - **Item**: live stage and next action time (from the workflow query), Resolve (optional outcome), Snooze
   (1 to 90 days), Cancel tracking (confirmation dialog). Closed items disable all three and say why. The reply
   address has a copy button and a plain explanation of forwarding replies. "Draft letters" previews NUDGE,
-  ESCALATION and FINAL_NOTICE as of today with copy-to-clipboard. The timeline is an ordered list, newest first,
-  with long letters collapsed.
+  ESCALATION and FINAL_NOTICE as of today with copy-to-clipboard. "The follow-up plan" lists every step with its
+  date (snoozes included) and marks the ones reached and the next. The timeline is newest first, with long letters
+  collapsed.
+
+## As a workspace module
+
+`src/module.tsx` exports `productModule` (`@platform/workspace-kit`): `Routes` (`src/routes.tsx`, paths relative),
+`Providers` (the clock), `nav`, `useTodayItems` (`src/today.ts`: overdue items, items due within 3 days and items
+whose next follow-up is within 3 days, most urgent first) and `createDemoFetch` (the in-memory mock, reachable at
+`<gateway>/api/waiting-on/v1/...`). All links use `ModuleLink`, `ModuleNavLink` and `useModuleNavigate`, so the same
+pages run standalone (empty base) and under `/app/waiting-on`. The standalone `App.tsx` wraps the same routes in its
+own layout with `data-product="waiting-on"` on its root.
 
 ## Run it
 
@@ -70,7 +83,8 @@ unknown paths (the app uses browser history routing) and route `/api` to the ser
 src/
   App.tsx, main.tsx, runtime.ts      providers and demo/real wiring
   auth/                              sign-in screen
-  layout/                            AppShell navigation, focus-on-navigate
+  layout/                            standalone AppShell frame (the workspace has its own)
+  module.tsx, routes.tsx, today.ts   the workspace module, relative routes, Today feed
   lib/                               dates, clock, error text, clipboard
   components/                        CopyButton, ErrorState
   features/items/
