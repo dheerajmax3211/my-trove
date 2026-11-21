@@ -12,7 +12,7 @@ export function ReminderItem({
   showAppliance?: boolean
 }) {
   return (
-    <div className="hp-reminder">
+    <div className="hp-reminder" data-priority={reminder.highPriority ? 'high' : 'normal'}>
       <div className="hp-badge-row">
         {reminder.highPriority ? (
           <Badge variant="danger" dot>

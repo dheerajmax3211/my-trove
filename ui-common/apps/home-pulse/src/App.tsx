@@ -23,7 +23,7 @@ export function App({ runtime, queryClient }: { runtime: Runtime; queryClient?: 
                 <ToastProvider>
                   <RequireAuth
                     loading={
-                      <div className="hp-signin">
+                      <div className="hp-loading">
                         <Spinner size={32} label="Checking your session" />
                       </div>
                     }

@@ -9,6 +9,8 @@ import {
   CardTitle,
   Field,
   Input,
+  KeyCut,
+  ProductMark,
 } from '@platform/ui'
 import { useState, type FormEvent } from 'react'
 import { useRuntime } from '../runtime'
@@ -38,63 +40,79 @@ export function SignIn() {
 
   return (
     <main className="hp-signin">
-      <Card className="hp-signin-card" variant="elevated">
-        <CardHeader>
-          <CardTitle as="h1">Sign in to Home Pulse</CardTitle>
-          <CardDescription>
-            {mode === 'demo' ? (
-              <>
-                <Badge variant="warning">Demo</Badge> Sample data only. Nothing is sent anywhere.
-              </>
-            ) : (
-              'Keep an eye on your appliances before they fail.'
-            )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="hp-stack-3">
-            <Button
-              loading={busy === 'google'}
-              onClick={async () => {
-                setBusy('google')
-                clearError()
-                await signInWithGoogle()
-                setBusy(null)
-              }}
-            >
-              Continue with Google
-            </Button>
-            <form className="hp-stack-3" onSubmit={onEmail} noValidate>
-              <Field
-                label="Email"
-                description={
-                  emailLinkPending
-                    ? 'Confirm the address the link was sent to.'
-                    : 'We will email you a one-time sign-in link.'
-                }
-                error={error?.message}
-              >
-                <Input
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                />
-              </Field>
+      <div className="hp-signin-pitch" data-surface="vault">
+        <span className="hp-brand">
+          <ProductMark product="home-pulse" variant="solid" size={32} />
+          Home Pulse
+        </span>
+        <p aria-hidden="true" className="hp-signin-keycut">
+          <KeyCut />
+        </p>
+        <p className="hp-signin-promise">
+          Smart plugs report how much power each appliance draws. Home Pulse learns what normal
+          looks like, then tells you in plain words when a fridge, pump or air conditioner drifts
+          away from it.
+        </p>
+      </div>
+      <div className="hp-signin-form">
+        <Card className="hp-signin-card" variant="elevated">
+          <CardHeader>
+            <CardTitle as="h1">Sign in to Home Pulse</CardTitle>
+            <CardDescription>
+              {mode === 'demo' ? (
+                <>
+                  <Badge variant="warning">Demo</Badge> Sample data only. Nothing is sent anywhere.
+                </>
+              ) : (
+                'Keep an eye on your appliances before they fail.'
+              )}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="hp-stack-3">
               <Button
-                type="submit"
-                variant="secondary"
-                loading={busy === 'email'}
-                disabled={!email}
+                loading={busy === 'google'}
+                onClick={async () => {
+                  setBusy('google')
+                  clearError()
+                  await signInWithGoogle()
+                  setBusy(null)
+                }}
               >
-                {emailLinkPending ? 'Finish sign-in' : 'Email me a link'}
+                Continue with Google
               </Button>
-              {sent ? <p role="status">Check your inbox for the sign-in link.</p> : null}
-            </form>
-          </div>
-        </CardContent>
-      </Card>
+              <form className="hp-stack-3" onSubmit={onEmail} noValidate>
+                <Field
+                  label="Email"
+                  description={
+                    emailLinkPending
+                      ? 'Confirm the address the link was sent to.'
+                      : 'We will email you a one-time sign-in link.'
+                  }
+                  error={error?.message}
+                >
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                  />
+                </Field>
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  loading={busy === 'email'}
+                  disabled={!email}
+                >
+                  {emailLinkPending ? 'Finish sign-in' : 'Email me a link'}
+                </Button>
+                {sent ? <p role="status">Check your inbox for the sign-in link.</p> : null}
+              </form>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </main>
   )
 }

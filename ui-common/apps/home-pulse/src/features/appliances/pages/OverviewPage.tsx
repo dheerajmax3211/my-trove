@@ -86,7 +86,7 @@ export function OverviewPage() {
           </section>
           {alerts.data && alerts.data.length > 0 ? (
             <section aria-labelledby="hp-activity-title" className="hp-section hp-activity">
-              <div className="hp-section-head">
+              <div className="hp-home-head">
                 <h2 id="hp-activity-title" className="hp-section-title">
                   Recent activity
                 </h2>
