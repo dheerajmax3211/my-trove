@@ -71,6 +71,7 @@
   font-variant-numeric: tabular-nums;
 }
 .switch-actions {
+  align-self: stretch;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -346,4 +347,21 @@
   gap: var(--pp-space-2);
   font-family: var(--pp-font-display);
   font-size: var(--pp-text-h4-size);
+}
+
+@media (max-width: 35.99rem) {
+  .switch-hero-rings {
+    top: auto;
+    bottom: -9rem;
+    inset-inline-end: -11rem;
+    transform: none;
+    opacity: 0.3;
+  }
+  /* the top bar is full on a phone: the drawer (a vault surface) keeps the lockup */
+  .brand-lockup {
+    display: none;
+  }
+  [data-surface='vault'] .brand-lockup {
+    display: inline-flex;
+  }
 }

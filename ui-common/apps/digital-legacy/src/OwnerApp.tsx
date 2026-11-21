@@ -147,7 +147,7 @@ function Shell({ runtime }: { runtime: Runtime }) {
       brand={
         <span className="brand-lockup">
           <ProductMark product="digital-legacy" size={28} />
-          Digital Legacy
+          <span className="brand-name">Digital Legacy</span>
         </span>
       }
       sidebar={
