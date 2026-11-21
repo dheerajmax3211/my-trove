@@ -83,7 +83,8 @@ export function RuntimeProvider({ runtime, children }: { runtime: Runtime; child
 export function useIngestBaseUrl(): string {
   const runtime = useContext(RuntimeContext)
   if (runtime) return runtime.ingestBaseUrl
-  const configured = import.meta.env.VITE_API_BASE_URL
+  const configured = (import.meta.env as Record<string, string | boolean | undefined>)
+    .VITE_API_BASE_URL
   const base =
     typeof configured === 'string' && configured.trim() !== ''
       ? configured.trim().replace(/\/+$/, '')

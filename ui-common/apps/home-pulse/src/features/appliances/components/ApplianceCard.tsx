@@ -176,11 +176,12 @@ export function ApplianceCard({ appliance }: { appliance: Appliance }) {
                 ? {
                     sparkline: trend.data,
                     sparklineLabel: 'Average draw per hour, last 24 hours',
-                    sparklineTone: (health.data?.status === 'CRITICAL'
-                      ? 'danger'
-                      : health.data?.status === 'WARNING'
-                        ? 'brass'
-                        : 'accent') as 'danger' | 'brass' | 'accent',
+                    sparklineTone:
+                      health.data?.status === 'CRITICAL'
+                        ? ('danger' as const)
+                        : health.data?.status === 'WARNING'
+                          ? ('brass' as const)
+                          : ('accent' as const),
                   }
                 : {})}
             />

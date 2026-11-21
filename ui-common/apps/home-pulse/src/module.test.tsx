@@ -4,7 +4,7 @@ import { ModuleBaseProvider } from '@platform/workspace-kit'
 import { QueryClient } from '@tanstack/react-query'
 import { render, renderHook, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { productModule } from './module'
@@ -12,6 +12,9 @@ import { createMockApi } from './mock/mockApi'
 import { clock } from './test/setup'
 
 const BASE = '/app/home-pulse'
+const ModuleProviders = productModule.Providers ?? Fragment
+const urlOf = (input: RequestInfo | URL): string =>
+  typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
 const FRIDGE = '00000000-0000-4000-8000-000000000001'
 
 /** What the workspace does around a module: router, base, its own API client and cache. */
@@ -26,13 +29,12 @@ function Workspace({
 }) {
   const client = createApiClient({
     baseUrl: 'http://gateway.test/api/home-pulse',
-    getToken: async () => 'token',
+    getToken: () => Promise.resolve('token'),
     fetch: fetchImpl,
   })
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
-  const Providers = productModule.Providers ?? (({ children: c }: { children: ReactNode }) => c)
   return (
     <MemoryRouter initialEntries={[path]}>
       <ThemeProvider>
@@ -43,7 +45,7 @@ function Workspace({
                 path={`${BASE}/*`}
                 element={
                   <ModuleBaseProvider base={BASE}>
-                    <Providers>{children}</Providers>
+                    <ModuleProviders>{children}</ModuleProviders>
                   </ModuleBaseProvider>
                 }
               />
@@ -99,7 +101,7 @@ describe('createDemoFetch', () => {
     expect(list.map((a) => a.name)).toContain('Kitchen fridge')
   })
 
-  it('gives every call its own mock, so two modules never share demo state', async () => {
+  it('gives every call its own mock, so two modules never share demo state', () => {
     const a = productModule.createDemoFetch?.()
     const b = productModule.createDemoFetch?.()
     expect(a).not.toBe(b)
@@ -161,7 +163,7 @@ describe('links under a module base', () => {
       <Workspace
         path={BASE}
         fetchImpl={(input, init) => {
-          urls.push(String(input))
+          urls.push(urlOf(input))
           return mock.fetch(input, init)
         }}
       >
@@ -184,7 +186,7 @@ describe('home when the alert check fails', () => {
       <Workspace
         path={BASE}
         fetchImpl={(input, init) => {
-          if (failing && String(input).includes('/v1/alerts'))
+          if (failing && urlOf(input).includes('/v1/alerts'))
             return Promise.resolve(
               new Response(JSON.stringify({ detail: 'Alerts are down' }), {
                 status: 500,
