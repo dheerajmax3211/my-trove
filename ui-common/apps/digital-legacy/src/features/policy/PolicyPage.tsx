@@ -1,6 +1,5 @@
 import { isApiError } from '@platform/api-client'
 import { useApiMutation } from '@platform/api-client'
-import { useAuth } from '@platform/auth-web'
 import {
   Button,
   Card,
@@ -20,7 +19,7 @@ import {
   useToast,
 } from '@platform/ui'
 import { useMemo, useState } from 'react'
-import { ModuleLink } from '@platform/workspace-kit'
+import { ModuleLink, useWorkspaceSession } from '@platform/workspace-kit'
 import { ownerPaths } from '../../api/paths'
 import {
   AUDIENCES,
@@ -390,7 +389,7 @@ function PolicyForm({
 export function PolicyPage() {
   const state = useStateQuery()
   const trustees = useTrusteesQuery()
-  const { user } = useAuth()
+  const { email } = useWorkspaceSession()
 
   if (state.isPending || trustees.isPending) return <PageSkeleton label="Loading your policy" />
   if (state.error || trustees.error) {
@@ -427,7 +426,7 @@ export function PolicyPage() {
       <PolicyForm
         state={state.data}
         defaultQuorum={Math.min(2, Math.max(1, active))}
-        email={user?.email ?? ''}
+        email={email ?? ''}
       />
     </div>
   )
