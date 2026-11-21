@@ -355,6 +355,13 @@
   }
 }
 
+/* The top bar is crowded on a phone: keep the mark, drop the word (the page title says it). */
+@media (max-width: 480px) {
+  .brand-name {
+    display: none;
+  }
+}
+
 .product-root {
   display: contents;
 }

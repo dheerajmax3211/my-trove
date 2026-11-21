@@ -126,7 +126,7 @@ export function Shell({ runtime }: { runtime: Runtime }) {
         brand={
           <span className="brand">
             <ProductMark product="consent" variant="solid" size={28} />
-            Consent
+            <span className="brand-name">Consent</span>
           </span>
         }
         sidebar={<Navigation />}

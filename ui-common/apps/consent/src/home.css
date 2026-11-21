@@ -351,6 +351,10 @@
   }
 }
 
+.nowrap {
+  white-space: nowrap;
+}
+
 .activity-detail {
   color: var(--pp-color-text-muted);
   font-size: var(--pp-text-body-small-size);

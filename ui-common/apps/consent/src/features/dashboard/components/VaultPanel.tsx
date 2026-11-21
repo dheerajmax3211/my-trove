@@ -25,8 +25,9 @@ function VaultContents({ attributes }: { attributes: readonly Attribute[] }) {
   const items: KeyValueItem[] = shown.map((g) => ({
     id: g.name,
     label: g.name,
-    mono: true,
-    value: g.count === 1 ? '1 attribute' : `${g.count} attributes`,
+    value: (
+      <span className="nowrap">{g.count === 1 ? '1 attribute' : `${g.count} attributes`}</span>
+    ),
   }))
   const hidden = groups.length - shown.length
   return (
