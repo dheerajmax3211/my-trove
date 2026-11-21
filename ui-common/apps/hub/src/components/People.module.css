@@ -1,0 +1,40 @@
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pp-space-2);
+  min-width: 0;
+}
+
+.name {
+  overflow-wrap: anywhere;
+  font-weight: var(--pp-weight-medium);
+}
+
+.stack {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Each avatar overlaps the one before and keeps a ring in the surface colour so the edges read. */
+.stacked {
+  box-shadow: 0 0 0 2px var(--pp-color-surface);
+}
+
+.stacked + .stacked,
+.stacked + .more {
+  margin-inline-start: calc(var(--pp-space-2) * -1);
+}
+
+.more {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding-inline: var(--pp-space-2);
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-surface-sunken);
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-caption-size);
+  font-weight: var(--pp-weight-semibold);
+  box-shadow: 0 0 0 2px var(--pp-color-surface);
+}

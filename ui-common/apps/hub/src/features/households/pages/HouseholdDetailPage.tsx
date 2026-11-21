@@ -1,5 +1,6 @@
 import { Badge, Button, PageHeader, Skeleton } from '@platform/ui'
-import { Link, useParams } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
+import { useParams } from 'react-router-dom'
 import { ErrorState } from '../../../components/ErrorState'
 import { formatDate } from '../../../lib/format'
 import { usePageTitle } from '../../../lib/usePageTitle'
@@ -27,7 +28,7 @@ export function HouseholdDetailPage() {
   return (
     <>
       <PageHeader
-        eyebrow={<Link to="/households">Households</Link>}
+        eyebrow={<ModuleLink to="/households">Households</ModuleLink>}
         title={h.name}
         description={
           <span className="hub-row">
@@ -40,7 +41,7 @@ export function HouseholdDetailPage() {
         }
         actions={
           <Button variant="secondary" asChild>
-            <Link to={`/activity?household=${h.id}`}>View activity</Link>
+            <ModuleLink to={`/activity?household=${h.id}`}>View activity</ModuleLink>
           </Button>
         }
       />

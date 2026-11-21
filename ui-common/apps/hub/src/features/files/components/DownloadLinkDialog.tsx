@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { CopyButton } from '../../../components/CopyButton'
 import { errorMessage } from '../../../lib/errors'
 import { formatDateTime } from '../../../lib/format'
-import { useRuntime } from '../../../runtime/context'
+import { useCoreEnv } from '../../../core/env'
 import { useCreateDownloadLink } from '../hooks'
 import type { StoredFile } from '../types'
 
@@ -15,19 +15,19 @@ const TTL_OPTIONS = [
 ] as const
 
 function LinkBody({ file }: { file: StoredFile }) {
-  const runtime = useRuntime()
+  const env = useCoreEnv()
   const { toast } = useToast()
   const [ttl, setTtl] = useState(600)
   const [saving, setSaving] = useState(false)
   const createLink = useCreateDownloadLink()
   const link = createLink.data
-  const fullUrl = link ? new URL(runtime.downloadUrl(link.url), window.location.href).href : null
+  const fullUrl = link ? new URL(env.downloadUrl(link.url), window.location.href).href : null
 
   const download = async () => {
     if (!fullUrl) return
     setSaving(true)
     try {
-      await runtime.saveDownload(fullUrl, file.name)
+      await env.saveDownload(fullUrl, file.name)
     } catch (error) {
       toast({
         title: 'Download failed',

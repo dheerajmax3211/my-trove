@@ -1,0 +1,223 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-8);
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-6);
+}
+
+/* The one bold thing on the page: the household on a vault surface, with a brass rule under its name. */
+.vault {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-4);
+  padding: var(--pp-space-8);
+  border-radius: var(--pp-radius-xl);
+  background: var(--pp-color-canvas);
+  color: var(--pp-color-text);
+  box-shadow:
+    inset 0 1px 0 var(--pp-color-vault-border),
+    var(--pp-shadow-md);
+}
+
+.vaultHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pp-space-3);
+}
+
+.vaultTitle {
+  margin: 0;
+  font-family: var(--pp-font-display);
+  font-weight: 400;
+  font-size: var(--pp-text-display-size);
+  line-height: var(--pp-text-display-line);
+  letter-spacing: var(--pp-text-display-tracking);
+  overflow-wrap: anywhere;
+}
+
+.vaultMeta {
+  margin: 0;
+  max-width: 56ch;
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-size);
+  line-height: var(--pp-text-body-line);
+}
+
+.people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-space-3) var(--pp-space-8);
+  margin: var(--pp-space-2) 0 0;
+  padding: var(--pp-space-4) 0 0;
+  list-style: none;
+  border-top: 1px solid var(--pp-color-vault-brass);
+}
+
+.person {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-1);
+}
+
+.personRole {
+  padding-inline-start: calc(2.5rem + var(--pp-space-2));
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-caption-size);
+  line-height: var(--pp-text-caption-line);
+}
+
+.vaultFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-space-4);
+  margin-top: var(--pp-space-2);
+}
+
+.next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pp-space-4);
+  min-width: 0;
+}
+
+.nextText {
+  margin: 0;
+  max-width: 44ch;
+  font-size: var(--pp-text-body-size);
+  line-height: var(--pp-text-body-line);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pp-space-6);
+  padding-block: var(--pp-space-2);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: var(--pp-space-8);
+  align-items: start;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-4);
+  min-width: 0;
+}
+
+.panelHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--pp-space-2) var(--pp-space-4);
+  padding-bottom: var(--pp-space-3);
+  border-bottom: 1px solid var(--pp-color-border);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: var(--pp-text-h3-size);
+  line-height: var(--pp-text-h4-line);
+  font-weight: var(--pp-weight-semibold);
+}
+
+.agenda {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agendaItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--pp-space-1) var(--pp-space-4);
+  padding: var(--pp-space-3) 0;
+  border-bottom: 1px solid var(--pp-color-hairline);
+}
+
+.agendaItem:last-child {
+  border-bottom: 0;
+}
+
+.agendaTitle {
+  font-weight: var(--pp-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.agendaWhen,
+.agendaLate {
+  text-align: end;
+  font-size: var(--pp-text-body-small-size);
+  color: var(--pp-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.agendaLate {
+  color: var(--pp-color-danger-text);
+  font-weight: var(--pp-weight-semibold);
+}
+
+.agendaScope {
+  grid-column: 1 / -1;
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-caption-size);
+}
+
+.quiet {
+  margin: 0;
+  color: var(--pp-color-text-muted);
+}
+
+.others {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.otherLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-space-4);
+  padding: var(--pp-space-3) 0;
+  border-bottom: 1px solid var(--pp-color-hairline);
+  font-weight: var(--pp-weight-semibold);
+}
+
+@media (max-width: 860px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .vault {
+    padding: var(--pp-space-5);
+  }
+  .stats {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pp-space-4);
+  }
+  .vaultTitle {
+    font-size: var(--pp-text-h1-size);
+    line-height: var(--pp-text-h1-line);
+  }
+}

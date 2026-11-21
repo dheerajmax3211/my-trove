@@ -8,7 +8,7 @@ import {
   type DataTableColumn,
 } from '@platform/ui'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { ErrorState } from '../../../components/ErrorState'
 import { formatDate } from '../../../lib/format'
 import { usePageTitle } from '../../../lib/usePageTitle'
@@ -22,7 +22,7 @@ const columns: DataTableColumn<Household>[] = [
     id: 'name',
     header: 'Household',
     sortValue: (h) => h.name,
-    cell: (h) => <Link to={`/households/${h.id}`}>{h.name}</Link>,
+    cell: (h) => <ModuleLink to={`/households/${h.id}`}>{h.name}</ModuleLink>,
   },
   {
     id: 'role',

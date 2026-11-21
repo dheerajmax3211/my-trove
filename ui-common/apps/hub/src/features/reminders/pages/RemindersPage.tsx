@@ -20,7 +20,7 @@ import { ErrorState } from '../../../components/ErrorState'
 import { ScopeSelect, SCOPE_ALL, SCOPE_PERSONAL, scopeName } from '../../../components/ScopeSelect'
 import { formatDateTime, formatRelative } from '../../../lib/format'
 import { usePageTitle } from '../../../lib/usePageTitle'
-import { useRuntime } from '../../../runtime/context'
+import { useCoreEnv } from '../../../core/env'
 import { useHouseholds } from '../../households/hooks'
 import type { Household } from '../../households/types'
 import { ReminderDialog } from '../components/ReminderDialog'
@@ -55,7 +55,7 @@ export function RemindersPage() {
   usePageTitle('Reminders')
   const { user } = useAuth()
   const { toast } = useToast()
-  const { now } = useRuntime()
+  const { now } = useCoreEnv()
   const households = useHouseholds()
   const [scope, setScope] = useState(SCOPE_ALL)
   const [status, setStatus] = useState<StatusFilter>('ACTIVE')
