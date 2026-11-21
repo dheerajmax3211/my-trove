@@ -1,5 +1,6 @@
 import { Button, EmptyState, PageHeader, Select, Field, Skeleton } from '@platform/ui'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { ErrorState } from '../../../components/ErrorState'
 import { pluralize } from '../../../lib/format'
 import { useDocumentTitle } from '../../../lib/useDocumentTitle'
@@ -65,7 +66,7 @@ export function AlertsPage() {
         title="Alerts"
         description="Changes in how your appliances use power, explained in plain words."
         actions={
-          <Field label="Show" className="inline-field">
+          <Field label="Show" className="hp-inline-field">
             <Select
               size="sm"
               value={filter}
@@ -81,7 +82,7 @@ export function AlertsPage() {
         }
       />
       {applianceId ? (
-        <p className="filter-chip">
+        <p className="hp-filter-chip">
           Showing alerts for <strong>{applianceName ?? 'one appliance'}</strong>.{' '}
           <Button variant="ghost" size="sm" onClick={() => update({ appliance: null })}>
             Show all appliances
@@ -89,7 +90,7 @@ export function AlertsPage() {
         </p>
       ) : null}
       {alerts.isPending ? (
-        <div className="stack-3" role="status" aria-busy="true" aria-label="Loading alerts">
+        <div className="hp-stack-3" role="status" aria-busy="true" aria-label="Loading alerts">
           <Skeleton height="9rem" />
           <Skeleton height="9rem" />
         </div>
@@ -105,16 +106,16 @@ export function AlertsPage() {
           description={EMPTY_COPY[filter].description}
           action={
             <Button variant="secondary" asChild>
-              <Link to="/">Back to your appliances</Link>
+              <ModuleLink to="/">Back to your appliances</ModuleLink>
             </Button>
           }
         />
       ) : (
         <>
-          <p className="muted small" role="status">
+          <p className="hp-muted hp-small" role="status">
             {pluralize(alerts.data.length, 'alert')}
           </p>
-          <ul className="stack-3 plain-list" aria-label="Alerts">
+          <ul className="hp-stack-3 hp-plain-list" aria-label="Alerts">
             {alerts.data.map((alert) => (
               <li key={alert.id}>
                 <AlertCard alert={alert} />

@@ -1,5 +1,5 @@
 import { Button, EmptyState, PageHeader, Skeleton } from '@platform/ui'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { ErrorState } from '../../../components/ErrorState'
 import { useDocumentTitle } from '../../../lib/useDocumentTitle'
 import { ReminderItem } from '../components/ReminderItem'
@@ -17,7 +17,7 @@ export function RemindersPage() {
         description={`Services and warranties coming up in the next ${REMINDER_HORIZON_DAYS} days, most important first. An anomaly on an appliance that is still under warranty comes first, because that is when a claim is easiest.`}
       />
       {reminders.isPending ? (
-        <div className="stack-3" role="status" aria-busy="true" aria-label="Loading reminders">
+        <div className="hp-stack-3" role="status" aria-busy="true" aria-label="Loading reminders">
           <Skeleton height="4rem" />
           <Skeleton height="4rem" />
         </div>
@@ -33,12 +33,15 @@ export function RemindersPage() {
           description="Add service and warranty dates to your appliances and we will remind you before they matter."
           action={
             <Button variant="secondary" asChild>
-              <Link to="/">Go to your appliances</Link>
+              <ModuleLink to="/">Go to your appliances</ModuleLink>
             </Button>
           }
         />
       ) : (
-        <ol className="stack-3 plain-list reminder-list" aria-label="Reminders by priority">
+        <ol
+          className="hp-stack-3 hp-plain-list hp-reminder-list"
+          aria-label="Reminders by priority"
+        >
           {sortReminders(reminders.data).map((reminder) => (
             <li key={`${reminder.applianceId}-${reminder.type}`}>
               <ReminderItem reminder={reminder} />

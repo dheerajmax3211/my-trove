@@ -10,7 +10,8 @@ import {
   type DataTableColumn,
 } from '@platform/ui'
 import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { ErrorState } from '../../../components/ErrorState'
 import { useClock } from '../../../lib/clock'
@@ -61,7 +62,7 @@ export function DevicesPage() {
       id: 'appliance',
       header: 'Appliance',
       sortValue: (d) => d.applianceName,
-      cell: (d) => <Link to={`/appliances/${d.applianceId}`}>{d.applianceName}</Link>,
+      cell: (d) => <ModuleLink to={`/appliances/${d.applianceId}`}>{d.applianceName}</ModuleLink>,
     },
     {
       id: 'token',
@@ -96,7 +97,7 @@ export function DevicesPage() {
     },
     {
       id: 'actions',
-      header: <span className="sr-only">Actions</span>,
+      header: <span className="hp-sr-only">Actions</span>,
       headerLabel: 'Actions',
       align: 'end',
       cell: (d) =>
@@ -145,7 +146,7 @@ export function DevicesPage() {
         description="A device always belongs to an appliance. Add the appliance, then come back to register its smart plug or sensor."
         action={
           <Button asChild>
-            <Link to="/appliances/new">Add an appliance</Link>
+            <ModuleLink to="/appliances/new">Add an appliance</ModuleLink>
           </Button>
         }
       />

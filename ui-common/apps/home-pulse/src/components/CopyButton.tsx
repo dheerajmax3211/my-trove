@@ -20,7 +20,7 @@ export function CopyButton({ text, label }: CopyButtonProps) {
   }
 
   return (
-    <span className="copy-button">
+    <span className="hp-copy-button">
       <Button
         variant="secondary"
         size="sm"
@@ -29,7 +29,7 @@ export function CopyButton({ text, label }: CopyButtonProps) {
       >
         {label}
       </Button>
-      <span role="status" className="small muted">
+      <span role="status" className="hp-small hp-muted">
         {state === 'copied' ? 'Copied to the clipboard.' : null}
         {state === 'failed' ? 'Could not copy automatically. Select the text and copy it.' : null}
       </span>

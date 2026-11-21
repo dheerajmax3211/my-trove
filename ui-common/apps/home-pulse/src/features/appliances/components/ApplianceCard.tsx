@@ -1,5 +1,5 @@
 import { Button, Card, CardContent, CardHeader, CardTitle, Skeleton } from '@platform/ui'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { useClock } from '../../../lib/clock'
 import { errorMessage } from '../../../lib/errors'
 import { formatRelative, formatWatts, pluralize } from '../../../lib/format'
@@ -20,42 +20,42 @@ export function ApplianceCard({ appliance }: { appliance: Appliance }) {
     health.data?.activeAlerts.filter((a) => a.status === 'ACKNOWLEDGED').length ?? 0
 
   let currentDraw = <Skeleton width="4rem" height="1.25rem" />
-  if (health.data && !hasDevice) currentDraw = <span className="muted">No device</span>
+  if (health.data && !hasDevice) currentDraw = <span className="hp-muted">No device</span>
   else if (draw.data) currentDraw = <strong>{formatWatts(draw.data.watts)}</strong>
-  else if (draw.isSuccess) currentDraw = <span className="muted">No recent reading</span>
-  else if (draw.isError) currentDraw = <span className="muted">Unavailable</span>
+  else if (draw.isSuccess) currentDraw = <span className="hp-muted">No recent reading</span>
+  else if (draw.isError) currentDraw = <span className="hp-muted">Unavailable</span>
 
   return (
-    <Card interactive className="link-card">
+    <Card interactive className="hp-appliance-card">
       <CardHeader>
-        <div className="card-title-row">
+        <div className="hp-card-title-row">
           <CardTitle as="h2">
-            <Link to={`/appliances/${appliance.id}`} className="stretched-link">
+            <ModuleLink to={`/appliances/${appliance.id}`} className="hp-stretched-link">
               {appliance.name}
-            </Link>
+            </ModuleLink>
           </CardTitle>
           {health.data ? <HealthStatusBadge status={health.data.status} /> : null}
         </div>
-        <p className="muted small">
+        <p className="hp-muted hp-small">
           {TYPE_LABELS[appliance.type]}
           {appliance.location ? `, ${appliance.location}` : ''}
         </p>
       </CardHeader>
       <CardContent>
         {health.isError ? (
-          <div className="stack-2">
-            <p className="small">{errorMessage(health.error)}</p>
+          <div className="hp-stack-2">
+            <p className="hp-small">{errorMessage(health.error)}</p>
             <Button
               size="sm"
               variant="secondary"
-              className="above-link"
+              className="hp-above-link"
               onClick={() => void health.refetch()}
             >
               Retry
             </Button>
           </div>
         ) : (
-          <dl className="facts">
+          <dl className="hp-facts">
             <div>
               <dt>Current draw</dt>
               <dd>{currentDraw}</dd>
@@ -67,7 +67,7 @@ export function ApplianceCard({ appliance }: { appliance: Appliance }) {
                   hasDevice ? (
                     formatRelative(health.data.lastReadingAt, clock())
                   ) : (
-                    <span className="muted">Never</span>
+                    <span className="hp-muted">Never</span>
                   )
                 ) : (
                   <Skeleton width="5rem" height="1.25rem" />
@@ -81,7 +81,7 @@ export function ApplianceCard({ appliance }: { appliance: Appliance }) {
                   <>
                     <strong>{open}</strong>
                     {acknowledged > 0 ? (
-                      <span className="muted small">
+                      <span className="hp-muted hp-small">
                         {' '}
                         (+{pluralize(acknowledged, 'acknowledged')})
                       </span>

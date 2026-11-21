@@ -73,16 +73,16 @@ export function HealthSummary({ health, onRelearn }: HealthSummaryProps) {
   return (
     <Card>
       <CardHeader>
-        <div className="section-head">
+        <div className="hp-section-head">
           <CardTitle as="h2">Health</CardTitle>
           <HealthStatusBadge status={health.status} />
         </div>
         <CardDescription>{STATUS_COPY[health.status]}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="stack-4">
+        <div className="hp-stack-4">
           {last24h ? (
-            <dl className="stat-grid">
+            <dl className="hp-stat-grid">
               <div>
                 <dt>Average draw, 24 h</dt>
                 <dd>{formatWatts(last24h.avgWatts)}</dd>
@@ -98,7 +98,7 @@ export function HealthSummary({ health, onRelearn }: HealthSummaryProps) {
             </dl>
           ) : null}
           {baseline ? (
-            <table className="compare-table">
+            <table className="hp-compare-table">
               <caption>Baseline compared with the last 24 hours</caption>
               <thead>
                 <tr>
@@ -113,15 +113,15 @@ export function HealthSummary({ health, onRelearn }: HealthSummaryProps) {
                   <tr key={row.measure}>
                     <th scope="row">{row.measure}</th>
                     <td>{row.normal}</td>
-                    <td>{row.now ?? <span className="muted">Not measured</span>}</td>
-                    <td>{row.change ?? <span className="muted">-</span>}</td>
+                    <td>{row.now ?? <span className="hp-muted">Not measured</span>}</td>
+                    <td>{row.change ?? <span className="hp-muted">-</span>}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           ) : null}
           {baseline ? (
-            <p className="muted small">
+            <p className="hp-muted hp-small">
               Learned from {baseline.windowsUsed} six-hour windows ending{' '}
               {formatDate(baseline.learnedTo.slice(0, 10))}. Normal is the middle value, so the odd
               door-open or power cut does not skew it.
@@ -132,7 +132,7 @@ export function HealthSummary({ health, onRelearn }: HealthSummaryProps) {
               <Button variant="secondary" size="sm" onClick={onRelearn}>
                 Relearn baseline
               </Button>
-              <p className="muted small hint">
+              <p className="hp-muted hp-small hp-hint">
                 Use this after a repair or service, when the appliance has a new normal.
               </p>
             </div>

@@ -73,9 +73,9 @@ export function RegisterDeviceDialog({
         </>
       }
     >
-      <form id="register-device-form" className="stack-4" onSubmit={submit} noValidate>
+      <form id="register-device-form" className="hp-stack-4" onSubmit={submit} noValidate>
         {register.error && !serverLabelError ? (
-          <p role="alert" className="form-error">
+          <p role="alert" className="hp-form-error">
             {errorMessage(register.error)}
           </p>
         ) : null}

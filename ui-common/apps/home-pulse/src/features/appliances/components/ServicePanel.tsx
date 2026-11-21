@@ -32,14 +32,14 @@ export function ServicePanel({ appliance, service, reminders }: ServicePanelProp
         <CardTitle as="h2">Warranty and service</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="stack-4">
-          <dl className="facts facts-stacked">
+        <div className="hp-stack-4">
+          <dl className="hp-facts hp-facts-stacked">
             <div>
               <dt>Warranty</dt>
               <dd>
                 <WarrantyBadge service={info} />
                 {info.warrantyEndDate ? (
-                  <span className="small">
+                  <span className="hp-small">
                     {' '}
                     ends {formatDate(info.warrantyEndDate)}
                     {info.underWarranty && info.daysToWarrantyEnd !== null
@@ -70,13 +70,13 @@ export function ServicePanel({ appliance, service, reminders }: ServicePanelProp
               </dd>
             </div>
           </dl>
-          {appliance.notes ? <p className="small notes">{appliance.notes}</p> : null}
-          <div className="stack-2">
-            <h3 className="subheading">Upcoming reminders</h3>
+          {appliance.notes ? <p className="hp-small hp-notes">{appliance.notes}</p> : null}
+          <div className="hp-stack-2">
+            <h3 className="hp-subheading">Upcoming reminders</h3>
             {reminders.length === 0 ? (
-              <p className="muted small">Nothing due in the next 60 days.</p>
+              <p className="hp-muted hp-small">Nothing due in the next 60 days.</p>
             ) : (
-              <ul className="stack-3 plain-list">
+              <ul className="hp-stack-3 hp-plain-list">
                 {reminders.map((r) => (
                   <li key={r.type}>
                     <ReminderItem reminder={r} showAppliance={false} />

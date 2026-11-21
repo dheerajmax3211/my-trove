@@ -436,7 +436,10 @@ export function createMockApi(options: MockApiOptions): MockApi {
       window.location.origin,
     )
     const method = (init?.method ?? 'GET').toUpperCase()
-    const path = url.pathname.replace(/^\/api/, '')
+    // Standalone the base is `/api`; in the workspace it is `<gateway>/api/home-pulse`. Both end in `/v1/...`.
+    const path = /\/v1(\/.*)?$/.test(url.pathname)
+      ? url.pathname.slice(url.pathname.indexOf('/v1'))
+      : url.pathname.replace(/^\/api/, '')
     if (latencyMs > 0) await new Promise((resolve) => setTimeout(resolve, latencyMs))
     else await Promise.resolve()
 

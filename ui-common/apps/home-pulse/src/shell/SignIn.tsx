@@ -37,8 +37,8 @@ export function SignIn() {
   }
 
   return (
-    <main className="signin">
-      <Card className="signin-card" variant="elevated">
+    <main className="hp-signin">
+      <Card className="hp-signin-card" variant="elevated">
         <CardHeader>
           <CardTitle as="h1">Sign in to Home Pulse</CardTitle>
           <CardDescription>
@@ -52,7 +52,7 @@ export function SignIn() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="stack-3">
+          <div className="hp-stack-3">
             <Button
               loading={busy === 'google'}
               onClick={async () => {
@@ -64,7 +64,7 @@ export function SignIn() {
             >
               Continue with Google
             </Button>
-            <form className="stack-3" onSubmit={onEmail} noValidate>
+            <form className="hp-stack-3" onSubmit={onEmail} noValidate>
               <Field
                 label="Email"
                 description={

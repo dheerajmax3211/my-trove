@@ -10,7 +10,8 @@ import {
 } from '@platform/ui'
 import { isApiError } from '@platform/api-client'
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { ModuleLink, useModuleNavigate } from '@platform/workspace-kit'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { ErrorState } from '../../../components/ErrorState'
 import { PageSkeleton } from '../../../components/PageSkeleton'
@@ -30,7 +31,7 @@ import { TYPE_LABELS } from '../types'
 
 export function ApplianceDetailPage() {
   const { id = '' } = useParams()
-  const navigate = useNavigate()
+  const navigate = useModuleNavigate()
   const clock = useClock()
   const { toast } = useToast()
   const appliance = useAppliance(id)
@@ -51,7 +52,7 @@ export function ApplianceDetailPage() {
         description="It may have been deleted, or the link is wrong."
         action={
           <Button asChild>
-            <Link to="/">Back to your appliances</Link>
+            <ModuleLink to="/">Back to your appliances</ModuleLink>
           </Button>
         }
       />
@@ -83,15 +84,15 @@ export function ApplianceDetailPage() {
 
   return (
     <>
-      <p className="back-link">
-        <Link to="/">All appliances</Link>
+      <p className="hp-back-link">
+        <ModuleLink to="/">All appliances</ModuleLink>
       </p>
       <PageHeader
         eyebrow={`${TYPE_LABELS[a.type]}${a.location ? `, ${a.location}` : ''}`}
         title={a.name}
         description={
           health.data ? (
-            <span className="inline-meta">
+            <span className="hp-inline-meta">
               <HealthStatusBadge status={health.data.status} />
               <span>
                 {hasDevice
@@ -104,7 +105,7 @@ export function ApplianceDetailPage() {
         actions={
           <>
             <Button variant="secondary" asChild>
-              <Link to={`/appliances/${id}/edit`}>Edit</Link>
+              <ModuleLink to={`/appliances/${id}/edit`}>Edit</ModuleLink>
             </Button>
             <Button variant="danger" onClick={() => setConfirmDelete(true)}>
               Delete
@@ -113,8 +114,8 @@ export function ApplianceDetailPage() {
         }
       />
 
-      <div className="detail-grid">
-        <div className="stack-4 detail-main">
+      <div className="hp-detail-grid">
+        <div className="hp-stack-4 hp-detail-main">
           <PowerChartSection
             applianceId={id}
             hasDevice={hasDevice}
@@ -125,7 +126,7 @@ export function ApplianceDetailPage() {
             noDeviceAction={
               health.data ? (
                 <Button asChild>
-                  <Link to={`/devices?appliance=${id}`}>Connect a device</Link>
+                  <ModuleLink to={`/devices?appliance=${id}`}>Connect a device</ModuleLink>
                 </Button>
               ) : undefined
             }
@@ -143,25 +144,25 @@ export function ApplianceDetailPage() {
                   onRetry={() => void health.refetch()}
                 />
               ) : alertList.length === 0 ? (
-                <p className="muted">No active alerts. We will list anything unusual here.</p>
+                <p className="hp-muted">No active alerts. We will list anything unusual here.</p>
               ) : (
-                <div className="stack-3">
-                  <ul className="stack-3 plain-list" aria-label="Active alerts">
+                <div className="hp-stack-3">
+                  <ul className="hp-stack-3 hp-plain-list" aria-label="Active alerts">
                     {alertList.map((alert) => (
                       <li key={alert.id}>
                         <AlertCard alert={alert} showAppliance={false} headingAs="h3" />
                       </li>
                     ))}
                   </ul>
-                  <Link to={`/alerts?appliance=${id}&status=ALL`}>
+                  <ModuleLink to={`/alerts?appliance=${id}&status=ALL`}>
                     See all {pluralize(alertList.length, 'alert')} and history
-                  </Link>
+                  </ModuleLink>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
-        <div className="stack-4 detail-side">
+        <div className="hp-stack-4 hp-detail-side">
           {health.isPending ? (
             <PageSkeleton label="Loading health" />
           ) : health.isError ? null : (

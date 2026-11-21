@@ -1,9 +1,10 @@
 import { useAuth } from '@platform/auth-web'
 import {
-  AlertIcon,
   AppShell,
+  Avatar,
   Badge,
   Button,
+  ProductMark,
   Select,
   SidebarLink,
   SidebarNav,
@@ -11,82 +12,18 @@ import {
   useTheme,
   type ThemePreference,
 } from '@platform/ui'
+import { ModuleNavLink } from '@platform/workspace-kit'
 import { useEffect, useRef, type ReactNode } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useAlerts } from '../features/alerts/hooks'
+import { HOME_PULSE_NAV } from '../module'
 import { useRuntime } from '../runtime'
-
-function NavItem({
-  to,
-  end,
-  icon,
-  children,
-}: {
-  to: string
-  end?: boolean
-  icon: ReactNode
-  children: ReactNode
-}) {
-  return (
-    <SidebarLink asChild>
-      <NavLink to={to} end={end ?? false}>
-        <span className="nav-icon" aria-hidden="true">
-          {icon}
-        </span>
-        {children}
-      </NavLink>
-    </SidebarLink>
-  )
-}
-
-const HomeIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M3 11l9-8 9 8M5 10v10h14V10" />
-  </svg>
-)
-const PlugIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M9 3v5M15 3v5M6 8h12v4a6 6 0 0 1-12 0V8zM12 18v3" />
-  </svg>
-)
-const CalendarIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4" />
-  </svg>
-)
 
 function ThemeSelect() {
   const { theme, setTheme } = useTheme()
   return (
-    <div className="theme-select">
-      <span className="hide-sm">Theme</span>
+    <div className="hp-theme-select">
+      <span className="hp-hide-sm">Theme</span>
       <Select
         size="sm"
         aria-label="Theme"
@@ -108,9 +45,9 @@ function AlertCount() {
   const count = alerts.data?.length ?? 0
   if (count === 0) return null
   return (
-    <Badge variant="danger" className="nav-count">
+    <Badge variant="danger" className="hp-nav-count">
       {count}
-      <span className="sr-only"> open</span>
+      <span className="hp-sr-only"> open</span>
     </Badge>
   )
 }
@@ -128,45 +65,50 @@ function useFocusMainOnNavigate() {
   }, [pathname])
 }
 
-export function AppLayout() {
+/** The standalone app's frame. Inside the workspace the workspace's own shell is used instead. */
+export function AppLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth()
   const { mode } = useRuntime()
-  const initials = (user?.displayName ?? user?.email ?? '?').slice(0, 1).toUpperCase()
+  const who = user?.displayName ?? user?.email ?? 'You'
   useFocusMainOnNavigate()
 
   return (
     <AppShell
-      brand={<span className="brand">Home Pulse</span>}
+      brand={
+        <span className="hp-brand">
+          <ProductMark product="home-pulse" variant="solid" size={28} />
+          Home Pulse
+        </span>
+      }
       sidebar={
         <SidebarNav label="Primary">
           <SidebarSection title="Your home">
-            <NavItem to="/" end icon={<HomeIcon />}>
-              Home
-            </NavItem>
-            <NavItem to="/alerts" icon={<AlertIcon size={20} />}>
-              Alerts <AlertCount />
-            </NavItem>
-            <NavItem to="/devices" icon={<PlugIcon />}>
-              Devices
-            </NavItem>
-            <NavItem to="/reminders" icon={<CalendarIcon />}>
-              Reminders
-            </NavItem>
+            {HOME_PULSE_NAV.map((item) => (
+              <SidebarLink asChild key={item.to}>
+                <ModuleNavLink to={item.to} end={item.end ?? false}>
+                  {item.icon ? (
+                    <span className="hp-nav-icon" aria-hidden="true">
+                      <item.icon size={20} />
+                    </span>
+                  ) : null}
+                  {item.label}
+                  {item.to === '/alerts' ? <AlertCount /> : null}
+                </ModuleNavLink>
+              </SidebarLink>
+            ))}
           </SidebarSection>
         </SidebarNav>
       }
       topbar={
         <>
           {mode === 'demo' ? (
-            <Badge variant="warning" className="hide-xs">
+            <Badge variant="warning" className="hp-hide-xs">
               Demo data
             </Badge>
           ) : null}
           <ThemeSelect />
-          <div className="user-chip hide-sm">
-            <span className="avatar" aria-hidden="true">
-              {initials}
-            </span>
+          <div className="hp-user-chip hp-hide-sm">
+            <Avatar name={who} size="xs" decorative />
             <span>{user?.email}</span>
           </div>
           <Button size="sm" variant="secondary" onClick={() => void signOut()}>
@@ -175,7 +117,7 @@ export function AppLayout() {
         </>
       }
     >
-      <Outlet />
+      {children}
     </AppShell>
   )
 }
