@@ -1,5 +1,6 @@
 package com.personalplatform.platform.config;
 
+import com.personalplatform.security.PermissionAuthoritiesConverter;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -54,7 +55,8 @@ class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/actuator/health/**", "/actuator/info").permitAll()
                         .anyRequest().authenticated())
-                .oauth2ResourceServer(o -> o.jwt(j -> {})
+                .oauth2ResourceServer(o -> o
+                        .jwt(j -> j.jwtAuthenticationConverter(PermissionAuthoritiesConverter.jwtAuthenticationConverter()))
                         .authenticationEntryPoint(unauthorized("Missing or invalid access token"))
                         .accessDeniedHandler(forbidden()))
                 .exceptionHandling(e -> e.authenticationEntryPoint(unauthorized("Missing or invalid access token"))
