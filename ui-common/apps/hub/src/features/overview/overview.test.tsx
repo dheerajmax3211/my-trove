@@ -55,7 +55,7 @@ describe('overview states', () => {
     const coming = (await screen.findByRole('heading', { name: 'Coming up' })).closest('section')!
     expect(await within(coming).findByText('Water the plants')).toBeInTheDocument()
     const lately = screen.getByRole('heading', { name: /Lately in/ }).closest('section')!
-    expect(await within(lately).findByText('You created the household')).toBeInTheDocument()
+    expect(await within(lately).findByText('Home insurance summary.txt (77 B)')).toBeInTheDocument()
   })
 
   it('names one next step with a button that leads there', async () => {

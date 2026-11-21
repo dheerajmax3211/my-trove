@@ -78,12 +78,14 @@ describe('launcher home', () => {
     expect(await screen.findByRole('heading', { name: 'Rivera household' })).toBeInTheDocument()
     const upcoming = (await screen.findByRole('heading', { name: 'Coming up' })).closest('section')!
     expect(await within(upcoming).findByText('Water the plants')).toBeInTheDocument()
-    expect(within(upcoming).getByText('Renew passport')).toBeInTheDocument()
+    expect(within(upcoming).getByText('Put the bins out')).toBeInTheDocument()
+    // Only the next four are listed here.
+    expect(within(upcoming).queryByText('Renew passport')).not.toBeInTheDocument()
     expect(within(upcoming).queryByText('Book dentist')).not.toBeInTheDocument()
     const lately = screen
       .getByRole('heading', { name: /Lately in Rivera household/ })
       .closest('section')!
-    expect(await within(lately).findByText('You created the household')).toBeInTheDocument()
+    expect(await within(lately).findByText('Home insurance summary.txt (77 B)')).toBeInTheDocument()
     expect(within(lately).getByText('Bob Rivera joined the household')).toBeInTheDocument()
   })
 

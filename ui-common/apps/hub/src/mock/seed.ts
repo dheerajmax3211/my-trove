@@ -107,6 +107,7 @@ export function createSeededState(
     householdId: string | null,
     recurrence: { unit: 'DAILY' | 'WEEKLY' | 'MONTHLY'; interval: number } | null,
     status: 'ACTIVE' | 'COMPLETED' = 'ACTIVE',
+    createdDaysAgo = 5,
   ) => {
     const id = state.nextId()
     const dueAt = now + dueInDays * DAY
@@ -120,12 +121,14 @@ export function createSeededState(
       recurrence,
       status,
       lastFiredAt: status === 'COMPLETED' ? dueAt : null,
-      createdAt: now - 5 * DAY,
+      createdAt: now - createdDaysAgo * DAY,
     })
-    recordAudit(state, now - 5 * DAY, owner, householdId, 'reminder.created', 'reminder', id, {
+    recordAudit(state, now - createdDaysAgo * DAY, owner, householdId, 'reminder.created', 'reminder', id, {
       title,
     })
   }
+  addReminder('Put the bins out', 0.15, home, { unit: 'WEEKLY', interval: 1 }, 'ACTIVE', 0.3)
+  addReminder('Book the boiler service', 1.2, home, null, 'ACTIVE', 1)
   addReminder('Renew passport', 9, null, null)
   addReminder('Water the plants', 2, null, { unit: 'WEEKLY', interval: 1 })
   addReminder('Pay property tax', 5, home, { unit: 'MONTHLY', interval: 3 })
