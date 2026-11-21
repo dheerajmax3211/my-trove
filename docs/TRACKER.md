@@ -56,7 +56,7 @@ Deferred on purpose (not built in Phase 2): support "view as user" sessions (nee
 - [ ] 2.2 Public site (agent S): home, six product pages, platform, security, pricing, docs landing, about, 404, SEO tags, screenshots
 - [ ] 2.3 Workspace shell (agent W): sign-in, session from `/me`, persona-aware nav, module mounting + per-module API client, Today feed, onboarding, ⌘K, account, demo mode
 - [ ] 2.4 Admin console (agent A): users, roles matrix, usage analytics, audit, flags, plans
-- [~] 2.5 Backend (agent F, dispatched with 2.1, branch `phase-2/flags`): feature flags in platform-service (+ evaluate endpoint), `GET /v1/admin/users/lookup`
+- [x] 2.5 Backend: feature flags in platform-service (+ evaluate endpoint, audit table), `GET /v1/admin/users/lookup` (merged; platform-service 84, auth 63, sql-jooq 70 tests; flags: ADMIN and OWNER hold `flags:manage`): feature flags in platform-service (+ evaluate endpoint), `GET /v1/admin/users/lookup`
 - [ ] 2.6 Product modules + redesign pass, one agent per app: waiting-on, consent, home-pulse, ask-your-life, digital-legacy, family-treasury, hub→core
 - [ ] 2.7 Integration and QA: merges green, `dev/up.sh` starts workspace + site, browser pass as MEMBER/DEVELOPER/ADMIN/OWNER, screenshots, docs, commit (ask before push)
 
