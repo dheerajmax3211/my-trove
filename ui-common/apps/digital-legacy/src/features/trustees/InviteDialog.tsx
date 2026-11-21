@@ -7,6 +7,7 @@ import { Callout } from '../../components/Callout'
 import { CopyButton } from '../../components/CopyButton'
 import { ErrorNotice } from '../../components/ErrorNotice'
 import { formatDateTime } from '../../lib/format'
+import { trusteePortalOrigin } from '../../lib/trusteePortal'
 import { OWNER_KEYS } from '../queries'
 
 const CHANNELS = [
@@ -41,7 +42,7 @@ export function InviteDialog({
     invalidate: OWNER_KEYS,
   })
   const created = invite.data
-  const link = created ? inviteLink(window.location.origin, created.inviteToken) : ''
+  const link = created ? inviteLink(trusteePortalOrigin(), created.inviteToken) : ''
   const blank = label.trim() === ''
 
   const onSubmit = (event: FormEvent) => {

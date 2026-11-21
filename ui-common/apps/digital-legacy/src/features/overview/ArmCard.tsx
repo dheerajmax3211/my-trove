@@ -11,7 +11,7 @@ import {
   useToast,
 } from '@platform/ui'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { ownerPaths } from '../../api/paths'
 import type { StateView } from '../../api/types'
 import { Callout } from '../../components/Callout'
@@ -63,8 +63,8 @@ export function ArmCard({ state }: { state: StateView }) {
                 ))}
               </ul>
               <p>
-                Fix this on the <Link to="/trustees">Trustees</Link> and{' '}
-                <Link to="/policy">Check-in policy</Link> pages.
+                Fix this on the <ModuleLink to="/trustees">Trustees</ModuleLink> and{' '}
+                <ModuleLink to="/policy">Check-in policy</ModuleLink> pages.
               </p>
             </Callout>
           ) : null}

@@ -10,23 +10,22 @@ import {
   CardHeader,
   CardTitle,
   Field,
+  Illustration,
   Input,
+  ProductMark,
   SidebarNav,
   SidebarSection,
   Spinner,
 } from '@platform/ui'
 import { useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState, type FormEvent } from 'react'
-import { Link, Route, Routes } from 'react-router-dom'
+import { createSession, WorkspaceSessionProvider } from '@platform/workspace-kit'
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { DemoControls } from './components/DemoControls'
 import { NavItem } from './components/NavItem'
 import { ThemeSelect } from './components/ThemeSelect'
-import { OverviewPage } from './features/overview/OverviewPage'
-import { PolicyPage } from './features/policy/PolicyPage'
-import { TimelinePage } from './features/timeline/TimelinePage'
-import { TrusteesPage } from './features/trustees/TrusteesPage'
 import { VaultKeyProvider, useVaultKey } from './features/vault/VaultKeyContext'
-import { VaultPage } from './features/vault/VaultPage'
+import { OwnerRoutes } from './OwnerRoutes'
 import type { AuthMode, Runtime } from './runtime'
 
 function SignIn({ mode }: { mode: AuthMode }) {
@@ -53,11 +52,18 @@ function SignIn({ mode }: { mode: AuthMode }) {
 
   return (
     <main className="signin">
+      <div className="signin-intro">
+        <Illustration name="locked" size={180} />
+        <p>
+          Digital Legacy hands what you leave behind to the people you trust, only if you stop
+          checking in. It is locked in your browser first, so nobody else can read it.
+        </p>
+      </div>
       <Card className="signin-card" variant="elevated">
         <CardHeader>
           <CardTitle as="h1">Sign in to Digital Legacy</CardTitle>
           <CardDescription>
-            Your vault is encrypted in this browser. Signing in only proves who owns it.{' '}
+            Signing in only proves who owns the vault; the key never leaves this browser.{' '}
             <Badge variant={mode === 'stub' ? 'warning' : 'success'}>
               {mode === 'stub' ? 'demo mode' : mode}
             </Badge>
@@ -139,7 +145,12 @@ function Shell({ runtime }: { runtime: Runtime }) {
   const initials = (user?.displayName ?? user?.email ?? '?').slice(0, 1).toUpperCase()
   return (
     <AppShell
-      brand="Digital Legacy"
+      brand={
+        <span className="brand-lockup">
+          <ProductMark product="digital-legacy" size={28} />
+          <span className="brand-name">Digital Legacy</span>
+        </span>
+      }
       sidebar={
         <SidebarNav label="Main">
           <SidebarSection title="Your switch">
@@ -170,16 +181,32 @@ function Shell({ runtime }: { runtime: Runtime }) {
         </>
       }
     >
-      <Routes>
-        <Route index element={<OverviewPage />} />
-        <Route path="vault" element={<VaultPage />} />
-        <Route path="trustees" element={<TrusteesPage />} />
-        <Route path="policy" element={<PolicyPage />} />
-        <Route path="timeline" element={<TimelinePage />} />
-        <Route path="*" element={<OverviewPage />} />
-      </Routes>
+      <OwnerRoutes />
     </AppShell>
   )
+}
+
+/**
+ * The pages read who is signed in from the workspace session (`useWorkspaceSession`), so they work in the
+ * workspace and here. Standalone, the session is built from this app's own sign-in.
+ */
+function StandaloneSession({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  const session = useMemo(
+    () =>
+      createSession({
+        uid: user?.uid ?? 'standalone',
+        email: user?.email ?? null,
+        displayName: user?.displayName ?? null,
+        roles: [],
+        permissions: [],
+        plan: 'FREE',
+        isDemo: false,
+        can: () => true,
+      }),
+    [user?.uid, user?.email, user?.displayName],
+  )
+  return <WorkspaceSessionProvider value={session}>{children}</WorkspaceSessionProvider>
 }
 
 /** The owner app: Firebase-authenticated, bearer-token API client. */
@@ -195,9 +222,11 @@ export function OwnerApp({ runtime }: { runtime: Runtime }) {
           }
           fallback={<SignIn mode={runtime.authMode} />}
         >
-          <VaultKeyProvider>
-            <Shell runtime={runtime} />
-          </VaultKeyProvider>
+          <StandaloneSession>
+            <VaultKeyProvider>
+              <Shell runtime={runtime} />
+            </VaultKeyProvider>
+          </StandaloneSession>
         </RequireAuth>
       </ApiProvider>
     </AuthProvider>

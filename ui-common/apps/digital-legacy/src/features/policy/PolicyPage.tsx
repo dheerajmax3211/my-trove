@@ -1,6 +1,5 @@
 import { isApiError } from '@platform/api-client'
 import { useApiMutation } from '@platform/api-client'
-import { useAuth } from '@platform/auth-web'
 import {
   Button,
   Card,
@@ -20,7 +19,7 @@ import {
   useToast,
 } from '@platform/ui'
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { ModuleLink, useWorkspaceSession } from '@platform/workspace-kit'
 import { ownerPaths } from '../../api/paths'
 import {
   AUDIENCES,
@@ -371,8 +370,8 @@ function PolicyForm({
 
       <Callout tone="info" title={`Quorum: ${quorum} trustee${quorum === 1 ? '' : 's'} must agree`}>
         <p>
-          Change it on the <Link to="/trustees">Trustees</Link> page, where you can see what each
-          choice means.
+          Change it on the <ModuleLink to="/trustees">Trustees</ModuleLink> page, where you can see
+          what each choice means.
         </p>
       </Callout>
       {save.error ? (
@@ -390,7 +389,7 @@ function PolicyForm({
 export function PolicyPage() {
   const state = useStateQuery()
   const trustees = useTrusteesQuery()
-  const { user } = useAuth()
+  const { email } = useWorkspaceSession()
 
   if (state.isPending || trustees.isPending) return <PageSkeleton label="Loading your policy" />
   if (state.error || trustees.error) {
@@ -402,7 +401,7 @@ export function PolicyPage() {
           description="The policy belongs to a vault."
           action={
             <Button asChild>
-              <Link to="/vault">Create your vault</Link>
+              <ModuleLink to="/vault">Create your vault</ModuleLink>
             </Button>
           }
         />
@@ -427,7 +426,7 @@ export function PolicyPage() {
       <PolicyForm
         state={state.data}
         defaultQuorum={Math.min(2, Math.max(1, active))}
-        email={user?.email ?? ''}
+        email={email ?? ''}
       />
     </div>
   )

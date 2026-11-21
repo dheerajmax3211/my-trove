@@ -35,10 +35,27 @@ proxies `/api/*` to `http://localhost:8087` and strips the `/api` prefix.
 | `VITE_API_BASE_URL`                                   | API base (default `/api`)                             |
 | `VITE_USE_MOCK=true`                                  | force the in-memory API even with Firebase configured |
 
+## In the workspace
+
+`src/module.tsx` exports `productModule` (`@platform/digital-legacy/module`), which the workspace mounts at
+`/app/digital-legacy/*`. It covers the **owner's pages only** (overview, vault, trustees, check-in policy,
+timeline). The trustee portal (`/trustee/*`) authenticates with trustee tokens rather than the owner's session, so
+it stays a feature of this standalone app. The module supplies:
+
+- `Providers`: the in-memory vault key session. Leaving the module or signing out unmounts it, which zero-fills the
+  key. The key and plaintext are never written to storage, cookies or logs.
+- `Routes` and `nav`: the owner pages, with module-relative paths (`ModuleLink`, `useModulePath`).
+- `useTodayItems`: check-in due within 7 days (`warn`, `danger` when overdue or past grace), a released vault
+  (`danger`), a vacation pause or a healthy armed switch (`info`), and trustee invitations nobody has answered.
+- `createDemoFetch`: a fresh in-memory mock server per call, reachable at the gateway path.
+
+Invite links must point at the standalone trustee portal. Set `VITE_TRUSTEE_PORTAL_URL` (for example
+`http://localhost:5186`) in a workspace deployment; without it the link uses the page's own origin.
+
 ## Screen map
 
 ```
-/                    Overview: status panel + live countdown, "I'm here" check-in, vacation pause, arm/disarm
+/                    Overview: the switch (state, next deadline, "I'm here"), state ladder, trustee circle, arm/disarm, vacation pause; first-run guide when there is no vault
 /vault               Vault editor (encrypts locally), unlock with key file, rotate key, what the server holds
 /trustees            Invite (link shown once), fingerprint compare, t-of-n quorum, seal shares
 /policy              Check-in policy: interval, grace, reminder schedule, cool-off, contacts, live timeline preview

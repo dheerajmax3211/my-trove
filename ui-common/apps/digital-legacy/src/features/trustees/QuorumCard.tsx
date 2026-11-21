@@ -11,7 +11,7 @@ import {
   useToast,
 } from '@platform/ui'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { ownerPaths } from '../../api/paths'
 import type { StateView } from '../../api/types'
 import { Callout } from '../../components/Callout'
@@ -59,7 +59,8 @@ export function QuorumCard({ state, trusteeCount }: { state: StateView; trusteeC
             <Callout tone="info">
               <p>
                 The quorum is part of your check-in policy. Set that up first on the{' '}
-                <Link to="/policy">Check-in policy</Link> page, then come back to choose it.
+                <ModuleLink to="/policy">Check-in policy</ModuleLink> page, then come back to choose
+                it.
               </p>
             </Callout>
           ) : null}

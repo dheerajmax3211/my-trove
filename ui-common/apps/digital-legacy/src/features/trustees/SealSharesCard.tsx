@@ -10,7 +10,7 @@ import {
   useToast,
 } from '@platform/ui'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import type { StateView, TrusteeView, VaultSummary } from '../../api/types'
 import { Callout } from '../../components/Callout'
 import { ErrorNotice } from '../../components/ErrorNotice'
@@ -101,7 +101,7 @@ export function SealSharesCard({
             <Callout tone="info" title="Unlock your vault key first">
               <p>
                 The key is only in memory while you work. Load your key file on the{' '}
-                <Link to="/vault">Vault</Link> page, then return here.
+                <ModuleLink to="/vault">Vault</ModuleLink> page, then return here.
               </p>
             </Callout>
           ) : null}

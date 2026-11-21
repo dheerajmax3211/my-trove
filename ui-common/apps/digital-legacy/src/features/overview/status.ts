@@ -1,6 +1,19 @@
 import type { StateView } from '../../api/types'
 import { formatDateTime } from '../../lib/format'
 
+/** Where the switch sits on the ladder from "checked in" (0) to "released" (4). */
+export const LADDER_ORDER: readonly StateView['state'][] = [
+  'ACTIVE',
+  'GRACE',
+  'ESCALATING',
+  'RELEASE_PENDING',
+  'RELEASED',
+]
+
+export function ladderIndex(state: StateView['state']): number {
+  return LADDER_ORDER.indexOf(state)
+}
+
 export interface StatusSummary {
   headline: string
   detail: string

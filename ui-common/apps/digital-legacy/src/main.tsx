@@ -5,6 +5,7 @@ import '@platform/ui/styles.css'
 import { App } from './App'
 import { createRuntime } from './runtime'
 import './app.css'
+import './switch.css'
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Missing #root element')

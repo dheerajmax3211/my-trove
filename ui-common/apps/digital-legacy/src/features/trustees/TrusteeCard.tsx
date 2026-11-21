@@ -1,5 +1,13 @@
 import { useApiMutation } from '@platform/api-client'
-import { Badge, Button, Dialog, DialogClose, useToast, type BadgeVariant } from '@platform/ui'
+import {
+  Avatar,
+  Badge,
+  Button,
+  Dialog,
+  DialogClose,
+  useToast,
+  type BadgeVariant,
+} from '@platform/ui'
 import { useState } from 'react'
 import { ownerPaths } from '../../api/paths'
 import type { TrusteeView } from '../../api/types'
@@ -48,6 +56,7 @@ export function TrusteeCard({
   return (
     <li className="entry-card" aria-label={trustee.label}>
       <div className="row-wrap">
+        <Avatar name={trustee.label} size="sm" decorative />
         <strong>{trustee.label}</strong>
         <Badge variant={status.variant} dot>
           {status.label}
