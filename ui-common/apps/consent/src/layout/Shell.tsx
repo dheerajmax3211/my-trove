@@ -1,9 +1,10 @@
 import { useAuth } from '@platform/auth-web'
 import {
   AppShell,
+  Avatar,
   Badge,
   Button,
-  EmptyState,
+  ProductMark,
   Select,
   SidebarLink,
   SidebarNav,
@@ -12,16 +13,11 @@ import {
   useTheme,
   type ThemePreference,
 } from '@platform/ui'
+import { ModuleNavLink } from '@platform/workspace-kit'
 import { useEffect, useRef, type ReactNode } from 'react'
-import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
-import { AuditPage } from '../features/audit/pages/AuditPage'
-import { ClientsPage } from '../features/clients/pages/ClientsPage'
-import { DashboardPage } from '../features/dashboard/pages/DashboardPage'
+import { useLocation } from 'react-router-dom'
 import { useDashboard } from '../features/dashboard/hooks/useDashboard'
-import { GrantsPage } from '../features/grants/pages/GrantsPage'
-import { HistoryPage } from '../features/history/pages/HistoryPage'
-import { RequestsPage } from '../features/requests/pages/RequestsPage'
-import { VaultPage } from '../features/vault/pages/VaultPage'
+import { ConsentRoutes } from '../routes'
 import type { Runtime } from '../runtime'
 import { DemoTools } from './DemoTools'
 
@@ -38,10 +34,10 @@ function NavItem({
 }) {
   return (
     <SidebarLink asChild>
-      <NavLink to={to} end={end ?? false}>
+      <ModuleNavLink to={to} end={end ?? false}>
         {children}
         {badge}
-      </NavLink>
+      </ModuleNavLink>
     </SidebarLink>
   )
 }
@@ -115,59 +111,45 @@ function Navigation() {
   )
 }
 
-function NotFound() {
-  return (
-    <EmptyState
-      title="Page not found"
-      description="That page does not exist."
-      action={
-        <Button asChild>
-          <Link to="/">Back to the overview</Link>
-        </Button>
-      }
-    />
-  )
-}
-
+/**
+ * The standalone app's layout around the module's routes. `data-product` makes every accent inside
+ * the product's own (patina); the workspace does the same around a mounted module.
+ */
 export function Shell({ runtime }: { runtime: Runtime }) {
   const { user, signOut } = useAuth()
-  const initials = (user?.displayName ?? user?.email ?? '?').slice(0, 1).toUpperCase()
+  const who = user?.displayName ?? user?.email ?? 'You'
   useRouteFocus()
 
   return (
-    <AppShell
-      brand={<span className="brand">Consent</span>}
-      sidebar={<Navigation />}
-      sidebarFooter={runtime.backend ? <DemoTools backend={runtime.backend} /> : undefined}
-      topbar={
-        <>
-          <ThemeSelect />
-          <div className="user-chip hide-sm">
-            <span className="avatar" aria-hidden="true">
-              {initials}
-            </span>
-            <span>{user?.email}</span>
-          </div>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => void signOut().then(() => runtime.queryClient.clear())}
-          >
-            Sign out
-          </Button>
-        </>
-      }
-    >
-      <Routes>
-        <Route index element={<DashboardPage />} />
-        <Route path="requests" element={<RequestsPage />} />
-        <Route path="grants" element={<GrantsPage />} />
-        <Route path="vault" element={<VaultPage />} />
-        <Route path="clients" element={<ClientsPage />} />
-        <Route path="history" element={<HistoryPage />} />
-        <Route path="audit" element={<AuditPage />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </AppShell>
+    <div data-product="consent" className="product-root">
+      <AppShell
+        brand={
+          <span className="brand">
+            <ProductMark product="consent" variant="solid" size={28} />
+            <span className="brand-name">Consent</span>
+          </span>
+        }
+        sidebar={<Navigation />}
+        sidebarFooter={runtime.backend ? <DemoTools backend={runtime.backend} /> : undefined}
+        topbar={
+          <>
+            <ThemeSelect />
+            <div className="user-chip hide-sm">
+              <Avatar name={who} size="xs" decorative />
+              <span>{user?.email}</span>
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => void signOut().then(() => runtime.queryClient.clear())}
+            >
+              Sign out
+            </Button>
+          </>
+        }
+      >
+        <ConsentRoutes />
+      </AppShell>
+    </div>
   )
 }

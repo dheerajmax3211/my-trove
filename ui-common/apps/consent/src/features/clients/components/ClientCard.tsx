@@ -1,5 +1,5 @@
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@platform/ui'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import type { Client } from '../../../shared/api/types'
 import { ScopeList } from '../../../shared/components/ScopeList'
 import { formatDate } from '../../../shared/lib/format'
@@ -67,12 +67,12 @@ export function ClientCard({ client, onRotate, onDisable }: ClientCardProps) {
         </dl>
         <div className="row-wrap">
           <Button variant="secondary" asChild>
-            <Link
+            <ModuleLink
               to={`/history?client=${encodeURIComponent(client.clientId)}`}
               aria-label={`View activity for ${client.name}`}
             >
               View activity
-            </Link>
+            </ModuleLink>
           </Button>
           {!disabled ? (
             <>
