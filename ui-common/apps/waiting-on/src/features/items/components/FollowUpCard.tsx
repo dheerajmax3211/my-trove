@@ -1,4 +1,13 @@
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@platform/ui'
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  KeyValueList,
+  type KeyValueItem,
+} from '@platform/ui'
 import { useClock } from '../../../lib/clock'
 import {
   calendarDaysBetween,
@@ -8,6 +17,7 @@ import {
 } from '../../../lib/dates'
 import { isTerminal, type Item } from '../api/types'
 import { NEXT_ACTION_LABEL, STAGE_LABEL, STATUS_LABEL } from '../logic/labels'
+import { StageGauge } from './StageGauge'
 
 /** Live workflow state: which stage the follow-up is in and when the next step fires. */
 export function FollowUpCard({ item, onRetry }: { item: Item; onRetry: () => void }) {
@@ -36,35 +46,45 @@ export function FollowUpCard({ item, onRetry }: { item: Item; onRetry: () => voi
     )
   } else {
     const at = followUp.nextActionAt ? new Date(followUp.nextActionAt) : null
-    body = (
-      <dl className="wo-dl">
-        <div>
-          <dt>Stage</dt>
-          <dd>{STAGE_LABEL[followUp.stage]}</dd>
-        </div>
-        <div>
-          <dt>Next action</dt>
-          <dd>{NEXT_ACTION_LABEL[followUp.nextAction]}</dd>
-        </div>
-        {at ? (
-          <div>
-            <dt>Scheduled for</dt>
-            <dd>
-              <time dateTime={at.toISOString()}>{formatDateTime(at)}</time>{' '}
-              <span className="wo-muted">
-                ({describeDayOffset(calendarDaysBetween(clock(), at))})
-              </span>
-            </dd>
-          </div>
-        ) : null}
-        {followUp.snoozedDays > 0 ? (
-          <div>
-            <dt>Snoozed</dt>
-            <dd>{pluralDays(followUp.snoozedDays)} in total</dd>
-          </div>
-        ) : null}
-      </dl>
-    )
+    const rows: KeyValueItem[] = [
+      {
+        id: 'stage',
+        label: 'Stage',
+        value: (
+          <span className="wo-stage">
+            <StageGauge item={item} />
+            {STAGE_LABEL[followUp.stage]}
+          </span>
+        ),
+      },
+      { id: 'next', label: 'Next action', value: NEXT_ACTION_LABEL[followUp.nextAction] },
+      ...(at
+        ? [
+            {
+              id: 'when',
+              label: 'Scheduled for',
+              value: (
+                <>
+                  <time dateTime={at.toISOString()}>{formatDateTime(at)}</time>{' '}
+                  <span className="wo-muted">
+                    ({describeDayOffset(calendarDaysBetween(clock(), at))})
+                  </span>
+                </>
+              ),
+            },
+          ]
+        : []),
+      ...(followUp.snoozedDays > 0
+        ? [
+            {
+              id: 'snoozed',
+              label: 'Snoozed',
+              value: `${pluralDays(followUp.snoozedDays)} in total`,
+            },
+          ]
+        : []),
+    ]
+    body = <KeyValueList items={rows} dense />
   }
 
   return (

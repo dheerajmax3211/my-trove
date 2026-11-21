@@ -9,6 +9,7 @@ import {
   CardTitle,
   Field,
   Input,
+  ProductMark,
 } from '@platform/ui'
 import { useState, type FormEvent } from 'react'
 
@@ -38,9 +39,13 @@ export function SignIn({ demo }: { demo: boolean }) {
     <main className="wo-signin">
       <Card className="wo-signin-card" variant="elevated">
         <CardHeader>
+          <div className="wo-signin-mark" aria-hidden="true">
+            <ProductMark product="waiting-on" size={44} variant="solid" />
+          </div>
           <CardTitle as="h1">Sign in to Waiting On</CardTitle>
           <CardDescription>
-            Keep track of everything you are waiting for, and let us do the chasing.{' '}
+            Keep track of refunds, claims and approvals you are waiting for. A follow-up schedule
+            drafts the letters, and you send them.{' '}
             {demo ? <Badge variant="warning">Demo mode: no real account needed</Badge> : null}
           </CardDescription>
         </CardHeader>

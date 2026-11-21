@@ -1,16 +1,12 @@
 import { ApiProvider } from '@platform/api-client'
 import { AuthProvider, RequireAuth, useAuth } from '@platform/auth-web'
-import { Spinner, ThemeProvider, ToastProvider } from '@platform/ui'
+import { PortalContainerProvider, Spinner, ThemeProvider, ToastProvider } from '@platform/ui'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { Route, Routes } from 'react-router-dom'
 import { SignIn } from './auth/SignIn'
 import { ClockProvider } from './lib/clock'
 import { AppLayout } from './layout/AppLayout'
-import { ItemDetailPage } from './features/items/pages/ItemDetailPage'
-import { ItemsPage } from './features/items/pages/ItemsPage'
-import { NewItemPage } from './features/items/pages/NewItemPage'
-import { NotFoundPage } from './features/items/pages/NotFoundPage'
+import { WaitingOnRoutes } from './routes'
 import { createRuntime, type Runtime } from './runtime'
 
 /** Cached items belong to one user: drop them whenever the signed-in user changes or signs out. */
@@ -25,40 +21,44 @@ function ClearCacheOnUserChange() {
   return null
 }
 
-/** Providers and routes. Mount inside a Router. Pass a `runtime` to control auth, API and clock (tests do). */
+/**
+ * The standalone app: providers, sign-in and its own layout around the same routes the workspace mounts.
+ * Mount inside a Router. Pass a `runtime` to control auth, API and clock (tests do).
+ */
 export function App({ runtime: provided }: { runtime?: Runtime }) {
   const [runtime] = useState(() => provided ?? createRuntime())
+  // The product accent applies below this element; dialogs and toasts portal into it so they keep it.
+  const [root, setRoot] = useState<HTMLElement | null>(null)
   return (
-    <ThemeProvider>
-      <ClockProvider clock={runtime.clock}>
-        <AuthProvider client={runtime.authClient}>
-          <ApiProvider
-            client={runtime.apiClient}
-            {...(runtime.queryClient ? { queryClient: runtime.queryClient } : {})}
-          >
-            <ClearCacheOnUserChange />
-            <ToastProvider>
-              <RequireAuth
-                loading={
-                  <div className="wo-signin">
-                    <Spinner size={32} label="Checking your session" />
-                  </div>
-                }
-                fallback={<SignIn demo={runtime.demo} />}
+    <div ref={setRoot} data-product="waiting-on" className="wo-root">
+      <ThemeProvider>
+        <PortalContainerProvider container={root}>
+          <ClockProvider clock={runtime.clock}>
+            <AuthProvider client={runtime.authClient}>
+              <ApiProvider
+                client={runtime.apiClient}
+                {...(runtime.queryClient ? { queryClient: runtime.queryClient } : {})}
               >
-                <Routes>
-                  <Route element={<AppLayout demo={runtime.demo} />}>
-                    <Route index element={<ItemsPage />} />
-                    <Route path="new" element={<NewItemPage />} />
-                    <Route path="items/:id" element={<ItemDetailPage />} />
-                    <Route path="*" element={<NotFoundPage />} />
-                  </Route>
-                </Routes>
-              </RequireAuth>
-            </ToastProvider>
-          </ApiProvider>
-        </AuthProvider>
-      </ClockProvider>
-    </ThemeProvider>
+                <ClearCacheOnUserChange />
+                <ToastProvider>
+                  <RequireAuth
+                    loading={
+                      <div className="wo-signin">
+                        <Spinner size={32} label="Checking your session" />
+                      </div>
+                    }
+                    fallback={<SignIn demo={runtime.demo} />}
+                  >
+                    <AppLayout demo={runtime.demo}>
+                      <WaitingOnRoutes />
+                    </AppLayout>
+                  </RequireAuth>
+                </ToastProvider>
+              </ApiProvider>
+            </AuthProvider>
+          </ClockProvider>
+        </PortalContainerProvider>
+      </ThemeProvider>
+    </div>
   )
 }

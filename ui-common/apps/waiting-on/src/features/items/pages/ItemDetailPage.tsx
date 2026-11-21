@@ -6,11 +6,13 @@ import {
   CardHeader,
   CardTitle,
   EmptyState,
+  Illustration,
   PageHeader,
   Skeleton,
   VisuallyHidden,
 } from '@platform/ui'
-import { Link, useParams } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
+import { useParams } from 'react-router-dom'
 import { ErrorState } from '../../../components/ErrorState'
 import { usePageTitle } from '../../../lib/usePageTitle'
 import { ActionsCard } from '../components/ActionsCard'
@@ -18,8 +20,9 @@ import { DetailsCard } from '../components/DetailsCard'
 import { FollowUpCard } from '../components/FollowUpCard'
 import { LetterPreview } from '../components/LetterPreview'
 import { ReplyAddressCard } from '../components/ReplyAddressCard'
+import { PlanCard } from '../components/PlanCard'
 import { StatusBadge } from '../components/StatusBadge'
-import { Timeline } from '../components/Timeline'
+import { ItemTimeline } from '../components/Timeline'
 import { useItem, useTimeline } from '../hooks/useItems'
 
 function TimelineCard({ itemId }: { itemId: string }) {
@@ -41,7 +44,7 @@ function TimelineCard({ itemId }: { itemId: string }) {
         onRetry={() => void timeline.refetch()}
       />
     )
-  else body = <Timeline events={timeline.data} />
+  else body = <ItemTimeline events={timeline.data} />
   return (
     <Card>
       <CardHeader>
@@ -57,7 +60,7 @@ export function ItemDetailPage() {
   const item = useItem(id)
   usePageTitle(item.data?.title ?? 'Item')
 
-  const back = <Link to="/">Back to waiting list</Link>
+  const back = <ModuleLink to="/">Back to waiting list</ModuleLink>
 
   if (item.isError) {
     const missing =
@@ -69,11 +72,12 @@ export function ItemDetailPage() {
           {missing ? (
             <EmptyState
               role="alert"
+              illustration={<Illustration name="search" />}
               title="We could not find that item"
               description="It may have been removed, or the link may be wrong. Items are private to the account that created them."
               action={
                 <Button asChild>
-                  <Link to="/">Go to your waiting list</Link>
+                  <ModuleLink to="/">Go to your waiting list</ModuleLink>
                 </Button>
               }
             />
@@ -118,6 +122,7 @@ export function ItemDetailPage() {
           <ReplyAddressCard item={data} />
         </div>
         <div className="wo-detail-col">
+          <PlanCard item={data} />
           <TimelineCard itemId={data.id} />
           <LetterPreview itemId={data.id} />
         </div>
