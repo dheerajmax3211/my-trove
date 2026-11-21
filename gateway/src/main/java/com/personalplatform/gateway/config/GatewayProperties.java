@@ -26,7 +26,8 @@ public record GatewayProperties(
         Cors cors,
         Exchange exchange,
         Internal internal,
-        RateLimit rateLimit) {
+        RateLimit rateLimit,
+        Metering metering) {
 
     public static final String PRODUCTS_USE = "products:use";
 
@@ -108,6 +109,34 @@ public record GatewayProperties(
         }
     }
 
+    /**
+     * Usage events to Kafka. Delivery is best effort: events wait in a bounded in-memory buffer that drops its oldest
+     * entries when full, so a slow or absent broker can never slow a request down.
+     *
+     * @param enabled    publish usage events at all
+     * @param topic      topic name, {@code platform.usage.v1}
+     * @param kafka      broker connection
+     * @param bufferSize events held in memory before the oldest are dropped
+     * @param batchSize  events handed to the producer at once
+     */
+    public record Metering(Boolean enabled, String topic, Kafka kafka, Integer bufferSize, Integer batchSize) {
+
+        public record Kafka(String bootstrapServers) {
+
+            public Kafka {
+                bootstrapServers = bootstrapServers == null || bootstrapServers.isBlank() ? "localhost:9092" : bootstrapServers;
+            }
+        }
+
+        public Metering {
+            enabled = enabled == null || enabled;
+            topic = topic == null || topic.isBlank() ? "platform.usage.v1" : topic;
+            kafka = kafka == null ? new Kafka(null) : kafka;
+            bufferSize = bufferSize == null ? 10_000 : bufferSize;
+            batchSize = batchSize == null ? 500 : batchSize;
+        }
+    }
+
     public GatewayProperties {
         Map<String, Service> merged = new LinkedHashMap<>();
         DEFAULT_PORTS.forEach((name, port) -> merged.put(name, new Service("http://localhost:" + port)));
@@ -126,10 +155,11 @@ public record GatewayProperties(
         exchange = exchange == null ? new Exchange(null, null, null) : exchange;
         internal = internal == null ? new Internal(null) : internal;
         rateLimit = rateLimit == null ? new RateLimit(null, null, null, null, null, null) : rateLimit;
+        metering = metering == null ? new Metering(null, null, null, null, null) : metering;
     }
 
     public static GatewayProperties defaults() {
-        return new GatewayProperties(null, null, null, null, null, null, null, null);
+        return new GatewayProperties(null, null, null, null, null, null, null, null, null);
     }
 
     /** Permission a caller must hold to use this route, from configuration or the built-in default. */

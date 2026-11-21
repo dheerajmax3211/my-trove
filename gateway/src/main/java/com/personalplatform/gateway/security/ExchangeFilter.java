@@ -110,12 +110,12 @@ public class ExchangeFilter implements GlobalFilter, Ordered {
                         : fail(exchange, failure);
             }
             ExchangeResult result = (ExchangeResult) o;
+            exchange.getAttributes().put(GatewayAttributes.IDENTITY, result.identity());
             Optional<String> required = props.requiredPermission(service);
             if (required.isPresent() && !result.identity().permissions().contains(required.get())) {
                 return Problems.write(exchange, HttpStatus.FORBIDDEN, "forbidden", "Forbidden",
                         "This route requires the permission '" + required.get() + "'.");
             }
-            exchange.getAttributes().put(GatewayAttributes.IDENTITY, result.identity());
             return chain.filter(withoutInternalHeaders(exchange, result.accessToken()));
         });
     }
