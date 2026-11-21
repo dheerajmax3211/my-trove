@@ -33,10 +33,10 @@ Execution: 4 agents in git worktrees after pre-wiring: A-auth (plan tasks 1-3, b
 - Agents A-auth, A-lib, B, C dispatched 2026-11-21 (background, each in a worktree on its branch; use `ListAgents` and `git worktree list` to find them after a context reset). Their final reports arrive as notifications; verify each in the real repo (run its tests) before merging. Merge order: lib, auth, platform, gateway; then swap `@PreAuthorize` for `@RequiresPermission` in auth/platform-service; then tasks 12-13.
 Contracts to honour are in design doc section 5. Workstreams run in parallel after pre-wiring.
 - [x] 1.0 Pre-wire: new modules in root pom (`gateway`, `platform-service`), `platform` schema + jOOQ execution, compose Kafka (commit 63befa5; Spring Cloud 2026.0.0 BOM resolves on Boot 4.1.2)
-- [ ] 1.A RBAC in `auth`: roles/permissions/user_roles migration, seed personas, USER→MEMBER, bootstrap→OWNER, permission catalogue
-- [ ] 1.A Token exchange endpoint + JWKS + `permissions_version`; admin APIs (list users, assign/revoke role, suspend) with guardrails and audit table
+- [x] 1.A RBAC in `auth`: roles/permissions/user_roles migration, seed personas, USER→MEMBER, bootstrap→OWNER, permission catalogue (merged; auth 53 tests, sql-jooq 60)
+- [x] 1.A Token exchange endpoint + JWKS + `permissions_version`; admin APIs (list users, assign/revoke role, suspend) with guardrails and audit table (dev stack needs `APP_PLATFORM_KEY_ENCRYPTION_KEY`; ADMIN cannot touch any ADMIN/OWNER target; MEMBER is baseline and irrevocable; bootstrap emails re-granted OWNER on login)
 - [x] 1.A `platform-security`: `app.security.mode=platform`, platform-token decoder, `@RequiresPermission`, authorities converter, test helpers (merged; 42 tests; consent-gateway 158 unchanged; helper `PlatformTestTokens` in src/main; only consent-gateway built its own decoder)
-- [ ] 1.A Permission matrix test (every persona × every guarded endpoint)
+- [x] 1.A Permission matrix test (`AdminApiTest`, 27 tests, auth endpoints; platform-service matrix is in 1.C)
 - [ ] 1.B `gateway`: routes to all services, firebase credential → exchange (cached), request id, CORS
 - [ ] 1.B Per-plan rate limiting (Bucket4j) and monthly quota check; 429 problem responses with headers
 - [ ] 1.B Usage event emit to Kafka `platform.usage.v1` (reactor-kafka), never blocks the request path
