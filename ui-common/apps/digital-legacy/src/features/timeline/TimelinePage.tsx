@@ -8,7 +8,10 @@ import {
   CardHeader,
   CardTitle,
   EmptyState,
+  Illustration,
   PageHeader,
+  Timeline,
+  type TimelineTone,
 } from '@platform/ui'
 import type { ChainView } from '../../api/types'
 import { Callout } from '../../components/Callout'
@@ -19,6 +22,14 @@ import { formatDateTime } from '../../lib/format'
 import { useMutation } from '@tanstack/react-query'
 import { useOwnerApi, useTimelineQuery } from '../queries'
 import { describeEvent } from './events'
+
+function toneOf(eventType: string): TimelineTone {
+  if (eventType === 'RELEASED' || eventType === 'QUORUM_REACHED') return 'danger'
+  if (eventType === 'STATE_CHANGED' || eventType === 'ESCALATION_STEP_EXECUTED') return 'warning'
+  if (eventType === 'CHECK_IN' || eventType === 'ARMED') return 'success'
+  if (eventType.startsWith('VAULT_') || eventType.startsWith('SHARE_')) return 'brass'
+  return 'neutral'
+}
 
 function VerifyCard() {
   const api = useOwnerApi()
@@ -83,6 +94,7 @@ export function TimelinePage() {
     if (isApiError(timeline.error) && timeline.error.status === 404)
       return (
         <EmptyState
+          illustration={<Illustration name="empty" size={200} />}
           title="Nothing to show yet"
           description="The trail starts when you create your vault."
         />
@@ -106,20 +118,21 @@ export function TimelinePage() {
           {timeline.data.length === 0 ? (
             <EmptyState headingAs="h3" title="No events yet" />
           ) : (
-            <ol className="audit-list" aria-label="Audit events">
-              {timeline.data.map((entry) => {
+            <Timeline
+              label="Audit events"
+              items={timeline.data.map((entry) => {
                 const e = describeEvent(entry)
-                return (
-                  <li key={entry.seq} className="audit-item">
-                    <span className="small muted">{formatDateTime(entry.at)}</span>
-                    <span>
-                      <strong>{e.title}</strong> <Badge>{e.actor}</Badge>
-                      {e.summary ? <span className="muted small"> {e.summary}</span> : null}
-                    </span>
-                  </li>
-                )
+                return {
+                  id: String(entry.seq),
+                  title: e.title,
+                  time: formatDateTime(entry.at),
+                  dateTime: entry.at,
+                  tone: toneOf(entry.eventType),
+                  ...(e.summary ? { description: e.summary } : {}),
+                  meta: <Badge>{e.actor}</Badge>,
+                }
               })}
-            </ol>
+            />
           )}
         </CardContent>
       </Card>

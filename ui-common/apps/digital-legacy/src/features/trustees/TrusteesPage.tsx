@@ -1,5 +1,5 @@
 import { isApiError } from '@platform/api-client'
-import { Button, EmptyState, PageHeader, PlusIcon } from '@platform/ui'
+import { Button, EmptyState, Illustration, PageHeader, PlusIcon } from '@platform/ui'
 import { useState } from 'react'
 import { ModuleLink } from '@platform/workspace-kit'
 import { Callout } from '../../components/Callout'
@@ -26,6 +26,7 @@ export function TrusteesPage() {
     if (isApiError(error) && error.status === 404)
       return (
         <EmptyState
+          illustration={<Illustration name="locked" size={200} />}
           title="Create your vault first"
           description="Trustees hold pieces of your vault's key, so there has to be a vault."
           action={
@@ -69,6 +70,7 @@ export function TrusteesPage() {
       </Callout>
       {trustees.data.length === 0 ? (
         <EmptyState
+          illustration={<Illustration name="key" size={200} />}
           title="No trustees yet"
           description="Invite the people you would trust with this. Two or three is typical."
           action={<Button onClick={() => setInviteOpen(true)}>Invite a trustee</Button>}

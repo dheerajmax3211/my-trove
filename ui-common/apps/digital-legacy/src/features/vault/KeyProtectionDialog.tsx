@@ -96,6 +96,7 @@ export function KeyProtectionDialog({
             release, but nobody can recover the key for you: not us, not support.
           </p>
         </Callout>
+        <p className="key-step-title">Step 1. Choose a passphrase for the key file</p>
         <Field
           label="Passphrase"
           description={`At least ${MIN_PASSPHRASE_LENGTH} characters. A few unrelated words works well.`}
@@ -127,6 +128,7 @@ export function KeyProtectionDialog({
             }}
           />
         </Field>
+        <p className="key-step-title">Step 2. Download the key file and keep it safe</p>
         <div className="row-wrap">
           <Button
             variant="secondary"
@@ -139,6 +141,7 @@ export function KeyProtectionDialog({
           {downloaded ? <span role="status">Key file downloaded.</span> : null}
         </div>
         {fileError ? <ErrorNotice error={fileError} title="Could not create the key file" /> : null}
+        <p className="key-step-title">Step 3. Confirm</p>
         <Checkbox
           checked={saved}
           onCheckedChange={(c) => setSaved(c === true)}

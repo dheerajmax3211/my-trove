@@ -10,7 +10,9 @@ import {
   CardHeader,
   CardTitle,
   Field,
+  Illustration,
   Input,
+  ProductMark,
   SidebarNav,
   SidebarSection,
   Spinner,
@@ -49,11 +51,18 @@ function SignIn({ mode }: { mode: AuthMode }) {
 
   return (
     <main className="signin">
+      <div className="signin-intro">
+        <Illustration name="locked" size={180} />
+        <p>
+          Digital Legacy hands what you leave behind to the people you trust, only if you stop
+          checking in. It is locked in your browser first, so nobody else can read it.
+        </p>
+      </div>
       <Card className="signin-card" variant="elevated">
         <CardHeader>
           <CardTitle as="h1">Sign in to Digital Legacy</CardTitle>
           <CardDescription>
-            Your vault is encrypted in this browser. Signing in only proves who owns it.{' '}
+            Signing in only proves who owns the vault; the key never leaves this browser.{' '}
             <Badge variant={mode === 'stub' ? 'warning' : 'success'}>
               {mode === 'stub' ? 'demo mode' : mode}
             </Badge>
@@ -135,7 +144,12 @@ function Shell({ runtime }: { runtime: Runtime }) {
   const initials = (user?.displayName ?? user?.email ?? '?').slice(0, 1).toUpperCase()
   return (
     <AppShell
-      brand="Digital Legacy"
+      brand={
+        <span className="brand-lockup">
+          <ProductMark product="digital-legacy" size={28} />
+          Digital Legacy
+        </span>
+      }
       sidebar={
         <SidebarNav label="Main">
           <SidebarSection title="Your switch">
