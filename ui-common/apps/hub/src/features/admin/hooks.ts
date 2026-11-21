@@ -1,6 +1,6 @@
 import { apiQueryKey, useApiMutation, useApiQuery } from '@platform/api-client'
 import { useQueryClient } from '@tanstack/react-query'
-import { authPaths } from '../../api/paths'
+import { authPaths } from '../session/authPaths'
 import { useProfile } from '../session/profile'
 import type { AdminUser } from '../session/types'
 

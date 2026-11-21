@@ -14,7 +14,7 @@ import {
   useToast,
 } from '@platform/ui'
 import { useQueryClient } from '@tanstack/react-query'
-import { authPaths } from '../../../api/paths'
+import { authPaths } from '../../session/authPaths'
 import { CopyButton } from '../../../components/CopyButton'
 import { ThemeSelect } from '../../../components/ThemeSelect'
 import { usePageTitle } from '../../../lib/usePageTitle'

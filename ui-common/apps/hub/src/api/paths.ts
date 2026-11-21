@@ -1,20 +1,11 @@
 /**
- * Every backend path the hub calls. The API client's base URL is the gateway root (`/api` by
- * default), so the first segment picks the service: `/auth/...` is auth-service (:8081) and
- * `/shared/...` is shared-service (:8082). The Vite dev proxy and a production gateway both strip it.
+ * Every shared-service path the Household module calls. The module's API client is bound to the
+ * service itself (`<gateway>/api/shared`), so paths start at `/v1`. The module never talks to another
+ * service: sign-in and profile belong to the workspace (or, standalone, to the hub's own shell).
  */
-const AUTH = '/auth/v1'
-const SHARED = '/shared/v1'
+const SHARED = '/v1'
 
 const seg = encodeURIComponent
-
-export const authPaths = {
-  me: `${AUTH}/me`,
-  session: `${AUTH}/auth/session`,
-  adminUser: (userId: string) => `${AUTH}/admin/users/${seg(userId)}`,
-  adminUserRole: (userId: string, role: string) =>
-    `${AUTH}/admin/users/${seg(userId)}/roles/${seg(role)}`,
-}
 
 export const sharedPaths = {
   households: `${SHARED}/households`,
