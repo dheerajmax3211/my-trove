@@ -36,6 +36,21 @@ describe('gallery pages', () => {
       'data-table',
       'app-shell',
       'page-header',
+      'logo',
+      'product-mark',
+      'section',
+      'container',
+      'stat',
+      'sparkline',
+      'avatar',
+      'persona-badge',
+      'stepper',
+      'command-palette',
+      'callout',
+      'key-value-list',
+      'timeline',
+      'illustrations',
+      'icons',
     ])
       expect(slugs).toContain(required)
   })
@@ -99,7 +114,7 @@ describe('gallery pages', () => {
       </MemoryRouter>,
     )
     expect(
-      screen.getByRole('heading', { level: 1, name: /calm, high-contrast/i }),
+      screen.getByRole('heading', { level: 1, name: /vault you can lend from/i }),
     ).toBeInTheDocument()
     expect(screen.queryByText(/FAIL/)).not.toBeInTheDocument()
   })

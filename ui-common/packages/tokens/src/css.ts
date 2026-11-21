@@ -5,15 +5,19 @@ import {
   darkShadows,
   fontFamily,
   fontWeight,
+  layout,
   lightShadows,
   motion,
   radius,
   spacing,
   textStyles,
+  textures,
   zIndex,
   type ShadowLayer,
+  type TextStyle,
   type ThemeShadows,
 } from './scale'
+import { productIds } from './products'
 
 export type ThemeName = 'light' | 'dark'
 
@@ -31,6 +35,8 @@ export const themes: Record<ThemeName, Theme> = {
 export const staticTokens = {
   spacing,
   radius,
+  layout,
+  textures,
   fontFamily,
   fontWeight,
   textStyles,
@@ -55,6 +61,16 @@ export function cssVar(...parts: (string | number)[]): string {
 }
 
 const rem = (px: number): string => (px === 0 ? '0' : `${Number((px / 16).toFixed(4))}rem`)
+
+const FLUID_FROM = 375
+const FLUID_TO = 1280
+
+/** Fixed size, or a clamp() that scales between `minSize` at 375px and `size` at 1280px viewports. */
+function fluidSize(t: TextStyle): string {
+  if (t.minSize === undefined) return rem(t.size)
+  const slope = Number(((t.size - t.minSize) / (FLUID_TO - FLUID_FROM)).toFixed(5))
+  return `clamp(${rem(t.minSize)}, calc(${rem(t.minSize)} + (100vw - ${rem(FLUID_FROM)}) * ${slope}), ${rem(t.size)})`
+}
 const px = (n: number): string => (n === 0 ? '0' : `${n}px`)
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -66,7 +82,7 @@ function shadowToCss(layers: readonly ShadowLayer[]): string {
   return layers
     .map((l) => {
       const [r, g, b] = hexToRgb(l.color)
-      return `${px(l.x)} ${px(l.y)} ${px(l.blur)} ${px(l.spread)} rgb(${r} ${g} ${b} / ${l.opacity})`
+      return `${l.inset ? 'inset ' : ''}${px(l.x)} ${px(l.y)} ${px(l.blur)} ${px(l.spread)} rgb(${r} ${g} ${b} / ${l.opacity})`
     })
     .join(', ')
 }
@@ -80,10 +96,17 @@ export function staticCssVars(): Entry[] {
   for (const [k, v] of Object.entries(radius)) out.push([cssVarName('radius', k), px(v)])
   for (const [k, v] of Object.entries(fontFamily)) out.push([cssVarName('font', k), v])
   for (const [k, v] of Object.entries(fontWeight)) out.push([cssVarName('weight', k), String(v)])
-  for (const [k, t] of Object.entries(textStyles)) {
+  for (const [k, v] of Object.entries(layout)) out.push([cssVarName('layout', k), rem(v)])
+  for (const [k, v] of Object.entries(textures)) out.push([cssVarName('texture', k), v])
+  for (const [k, t] of Object.entries<TextStyle>(textStyles)) {
     out.push([cssVarName('text', k, 'family'), cssVar('font', t.family)])
-    out.push([cssVarName('text', k, 'size'), rem(t.size)])
-    out.push([cssVarName('text', k, 'line'), rem(t.lineHeight)])
+    out.push([cssVarName('text', k, 'size'), fluidSize(t)])
+    out.push([
+      cssVarName('text', k, 'line'),
+      t.minSize === undefined
+        ? rem(t.lineHeight)
+        : String(Number((t.lineHeight / t.size).toFixed(3))),
+    ])
     out.push([cssVarName('text', k, 'weight'), String(t.weight)])
     out.push([cssVarName('text', k, 'tracking'), `${t.tracking}em`])
   }
@@ -114,6 +137,64 @@ const block = (selector: string, entries: Entry[], extra: string[] = [], indent 
   ].join('\n')
 
 /**
+ * Scopes that re-point semantic roles. Both reference theme-level variables, so they work in
+ * either theme and when nested inside a `data-theme` subtree.
+ *
+ *  - `[data-product="waiting-on"]`: the accent roles become that product's accent, so every
+ *    Button, Badge, Tab and link inside takes the product color with no per-component work.
+ *  - `[data-surface="vault"]`: the surface, text and accent roles become the dark vault palette,
+ *    so any component placed on a vault band or sidebar is legible without changes.
+ */
+export function scopeCss(): string {
+  const product = productIds
+    .map((id) =>
+      block(
+        `[data-product='${id}']`,
+        [
+          ['accent', ''],
+          ['accent-hover', '-hover'],
+          ['accent-active', '-active'],
+          ['accent-subtle', '-subtle'],
+          ['accent-text', '-text'],
+          ['on-accent', '-on'],
+        ].map(
+          ([role, suffix]) =>
+            [`--pp-color-${role}`, `var(--pp-color-product-${id}${suffix})`] as const,
+        ),
+      ),
+    )
+    .join('\n\n')
+  const vaultMap: Entry[] = [
+    ['canvas', 'vault'],
+    ['surface', 'vault-raised'],
+    ['surface-sunken', 'vault-sunken'],
+    ['surface-overlay', 'vault-raised'],
+    ['text', 'on-vault'],
+    ['text-muted', 'on-vault-muted'],
+    ['text-subtle', 'on-vault-subtle'],
+    ['border', 'vault-border'],
+    ['hairline', 'vault-border'],
+    ['border-strong', 'vault-border-strong'],
+    ['accent', 'vault-accent'],
+    ['accent-hover', 'vault-accent'],
+    ['accent-active', 'vault-accent'],
+    ['accent-subtle', 'vault-accent-subtle'],
+    ['accent-text', 'vault-accent'],
+    ['on-accent', 'on-vault-accent'],
+    ['brass', 'vault-brass'],
+    ['brass-subtle', 'vault-brass-subtle'],
+    ['brass-text', 'vault-brass'],
+    ['focus-ring', 'vault-brass'],
+  ].map(([role, source]) => [`--pp-color-${role}`, `var(--pp-color-${source})`] as const)
+  const vault = block("[data-surface='vault']", vaultMap, [
+    'color-scheme: dark;',
+    'background-color: var(--pp-color-vault);',
+    'color: var(--pp-color-on-vault);',
+  ])
+  return `${product}\n\n${vault}`
+}
+
+/**
  * The complete stylesheet.
  *
  * Theme resolution:
@@ -133,6 +214,7 @@ export function buildCss(): string {
       block(':root:not([data-theme])', themeCssVars(themes.dark), ['color-scheme: dark;'], '  '),
       '}',
       block("[data-theme='dark']", themeCssVars(themes.dark), ['color-scheme: dark;']),
+      scopeCss(),
       '@media (prefers-reduced-motion: reduce) {',
       block(':root', reduced, [], '  '),
       '}',
@@ -160,4 +242,6 @@ export const vars = {
   ease: mapVars('ease', motion.easing),
   z: mapVars('z', zIndex),
   control: mapVars('control', controlSize),
+  layout: mapVars('layout', layout),
+  texture: mapVars('texture', textures),
 } as const

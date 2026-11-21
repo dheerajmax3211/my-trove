@@ -1,0 +1,51 @@
+.sparkline {
+  display: inline-block;
+  flex: none;
+  overflow: visible;
+  vertical-align: middle;
+}
+
+.accent {
+  color: var(--pp-color-accent);
+}
+.success {
+  color: var(--pp-color-success);
+}
+.danger {
+  color: var(--pp-color-danger);
+}
+.muted {
+  color: var(--pp-color-border-strong);
+}
+.brass {
+  color: var(--pp-color-brass);
+}
+
+.dot {
+  fill: currentColor;
+  stroke: var(--pp-color-surface);
+  stroke-width: 1.5;
+}
+
+/* Drawn in once on arrival. The component only sets data-animate when motion is allowed. */
+.sparkline[data-animate='true'] .line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw var(--pp-duration-slower) var(--pp-ease-standard) 80ms forwards;
+}
+.sparkline[data-animate='true'] .area,
+.sparkline[data-animate='true'] .dot {
+  opacity: 0;
+  animation: appear var(--pp-duration-slow) var(--pp-ease-enter) 420ms forwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}

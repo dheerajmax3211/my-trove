@@ -1,0 +1,29 @@
+.avatar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: var(--_size);
+  height: var(--_size);
+  overflow: hidden;
+  border-radius: var(--pp-radius-full);
+  background: var(--_bg);
+  color: var(--_fg);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--_fg) 18%, transparent),
+    inset 0 1px 0 var(--pp-color-highlight);
+  font-family: var(--pp-font-display);
+  font-size: calc(var(--_size) * 0.38);
+  line-height: 1;
+  user-select: none;
+}
+.square {
+  border-radius: calc(var(--_size) * 0.28);
+}
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.initials {
+  letter-spacing: 0.01em;
+}

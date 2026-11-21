@@ -24,8 +24,10 @@
   color: var(--pp-color-text);
   border: 1px solid var(--pp-color-border);
   border-inline-start: 4px solid var(--_accent, var(--pp-color-border-strong));
-  border-radius: var(--pp-radius-md);
-  box-shadow: var(--pp-shadow-lg);
+  border-radius: var(--pp-radius-lg);
+  box-shadow:
+    inset 0 1px 0 var(--pp-color-highlight),
+    var(--pp-shadow-lg);
 }
 .toast[data-state='open'] {
   animation: slide-in var(--pp-duration-normal) var(--pp-ease-enter);

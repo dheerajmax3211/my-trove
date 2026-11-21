@@ -1,0 +1,79 @@
+.logo {
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+  overflow: visible;
+}
+
+.word {
+  font-family: var(--pp-font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* color: a vault-green tile with a brass keyhole; the name takes the page ink. */
+.color .tile {
+  fill: var(--pp-color-vault);
+}
+.color .tileEdge {
+  stroke: var(--pp-color-vault-border);
+  stroke-width: 1;
+}
+.color .keyhole {
+  fill: var(--pp-color-vault-brass);
+}
+.color .word {
+  fill: var(--pp-color-text);
+}
+.color .hyphen {
+  fill: var(--pp-color-brass);
+}
+
+/* The default tone adapts: inside a vault surface the tile lifts off the dark ground. */
+:global([data-surface='vault']) .color .tile {
+  fill: var(--pp-color-vault-raised);
+}
+:global([data-surface='vault']) .color .tileEdge {
+  stroke: var(--pp-color-vault-border-strong);
+  stroke-opacity: 0.55;
+}
+
+/* inverse: for vault surfaces and photographs. */
+.inverse .tile {
+  fill: var(--pp-color-vault-raised);
+}
+.inverse .tileEdge {
+  stroke: var(--pp-color-vault-border-strong);
+  stroke-opacity: 0.55;
+  stroke-width: 1;
+}
+.inverse .keyhole {
+  fill: var(--pp-color-vault-brass);
+}
+.inverse .word {
+  fill: var(--pp-color-on-vault);
+}
+.inverse .hyphen {
+  fill: var(--pp-color-vault-brass);
+}
+
+/* mono: one color, the keyhole is a true cut-out. Follows currentColor. */
+.mono .tile,
+.mono .word,
+.mono .hyphen {
+  fill: currentColor;
+}
+
+@media (forced-colors: active) {
+  .logo .tile,
+  .logo .word,
+  .logo .hyphen {
+    fill: CanvasText;
+  }
+  .logo .keyhole {
+    fill: Canvas;
+  }
+  .logo .tileEdge {
+    stroke: CanvasText;
+  }
+}

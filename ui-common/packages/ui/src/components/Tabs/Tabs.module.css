@@ -24,8 +24,8 @@
   position: absolute;
   inset-inline: var(--pp-space-2);
   bottom: -1px;
-  height: 2px;
-  border-radius: var(--pp-radius-full);
+  height: 3px;
+  border-radius: var(--pp-radius-full) var(--pp-radius-full) 0 0;
   background: transparent;
   transition: background-color var(--pp-duration-fast) var(--pp-ease-standard);
 }

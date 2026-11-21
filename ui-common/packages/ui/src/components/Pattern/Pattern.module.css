@@ -1,0 +1,33 @@
+.keycut {
+  display: block;
+  color: var(--pp-color-border);
+}
+
+.rings {
+  display: block;
+  color: var(--pp-color-border-strong);
+}
+
+.hub {
+  fill: var(--pp-color-brass);
+}
+
+/* The dial turns once as the page arrives and settles on its mark. */
+.dial {
+  transform-origin: 200px 200px;
+  animation: dial var(--pp-duration-slower) var(--pp-ease-settle) both;
+  animation-duration: 1400ms;
+}
+
+@keyframes dial {
+  from {
+    transform: rotate(-70deg);
+    opacity: 0.2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dial {
+    animation: none;
+  }
+}

@@ -1,6 +1,10 @@
 import { PageHeader } from '@platform/ui'
 import {
   contrastRatio,
+  productIds,
+  productKey,
+  productNames,
+  layout,
   spacing,
   radius,
   textStyles,
@@ -23,27 +27,73 @@ const textPairs: [keyof ThemeColors, keyof ThemeColors][] = [
   ['successText', 'surface'],
   ['warningText', 'surface'],
   ['infoText', 'surface'],
+  ['brassText', 'surface'],
+  ['onVault', 'vault'],
+  ['onVaultMuted', 'vault'],
+  ['vaultAccent', 'vault'],
+  ['vaultBrass', 'vault'],
 ]
+
+const isProduct = (k: string) => k.startsWith('product')
+const cap = (k: string) => k.charAt(0).toUpperCase() + k.slice(1)
 
 function Swatches({ theme }: { theme: ThemeName }) {
   const colors = themes[theme].colors
   return (
     <div className="sw-grid">
-      {(Object.keys(colors) as (keyof ThemeColors)[]).map((role) => (
-        <div className="sw" key={role}>
-          <div
-            className="sw-chip"
-            style={{
-              background: `var(--pp-color-${role.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()})`,
-            }}
-          />
-          <div className="sw-meta">
-            <strong>{role}</strong>
-            <code>{colors[role]}</code>
+      {(Object.keys(colors) as (keyof ThemeColors)[])
+        .filter((role) => !isProduct(role))
+        .map((role) => (
+          <div className="sw" key={role}>
+            <div
+              className="sw-chip"
+              style={{
+                background: `var(--pp-color-${role.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()})`,
+              }}
+            />
+            <div className="sw-meta">
+              <strong>{role}</strong>
+              <code>{colors[role]}</code>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
     </div>
+  )
+}
+
+function ProductAccents({ theme }: { theme: ThemeName }) {
+  const colors = themes[theme].colors
+  return (
+    <table className="pg-table">
+      <caption>Product accents (fill, label on fill, text on canvas, tint)</caption>
+      <tbody>
+        {productIds.map((id) => {
+          const k = `product${cap(productKey(id))}`
+          const accent = colors[k as keyof ThemeColors]
+          const on = colors[`${k}On` as keyof ThemeColors]
+          const text = colors[`${k}Text` as keyof ThemeColors]
+          const subtle = colors[`${k}Subtle` as keyof ThemeColors]
+          return (
+            <tr key={id}>
+              <th scope="row">{productNames[id]}</th>
+              <td>
+                <span className="pg-chip" style={{ background: accent, color: on }}>
+                  {accent}
+                </span>
+              </td>
+              <td>
+                <span className="pg-chip" style={{ background: subtle, color: text }}>
+                  {contrastRatio(text, colors.canvas).toFixed(1)}:1
+                </span>
+              </td>
+              <td>
+                <strong>{contrastRatio(on, accent).toFixed(1)}:1</strong>
+              </td>
+            </tr>
+          )
+        })}
+      </tbody>
+    </table>
   )
 }
 
@@ -94,7 +144,7 @@ export function TokensPage() {
       <PageHeader
         eyebrow="Foundations"
         title="Design tokens"
-        description="Paper and verdigris: warm paper surfaces, near-black green ink, a deep verdigris accent and a burnt-orange focus ring. Defined once as platform-neutral TypeScript, emitted as CSS variables."
+        description="Paper, ink, patina and brass, with a vault that stays dark in both themes and one accent per product. Defined once as platform-neutral TypeScript, emitted as CSS variables."
       />
       <div className="pg-stack">
         <h2 className="pg-h2" style={{ marginBottom: 0 }}>
@@ -105,6 +155,7 @@ export function TokensPage() {
             <ThemePanel key={theme} theme={theme} block>
               <div className="pg-stack">
                 <Swatches theme={theme} />
+                <ProductAccents theme={theme} />
                 <Contrast theme={theme} />
               </div>
             </ThemePanel>
@@ -114,6 +165,10 @@ export function TokensPage() {
         <h2 className="pg-h2" style={{ marginBottom: 0 }}>
           Type scale
         </h2>
+        <p className="pg-muted">
+          Young Serif (display, one weight), Instrument Sans (text, 400 to 700) and JetBrains Mono.
+          Display styles are fluid between a 375px and a 1280px viewport.
+        </p>
         <div className="pg-stack">
           {Object.entries(textStyles).map(([name, t]) => (
             <div
@@ -169,6 +224,16 @@ export function TokensPage() {
                 </div>
               ))}
             </div>
+            <h2 className="pg-h2" style={{ marginTop: 24 }}>
+              Layout widths
+            </h2>
+            <ul className="pg-notes">
+              {Object.entries(layout).map(([k, v]) => (
+                <li key={k}>
+                  <code>{k}</code>: {v}px
+                </li>
+              ))}
+            </ul>
             <h2 className="pg-h2" style={{ marginTop: 24 }}>
               Motion
             </h2>

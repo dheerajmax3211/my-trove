@@ -1,6 +1,6 @@
 import {
   AppShell,
-  InboxIcon,
+  Logo,
   Select,
   SidebarLink,
   SidebarNav,
@@ -20,6 +20,8 @@ import { componentDocs, PreviewShell } from './registry'
 // The demo pulls in Firebase and TanStack Query; load it only when its route is visited.
 const DemoApp = lazy(() => import('./demo/DemoApp').then((m) => ({ default: m.DemoApp })))
 
+const IDENTITY = new Set(['logo', 'product-mark', 'illustrations', 'patterns', 'icons'])
+
 function ThemeSelect() {
   const { theme, setTheme } = useTheme()
   return (
@@ -29,6 +31,7 @@ function ThemeSelect() {
         alignItems: 'center',
         gap: 8,
         fontSize: 'var(--pp-text-body-small-size)',
+        whiteSpace: 'nowrap',
       }}
     >
       <span className="hide-sm">Page theme</span>
@@ -63,15 +66,10 @@ function GalleryLayout() {
       brand={
         <Link
           to="/"
-          style={{
-            color: 'inherit',
-            textDecoration: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
+          aria-label="My-Trove design language, home"
+          style={{ color: 'inherit', textDecoration: 'none', display: 'inline-flex' }}
         >
-          <InboxIcon /> Platform UI
+          <Logo size="sm" title="" />
         </Link>
       }
       sidebar={
@@ -82,12 +80,23 @@ function GalleryLayout() {
             </GalleryLink>
             <GalleryLink to="/tokens">Tokens</GalleryLink>
           </SidebarSection>
+          <SidebarSection title="Identity">
+            {componentDocs
+              .filter((doc) => IDENTITY.has(doc.slug))
+              .map((doc) => (
+                <GalleryLink key={doc.slug} to={`/components/${doc.slug}`}>
+                  {doc.title}
+                </GalleryLink>
+              ))}
+          </SidebarSection>
           <SidebarSection title="Components">
-            {componentDocs.map((doc) => (
-              <GalleryLink key={doc.slug} to={`/components/${doc.slug}`}>
-                {doc.title}
-              </GalleryLink>
-            ))}
+            {componentDocs
+              .filter((doc) => !IDENTITY.has(doc.slug))
+              .map((doc) => (
+                <GalleryLink key={doc.slug} to={`/components/${doc.slug}`}>
+                  {doc.title}
+                </GalleryLink>
+              ))}
           </SidebarSection>
           <SidebarSection title="Demo">
             <GalleryLink to="/demo">Signed-in shell</GalleryLink>

@@ -1,15 +1,35 @@
-export { darkColors, lightColors, type ThemeColors } from './colors'
+export {
+  darkColors,
+  lightColors,
+  type BaseThemeColors,
+  type ProductColorKey,
+  type ProductColors,
+  type ThemeColors,
+} from './colors'
+export {
+  isProductId,
+  productIds,
+  productKey,
+  productKeys,
+  productNames,
+  productVar,
+  type ProductColorRole,
+  type ProductId,
+  type ProductKey,
+} from './products'
 export {
   breakpoints,
   controlSize,
   darkShadows,
   fontFamily,
   fontWeight,
+  layout,
   lightShadows,
   motion,
   radius,
   spacing,
   textStyles,
+  textures,
   zIndex,
   type FontFamilyName,
   type ShadowLayer,
@@ -23,6 +43,7 @@ export {
   buildCss,
   cssVar,
   cssVarName,
+  scopeCss,
   staticCssVars,
   staticTokens,
   themeCssVars,
@@ -31,4 +52,4 @@ export {
   type Theme,
   type ThemeName,
 } from './css'
-export { contrastRatio, relativeLuminance } from './contrast'
+export { contrastRatio, mixHex, relativeLuminance } from './contrast'

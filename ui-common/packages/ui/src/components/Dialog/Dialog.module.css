@@ -3,6 +3,7 @@
   inset: 0;
   z-index: var(--pp-z-overlay);
   background: var(--pp-color-scrim);
+  backdrop-filter: blur(3px);
   animation: fade var(--pp-duration-normal) var(--pp-ease-enter);
 }
 .content {
@@ -18,9 +19,11 @@
   background: var(--pp-color-surface-overlay);
   color: var(--pp-color-text);
   border: 1px solid var(--pp-color-border);
-  border-radius: var(--pp-radius-lg);
-  box-shadow: var(--pp-shadow-xl);
-  animation: pop var(--pp-duration-normal) var(--pp-ease-enter);
+  border-radius: var(--pp-radius-xl);
+  box-shadow:
+    inset 0 1px 0 var(--pp-color-highlight),
+    var(--pp-shadow-xl);
+  animation: pop var(--pp-duration-slow) var(--pp-ease-settle);
 }
 .sm {
   --_w: 24rem;
@@ -31,14 +34,15 @@
 .header {
   display: flex;
   flex-direction: column;
-  gap: var(--pp-space-1);
-  padding: var(--pp-space-5) var(--pp-space-12) var(--pp-space-2) var(--pp-space-5);
+  gap: var(--pp-space-2);
+  padding: var(--pp-space-6) var(--pp-space-14) var(--pp-space-2) var(--pp-space-6);
 }
 .title {
   font-family: var(--pp-font-display);
   font-size: var(--pp-text-h2-size);
   line-height: var(--pp-text-h2-line);
   font-weight: var(--pp-text-h2-weight);
+  letter-spacing: var(--pp-text-h2-tracking);
 }
 .description {
   color: var(--pp-color-text-muted);
@@ -46,7 +50,7 @@
   line-height: var(--pp-text-body-small-line);
 }
 .body {
-  padding: var(--pp-space-2) var(--pp-space-5) var(--pp-space-5);
+  padding: var(--pp-space-2) var(--pp-space-6) var(--pp-space-6);
   overflow: auto;
 }
 .footer {
@@ -54,13 +58,15 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--pp-space-2);
-  padding: var(--pp-space-4) var(--pp-space-5);
-  border-top: 1px solid var(--pp-color-border);
+  padding: var(--pp-space-4) var(--pp-space-6);
+  border-top: 1px solid var(--pp-color-hairline);
+  background: color-mix(in srgb, var(--pp-color-surface-sunken) 55%, transparent);
+  border-radius: 0 0 var(--pp-radius-xl) var(--pp-radius-xl);
 }
 .close {
   position: absolute;
-  top: var(--pp-space-3);
-  inset-inline-end: var(--pp-space-3);
+  top: var(--pp-space-4);
+  inset-inline-end: var(--pp-space-4);
 }
 
 @keyframes fade {
@@ -71,6 +77,6 @@
 @keyframes pop {
   from {
     opacity: 0;
-    transform: translate(-50%, -48%) scale(0.98);
+    transform: translate(-50%, -47%) scale(0.97);
   }
 }

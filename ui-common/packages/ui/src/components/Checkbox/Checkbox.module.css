@@ -15,6 +15,7 @@
   color: var(--pp-color-on-accent);
   border: 1.5px solid var(--pp-color-border-strong);
   border-radius: var(--pp-radius-sm);
+  box-shadow: var(--pp-shadow-inset);
   cursor: pointer;
   transition:
     background-color var(--pp-duration-fast) var(--pp-ease-standard),
@@ -27,6 +28,7 @@
 .box[data-state='indeterminate'] {
   background: var(--pp-color-accent);
   border-color: var(--pp-color-accent);
+  box-shadow: var(--pp-shadow-xs);
 }
 .box[aria-invalid='true'] {
   border-color: var(--pp-color-danger);
