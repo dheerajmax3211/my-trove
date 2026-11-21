@@ -25,7 +25,8 @@ public record GatewayProperties(
         List<String> blocked,
         Cors cors,
         Exchange exchange,
-        Internal internal) {
+        Internal internal,
+        RateLimit rateLimit) {
 
     public static final String PRODUCTS_USE = "products:use";
 
@@ -84,6 +85,29 @@ public record GatewayProperties(
     /** Shared secret for {@code platform-service /internal/**}; never logged, never forwarded to clients. */
     public record Internal(String apiKey) {}
 
+    /**
+     * Limits and the platform-service calls behind them.
+     *
+     * @param planRefresh     how often plan limits are re-read from platform-service
+     * @param quotaCacheTtl   how long a principal's monthly usage figure is reused
+     * @param platformTimeout budget for one platform-service call (made in the background, never on a request)
+     * @param failureBackoff  wait before retrying a failed platform-service call
+     * @param maxStale        a usage figure older than this is ignored (fail open)
+     * @param maxBuckets      bound on live per-principal rate-limit buckets and cached quota entries
+     */
+    public record RateLimit(Duration planRefresh, Duration quotaCacheTtl, Duration platformTimeout,
+            Duration failureBackoff, Duration maxStale, Integer maxBuckets) {
+
+        public RateLimit {
+            planRefresh = planRefresh == null ? Duration.ofMinutes(5) : planRefresh;
+            quotaCacheTtl = quotaCacheTtl == null ? Duration.ofSeconds(30) : quotaCacheTtl;
+            platformTimeout = platformTimeout == null ? Duration.ofSeconds(1) : platformTimeout;
+            failureBackoff = failureBackoff == null ? Duration.ofSeconds(15) : failureBackoff;
+            maxStale = maxStale == null ? Duration.ofMinutes(10) : maxStale;
+            maxBuckets = maxBuckets == null ? 100_000 : maxBuckets;
+        }
+    }
+
     public GatewayProperties {
         Map<String, Service> merged = new LinkedHashMap<>();
         DEFAULT_PORTS.forEach((name, port) -> merged.put(name, new Service("http://localhost:" + port)));
@@ -101,10 +125,11 @@ public record GatewayProperties(
         cors = cors == null ? new Cors(null) : cors;
         exchange = exchange == null ? new Exchange(null, null, null) : exchange;
         internal = internal == null ? new Internal(null) : internal;
+        rateLimit = rateLimit == null ? new RateLimit(null, null, null, null, null, null) : rateLimit;
     }
 
     public static GatewayProperties defaults() {
-        return new GatewayProperties(null, null, null, null, null, null, null);
+        return new GatewayProperties(null, null, null, null, null, null, null, null);
     }
 
     /** Permission a caller must hold to use this route, from configuration or the built-in default. */

@@ -3,9 +3,13 @@ package com.personalplatform.gateway.security;
 import com.personalplatform.gateway.GatewayAttributes;
 import com.personalplatform.gateway.Problems;
 import com.personalplatform.gateway.config.GatewayProperties;
+import com.personalplatform.gateway.ratelimit.PlanLimits;
+import com.personalplatform.gateway.ratelimit.RateLimitFilter;
+import com.personalplatform.gateway.ratelimit.RateLimiter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -45,9 +49,13 @@ public class ExchangeFilter implements GlobalFilter, Ordered {
     private final ExchangeCache cache;
     private final PassthroughMatcher passthrough;
     private final List<PathPattern> blocked;
+    private final RateLimiter limiter;
+    private final PlanLimits plans;
 
     public ExchangeFilter(GatewayProperties props, ExchangeClient client, ExchangeCache cache,
-            PassthroughMatcher passthrough) {
+            PassthroughMatcher passthrough, RateLimiter limiter, PlanLimits plans) {
+        this.limiter = limiter;
+        this.plans = plans;
         this.props = props;
         this.client = client;
         this.cache = cache;
@@ -88,8 +96,8 @@ public class ExchangeFilter implements GlobalFilter, Ordered {
 
         String credential = bearerCredential(exchange);
         if (credential == null) {
-            return reject(exchange, HttpStatus.UNAUTHORIZED, "unauthenticated", "Authentication required",
-                    "Send the credential as 'Authorization: Bearer <token>'.");
+            return penalise(exchange, () -> reject(exchange, HttpStatus.UNAUTHORIZED, "unauthenticated",
+                    "Authentication required", "Send the credential as 'Authorization: Bearer <token>'."));
         }
 
         Mono<Object> outcome = cache.get(credential, () -> client.exchange(credential))
@@ -97,7 +105,9 @@ public class ExchangeFilter implements GlobalFilter, Ordered {
                 .onErrorResume(ExchangeFailure.class, Mono::just);
         return outcome.flatMap(o -> {
             if (o instanceof ExchangeFailure failure) {
-                return fail(exchange, failure);
+                return failure instanceof ExchangeFailure.Rejected
+                        ? penalise(exchange, () -> fail(exchange, failure))
+                        : fail(exchange, failure);
             }
             ExchangeResult result = (ExchangeResult) o;
             Optional<String> required = props.requiredPermission(service);
@@ -108,6 +118,16 @@ public class ExchangeFilter implements GlobalFilter, Ordered {
             exchange.getAttributes().put(GatewayAttributes.IDENTITY, result.identity());
             return chain.filter(withoutInternalHeaders(exchange, result.accessToken()));
         });
+    }
+
+    /**
+     * A failed authentication counts against the client address's anonymous bucket, so a stream of bad credentials
+     * is throttled here instead of being passed on to the identity provider one by one.
+     */
+    private Mono<Void> penalise(ServerWebExchange exchange, Supplier<Mono<Void>> rejection) {
+        RateLimiter.Decision d = limiter.tryConsume(RateLimitFilter.ipKey(exchange),
+                plans.requestsPerMinute(PlanLimits.DEFAULT_PLAN));
+        return d.allowed() ? rejection.get() : RateLimiter.reject(exchange, d);
     }
 
     private Mono<Void> fail(ServerWebExchange exchange, ExchangeFailure failure) {

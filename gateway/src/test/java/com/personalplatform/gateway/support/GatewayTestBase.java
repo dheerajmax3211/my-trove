@@ -2,6 +2,9 @@ package com.personalplatform.gateway.support;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+import com.personalplatform.gateway.ratelimit.PlanLimits;
+import com.personalplatform.gateway.ratelimit.QuotaClient;
+import com.personalplatform.gateway.ratelimit.RateLimiter;
 import com.personalplatform.gateway.security.ExchangeCache;
 import java.time.Clock;
 import java.time.Duration;
@@ -39,6 +42,19 @@ public abstract class GatewayTestBase {
     @Autowired
     private ExchangeCache exchangeCache;
 
+    @Autowired
+    private RateLimiter rateLimiter;
+
+    @Autowired
+    private QuotaClient quotaClient;
+
+    @Autowired
+    private PlanLimits planLimits;
+
+    protected PlanLimits planLimits() {
+        return planLimits;
+    }
+
     @DynamicPropertySource
     static void backendProperties(DynamicPropertyRegistry registry) {
         backends.register(registry);
@@ -48,6 +64,10 @@ public abstract class GatewayTestBase {
     void resetGatewayState() {
         backends.reset();
         exchangeCache.clear();
+        rateLimiter.reset();
+        quotaClient.clear();
+        planLimits.reloadNow();
+        backends.platform().clear();
         client = WebTestClient.bindToServer()
                 .baseUrl("http://localhost:" + port)
                 .responseTimeout(Duration.ofSeconds(15))
