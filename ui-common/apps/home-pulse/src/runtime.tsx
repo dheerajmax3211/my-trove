@@ -75,6 +75,23 @@ export function RuntimeProvider({ runtime, children }: { runtime: Runtime; child
   return <RuntimeContext value={runtime}>{children}</RuntimeContext>
 }
 
+/**
+ * Where a device should send readings. The standalone app knows it from its runtime. Inside the workspace there is no
+ * runtime, so it is the gateway route for this service (`VITE_API_BASE_URL` is `<gateway>/api`, the workspace's own
+ * setting), falling back to this origin's `/api`.
+ */
+export function useIngestBaseUrl(): string {
+  const runtime = useContext(RuntimeContext)
+  if (runtime) return runtime.ingestBaseUrl
+  const configured = (import.meta.env as Record<string, string | boolean | undefined>)
+    .VITE_API_BASE_URL
+  const base =
+    typeof configured === 'string' && configured.trim() !== ''
+      ? configured.trim().replace(/\/+$/, '')
+      : `${window.location.origin}/api`
+  return `${base}/home-pulse`
+}
+
 export function useRuntime(): Runtime {
   const runtime = useContext(RuntimeContext)
   if (!runtime) throw new Error('useRuntime must be used within <RuntimeProvider>')

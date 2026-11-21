@@ -59,9 +59,9 @@ export function ApplianceForm({
   }
 
   return (
-    <form ref={formRef} className="stack-4 form-narrow" onSubmit={submit} noValidate>
+    <form ref={formRef} className="hp-stack-4 hp-form-narrow" onSubmit={submit} noValidate>
       {formMessage ? (
-        <p role="alert" className="form-error">
+        <p role="alert" className="hp-form-error">
           {formMessage}
         </p>
       ) : null}
@@ -74,7 +74,7 @@ export function ApplianceForm({
           autoComplete="off"
         />
       </Field>
-      <div className="form-row">
+      <div className="hp-form-row">
         <Field label="Type" required error={errors.type}>
           <Select
             name="type"
@@ -98,7 +98,7 @@ export function ApplianceForm({
           />
         </Field>
       </div>
-      <div className="form-row">
+      <div className="hp-form-row">
         <Field label="Purchase date" error={errors.purchaseDate}>
           <Input
             name="purchaseDate"
@@ -120,7 +120,7 @@ export function ApplianceForm({
           />
         </Field>
       </div>
-      <div className="form-row">
+      <div className="hp-form-row">
         <Field label="Last serviced" error={errors.lastServiceDate}>
           <Input
             name="lastServiceDate"
@@ -149,7 +149,7 @@ export function ApplianceForm({
           onChange={(e) => set('notes')(e.target.value)}
         />
       </Field>
-      <div className="button-row">
+      <div className="hp-button-row">
         <Button type="submit" loading={busy}>
           {submitLabel}
         </Button>

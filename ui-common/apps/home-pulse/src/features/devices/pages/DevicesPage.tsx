@@ -1,7 +1,9 @@
 import {
   Badge,
   Button,
+  Callout,
   DataTable,
+  Illustration,
   EmptyState,
   PageHeader,
   PlusIcon,
@@ -10,7 +12,8 @@ import {
   type DataTableColumn,
 } from '@platform/ui'
 import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { ErrorState } from '../../../components/ErrorState'
 import { useClock } from '../../../lib/clock'
@@ -47,6 +50,7 @@ export function DevicesPage() {
     (deviceQueries[i]?.data ?? []).map((device) => ({ ...device, applianceName: appliance.name })),
   )
   const occupied = new Set(rows.filter((d) => d.active).map((d) => d.applianceId))
+  const waiting = rows.filter((d) => d.active && d.lastSeenAt === null)
   const devicesLoading = deviceQueries.some((q) => q.isPending)
   const devicesError = deviceQueries.find((q) => q.isError)
 
@@ -61,7 +65,7 @@ export function DevicesPage() {
       id: 'appliance',
       header: 'Appliance',
       sortValue: (d) => d.applianceName,
-      cell: (d) => <Link to={`/appliances/${d.applianceId}`}>{d.applianceName}</Link>,
+      cell: (d) => <ModuleLink to={`/appliances/${d.applianceId}`}>{d.applianceName}</ModuleLink>,
     },
     {
       id: 'token',
@@ -96,7 +100,7 @@ export function DevicesPage() {
     },
     {
       id: 'actions',
-      header: <span className="sr-only">Actions</span>,
+      header: <span className="hp-sr-only">Actions</span>,
       headerLabel: 'Actions',
       align: 'end',
       cell: (d) =>
@@ -141,11 +145,12 @@ export function DevicesPage() {
   else if (applianceList.length === 0)
     body = (
       <EmptyState
+        illustration={<Illustration name="empty" />}
         title="Add an appliance first"
         description="A device always belongs to an appliance. Add the appliance, then come back to register its smart plug or sensor."
         action={
           <Button asChild>
-            <Link to="/appliances/new">Add an appliance</Link>
+            <ModuleLink to="/appliances/new">Add an appliance</ModuleLink>
           </Button>
         }
       />
@@ -160,22 +165,36 @@ export function DevicesPage() {
     )
   else
     body = (
-      <DataTable
-        caption="Devices"
-        columns={columns}
-        data={rows}
-        getRowId={(d) => d.id}
-        loading={devicesLoading}
-        defaultSort={{ columnId: 'status', direction: 'asc' }}
-        emptyState={
-          <EmptyState
-            headingAs="h2"
-            title="No devices yet"
-            description="Register the smart plug or sensor that measures an appliance. We will show you a one-time token to put on it."
-            action={<Button onClick={() => setRegistering(true)}>Register a device</Button>}
+      <div className="hp-stack-4">
+        {waiting.map((d) => (
+          <Callout key={d.id} variant="info" title={`${d.label} has not sent a reading yet`}>
+            Power up the plug and check it is online. The first reading usually arrives within a
+            minute. About a week after that, Home Pulse has learned what normal looks like for{' '}
+            {d.applianceName}.
+          </Callout>
+        ))}
+        {/* Scrollable region: keyboard focusable so the wide table can be reached on a phone (WCAG 2.1.1). */}
+        {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}
+        <div className="hp-table-scroll" role="region" aria-label="Devices table" tabIndex={0}>
+          <DataTable
+            caption="Devices"
+            columns={columns}
+            data={rows}
+            getRowId={(d) => d.id}
+            loading={devicesLoading}
+            defaultSort={{ columnId: 'status', direction: 'asc' }}
+            emptyState={
+              <EmptyState
+                headingAs="h2"
+                illustration={<Illustration name="key" size={180} />}
+                title="No devices yet"
+                description="Register the smart plug or sensor that measures an appliance. We will show you a one-time token to put on it."
+                action={<Button onClick={() => setRegistering(true)}>Register a device</Button>}
+              />
+            }
           />
-        }
-      />
+        </div>
+      </div>
     )
 
   return (

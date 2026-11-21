@@ -22,6 +22,28 @@ export function useReadings(applianceId: string, range: RangeKey, enabled = true
   })
 }
 
+const TREND_WINDOW_MS = 24 * 60 * 60_000
+
+/** Hourly average draw for the last 24 hours: the shape behind a card's sparkline, not a measurement. */
+export function useTrend(applianceId: string, enabled = true) {
+  const api = useApi(readingsApi)
+  const clock = useClock()
+  return useQuery({
+    queryKey: keys.trend(applianceId),
+    enabled,
+    refetchInterval: 5 * 60_000,
+    queryFn: async ({ signal }) => {
+      const to = clock()
+      const series = await api.series(
+        applianceId,
+        { from: new Date(to.getTime() - TREND_WINDOW_MS), to, resolution: 'ONE_HOUR' },
+        signal,
+      )
+      return series.points.map((p) => p.avgWatts)
+    },
+  })
+}
+
 /** The most recent one-minute reading from the last 15 minutes, or `null` when the appliance has gone quiet. */
 export function useCurrentDraw(applianceId: string, enabled = true) {
   const api = useApi(readingsApi)

@@ -1,5 +1,6 @@
 import { PageHeader, useToast } from '@platform/ui'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { ModuleLink, useModuleNavigate } from '@platform/workspace-kit'
 import { Button } from '@platform/ui'
 import { ErrorState } from '../../../components/ErrorState'
 import { PageSkeleton } from '../../../components/PageSkeleton'
@@ -11,7 +12,7 @@ import type { ApplianceInput } from '../types'
 
 export function AddAppliancePage() {
   useDocumentTitle('Add appliance')
-  const navigate = useNavigate()
+  const navigate = useModuleNavigate()
   const { toast } = useToast()
   const create = useCreateAppliance()
 
@@ -48,7 +49,7 @@ export function AddAppliancePage() {
 
 export function EditAppliancePage() {
   const { id = '' } = useParams()
-  const navigate = useNavigate()
+  const navigate = useModuleNavigate()
   const { toast } = useToast()
   const appliance = useAppliance(id)
   const update = useUpdateAppliance(id)
@@ -72,7 +73,7 @@ export function EditAppliancePage() {
         title="Edit appliance"
         actions={
           <Button variant="ghost" asChild>
-            <Link to={back}>Back to appliance</Link>
+            <ModuleLink to={back}>Back to appliance</ModuleLink>
           </Button>
         }
       />

@@ -95,7 +95,7 @@ export function PowerChartSection({
   return (
     <Card>
       <CardHeader>
-        <div className="section-head">
+        <div className="hp-section-head">
           <div>
             <CardTitle as="h2">Power draw</CardTitle>
             <CardDescription>Watts reported by the plug, {RANGE_LABELS[range]}.</CardDescription>

@@ -15,7 +15,7 @@
 }
 
 .grid {
-  stroke: var(--pp-color-border);
+  stroke: var(--pp-color-hairline);
   stroke-width: 1;
 }
 
@@ -33,6 +33,8 @@
 }
 
 .referenceLabel {
+  fill: var(--pp-color-brass-text);
+  font-weight: var(--pp-weight-semibold);
   /* Outline in the card colour so the label stays readable over the bars. */
   paint-order: stroke;
   stroke: var(--pp-color-surface);
@@ -63,7 +65,7 @@
 .line {
   fill: none;
   stroke: var(--pp-color-accent);
-  stroke-width: 2;
+  stroke-width: 2.25;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
@@ -73,8 +75,9 @@
 }
 
 .reference {
-  stroke: var(--pp-color-text-muted);
-  stroke-width: 1.5;
+  /* The learned normal is "sealed" information: brass, the brand's colour for it. */
+  stroke: var(--pp-color-brass);
+  stroke-width: 1.75;
   stroke-dasharray: 5 4;
 }
 
@@ -110,8 +113,11 @@
   color: var(--pp-color-text);
   border: 1px solid var(--pp-color-border-strong);
   border-radius: var(--pp-radius-md);
-  box-shadow: var(--pp-shadow-md);
+  box-shadow:
+    inset 0 1px 0 var(--pp-color-highlight),
+    var(--pp-shadow-lg);
   font-size: var(--pp-text-body-small-size);
+  font-variant-numeric: tabular-nums;
   line-height: var(--pp-text-body-small-line);
   white-space: nowrap;
 }
@@ -173,6 +179,7 @@
 }
 
 .tableToggle {
+  min-height: 2.5rem;
   margin-top: var(--pp-space-3);
   padding: 0;
   border: 0;

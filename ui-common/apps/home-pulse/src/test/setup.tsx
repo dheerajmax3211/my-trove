@@ -27,6 +27,8 @@ export interface HarnessOptions {
   signedIn?: boolean
   /** Requests wait for this promise, so a test can look at the loading state. */
   gate?: Promise<void>
+  /** Runs against the mock before the first render (create appliances, add alerts). */
+  prepare?: (mock: MockApi) => Promise<void> | void
 }
 
 /** Renders the whole app against the in-memory mock API, signed in, at a fixed time. */
@@ -35,8 +37,10 @@ export async function renderApp({
   seed = 'demo',
   signedIn = true,
   gate,
+  prepare,
 }: HarnessOptions = {}): Promise<Harness> {
   const mock = createMockApi({ clock, seed })
+  await prepare?.(mock)
   const stub = createStubAuthClient({ initialUser: signedIn ? DEMO_USER : null })
   const runtime: Runtime = {
     mode: 'demo',
@@ -71,9 +75,22 @@ export async function renderApp({
 /** The card of one appliance on the overview, found by its heading. */
 export async function applianceCard(name: string): Promise<HTMLElement> {
   const heading = await screen.findByRole('heading', { level: 2, name })
-  const card = heading.closest<HTMLElement>('.link-card')
+  const card = heading.closest<HTMLElement>('.hp-appliance-card')
   if (!card) throw new Error(`No card for ${name}`)
   return card
 }
 
 export const inMain = () => within(screen.getByRole('main'))
+
+/** Creates an appliance through the mock's own API, as the app would, and returns its id. */
+export async function createAppliance(
+  mock: MockApi,
+  input: { name: string; type: string; location?: string },
+): Promise<string> {
+  const response = await mock.fetch('/api/v1/appliances', {
+    method: 'POST',
+    headers: { authorization: 'Bearer test', 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  return ((await response.json()) as { id: string }).id
+}

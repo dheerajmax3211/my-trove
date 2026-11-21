@@ -8,7 +8,7 @@ export interface RangeSelectorProps {
 
 export function RangeSelector({ value, onChange }: RangeSelectorProps) {
   return (
-    <div role="group" aria-label="Time range" className="segmented">
+    <div role="group" aria-label="Time range" className="hp-segmented">
       {RANGE_OPTIONS.map((option) => (
         <Button
           key={option.key}

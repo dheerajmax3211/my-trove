@@ -1,5 +1,14 @@
-import { Button, Card, CardContent, CardHeader, CardTitle, CheckIcon, useToast } from '@platform/ui'
-import { Link } from 'react-router-dom'
+import {
+  Button,
+  Callout,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CheckIcon,
+  useToast,
+} from '@platform/ui'
+import { ModuleLink } from '@platform/workspace-kit'
 import { useClock } from '../../../lib/clock'
 import { errorMessage } from '../../../lib/errors'
 import { formatRelative } from '../../../lib/format'
@@ -42,21 +51,27 @@ export function AlertCard({ alert, showAppliance = true, headingAs = 'h2' }: Ale
 
   const now = clock()
   return (
-    <Card role="group" className="alert-card" aria-labelledby={`alert-${alert.id}`}>
+    <Card
+      role="group"
+      className="hp-alert-card"
+      data-severity={alert.severity}
+      data-status={alert.status}
+      aria-labelledby={`alert-${alert.id}`}
+    >
       <CardHeader>
-        <div className="badge-row">
+        <div className="hp-badge-row">
           <SeverityBadge severity={alert.severity} />
           <AlertStatusBadge status={alert.status} />
-          <span className="muted small">{KIND_LABELS[alert.kind]}</span>
+          <span className="hp-muted hp-small">{KIND_LABELS[alert.kind]}</span>
         </div>
         <CardTitle as={headingAs} id={`alert-${alert.id}`}>
           {explanation.headline}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="stack-3">
+        <div className="hp-stack-3">
           {explanation.facts.length > 0 ? (
-            <ul className="plain-list">
+            <ul className="hp-plain-list">
               {explanation.facts.map((fact) => (
                 <li key={fact}>{fact}</li>
               ))}
@@ -67,14 +82,16 @@ export function AlertCard({ alert, showAppliance = true, headingAs = 'h2' }: Ale
             {explanation.suggestion}
           </p>
           {context.map((line) => (
-            <p key={line} className="callout">
+            <Callout key={line} variant="note">
               {line}
-            </p>
+            </Callout>
           ))}
-          <p className="muted small">
+          <p className="hp-muted hp-small">
             {showAppliance ? (
               <>
-                <Link to={`/appliances/${alert.applianceId}`}>{alert.applianceName}</Link>
+                <ModuleLink to={`/appliances/${alert.applianceId}`}>
+                  {alert.applianceName}
+                </ModuleLink>
                 {'. '}
               </>
             ) : null}
@@ -87,9 +104,9 @@ export function AlertCard({ alert, showAppliance = true, headingAs = 'h2' }: Ale
               : ''}
             .
           </p>
-          <details className="technical">
+          <details className="hp-technical">
             <summary>Technical details</summary>
-            <p className="small">{alert.message}</p>
+            <p className="hp-small">{alert.message}</p>
             <pre>{JSON.stringify(alert.evidence, null, 2)}</pre>
           </details>
           {alert.status === 'OPEN' ? (
