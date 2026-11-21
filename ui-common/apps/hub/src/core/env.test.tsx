@@ -47,9 +47,9 @@ describe('file download under the gateway', () => {
     )
     const dialog = screen.getByRole('dialog')
     await user.click(within(dialog).getByRole('button', { name: 'Create link' }))
-    const field = (await within(dialog).findByRole('textbox', {
+    const field = await within(dialog).findByRole<HTMLInputElement>('textbox', {
       name: 'Download link',
-    })) as HTMLInputElement
+    })
     expect(field.value).toMatch(
       /^http:\/\/localhost:8080\/api\/shared\/v1\/files\/download\?token=[\w.-]+$/,
     )
