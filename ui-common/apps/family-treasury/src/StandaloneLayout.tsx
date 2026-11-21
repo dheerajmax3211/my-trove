@@ -1,7 +1,9 @@
 import { useAuth } from '@platform/auth-web'
 import {
   AppShell,
+  Avatar,
   Button,
+  ProductMark,
   Select,
   SidebarLink,
   SidebarNav,
@@ -9,21 +11,11 @@ import {
   useTheme,
   type ThemePreference,
 } from '@platform/ui'
+import { ModuleNavLink } from '@platform/workspace-kit'
 import { useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { useRuntime } from '../../../runtimeContext'
-import { writeStored } from '../../../lib/storage'
-import { useHouseholds } from '../hooks/useHouseholds'
-import { FirstUseNotice } from './FirstUseNotice'
-
-export const LAST_HOUSEHOLD_KEY = 'ft:last-household'
-
-export interface NavItem {
-  to: string
-  label: string
-  end?: boolean
-}
+import { productModule } from './module'
+import { useDemoParts } from './runtimeContext'
 
 function ThemeSelect() {
   const { theme, setTheme } = useTheme()
@@ -42,43 +34,9 @@ function ThemeSelect() {
   )
 }
 
-function HouseholdSwitcher({ currentId }: { currentId: string | null }) {
-  const households = useHouseholds()
-  const navigate = useNavigate()
-  const list = households.data ?? []
-  if (list.length === 0) return null
-  return (
-    <Select
-      size="sm"
-      aria-label="Household"
-      value={currentId ?? ''}
-      onChange={(e) => {
-        if (e.target.value === '__new') void navigate('/welcome')
-        else {
-          writeStored(LAST_HOUSEHOLD_KEY, e.target.value)
-          void navigate(`/h/${e.target.value}`)
-        }
-      }}
-      className="ft-inline-select"
-    >
-      {currentId === null ? (
-        <option value="" disabled>
-          Choose a household
-        </option>
-      ) : null}
-      {list.map((h) => (
-        <option key={h.id} value={h.id}>
-          {h.name}
-        </option>
-      ))}
-      <option value="__new">New household...</option>
-    </Select>
-  )
-}
-
 /** In demo mode: play any of the household members without signing out. */
 function PersonaSwitcher() {
-  const { demo } = useRuntime()
+  const demo = useDemoParts()
   const { user } = useAuth()
   const queryClient = useQueryClient()
   if (!demo) return null
@@ -102,28 +60,30 @@ function PersonaSwitcher() {
   )
 }
 
-export interface FrameProps {
-  nav: NavItem[]
-  currentHouseholdId: string | null
-  children: ReactNode
-}
-
-/** App chrome: sidebar navigation, household switcher, theme, who you are, and the bookkeeping-only reminder. */
-export function Frame({ nav, currentHouseholdId, children }: FrameProps) {
+/**
+ * The standalone app's own chrome (the workspace has its own): a sidebar with the module's static pages, theme, who
+ * you are and sign out. The household sections live inside the module content, exactly as they do in the workspace.
+ */
+export function StandaloneLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth()
   const queryClient = useQueryClient()
-  const initial = (user?.displayName ?? user?.email ?? '?').slice(0, 1).toUpperCase()
+  const who = user?.displayName ?? user?.email ?? ''
   return (
     <AppShell
-      brand="Family Treasury"
+      brand={
+        <span className="ft-brand">
+          <ProductMark product="family-treasury" size={28} variant="solid" />
+          Family Treasury
+        </span>
+      }
       sidebar={
         <SidebarNav label="Main">
           <SidebarSection>
-            {nav.map((item) => (
+            {productModule.nav.map((item) => (
               <SidebarLink asChild key={item.to}>
-                <NavLink to={item.to} end={item.end ?? false}>
+                <ModuleNavLink to={item.to} end={item.end ?? false}>
                   {item.label}
-                </NavLink>
+                </ModuleNavLink>
               </SidebarLink>
             ))}
           </SidebarSection>
@@ -134,15 +94,14 @@ export function Frame({ nav, currentHouseholdId, children }: FrameProps) {
       }
       topbar={
         <>
-          <HouseholdSwitcher currentId={currentHouseholdId} />
           <PersonaSwitcher />
           <ThemeSelect />
-          <span className="ft-user hide-sm" title={user?.email ?? ''}>
-            <span className="ft-avatar" aria-hidden="true">
-              {initial}
+          {who ? (
+            <span className="ft-user hide-sm" title={user?.email ?? ''}>
+              <Avatar name={who} size="sm" decorative />
+              {who}
             </span>
-            {user?.displayName ?? user?.email}
-          </span>
+          ) : null}
           <Button
             size="sm"
             variant="secondary"
@@ -156,7 +115,6 @@ export function Frame({ nav, currentHouseholdId, children }: FrameProps) {
         </>
       }
     >
-      <FirstUseNotice />
       {children}
     </AppShell>
   )

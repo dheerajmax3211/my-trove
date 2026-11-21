@@ -19,7 +19,8 @@ function utcDayPlus(from: Date, days: number): string {
   return new Date(from.getTime() + days * DAY).toISOString().slice(0, 10)
 }
 
-const names = (household: HouseholdView) => new Map(household.members.map((m) => [m.uid, m.displayName ?? m.uid]))
+const names = (household: HouseholdView) =>
+  new Map(household.members.map((m) => [m.uid, m.displayName ?? m.uid]))
 const accountName = (household: HouseholdView, id: string) =>
   household.accounts.find((a) => a.id === id)?.name ?? 'a pot'
 
@@ -97,7 +98,10 @@ export function useTodayItems(): { items: TodayItem[]; loading: boolean } {
       })
     }
     const report = reconciliations[index]?.data
-    if (report && (!report.consistent || report.drifts.length > 0 || report.ledgerImbalances.length > 0)) {
+    if (
+      report &&
+      (!report.consistent || report.drifts.length > 0 || report.ledgerImbalances.length > 0)
+    ) {
       const count = report.drifts.length + report.ledgerImbalances.length
       items.push({
         id: `reconciliation:${household.id}`,

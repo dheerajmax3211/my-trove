@@ -11,7 +11,7 @@ import {
   Select,
 } from '@platform/ui'
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useModuleNavigate } from '@platform/workspace-kit'
 import { AmountField } from '../../../components/AmountField'
 import { ErrorNotice } from '../../../components/ErrorNotice'
 import { useIdempotentMutation } from '../../../api/hooks'
@@ -19,7 +19,8 @@ import type { CreateHouseholdRequest, HouseholdView } from '../../../api/types'
 import { describeError } from '../../../lib/errors'
 import { parseAmount } from '../../../lib/money'
 import { writeStored } from '../../../lib/storage'
-import { Frame, LAST_HOUSEHOLD_KEY } from '../components/Frame'
+import { ModuleBar } from '../components/ModuleBar'
+import { LAST_HOUSEHOLD_KEY } from '../nav'
 
 interface CreateVars {
   name: string
@@ -32,7 +33,7 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'INR', 'JPY', 'CHF', 'SEK
 
 /** Create a household. Also what a brand-new user sees first. */
 export function WelcomePage() {
-  const navigate = useNavigate()
+  const navigate = useModuleNavigate()
   const [name, setName] = useState('')
   const [currency, setCurrency] = useState('USD')
   const [threshold, setThreshold] = useState('')
@@ -44,7 +45,7 @@ export function WelcomePage() {
     refreshHouseholds: true,
     onSuccess: (household) => {
       writeStored(LAST_HOUSEHOLD_KEY, household.id)
-      void navigate(`/h/${household.id}`)
+      navigate(`/h/${household.id}`)
     },
   })
 
@@ -70,7 +71,8 @@ export function WelcomePage() {
   const serverError = mutation.error ? describeError(mutation.error) : null
 
   return (
-    <Frame nav={[{ to: '/welcome', label: 'New household' }]} currentHouseholdId={null}>
+    <>
+      <ModuleBar currentHouseholdId={null} />
       <PageHeader
         title="Set up your household"
         description="A shared pool of money your family already holds, with a trustworthy record of every change."
@@ -123,7 +125,7 @@ export function WelcomePage() {
           </form>
         </CardContent>
       </Card>
-    </Frame>
+    </>
   )
 }
 

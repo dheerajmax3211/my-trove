@@ -7,7 +7,7 @@ import {
   EmptyState,
   PageHeader,
 } from '@platform/ui'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { LoadingBlock, QueryState } from '../../../components/QueryState'
 import { MoneyText } from '../../../components/MoneyText'
 import { StatCard } from '../../../components/StatCard'
@@ -44,7 +44,9 @@ function UpcomingAllowances() {
                   headingAs="h3"
                   title="No allowances scheduled"
                   description="Set up a weekly or monthly allowance for a kid."
-                  action={<Link to={`/h/${household.id}/allowances`}>Go to allowances</Link>}
+                  action={
+                    <ModuleLink to={`/h/${household.id}/allowances`}>Go to allowances</ModuleLink>
+                  }
                 />
               )
             }
@@ -83,7 +85,7 @@ function KidDashboard() {
         description="This is your own pot. You can spend from it and ask for bigger things to be approved."
         actions={
           <Button asChild>
-            <Link to={`/h/${household.id}/move`}>Spend from my pot</Link>
+            <ModuleLink to={`/h/${household.id}/move`}>Spend from my pot</ModuleLink>
           </Button>
         }
       />
@@ -97,7 +99,7 @@ function KidDashboard() {
         <StatCard
           label="Requests waiting"
           value={pendingCount ?? '...'}
-          hint={<Link to={`/h/${household.id}/approvals`}>See my requests</Link>}
+          hint={<ModuleLink to={`/h/${household.id}/approvals`}>See my requests</ModuleLink>}
         />
       </div>
       <QueryState query={statement} loading={<LoadingBlock label="Loading activity" />}>
@@ -128,13 +130,13 @@ function FullDashboard() {
         actions={
           <>
             <Button asChild>
-              <Link to={`${base}/move?tab=deposit`}>Deposit</Link>
+              <ModuleLink to={`${base}/move?tab=deposit`}>Deposit</ModuleLink>
             </Button>
             <Button asChild variant="secondary">
-              <Link to={`${base}/move?tab=spend`}>Spend</Link>
+              <ModuleLink to={`${base}/move?tab=spend`}>Spend</ModuleLink>
             </Button>
             <Button asChild variant="secondary">
-              <Link to={`${base}/move?tab=transfer`}>Transfer</Link>
+              <ModuleLink to={`${base}/move?tab=transfer`}>Transfer</ModuleLink>
             </Button>
           </>
         }
@@ -151,7 +153,9 @@ function FullDashboard() {
           label="Pending approvals"
           value={approvals.isPending ? '...' : (approvals.data?.length ?? 0)}
           hint={
-            <Link to={`${base}/approvals`}>{trusted ? 'Review requests' : 'See requests'}</Link>
+            <ModuleLink to={`${base}/approvals`}>
+              {trusted ? 'Review requests' : 'See requests'}
+            </ModuleLink>
           }
         />
       </div>
@@ -175,7 +179,7 @@ function FullDashboard() {
                     <p className="ft-stat-value">
                       <MoneyText minor={p.balanceMinor} currency={currency} />
                     </p>
-                    <Link to={`${base}/statement?account=${p.id}`}>Statement</Link>
+                    <ModuleLink to={`${base}/statement?account=${p.id}`}>Statement</ModuleLink>
                   </CardContent>
                 </Card>
               </li>

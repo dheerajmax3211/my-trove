@@ -40,7 +40,11 @@ export function ApprovalsPage() {
                   <EmptyState
                     title="Nothing waiting"
                     description="When a spend is above the approval limit, it will show up here."
-                    action={<ModuleLink to={`/h/${h.household.id}/move?tab=spend`}>Record a spend</ModuleLink>}
+                    action={
+                      <ModuleLink to={`/h/${h.household.id}/move?tab=spend`}>
+                        Record a spend
+                      </ModuleLink>
+                    }
                   />
                 ) : (
                   <ul className="ft-stack ft-plain-list">

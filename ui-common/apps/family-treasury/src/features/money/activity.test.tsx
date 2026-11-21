@@ -134,7 +134,9 @@ describe('activity and reversals', () => {
     await user.click(screen.getByRole('link', { name: 'Activity' }))
     expect(await screen.findByText('No activity yet')).toBeInTheDocument()
     expect(
-      within(screen.getByRole('main')).getByRole('link', { name: 'Move money' }),
+      within(screen.getByText('No activity yet').closest('div')!).getByRole('link', {
+        name: 'Move money',
+      }),
     ).toBeInTheDocument()
     expect(backend.households).toHaveLength(1)
   })

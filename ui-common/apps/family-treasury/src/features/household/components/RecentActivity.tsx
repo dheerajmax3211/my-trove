@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, EmptyState } from '@platform/ui'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import type { EntryView, StatementRow } from '../../../api/types'
 import { MoneyText } from '../../../components/MoneyText'
 import { formatDate } from '../../../lib/dates'
@@ -19,7 +19,7 @@ export function RecentEntries({ entries }: { entries: EntryView[] }) {
             headingAs="h3"
             title="Nothing recorded yet"
             description="Deposits, spends and transfers will show up here."
-            action={<Link to={`/h/${household.id}/move`}>Record a deposit</Link>}
+            action={<ModuleLink to={`/h/${household.id}/move`}>Record a deposit</ModuleLink>}
           />
         ) : (
           <ul className="ft-feed">
@@ -40,7 +40,7 @@ export function RecentEntries({ entries }: { entries: EntryView[] }) {
           </ul>
         )}
         <p>
-          <Link to={`/h/${household.id}/activity`}>See all activity</Link>
+          <ModuleLink to={`/h/${household.id}/activity`}>See all activity</ModuleLink>
         </p>
       </CardContent>
     </Card>
@@ -82,7 +82,7 @@ export function RecentStatementRows({
           </ul>
         )}
         <p>
-          <Link to={`/h/${household.id}/statement`}>Open my statement</Link>
+          <ModuleLink to={`/h/${household.id}/statement`}>Open my statement</ModuleLink>
         </p>
       </CardContent>
     </Card>

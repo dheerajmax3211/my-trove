@@ -10,6 +10,8 @@ const root = document.getElementById('root')
 if (!root) throw new Error('Missing #root element')
 
 function bootstrap() {
+  // Dialogs and toasts portal to <body>, outside the app root: set the product on the document so they match.
+  document.documentElement.dataset.product = 'family-treasury'
   try {
     const runtime = createRuntime()
     createRoot(root!).render(

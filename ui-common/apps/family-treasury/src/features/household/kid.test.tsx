@@ -10,7 +10,7 @@ import {
 } from '../../test/renderApp'
 
 const navLinks = () =>
-  within(screen.getAllByRole('navigation', { name: 'Main' })[0]!)
+  within(screen.getByRole('navigation', { name: 'Household sections' }))
     .getAllByRole('link')
     .map((l) => l.textContent)
 
