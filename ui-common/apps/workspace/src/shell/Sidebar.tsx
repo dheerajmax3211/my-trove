@@ -71,7 +71,7 @@ export function Sidebar() {
   const currentPages = current && canOpen(current, session) ? visibleNav(current, session) : []
 
   return (
-    <SidebarNav label="Workspace">
+    <SidebarNav label="Workspace" className={styles.nav}>
       <SidebarSection>
         <Item to="/" end icon={<HomeIcon size={18} />}>
           Home

@@ -6,6 +6,25 @@
   text-decoration: none;
 }
 
+/* On a phone the top bar is crowded: show the mark alone there. The drawer (a vault surface) keeps the full logo. */
+.brandMark {
+  display: none;
+}
+@media (max-width: 35.99rem) {
+  .brandFull {
+    display: none;
+  }
+  .brandMark {
+    display: inline-block;
+  }
+  :global([data-surface='vault']) .brandFull {
+    display: inline-block;
+  }
+  :global([data-surface='vault']) .brandMark {
+    display: none;
+  }
+}
+
 /* A search field that is really a button: it opens the command palette. */
 .search {
   margin-inline-end: auto;

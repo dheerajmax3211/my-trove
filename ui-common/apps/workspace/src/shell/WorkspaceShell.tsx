@@ -58,8 +58,7 @@ function DemoFooter() {
   if (!runtime.demo) return null
   return (
     <p className={styles.demoNote}>
-      <strong>Demo data.</strong> The people, items and numbers here are made up and stay in this
-      browser tab.
+      <strong>Demo data.</strong> Made up, and kept in this tab only.
     </p>
   )
 }
@@ -76,7 +75,8 @@ export function WorkspaceShell() {
       <AppShell
         brand={
           <Link to="/" className={styles.brand}>
-            <Logo size="sm" />
+            <Logo size="sm" className={styles.brandFull} />
+            <Logo size="sm" variant="mark" title="" className={styles.brandMark} />
           </Link>
         }
         sidebar={<Sidebar />}

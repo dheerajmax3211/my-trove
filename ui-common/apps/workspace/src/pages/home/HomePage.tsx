@@ -40,31 +40,33 @@ export function HomePage() {
       {probes}
 
       <div className={styles.layout}>
-        <section className={styles.main} aria-labelledby="feed-title">
-          <h2 id="feed-title" className={styles.sectionTitle}>
-            Needs you
-          </h2>
-          {state.items.length > 0 ? (
-            <FeedList items={state.items} now={now} />
-          ) : state.loading ? (
-            <FeedSkeleton />
-          ) : (
-            <EmptyState
-              className={styles.empty}
-              illustration={<IllustrationAllClear />}
-              title="Nothing needs you right now"
-              description="When a product has something for you, it shows up here: a follow-up that is due, an alert, a reminder. Add something to one of your products and check back."
-              action={
-                lead ? (
-                  <Button asChild>
-                    <Link to={joinPath(moduleBase(lead.module), lead.action.to)}>
-                      {lead.action.title}
-                    </Link>
-                  </Button>
-                ) : undefined
-              }
-            />
-          )}
+        <div className={styles.main}>
+          <section aria-labelledby="feed-title">
+            <h2 id="feed-title" className={styles.sectionTitle}>
+              Needs you
+            </h2>
+            {state.items.length > 0 ? (
+              <FeedList items={state.items} now={now} />
+            ) : state.loading ? (
+              <FeedSkeleton />
+            ) : (
+              <EmptyState
+                className={styles.empty}
+                illustration={<IllustrationAllClear />}
+                title="Nothing needs you right now"
+                description="When a product has something for you, it shows up here: a follow-up that is due, an alert, a reminder. Add something to one of your products and check back."
+                action={
+                  lead ? (
+                    <Button asChild>
+                      <Link to={joinPath(moduleBase(lead.module), lead.action.to)}>
+                        {lead.action.title}
+                      </Link>
+                    </Button>
+                  ) : undefined
+                }
+              />
+            )}
+          </section>
 
           {products.length > 0 ? (
             <section className={styles.products} aria-labelledby="products-title">
@@ -86,7 +88,7 @@ export function HomePage() {
               </ul>
             </section>
           ) : null}
-        </section>
+        </div>
 
         <aside className={styles.rail} aria-label="Shortcuts and plan">
           {quick.length > 0 ? (

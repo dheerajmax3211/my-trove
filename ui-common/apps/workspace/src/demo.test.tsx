@@ -48,7 +48,7 @@ describe('demo mode', () => {
     renderDemo('MEMBER', { modules: modules() })
     await screen.findByRole('navigation', { name: 'Workspace' })
     expect(screen.getByText('Demo data', { selector: 'span' })).toBeInTheDocument()
-    expect(screen.getByText(/made up and stay in this browser tab/)).toBeInTheDocument()
+    expect(screen.getByText(/Made up, and kept in this tab only/)).toBeInTheDocument()
   })
 
   it('shows the Demo data label on the first-run wizard too', async () => {

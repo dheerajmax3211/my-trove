@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom'
 import { ModuleMark } from '../components/ModuleMark'
 import { PERSONA_LABELS } from '../lib/personas'
 import { readJson, writeItem } from '../lib/storage'
-import { canOpen, isProduct, moduleBase, visibleNav } from '../modules/registry'
+import { canOpen, moduleBase, visibleNav } from '../modules/registry'
 import { useOnboarding } from '../onboarding/OnboardingProvider'
 import { useWorkspace } from '../workspace/context'
 
@@ -97,7 +97,6 @@ export function CommandPaletteHost({
         pages.push({
           id,
           label: page.label,
-          hint: isProduct(module) ? module.title : 'Admin',
           group: module.title,
           keywords: [module.title, module.id],
           icon: <ModuleMark module={module} size={20} variant="glyph" />,
@@ -112,6 +111,7 @@ export function CommandPaletteHost({
       .filter((item) => item !== undefined)
       .map((item): CommandItem => ({
         ...item,
+        ...(item.group && item.group !== 'Workspace' ? { hint: item.group } : {}),
         group: 'Recent',
         keywords: [...(item.keywords ?? []), item.group ?? ''],
       }))
