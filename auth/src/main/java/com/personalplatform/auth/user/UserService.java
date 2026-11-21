@@ -1,7 +1,9 @@
 package com.personalplatform.auth.user;
 
 import com.personalplatform.auth.config.AppProperties;
+import com.personalplatform.auth.admin.AuditRepository;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -17,10 +19,12 @@ public class UserService {
 
     private final UserRepository users;
     private final AppProperties props;
+    private final AuditRepository audit;
 
-    public UserService(UserRepository users, AppProperties props) {
+    public UserService(UserRepository users, AppProperties props, AuditRepository audit) {
         this.users = users;
         this.props = props;
+        this.audit = audit;
     }
 
     /** Creates the local user on first sight of a Firebase uid and ensures baseline roles. */
@@ -32,6 +36,7 @@ public class UserService {
         users.grantRole(id, ROLE_MEMBER, null);
         if (shouldBootstrapOwner(jwt, email) && users.grantRole(id, ROLE_OWNER, null)) {
             users.bumpPermissionsVersion(id);
+            audit.record(null, AuditRepository.ROLE_GRANTED, id, Map.of("role", ROLE_OWNER, "source", "bootstrap"));
         }
         return users.findById(id).orElseThrow();
     }
