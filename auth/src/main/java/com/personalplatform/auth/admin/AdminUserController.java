@@ -4,6 +4,7 @@ import com.personalplatform.auth.common.ApiException;
 import com.personalplatform.auth.user.AuthUser;
 import com.personalplatform.auth.user.UserRepository;
 import com.personalplatform.auth.user.UserService;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -64,6 +65,42 @@ public class AdminUserController {
         UserRepository.Page result = users.search(q, page, size);
         List<UserView> items = result.items().stream().map(UserView::of).toList();
         return new PageResponse<>(items, page, size, result.total());
+    }
+
+    /** Most ids one lookup call accepts. */
+    static final int MAX_LOOKUP_IDS = 100;
+
+    /**
+     * Names for ids (the admin console shows these instead of raw UUIDs). {@code ids} is a comma separated list, or the
+     * parameter repeated; duplicates and blanks are ignored, unknown ids are omitted from the answer, and the Firebase uid
+     * is never part of it. Registered before {@code /{id}}; Spring picks the literal path.
+     */
+    @GetMapping("/lookup")
+    @PreAuthorize("hasAuthority('users:read')")
+    public List<UserRepository.Identity> lookup(@RequestParam List<String> ids) {
+        Set<UUID> wanted = new LinkedHashSet<>();
+        for (String raw : ids) {
+            String token = raw.trim();
+            if (token.isEmpty()) {
+                continue;
+            }
+            try {
+                wanted.add(UUID.fromString(token));
+            } catch (IllegalArgumentException e) {
+                throw ApiException.badRequest("INVALID_ID", "'" + abbreviate(token) + "' is not a valid user id");
+            }
+            if (wanted.size() > MAX_LOOKUP_IDS) {
+                throw ApiException.badRequest("TOO_MANY_IDS", "At most " + MAX_LOOKUP_IDS + " ids per lookup");
+            }
+        }
+        if (wanted.isEmpty()) {
+            throw ApiException.badRequest("INVALID_ID", "ids must list at least one user id");
+        }
+        return users.findIdentities(wanted);
+    }
+
+    private static String abbreviate(String s) {
+        return s.length() <= 40 ? s : s.substring(0, 40) + "...";
     }
 
     @GetMapping("/{id}")

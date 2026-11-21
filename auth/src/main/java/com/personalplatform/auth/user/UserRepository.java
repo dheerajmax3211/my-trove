@@ -83,6 +83,20 @@ public class UserRepository {
         return new Page(toUsers(rows), total);
     }
 
+    /** The public face of a user: no roles, no Firebase uid. */
+    public record Identity(UUID id, String email, String displayName) {}
+
+    /** Ids that exist, as {@link Identity}; unknown ids are simply absent. Order is not guaranteed. */
+    public List<Identity> findIdentities(Collection<UUID> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return dsl.select(USERS.ID, USERS.EMAIL, USERS.DISPLAY_NAME)
+                .from(USERS)
+                .where(USERS.ID.in(ids))
+                .fetch(r -> new Identity(r.value1(), r.value2(), r.value3()));
+    }
+
     private List<AuthUser> toUsers(List<UsersRecord> rows) {
         Map<UUID, Set<String>> rolesByUser = new HashMap<>();
         if (!rows.isEmpty()) {
