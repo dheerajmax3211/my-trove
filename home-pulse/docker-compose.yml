@@ -1,0 +1,28 @@
+# Local infrastructure for home-pulse. The repo-level docker-compose.yml runs plain postgres:16, which is NOT
+# enough for this service (hypertable / continuous aggregates need TimescaleDB). Use this file instead
+# (same port 5433 and credentials, so stop the root one first):  docker compose -f home-pulse/docker-compose.yml up -d
+services:
+  postgres:
+    image: timescale/timescaledb:2.32.0-pg16
+    environment:
+      POSTGRES_DB: platform
+      POSTGRES_USER: platform
+      POSTGRES_PASSWORD: platform
+    ports:
+      - "5433:5432"
+    volumes:
+      - hp-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platform -d platform"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  # optional MQTT broker for the (off by default) MQTT adapter:  docker compose --profile mqtt up -d
+  mosquitto:
+    image: eclipse-mosquitto:2
+    profiles: ["mqtt"]
+    command: mosquitto -c /mosquitto-no-auth.conf
+    ports:
+      - "1883:1883"
+volumes:
+  hp-pgdata:

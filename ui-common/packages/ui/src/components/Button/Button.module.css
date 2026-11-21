@@ -1,0 +1,109 @@
+.button {
+  --_h: var(--pp-control-md);
+  --_px: var(--pp-space-4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pp-space-2);
+  min-height: var(--_h);
+  padding: 0 var(--_px);
+  border: 1px solid transparent;
+  border-radius: var(--pp-radius-md);
+  font: inherit;
+  font-size: var(--pp-text-label-size);
+  font-weight: var(--pp-weight-semibold);
+  line-height: 1;
+  letter-spacing: var(--pp-text-label-tracking);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--pp-duration-fast) var(--pp-ease-standard),
+    border-color var(--pp-duration-fast) var(--pp-ease-standard),
+    box-shadow var(--pp-duration-fast) var(--pp-ease-standard),
+    transform var(--pp-duration-fast) var(--pp-ease-standard);
+}
+
+.button:active:not([aria-disabled='true']):not(:disabled) {
+  transform: translateY(1px);
+}
+
+.button:disabled,
+.button[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+.button:disabled {
+  opacity: 0.5;
+}
+
+.button[aria-disabled='true']:not(:disabled) {
+  cursor: progress;
+}
+
+.sm {
+  --_h: var(--pp-control-sm);
+  --_px: var(--pp-space-3);
+  font-size: var(--pp-text-caption-size);
+}
+
+.lg {
+  --_h: var(--pp-control-lg);
+  --_px: var(--pp-space-6);
+  font-size: var(--pp-text-body-size);
+}
+
+.fullWidth {
+  display: flex;
+  width: 100%;
+}
+
+.primary {
+  background: var(--pp-color-accent);
+  color: var(--pp-color-on-accent);
+  box-shadow: var(--pp-shadow-sm);
+}
+.primary:hover:not(:disabled):not([aria-disabled='true']) {
+  background: var(--pp-color-accent-hover);
+}
+.primary:active:not(:disabled):not([aria-disabled='true']) {
+  background: var(--pp-color-accent-active);
+}
+
+.secondary {
+  background: var(--pp-color-surface);
+  color: var(--pp-color-text);
+  border-color: var(--pp-color-border-strong);
+}
+.secondary:hover:not(:disabled):not([aria-disabled='true']) {
+  background: var(--pp-color-surface-sunken);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--pp-color-accent-text);
+}
+.ghost:hover:not(:disabled):not([aria-disabled='true']) {
+  background: var(--pp-color-accent-subtle);
+}
+
+.danger {
+  background: var(--pp-color-danger);
+  color: var(--pp-color-on-danger);
+  box-shadow: var(--pp-shadow-sm);
+}
+.danger:hover:not(:disabled):not([aria-disabled='true']) {
+  background: var(--pp-color-danger-hover);
+}
+
+.icon {
+  display: inline-flex;
+  flex: none;
+}
+
+@media (forced-colors: active) {
+  .button {
+    border-color: ButtonText;
+  }
+}

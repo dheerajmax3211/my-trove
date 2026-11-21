@@ -1,0 +1,242 @@
+.figure {
+  margin: 0;
+  min-width: 0;
+}
+
+.frame {
+  position: relative;
+  width: 100%;
+}
+
+.svg {
+  display: block;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.grid {
+  stroke: var(--pp-color-border);
+  stroke-width: 1;
+}
+
+.axis {
+  stroke: var(--pp-color-border-strong);
+  stroke-width: 1;
+}
+
+.tickLabel,
+.axisTitle,
+.referenceLabel {
+  fill: var(--pp-color-text-muted);
+  font-size: var(--pp-text-caption-size);
+  font-family: var(--pp-font-sans);
+}
+
+.referenceLabel {
+  /* Outline in the card colour so the label stays readable over the bars. */
+  paint-order: stroke;
+  stroke: var(--pp-color-surface);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.tickLabel {
+  font-variant-numeric: tabular-nums;
+}
+
+.hatch {
+  stroke: var(--pp-color-border-strong);
+  stroke-width: 1.5;
+  opacity: 0.55;
+}
+
+.band {
+  fill: var(--pp-color-accent);
+  opacity: 0.16;
+}
+
+.area {
+  fill: var(--pp-color-accent);
+  opacity: 0.1;
+}
+
+.line {
+  fill: none;
+  stroke: var(--pp-color-accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.dot {
+  fill: var(--pp-color-accent);
+}
+
+.reference {
+  stroke: var(--pp-color-text-muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+.cursorLine {
+  stroke: var(--pp-color-text-muted);
+  stroke-width: 1;
+}
+
+.cursorDot {
+  fill: var(--pp-color-surface);
+  stroke: var(--pp-color-accent);
+  stroke-width: 2.5;
+}
+
+.overlay {
+  position: absolute;
+  cursor: crosshair;
+  touch-action: pan-y;
+  border-radius: var(--pp-radius-sm);
+}
+
+.overlay:focus-visible {
+  outline: 2px solid var(--pp-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: var(--pp-z-tooltip);
+  pointer-events: none;
+  padding: var(--pp-space-2) var(--pp-space-3);
+  background: var(--pp-color-surface-overlay);
+  color: var(--pp-color-text);
+  border: 1px solid var(--pp-color-border-strong);
+  border-radius: var(--pp-radius-md);
+  box-shadow: var(--pp-shadow-md);
+  font-size: var(--pp-text-body-small-size);
+  line-height: var(--pp-text-body-small-line);
+  white-space: nowrap;
+}
+
+.tooltipTime,
+.tooltipRange {
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-caption-size);
+}
+
+.summary {
+  margin-top: var(--pp-space-3);
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+  line-height: var(--pp-text-body-small-line);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-space-2) var(--pp-space-4);
+  margin: var(--pp-space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-caption-size);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pp-space-2);
+}
+
+.swatchLine {
+  width: 16px;
+  height: 0;
+  border-top: 2px solid var(--pp-color-accent);
+}
+
+.swatchBand {
+  width: 16px;
+  height: 10px;
+  background: var(--pp-color-accent);
+  opacity: 0.3;
+  border-radius: 2px;
+}
+
+.swatchGap {
+  width: 16px;
+  height: 10px;
+  border: 1px solid var(--pp-color-border-strong);
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent 0 3px,
+    var(--pp-color-border-strong) 3px 4px
+  );
+}
+
+.tableToggle {
+  margin-top: var(--pp-space-3);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--pp-color-accent-text);
+  font: inherit;
+  font-size: var(--pp-text-body-small-size);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.tableWrap {
+  margin-top: var(--pp-space-3);
+  max-height: 22rem;
+  overflow: auto;
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-md);
+}
+
+.tableNote {
+  margin: 0;
+  padding: var(--pp-space-2) var(--pp-space-3);
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-caption-size);
+  border-bottom: 1px solid var(--pp-color-border);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--pp-text-body-small-size);
+  font-variant-numeric: tabular-nums;
+}
+
+.table caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.table th,
+.table td {
+  padding: var(--pp-space-2) var(--pp-space-3);
+  text-align: start;
+  border-bottom: 1px solid var(--pp-color-border);
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--pp-color-surface-sunken);
+  font-weight: var(--pp-weight-semibold);
+}
+
+.table tbody th {
+  font-weight: var(--pp-weight-regular);
+  white-space: nowrap;
+}
+
+.gapRow td {
+  color: var(--pp-color-text-muted);
+  font-style: italic;
+}

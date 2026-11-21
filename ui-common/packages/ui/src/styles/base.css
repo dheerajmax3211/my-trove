@@ -1,0 +1,70 @@
+@import '@platform/tokens/css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--pp-color-canvas);
+  color: var(--pp-color-text);
+  font-family: var(--pp-font-sans);
+  font-size: var(--pp-text-body-size);
+  line-height: var(--pp-text-body-line);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:where(h1, h2, h3, h4, h5, h6, p) {
+  margin: 0;
+}
+
+:where(a) {
+  color: var(--pp-color-accent-text);
+  text-underline-offset: 0.2em;
+}
+
+:where(code, kbd, samp, pre) {
+  font-family: var(--pp-font-mono);
+}
+
+/* One consistent, high-contrast focus indicator for everything keyboard-reachable. */
+:where(
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  [tabindex],
+  [role='button'],
+  [role='checkbox'],
+  [role='switch'],
+  [role='tab']
+):focus-visible {
+  outline: 2px solid var(--pp-color-focus-ring);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--pp-color-accent-subtle);
+  color: var(--pp-color-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

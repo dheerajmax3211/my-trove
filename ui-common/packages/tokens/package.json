@@ -1,0 +1,33 @@
+{
+  "name": "@platform/tokens",
+  "version": "0.1.0",
+  "description": "Platform-neutral design tokens (typed TS + generated CSS variables) for the personal platform.",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "files": [
+    "dist",
+    "tokens.css",
+    "src"
+  ],
+  "exports": {
+    ".": {
+      "@platform/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./css": "./tokens.css",
+    "./tokens.css": "./tokens.css",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "generate": "tsx scripts/generate-css.ts",
+    "build": "pnpm generate && tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsup": "9.0.0",
+    "tsx": "4.23.15"
+  }
+}

@@ -1,0 +1,108 @@
+.viewport {
+  position: fixed;
+  z-index: var(--pp-z-toast);
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-2);
+  width: min(26rem, 100vw);
+  max-width: 100vw;
+  margin: 0;
+  padding: var(--pp-space-4);
+  list-style: none;
+  outline: none;
+}
+.toast {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-3) var(--pp-space-3) var(--pp-space-3) var(--pp-space-4);
+  background: var(--pp-color-surface-overlay);
+  color: var(--pp-color-text);
+  border: 1px solid var(--pp-color-border);
+  border-inline-start: 4px solid var(--_accent, var(--pp-color-border-strong));
+  border-radius: var(--pp-radius-md);
+  box-shadow: var(--pp-shadow-lg);
+}
+.toast[data-state='open'] {
+  animation: slide-in var(--pp-duration-normal) var(--pp-ease-enter);
+}
+.toast[data-state='closed'] {
+  animation: fade-out var(--pp-duration-fast) var(--pp-ease-exit);
+}
+.toast[data-swipe='move'] {
+  transform: translateX(var(--radix-toast-swipe-move-x));
+}
+.toast[data-swipe='cancel'] {
+  transform: translateX(0);
+  transition: transform var(--pp-duration-fast) var(--pp-ease-standard);
+}
+.toast[data-swipe='end'] {
+  animation: swipe-out var(--pp-duration-fast) var(--pp-ease-exit);
+}
+.neutral {
+  --_accent: var(--pp-color-border-strong);
+}
+.success {
+  --_accent: var(--pp-color-success);
+  --_icon: var(--pp-color-success-text);
+}
+.danger {
+  --_accent: var(--pp-color-danger);
+  --_icon: var(--pp-color-danger-text);
+}
+.warning {
+  --_accent: var(--pp-color-warning);
+  --_icon: var(--pp-color-warning-text);
+}
+.info {
+  --_accent: var(--pp-color-info);
+  --_icon: var(--pp-color-info-text);
+}
+.icon {
+  display: flex;
+  margin-top: 2px;
+  color: var(--_icon, var(--pp-color-text-muted));
+}
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.title {
+  font-weight: var(--pp-weight-semibold);
+  font-size: var(--pp-text-body-small-size);
+  line-height: var(--pp-text-body-small-line);
+}
+.description {
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+  line-height: var(--pp-text-body-small-line);
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-1);
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(100% + var(--pp-space-4)));
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes swipe-out {
+  to {
+    transform: translateX(calc(100% + var(--pp-space-4)));
+  }
+}

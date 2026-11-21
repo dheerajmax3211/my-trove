@@ -1,0 +1,19 @@
+packages:
+  - packages/*
+  - apps/*
+
+# Dependency lifecycle scripts are denied unless listed here.
+allowBuilds:
+  esbuild: true # tsup/tsx: validates the platform binary
+  '@firebase/util': false # postinstall only writes an optional default-config helper
+  protobufjs: false # postinstall only prints a version-scheme notice
+
+# Versions pnpm let through its release-age gate when first resolved (all pinned exactly).
+minimumReleaseAgeExclude:
+  - '@testing-library/jest-dom@8.0.0'
+  - '@testing-library/user-event@14.6.13'
+  - '@vitest/mocker@5.1.1'
+  - '@vitest/spy@5.1.1'
+  - react-router-dom@7.18.6
+  - react-router@7.18.6
+  - vitest@5.1.1

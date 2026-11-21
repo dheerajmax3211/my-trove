@@ -1,0 +1,2 @@
+com.personalplatform.waitingon.config.WaitingOnDefaultsAutoConfiguration
+com.personalplatform.waitingon.temporal.TemporalClientAutoConfiguration

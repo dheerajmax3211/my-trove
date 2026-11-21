@@ -1,0 +1,93 @@
+.scroll {
+  overflow-x: auto;
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-lg);
+}
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--pp-text-body-small-size);
+  line-height: var(--pp-text-body-small-line);
+}
+.caption {
+  caption-side: top;
+  padding: var(--pp-space-3) var(--pp-space-4);
+  text-align: start;
+  font-weight: var(--pp-weight-semibold);
+  color: var(--pp-color-text-muted);
+}
+.th {
+  position: sticky;
+  top: 0;
+  padding: 0;
+  background: var(--pp-color-surface-sunken);
+  border-bottom: 1px solid var(--pp-color-border-strong);
+  text-align: start;
+  font-weight: var(--pp-weight-semibold);
+  color: var(--pp-color-text);
+  white-space: nowrap;
+}
+.thStatic {
+  padding: var(--pp-space-3) var(--pp-space-4);
+}
+.sortButton {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-1);
+  width: 100%;
+  padding: var(--pp-space-3) var(--pp-space-4);
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.sortButton:hover {
+  background: var(--pp-color-border);
+}
+.sortButton:focus-visible {
+  outline-offset: -2px;
+}
+.sortIcon {
+  flex: none;
+  color: var(--pp-color-text-subtle);
+  display: inline-flex;
+}
+.sorted .sortIcon {
+  color: var(--pp-color-accent-text);
+}
+.td {
+  padding: var(--pp-space-3) var(--pp-space-4);
+  border-bottom: 1px solid var(--pp-color-border);
+  vertical-align: middle;
+}
+.tr:last-child .td {
+  border-bottom: 0;
+}
+.tr:hover .td {
+  background: color-mix(in srgb, var(--pp-color-accent-subtle) 45%, transparent);
+}
+.dense .td,
+.dense .thStatic,
+.dense .sortButton {
+  padding-block: var(--pp-space-2);
+}
+.end {
+  text-align: end;
+}
+.end .sortButton {
+  justify-content: flex-end;
+}
+.center {
+  text-align: center;
+}
+.center .sortButton {
+  justify-content: center;
+}
+.empty {
+  padding: 0;
+}

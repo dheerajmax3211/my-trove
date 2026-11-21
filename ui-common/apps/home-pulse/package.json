@@ -1,0 +1,23 @@
+{
+  "name": "@platform/home-pulse",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Predictive maintenance for the home: appliance health, power charts, devices, alerts and reminders.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@platform/api-client": "workspace:*",
+    "@platform/auth-web": "workspace:*",
+    "@platform/tokens": "workspace:*",
+    "@platform/ui": "workspace:*",
+    "@tanstack/react-query": "5.108.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-router-dom": "7.18.6"
+  }
+}

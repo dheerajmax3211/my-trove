@@ -1,0 +1,49 @@
+.card {
+  background: var(--pp-color-surface);
+  color: var(--pp-color-text);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-lg);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.elevated {
+  border-color: transparent;
+  box-shadow: var(--pp-shadow-md);
+}
+.interactive {
+  transition:
+    box-shadow var(--pp-duration-normal) var(--pp-ease-standard),
+    border-color var(--pp-duration-normal) var(--pp-ease-standard);
+}
+.interactive:hover {
+  border-color: var(--pp-color-border-strong);
+  box-shadow: var(--pp-shadow-md);
+}
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-1);
+  padding: var(--pp-space-5) var(--pp-space-5) 0;
+}
+.title {
+  font-size: var(--pp-text-h4-size);
+  line-height: var(--pp-text-h4-line);
+  font-weight: var(--pp-text-h4-weight);
+}
+.description {
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+  line-height: var(--pp-text-body-small-line);
+}
+.content {
+  padding: var(--pp-space-5);
+}
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-4) var(--pp-space-5);
+  border-top: 1px solid var(--pp-color-border);
+  margin-top: auto;
+}

@@ -1,0 +1,31 @@
+.skeleton {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    var(--pp-color-skeleton) 0%,
+    var(--pp-color-surface-sunken) 50%,
+    var(--pp-color-skeleton) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: var(--pp-radius-sm);
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+.circle {
+  border-radius: var(--pp-radius-full);
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--pp-color-skeleton);
+  }
+}

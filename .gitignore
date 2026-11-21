@@ -1,0 +1,44 @@
+# macOS / editors
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+# Java / Maven
+target/
+*.class
+*.log
+hs_err_pid*
+
+# Node / frontend
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.vite/
+.vitest/
+
+# Local config and secrets: never commit these. Examples live in .env.example files.
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Local dev stack state: signing keys, generated secrets, logs, pids, uploaded blobs
+dev/.state/
+data/
+
+# Tooling scratch
+.playwright-mcp/
+.claude/
+
+# Eclipse / STS / NetBeans / Maven leftovers
+HELP.md
+.mvn/wrapper/maven-wrapper.jar
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache

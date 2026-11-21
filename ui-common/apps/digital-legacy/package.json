@@ -1,0 +1,22 @@
+{
+  "name": "@platform/digital-legacy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Digital legacy: a dead-man's switch whose secrets are encrypted and split in the browser, so the server never sees them.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@platform/api-client": "workspace:*",
+    "@platform/auth-web": "workspace:*",
+    "@platform/ui": "workspace:*",
+    "@tanstack/react-query": "5.108.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-router-dom": "7.18.6"
+  }
+}

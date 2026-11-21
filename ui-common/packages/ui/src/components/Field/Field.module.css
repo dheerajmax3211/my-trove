@@ -1,0 +1,37 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-1);
+  min-width: 0;
+}
+.label {
+  font-size: var(--pp-text-label-size);
+  line-height: var(--pp-text-label-line);
+  font-weight: var(--pp-text-label-weight);
+  color: var(--pp-color-text);
+}
+.disabled .label {
+  color: var(--pp-color-text-subtle);
+}
+.required {
+  color: var(--pp-color-danger-text);
+  margin-inline-start: 2px;
+}
+.description {
+  font-size: var(--pp-text-body-small-size);
+  line-height: var(--pp-text-body-small-line);
+  color: var(--pp-color-text-muted);
+}
+.error {
+  display: flex;
+  gap: var(--pp-space-1);
+  align-items: flex-start;
+  font-size: var(--pp-text-body-small-size);
+  line-height: var(--pp-text-body-small-line);
+  color: var(--pp-color-danger-text);
+  font-weight: var(--pp-weight-medium);
+}
+.errorIcon {
+  flex: none;
+  margin-top: 2px;
+}
