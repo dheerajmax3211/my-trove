@@ -59,6 +59,15 @@ function ModuleOutlet({ module }: { module: ProductModule }) {
   const [empty, setEmpty] = useState(false)
   const { Routes } = module
 
+  // Dialogs, toasts and drawers portal into <body>, outside the module's wrapper. Setting the product on
+  // <body> while the module is open lets them keep the product accent.
+  useEffect(() => {
+    document.body.dataset.product = module.id
+    return () => {
+      if (document.body.dataset.product === module.id) delete document.body.dataset.product
+    }
+  }, [module.id])
+
   useEffect(() => {
     if (!import.meta.env.DEV) return
     const element = outlet.current

@@ -56,10 +56,10 @@ Needs Docker, Java 21, Node 22+ and pnpm. Everything runs locally against real s
 docker compose -f dev/docker-compose.yml up -d     # Postgres (+TimescaleDB, pgvector) and Temporal
 ./mvnw -DskipTests package                         # build the service jars
 dev/up.sh                                          # local identity provider + all eight services
-cd ui-common && pnpm install && pnpm --filter @platform/hub dev     # http://localhost:5181
+cd ui-common && pnpm install && cd .. && dev/web.sh                 # workspace http://localhost:5190, public site http://localhost:5191
 ```
 
-Click "Continue with Google" and you are signed in as a local dev user. `dev/e2e-phase1.sh` then proves the platform layer end to end (33 checks). Every app also has a zero-setup demo mode
+Open the workspace and click "Continue with Google": you are signed in as the local owner (`dev@example.test`); typing any other email under "Email me a sign-in link" signs you in as a separate, ordinary member, which is how to see the persona-aware navigation. `dev/e2e-phase1.sh` then proves the platform layer end to end (33 checks). Every app also has a zero-setup demo mode
 (stub sign-in and an in-memory mock API): run any app without a `.env.local`. Details, ports and how sign-in works:
 [`dev/README.md`](dev/README.md). To use a real Firebase project instead: [`dev/FIREBASE.md`](dev/FIREBASE.md).
 

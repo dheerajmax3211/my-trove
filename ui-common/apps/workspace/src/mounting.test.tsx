@@ -44,6 +44,14 @@ describe('module mounting', () => {
     expect(heading.closest('[data-product]')).toHaveAttribute('data-product', 'beta')
   })
 
+  it('puts the product accent on <body> while a module is open, for portalled dialogs', async () => {
+    const first = renderLive({ modules: modules(), handler: itemsHandler, path: '/app/beta' })
+    await screen.findByRole('heading', { name: 'Beta home' })
+    expect(document.body.dataset.product).toBe('beta')
+    first.unmount()
+    expect(document.body.dataset.product).toBeUndefined()
+  })
+
   it('supports deep links and a reload at a nested module URL', async () => {
     const first = renderLive({
       modules: modules(),

@@ -6,7 +6,7 @@
 # These values are Firebase *web config* identifiers, not secrets. Service account keys are never needed here.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APPS=(hub waiting-on consent home-pulse ask-your-life digital-legacy family-treasury)
+APPS=(workspace site hub waiting-on consent home-pulse ask-your-life digital-legacy family-treasury)
 
 if [ "${1:-}" = "--dev-idp" ]; then
   body=$'# Local dev against the real services: run dev/up.sh at the repo root first (see dev/README.md).\nVITE_DEV_IDP_URL=http://localhost:9100\n'
@@ -22,7 +22,12 @@ VITE_FIREBASE_APP_ID=$FIREBASE_APP_ID
 fi
 for app in "${APPS[@]}"; do
   # Every app talks to the gateway: /api/<service>/v1/... (the hub calls several services, so it takes the bare /api)
-  if [ "$app" = hub ]; then api="http://localhost:8080/api"; else api="http://localhost:8080/api/$app"; fi
-  printf '%sVITE_API_BASE_URL=%s\n' "$body" "$api" > "$ROOT/ui-common/apps/$app/.env.local"
+  case "$app" in
+    hub|workspace) api="http://localhost:8080/api" ;;   # these call several services through the gateway
+    site)          api="" ;;                             # the public site calls no API
+    *)             api="http://localhost:8080/api/$app" ;;
+  esac
+  if [ -n "$api" ]; then printf '%sVITE_API_BASE_URL=%s\n' "$body" "$api" > "$ROOT/ui-common/apps/$app/.env.local"
+  else printf '%s' "$body" > "$ROOT/ui-common/apps/$app/.env.local"; fi
   echo "wrote ui-common/apps/$app/.env.local"
 done
