@@ -1,7 +1,7 @@
 import { Button, Dialog, Input, Tabs, TabsContent, TabsList, TabsTrigger } from '@platform/ui'
 import { CopyButton } from '../../../components/CopyButton'
 import { useClock } from '../../../lib/clock'
-import { useRuntime } from '../../../runtime'
+import { useIngestBaseUrl } from '../../../runtime'
 import { ConnectSteps } from './ConnectSteps'
 import { curlSnippet, mqttSnippet } from '../snippets'
 import type { RegisteredDevice } from '../types'
@@ -18,7 +18,7 @@ export interface TokenDialogProps {
  */
 export function TokenDialog({ registered, applianceName, onDone }: TokenDialogProps) {
   const clock = useClock()
-  const { ingestBaseUrl } = useRuntime()
+  const ingestBaseUrl = useIngestBaseUrl()
   if (!registered) return null
   const { device, ingestionToken } = registered
   const snippet = {

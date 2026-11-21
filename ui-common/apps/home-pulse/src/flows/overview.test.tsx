@@ -46,8 +46,15 @@ describe('home overview', () => {
     expect(
       await screen.findByRole('heading', { name: 'Add your first appliance' }),
     ).toBeInTheDocument()
-    expect(screen.getByText(/register a smart plug or sensor/)).toBeInTheDocument()
-    expect(screen.getByText(/one-time token/)).toBeInTheDocument()
+    // The guide explains how a plug becomes a baseline and what an alert means.
+    const steps = screen.getByRole('list', { name: 'How Home Pulse works' })
+    expect(within(steps).getByText('Register a smart plug')).toBeInTheDocument()
+    expect(within(steps).getByText(/one-time token/)).toBeInTheDocument()
+    expect(within(steps).getByText(/baseline: what normal looks like/)).toBeInTheDocument()
+    expect(within(steps).getByText(/an alert that says what changed/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/The shaded band is what Home Pulse learned as normal/),
+    ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Add an appliance' })).toHaveAttribute(
       'href',
       '/appliances/new',
