@@ -1,7 +1,7 @@
 import { ApiProvider } from '@platform/api-client'
 import { ThemeProvider, ToastProvider, TooltipProvider } from '@platform/ui'
 import { ModuleBaseProvider } from '@platform/workspace-kit'
-import { render, renderHook, screen, waitFor } from '@testing-library/react'
+import { act, render, renderHook, screen, waitFor } from '@testing-library/react'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
@@ -113,7 +113,10 @@ describe('vault key session', () => {
     let held: Bytes | null = null
     let lock: () => void = () => undefined
     function Grab() {
-      lock = useVaultKey().lock
+      const value = useVaultKey()
+      useEffect(() => {
+        lock = value.lock
+      })
       return <Probe onKey={(key) => (held = key)} />
     }
     render(
@@ -130,7 +133,7 @@ describe('vault key session', () => {
       document.cookie,
     ]).toLowerCase()
     expect(dump).not.toContain(hex)
-    lock()
+    act(() => lock())
     expect((held as Bytes | null)?.every((byte) => byte === 0)).toBe(true)
   })
 })
