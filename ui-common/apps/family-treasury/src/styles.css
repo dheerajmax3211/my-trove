@@ -206,6 +206,11 @@
   background: var(--pp-color-surface-sunken);
 }
 
+span:has(> .ft-inline-select) {
+  display: inline-block;
+  width: auto;
+  flex: none;
+}
 .ft-inline-select {
   width: auto;
   max-width: 12rem;
@@ -242,7 +247,7 @@
     display: none !important;
   }
   .ft-inline-select {
-    max-width: 8rem;
+    max-width: 6rem;
   }
 }
 
@@ -341,6 +346,9 @@
     var(--pp-shadow-md);
   --pp-text-stat-size: clamp(2.75rem, 9vw, 4.75rem);
   --pp-text-stat-line: 1.04;
+  /* the semantic text colours are tuned for paper; on the vault the change reads in the vault's own tones */
+  --pp-color-success-text: var(--pp-color-vault-accent);
+  --pp-color-danger-text: color-mix(in srgb, var(--pp-color-danger) 45%, white);
 }
 .ft-hero-rings {
   position: absolute;
@@ -508,7 +516,7 @@
 }
 .ft-pots {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
   gap: var(--pp-space-4);
 }
 .ft-pot {
@@ -665,8 +673,7 @@
     padding: var(--pp-space-5);
   }
   .ft-hero-rings {
-    inset-inline-end: -14rem;
-    opacity: 0.3;
+    display: none;
   }
   .ft-approval {
     grid-template-columns: minmax(0, 1fr);

@@ -43,9 +43,18 @@ export function useTodayItems(): { items: TodayItem[]; loading: boolean } {
   const now = useNow()
   const households = useTreasuryQuery(treasuryKeys.households(), (a) => a.listHouseholds())
 
-  const memberships: Membership[] = (households.data ?? []).flatMap((household) => {
-    const me = household.members.find((m) => m.uid === uid)
-    return me ? [{ household, role: me.role }] : []
+  // The list is a summary (no members or accounts): each household's detail says who you are in it.
+  const listed = households.data ?? []
+  const details = useQueries({
+    queries: listed.map((h) => ({
+      queryKey: treasuryKeys.detail(h.id),
+      queryFn: () => api.getHousehold(h.id),
+    })),
+  })
+  const memberships: Membership[] = details.flatMap((query) => {
+    const household = query.data
+    const me = household?.members.find((m) => m.uid === uid)
+    return household && me ? [{ household, role: me.role }] : []
   })
 
   const approvals = useQueries({
@@ -115,6 +124,6 @@ export function useTodayItems(): { items: TodayItem[]; loading: boolean } {
 
   const loading =
     households.isLoading ||
-    [...approvals, ...schedules, ...reconciliations].some((query) => query.isLoading)
+    [...details, ...approvals, ...schedules, ...reconciliations].some((query) => query.isLoading)
   return { items, loading }
 }

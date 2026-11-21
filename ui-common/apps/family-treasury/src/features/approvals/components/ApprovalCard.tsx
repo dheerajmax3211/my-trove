@@ -123,7 +123,6 @@ export function ApprovalCard({ approval }: { approval: ApprovalView }) {
             </p>
             <KeyValueList
               dense
-              layout="stacked"
               className="ft-approval-facts"
               items={[
                 { id: 'from', label: 'Paid from', value: h.accountName(approval.fromAccountId) },
