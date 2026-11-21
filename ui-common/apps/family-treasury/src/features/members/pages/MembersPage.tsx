@@ -1,4 +1,3 @@
-import { useAuth } from '@platform/auth-web'
 import {
   Button,
   Card,
@@ -20,6 +19,7 @@ import { AccessNotice } from '../../../components/AccessNotice'
 import { ErrorNotice } from '../../../components/ErrorNotice'
 import { MoneyText } from '../../../components/MoneyText'
 import { ROLE_LABEL, RoleBadge } from '../../../components/RoleBadge'
+import { useViewerUid } from '../../../viewer'
 import { useHousehold } from '../../household/hooks/useHousehold'
 import { AddMemberDialog } from '../components/AddMemberDialog'
 import { RoleMatrix } from '../components/RoleMatrix'
@@ -61,7 +61,7 @@ function RoleSelect({ member }: { member: MemberView }) {
 
 export function MembersPage() {
   const h = useHousehold()
-  const { user } = useAuth()
+  const uid = useViewerUid()
   const [adding, setAdding] = useState(false)
   const isOwner = h.role === 'OWNER'
   if (h.isKid) return <AccessNotice what="Members and roles" to={`/h/${h.household.id}`} />
@@ -120,7 +120,7 @@ export function MembersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <code className="mono">{user?.uid}</code>
+          <code className="ft-mono">{uid}</code>
         </CardContent>
       </Card>
       {isOwner ? <SettingsCard /> : null}

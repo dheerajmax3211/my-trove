@@ -1,5 +1,5 @@
 import { EmptyState, PageHeader, Tabs, TabsContent, TabsList, TabsTrigger } from '@platform/ui'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { QueryState } from '../../../components/QueryState'
 import { useHousehold } from '../../household/hooks/useHousehold'
 import { ApprovalCard } from '../components/ApprovalCard'
@@ -40,7 +40,11 @@ export function ApprovalsPage() {
                   <EmptyState
                     title="Nothing waiting"
                     description="When a spend is above the approval limit, it will show up here."
-                    action={<Link to={`/h/${h.household.id}/move?tab=spend`}>Record a spend</Link>}
+                    action={
+                      <ModuleLink to={`/h/${h.household.id}/move?tab=spend`}>
+                        Record a spend
+                      </ModuleLink>
+                    }
                   />
                 ) : (
                   <ul className="ft-stack ft-plain-list">

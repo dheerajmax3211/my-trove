@@ -10,7 +10,7 @@ import {
 } from '../../test/renderApp'
 
 const navLinks = () =>
-  within(screen.getAllByRole('navigation', { name: 'Main' })[0]!)
+  within(screen.getByRole('navigation', { name: 'Household sections' }))
     .getAllByRole('link')
     .map((l) => l.textContent)
 
@@ -22,7 +22,7 @@ describe('kid role: simplified UI and restrictions', () => {
     ).toBeInTheDocument()
     expect(navLinks()).toEqual(['My pot', 'Spend', 'My requests', 'Statement'])
 
-    const pot = screen.getByText('My pot', { selector: 'p' }).closest('.ft-stat') as HTMLElement
+    const pot = screen.getByRole('group', { name: 'My pot' })
     expect(within(pot).getByText('$26.67')).toBeInTheDocument()
     // No shared pool, no other members, no pending-approvals for the household.
     expect(screen.queryByText('Shared pool')).not.toBeInTheDocument()

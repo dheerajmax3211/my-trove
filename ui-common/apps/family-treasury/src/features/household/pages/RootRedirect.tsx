@@ -1,13 +1,15 @@
 import { Spinner } from '@platform/ui'
+import { useModulePath } from '@platform/workspace-kit'
 import { Navigate } from 'react-router-dom'
 import { ErrorNotice } from '../../../components/ErrorNotice'
 import { readStored } from '../../../lib/storage'
-import { LAST_HOUSEHOLD_KEY } from '../components/Frame'
 import { useHouseholds } from '../hooks/useHouseholds'
+import { LAST_HOUSEHOLD_KEY } from '../nav'
 
-/** "/" goes to the last household you used, the first one you belong to, or the create-household screen. */
+/** The module home goes to the last household you used, the first one you belong to, or the create-household screen. */
 export function RootRedirect() {
   const households = useHouseholds()
+  const path = useModulePath()
   if (households.isPending) {
     return (
       <div className="ft-center">
@@ -27,8 +29,8 @@ export function RootRedirect() {
     )
   }
   const list = households.data
-  if (list.length === 0) return <Navigate to="/welcome" replace />
+  if (list.length === 0) return <Navigate to={path('/welcome')} replace />
   const last = readStored(LAST_HOUSEHOLD_KEY)
   const target = list.find((h) => h.id === last) ?? list[0]
-  return <Navigate to={`/h/${target?.id ?? ''}`} replace />
+  return <Navigate to={path(`/h/${target?.id ?? ''}`)} replace />
 }

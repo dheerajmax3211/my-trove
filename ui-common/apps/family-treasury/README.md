@@ -39,7 +39,8 @@ pnpm --filter @platform/family-treasury dev
 ```
 
 In dev the browser calls `/api/v1/...` and Vite proxies `/api` to `http://localhost:8088` (stripping `/api`). For a built
-app served elsewhere set `VITE_API_BASE_URL` to the backend origin (`/v1` is appended).
+app served elsewhere set `VITE_API_BASE_URL` to the backend origin. Every API path starts with `/v1`, so the API client's
+base is the service root: `/api` standalone, `<gateway>/api/family-treasury` in the workspace.
 
 | Variable                                                          | Meaning                                                                                       |
 | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
@@ -49,6 +50,21 @@ app served elsewhere set `VITE_API_BASE_URL` to the backend origin (`/v1` is app
 | `VITE_API_BASE_URL`                                               | Backend origin, e.g. `http://localhost:8088`. Unset: use the dev proxy.                       |
 
 Checks (from the monorepo root): `pnpm lint && pnpm typecheck && pnpm test && pnpm --filter @platform/family-treasury build`.
+
+## As a workspace module
+
+`src/module.tsx` exports `productModule` (id and gateway service `family-treasury`), which the workspace mounts under
+`/app/family-treasury`. The same `TreasuryRoutes` and `ViewerProvider` run standalone and in the workspace; every link goes
+through `ModuleLink` / `useModuleNavigate` / `useModulePath`, so the base path is the only difference.
+
+- `nav` is static: "My household" (redirects to the last or only household) and "New household". A household's own
+  sections (Dashboard, Move money, Activity, Approvals, Statements, Allowances, Reconciliation, Members) depend on the
+  household and your role, so they are in-module navigation (`ModuleBar`), not in the workspace sidebar.
+- `useTodayItems`: requests waiting for your decision (`warn`, never your own), allowances due within 3 days (`info`),
+  and a reconciliation mismatch (`danger`, owners only, from a read-only `GET .../reconciliation`).
+- `createDemoFetch`: the in-memory mock seeded with the Okafor household, always answering as its owner (the workspace's
+  stub sign-in is not a household member). The workspace's demo mode views the ledger as Maya Okafor.
+- The module imports `styles.css` itself, so its styles load wherever it is mounted.
 
 ## Screen map
 

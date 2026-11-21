@@ -19,11 +19,11 @@ import { AccessNotice } from '../../../components/AccessNotice'
 import { ErrorNotice } from '../../../components/ErrorNotice'
 import { MoneyText } from '../../../components/MoneyText'
 import { formatDateTime } from '../../../lib/dates'
-import { useRuntime } from '../../../runtimeContext'
+import { useDemoParts } from '../../../runtimeContext'
 import { useHousehold } from '../../household/hooks/useHousehold'
 
 function DemoTools({ householdId }: { householdId: string }) {
-  const { demo } = useRuntime()
+  const demo = useDemoParts()
   const queryClient = useQueryClient()
   if (!demo) return null
   return (

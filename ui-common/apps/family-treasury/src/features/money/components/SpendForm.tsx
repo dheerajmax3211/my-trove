@@ -1,6 +1,6 @@
 import { Field, Select } from '@platform/ui'
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { useIdempotentMutation } from '../../../api/hooks'
 import type { SpendRequest, SpendResult } from '../../../api/types'
 import { AmountField } from '../../../components/AmountField'
@@ -68,7 +68,7 @@ export function SpendForm() {
             {h.household.approvalExpiryHours} hours after you asked.
           </p>
           <p>
-            <Link to={`/h/${h.household.id}/approvals`}>Track it in Approvals</Link>
+            <ModuleLink to={`/h/${h.household.id}/approvals`}>Track it in Approvals</ModuleLink>
           </p>
         </SuccessPanel>
       )

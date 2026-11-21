@@ -47,7 +47,7 @@ export function createDemoRuntime({
   if (!provided && seed) seedDemo(backend)
   const auth = createDemoAuthClient(PERSONAS, initialUid)
   const apiClient = createApiClient({
-    baseUrl: '/api/v1',
+    baseUrl: '/api',
     getToken: () => auth.getIdToken(),
     fetch: backend.fetch,
     onUnauthorized: () => void auth.signOut(),
@@ -76,7 +76,7 @@ export function createRuntime(env: Env = import.meta.env): Runtime {
 
   const authClient = createFirebaseAuthClient(getFirebaseConfigFromEnv(env))
   const origin = str(env.VITE_API_BASE_URL)?.replace(/\/+$/, '')
-  const baseUrl = origin ? `${origin}/v1` : '/api/v1'
+  const baseUrl = origin ?? '/api'
   const apiClient = createApiClient({
     baseUrl,
     getToken: (force) => authClient.getIdToken(force),

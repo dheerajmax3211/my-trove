@@ -26,7 +26,7 @@ import type {
 
 export const IDEMPOTENCY_HEADER = 'Idempotency-Key'
 
-const household = (id: string) => `/households/${id}`
+const household = (id: string) => `/v1/households/${id}`
 
 function keyed(key: string): { headers: Record<string, string> } {
   return { headers: { [IDEMPOTENCY_HEADER]: key } }
@@ -39,16 +39,16 @@ export function parseRunLine(line: string): AllowanceRun {
 }
 
 /**
- * Typed wrapper over the family-treasury REST API (paths relative to `/v1`). Every mutating money call takes the
+ * Typed wrapper over the family-treasury REST API (paths start with `/v1`, so the client's base is the service root: `/api` standalone, `<gateway>/api/family-treasury` in the workspace). Every mutating money call takes the
  * Idempotency-Key explicitly: callers own the "one key per user intent" rule, this layer only sends it.
  */
 export function createTreasuryApi(client: ApiClient) {
   return {
     // ---- households ----
-    listHouseholds: () => client.get<HouseholdView[]>('/households'),
+    listHouseholds: () => client.get<HouseholdView[]>('/v1/households'),
     getHousehold: (id: string) => client.get<HouseholdView>(household(id)),
     createHousehold: (body: CreateHouseholdRequest, key: string) =>
-      client.post<HouseholdView>('/households', body, keyed(key)),
+      client.post<HouseholdView>('/v1/households', body, keyed(key)),
     updateSettings: (id: string, body: UpdateSettingsRequest) =>
       client.put<HouseholdView>(`${household(id)}/settings`, body),
     addMember: (id: string, body: AddMemberRequest) =>

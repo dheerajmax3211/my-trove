@@ -1,14 +1,13 @@
-import { useAuth } from '@platform/auth-web'
 import { Button, Dialog } from '@platform/ui'
 import { useState } from 'react'
 import { readStored, writeStored } from '../../../lib/storage'
+import { useViewerUid } from '../../../viewer'
 
 export const introKey = (uid: string) => `ft:intro-seen:${uid}`
 
 /** Said once per person: this is a ledger of money the family already has, not a way to move money. */
 export function FirstUseNotice() {
-  const { user } = useAuth()
-  const uid = user?.uid ?? ''
+  const uid = useViewerUid() ?? ''
   const [open, setOpen] = useState(() => uid !== '' && readStored(introKey(uid)) === null)
   const dismiss = () => {
     writeStored(introKey(uid), 'yes')
