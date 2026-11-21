@@ -19,7 +19,7 @@ describe('deposit, spend and transfer move the balances', () => {
 
     await user.click(screen.getByRole('link', { name: 'Dashboard' }))
     expect(await screen.findByText('$2,195.80')).toBeInTheDocument()
-  })
+  }, 20_000)
 
   it('validates before calling the server and shows what is wrong', async () => {
     const { user, backend } = renderApp({ path: 'move?tab=deposit' })

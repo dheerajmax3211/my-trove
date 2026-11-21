@@ -1,5 +1,10 @@
 import {
   Button,
+  Callout,
+  CoinsIcon,
+  HomeIcon,
+  ShieldIcon,
+  UserIcon,
   Card,
   CardContent,
   CardDescription,
@@ -10,7 +15,7 @@ import {
   PageHeader,
   Select,
 } from '@platform/ui'
-import { useState, type FormEvent } from 'react'
+import { useState, type ComponentType, type FormEvent } from 'react'
 import { useModuleNavigate } from '@platform/workspace-kit'
 import { AmountField } from '../../../components/AmountField'
 import { ErrorNotice } from '../../../components/ErrorNotice'
@@ -20,6 +25,7 @@ import { describeError } from '../../../lib/errors'
 import { parseAmount } from '../../../lib/money'
 import { writeStored } from '../../../lib/storage'
 import { ModuleBar } from '../components/ModuleBar'
+import { TreasuryScene } from '../components/TreasuryScene'
 import { LAST_HOUSEHOLD_KEY } from '../nav'
 
 interface CreateVars {
@@ -74,60 +80,115 @@ export function WelcomePage() {
     <>
       <ModuleBar currentHouseholdId={null} />
       <PageHeader
+        eyebrow="Family Treasury"
         title="Set up your household"
-        description="A shared pool of money your family already holds, with a trustworthy record of every change."
+        description="A shared ledger for the money your family already holds: one pool, a pot for each person, and a second pair of eyes on the big spends."
       />
-      <Card className="ft-narrow">
-        <CardHeader>
-          <CardTitle as="h2">New household</CardTitle>
-          <CardDescription>
-            You become the owner. You can add the others afterwards from Members and roles.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form className="ft-form" onSubmit={onSubmit} noValidate>
-            <Field label="Household name" required error={errors.name ?? undefined}>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
-            </Field>
-            <Field
-              label="Currency"
-              description="Every account in the household uses this currency."
-            >
-              <Select value={currency} onChange={(e) => setCurrency(e.target.value)}>
-                {CURRENCIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <AmountField
-              label="Approval limit"
-              required={false}
-              value={threshold}
-              onChange={setThreshold}
-              currency={currency}
-              error={errors.threshold}
-              description="Spends above this need a second person to approve. Leave empty for no approvals."
-            />
-            <Field
-              label="Approval expires after (hours)"
-              required
-              error={errors.hours}
-              description="A pending request closes by itself after this long."
-            >
-              <Input inputMode="numeric" value={hours} onChange={(e) => setHours(e.target.value)} />
-            </Field>
-            {serverError ? <ErrorNotice error={mutation.error} /> : null}
-            <Button type="submit" loading={mutation.isPending}>
-              Create household
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      <div className="ft-welcome">
+        <section aria-labelledby="how-heading" className="ft-explainer">
+          <TreasuryScene />
+          <h2 id="how-heading" className="ft-h2">
+            Four words, in plain terms
+          </h2>
+          <dl className="ft-glossary">
+            {TERMS.map(({ term, Icon, meaning }) => (
+              <div key={term}>
+                <dt>
+                  <Icon size={18} />
+                  {term}
+                </dt>
+                <dd>{meaning}</dd>
+              </div>
+            ))}
+          </dl>
+          <Callout variant="note" title="Bookkeeping, not a bank">
+            Family Treasury records money your family already holds. It has no bank, card or payment
+            connection, so nothing is ever paid out by this app.
+          </Callout>
+        </section>
+        <Card className="ft-welcome-form">
+          <CardHeader>
+            <CardTitle as="h2">New household</CardTitle>
+            <CardDescription>
+              You become the owner. You can add the others afterwards from Members and roles.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="ft-form" onSubmit={onSubmit} noValidate>
+              <Field label="Household name" required error={errors.name ?? undefined}>
+                <Input value={name} onChange={(e) => setName(e.target.value)} />
+              </Field>
+              <Field
+                label="Currency"
+                description="Every account in the household uses this currency."
+              >
+                <Select value={currency} onChange={(e) => setCurrency(e.target.value)}>
+                  {CURRENCIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <AmountField
+                label="Approval limit"
+                required={false}
+                value={threshold}
+                onChange={setThreshold}
+                currency={currency}
+                error={errors.threshold}
+                description="Spends above this need a second person to approve. Leave empty for no approvals."
+              />
+              <Field
+                label="Approval expires after (hours)"
+                required
+                error={errors.hours}
+                description="A pending request closes by itself after this long."
+              >
+                <Input
+                  inputMode="numeric"
+                  value={hours}
+                  onChange={(e) => setHours(e.target.value)}
+                />
+              </Field>
+              {serverError ? <ErrorNotice error={mutation.error} /> : null}
+              <Button type="submit" size="lg" loading={mutation.isPending}>
+                Create household
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </>
   )
 }
+
+const TERMS: { term: string; Icon: ComponentType<{ size?: number }>; meaning: string }[] = [
+  {
+    term: 'Household',
+    Icon: HomeIcon,
+    meaning:
+      'The people who share one ledger. You create it and become its owner, then add the others.',
+  },
+  {
+    term: 'Pool',
+    Icon: CoinsIcon,
+    meaning:
+      'Money the household holds together, for shared costs like groceries and bills. Everything that goes in or out is a ledger entry.',
+  },
+  {
+    term: 'Pot',
+    Icon: UserIcon,
+    meaning:
+      'One person’s own share inside the household. A kid sees only their own pot and can spend from it.',
+  },
+  {
+    term: 'Approval',
+    Icon: ShieldIcon,
+    meaning:
+      'A spend above the limit you set waits for a second person to say yes. Nobody can approve their own request, and an unanswered one expires.',
+  },
+]
 
 function buildRequest(vars: CreateVars): CreateHouseholdRequest {
   return {

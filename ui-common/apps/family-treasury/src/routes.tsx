@@ -1,6 +1,7 @@
 import { Button, EmptyState, Illustration } from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
 import { Outlet, Route, Routes } from 'react-router-dom'
+import './styles.css'
 import { AllowancesPage } from './features/allowances/pages/AllowancesPage'
 import { ApprovalsPage } from './features/approvals/pages/ApprovalsPage'
 import { FirstUseNotice } from './features/household/components/FirstUseNotice'

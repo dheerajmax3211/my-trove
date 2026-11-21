@@ -35,11 +35,16 @@ describe('dashboard', () => {
       screen.getByText(/spends above \$100\.00 need a second person to approve/i),
     ).toBeInTheDocument()
 
-    const pool = screen.getByText('Shared pool').closest('.ft-stat') as HTMLElement
+    const pool = screen.getByRole('group', { name: 'Shared pool' })
     expect(within(pool).getByText('$2,170.30')).toBeInTheDocument()
+    const hero = screen.getByRole('region', { name: /shared pool/i })
+    expect(within(hero).getByRole('link', { name: 'Move money' })).toBeInTheDocument()
 
-    const approvals = screen.getByText('Pending approvals').closest('.ft-stat') as HTMLElement
-    expect(await within(approvals).findByText('1')).toBeInTheDocument()
+    const approvals = await screen.findByRole('region', { name: 'Waiting for approval' })
+    expect(within(approvals).getByText('1 request')).toBeInTheDocument()
+    expect(
+      within(approvals).getByRole('heading', { name: 'Winter coats for the kids' }),
+    ).toBeInTheDocument()
 
     const pots = screen
       .getByRole('heading', { name: 'Member pots' })

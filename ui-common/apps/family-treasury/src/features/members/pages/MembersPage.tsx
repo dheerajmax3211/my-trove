@@ -120,7 +120,7 @@ export function MembersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <code className="mono">{uid}</code>
+          <code className="ft-mono">{uid}</code>
         </CardContent>
       </Card>
       {isOwner ? <SettingsCard /> : null}

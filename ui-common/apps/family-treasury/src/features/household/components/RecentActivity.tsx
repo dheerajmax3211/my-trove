@@ -1,49 +1,77 @@
-import { Card, CardContent, CardHeader, CardTitle, EmptyState } from '@platform/ui'
+import {
+  Button,
+  EmptyState,
+  Illustration,
+  Timeline,
+  type TimelineItem,
+  type TimelineTone,
+} from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
-import type { EntryView, StatementRow } from '../../../api/types'
+import type { EntryKind, EntryView, StatementRow } from '../../../api/types'
 import { MoneyText } from '../../../components/MoneyText'
 import { formatDate } from '../../../lib/dates'
 import { KIND_LABEL, summarizeEntry } from '../../money/entryUtils'
 import { useHousehold } from '../hooks/useHousehold'
 
-export function RecentEntries({ entries }: { entries: EntryView[] }) {
-  const { accountName, currency, household } = useHousehold()
+const TONE: Record<EntryKind, TimelineTone> = {
+  DEPOSIT: 'success',
+  SPEND: 'neutral',
+  TRANSFER: 'accent',
+  SPLIT: 'accent',
+  REVERSAL: 'warning',
+  ALLOWANCE: 'brass',
+}
+
+function Line({ text, amount, signed }: { text: string; amount: number; signed?: boolean }) {
+  const { currency } = useHousehold()
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle as="h2">Recent activity</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {entries.length === 0 ? (
-          <EmptyState
-            headingAs="h3"
-            title="Nothing recorded yet"
-            description="Deposits, spends and transfers will show up here."
-            action={<ModuleLink to={`/h/${household.id}/move`}>Record a deposit</ModuleLink>}
-          />
-        ) : (
-          <ul className="ft-feed">
-            {entries.map((e) => {
-              const s = summarizeEntry(e, accountName)
-              return (
-                <li key={e.id}>
-                  <div>
-                    <strong>{e.description}</strong>
-                    <span className="ft-muted">
-                      {KIND_LABEL[e.kind]}: {s.from} to {s.to} on {formatDate(e.postedAt)}
-                    </span>
-                  </div>
-                  <MoneyText minor={s.movedMinor} currency={currency} />
-                </li>
-              )
-            })}
-          </ul>
-        )}
+    <span className="ft-line">
+      <span className="ft-line-text">{text}</span>
+      <MoneyText minor={amount} currency={currency} signed={signed ?? false} />
+    </span>
+  )
+}
+
+/** The latest ledger entries as a readable timeline: what happened, between whom, how much. */
+export function RecentEntries({ entries }: { entries: EntryView[] }) {
+  const { accountName, household, memberName } = useHousehold()
+  const items: TimelineItem[] = entries.map((e) => {
+    const s = summarizeEntry(e, accountName)
+    return {
+      id: e.id,
+      tone: TONE[e.kind],
+      title: <Line text={e.description} amount={s.movedMinor} />,
+      description: `${KIND_LABEL[e.kind]}: ${s.from} to ${s.to}. Recorded by ${memberName(e.createdByUid)}.`,
+      time: formatDate(e.postedAt),
+      dateTime: e.postedAt,
+    }
+  })
+  return (
+    <section aria-labelledby="recent-heading" className="ft-panel">
+      <h2 id="recent-heading" className="ft-h2">
+        Recent activity
+      </h2>
+      {entries.length === 0 ? (
+        <EmptyState
+          illustration={<Illustration name="empty" size={180} />}
+          headingAs="h3"
+          title="Nothing recorded yet"
+          description="Deposits, spends and transfers will show up here, newest first."
+          action={
+            <Button asChild>
+              <ModuleLink to={`/h/${household.id}/move?tab=deposit`}>Record a deposit</ModuleLink>
+            </Button>
+          }
+        />
+      ) : (
+        <Timeline items={items} label="Recent ledger entries" />
+      )}
+      {entries.length > 0 ? (
         <p>
           <ModuleLink to={`/h/${household.id}/activity`}>See all activity</ModuleLink>
         </p>
-      </CardContent>
-    </Card>
+      ) : null}
+    </section>
   )
 }
 
@@ -56,35 +84,36 @@ export function RecentStatementRows({
   currency: string
 }) {
   const { household } = useHousehold()
+  const items: TimelineItem[] = [...rows].reverse().map((r) => ({
+    id: `${r.entryId}-${r.seq}`,
+    tone: r.amountMinor < 0 ? 'neutral' : 'success',
+    title: (
+      <span className="ft-line">
+        <span className="ft-line-text">{r.description}</span>
+        <MoneyText minor={r.amountMinor} currency={currency} signed />
+      </span>
+    ),
+    time: formatDate(r.postedAt),
+    dateTime: r.postedAt,
+  }))
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle as="h2">Recent activity</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {rows.length === 0 ? (
-          <EmptyState
-            headingAs="h3"
-            title="Nothing here yet"
-            description="Money added to or spent from your pot will show up here."
-          />
-        ) : (
-          <ul className="ft-feed">
-            {[...rows].reverse().map((r) => (
-              <li key={`${r.entryId}-${r.seq}`}>
-                <div>
-                  <strong>{r.description}</strong>
-                  <span className="ft-muted">{formatDate(r.postedAt)}</span>
-                </div>
-                <MoneyText minor={r.amountMinor} currency={currency} signed />
-              </li>
-            ))}
-          </ul>
-        )}
-        <p>
-          <ModuleLink to={`/h/${household.id}/statement`}>Open my statement</ModuleLink>
-        </p>
-      </CardContent>
-    </Card>
+    <section aria-labelledby="recent-heading" className="ft-panel">
+      <h2 id="recent-heading" className="ft-h2">
+        Recent activity
+      </h2>
+      {rows.length === 0 ? (
+        <EmptyState
+          illustration={<Illustration name="empty" size={180} />}
+          headingAs="h3"
+          title="Nothing here yet"
+          description="Money added to or spent from your pot will show up here."
+        />
+      ) : (
+        <Timeline items={items} label="Recent activity in my pot" />
+      )}
+      <p>
+        <ModuleLink to={`/h/${household.id}/statement`}>Open my statement</ModuleLink>
+      </p>
+    </section>
   )
 }

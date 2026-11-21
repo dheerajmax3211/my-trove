@@ -97,7 +97,7 @@ export function StandaloneLayout({ children }: { children: ReactNode }) {
           <PersonaSwitcher />
           <ThemeSelect />
           {who ? (
-            <span className="ft-user hide-sm" title={user?.email ?? ''}>
+            <span className="ft-user ft-hide-sm" title={user?.email ?? ''}>
               <Avatar name={who} size="sm" decorative />
               {who}
             </span>

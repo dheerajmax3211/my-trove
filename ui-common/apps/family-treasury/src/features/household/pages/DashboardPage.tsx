@@ -1,193 +1,180 @@
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  EmptyState,
-  PageHeader,
-} from '@platform/ui'
+import { Avatar, Badge, Button, EmptyState, Illustration, PageHeader } from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
 import { LoadingBlock, QueryState } from '../../../components/QueryState'
 import { MoneyText } from '../../../components/MoneyText'
-import { StatCard } from '../../../components/StatCard'
+import { RoleBadge } from '../../../components/RoleBadge'
 import { formatCalendarDate } from '../../../lib/dates'
 import { formatMinor } from '../../../lib/money'
+import { ApprovalCard } from '../../approvals/components/ApprovalCard'
 import { PENDING, useApprovals } from '../../approvals/hooks'
 import { useSchedules } from '../../allowances/hooks'
 import { useEntries } from '../../money/hooks'
 import { useStatement } from '../../statement/hooks'
+import { PoolHero } from '../components/PoolHero'
+import { PotTiles } from '../components/PotTiles'
 import { RecentEntries, RecentStatementRows } from '../components/RecentActivity'
 import { useHousehold } from '../hooks/useHousehold'
-import { RoleBadge } from '../../../components/RoleBadge'
+
+const SHOWN = 3
+
+/**
+ * Requests waiting for a second person. Unmissable when there are some (the cards are the real ones, so a person who
+ * may decide can do it right here), and a calm one-liner when there are none.
+ */
+function ApprovalsPanel() {
+  const { household, isKid, trusted, currency } = useHousehold()
+  const approvals = useApprovals(household.id, PENDING)
+  const threshold = household.approvalThresholdMinor
+  const title = isKid ? 'My requests' : 'Waiting for approval'
+  return (
+    <QueryState
+      query={approvals}
+      loading={<LoadingBlock label="Loading requests" rows={2} />}
+      errorTitle="We could not load the requests"
+    >
+      {(list) =>
+        list.length === 0 ? (
+          <section aria-labelledby="approvals-heading" className="ft-panel ft-calm">
+            <h2 id="approvals-heading" className="ft-h2">
+              {title}
+            </h2>
+            <p className="ft-muted">
+              {threshold === null
+                ? 'This household sets no limit on spends, so nothing waits for a decision.'
+                : `Nothing is waiting. A spend above ${formatMinor(threshold, currency)} will appear here for a second person to decide.`}{' '}
+              <ModuleLink to={`/h/${household.id}/approvals`}>See past requests</ModuleLink>
+            </p>
+          </section>
+        ) : (
+          <section aria-labelledby="approvals-heading" className="ft-attention">
+            <div className="ft-attention-head">
+              <h2 id="approvals-heading" className="ft-h2">
+                {title}
+              </h2>
+              <Badge variant="warning" dot>
+                {list.length} {list.length === 1 ? 'request' : 'requests'}
+              </Badge>
+            </div>
+            <p className="ft-muted">
+              {trusted
+                ? 'These spends are above the household limit. Nothing is recorded until another owner or approver decides.'
+                : 'Bigger spends wait for an owner or approver. You will see the outcome here.'}
+            </p>
+            <ul className="ft-stack ft-plain-list">
+              {list.slice(0, SHOWN).map((a) => (
+                <li key={a.id}>
+                  <ApprovalCard approval={a} />
+                </li>
+              ))}
+            </ul>
+            {list.length > SHOWN ? (
+              <p>
+                <ModuleLink to={`/h/${household.id}/approvals`}>
+                  See all {list.length} requests
+                </ModuleLink>
+              </p>
+            ) : null}
+          </section>
+        )
+      }
+    </QueryState>
+  )
+}
 
 function UpcomingAllowances() {
-  const { household, accountName, currency } = useHousehold()
+  const { household, accountName, currency, memberName, pots } = useHousehold()
   const schedules = useSchedules(household.id)
+  const ownerOf = (accountId: string) => pots.find((p) => p.id === accountId)?.ownerUid ?? null
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle as="h2">Upcoming allowances</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <QueryState
-          query={schedules}
-          loading={<LoadingBlock label="Loading allowances" rows={2} />}
-        >
-          {(list) => {
-            const active = list
-              .filter((s) => s.active)
-              .sort((a, b) => a.nextDueOn.localeCompare(b.nextDueOn))
-            if (active.length === 0) {
-              return (
-                <EmptyState
-                  headingAs="h3"
-                  title="No allowances scheduled"
-                  description="Set up a weekly or monthly allowance for a kid."
-                  action={
-                    <ModuleLink to={`/h/${household.id}/allowances`}>Go to allowances</ModuleLink>
-                  }
-                />
-              )
-            }
+    <section aria-labelledby="allowances-heading" className="ft-panel">
+      <h2 id="allowances-heading" className="ft-h2">
+        Upcoming allowances
+      </h2>
+      <QueryState query={schedules} loading={<LoadingBlock label="Loading allowances" rows={2} />}>
+        {(list) => {
+          const active = list
+            .filter((s) => s.active)
+            .sort((a, b) => a.nextDueOn.localeCompare(b.nextDueOn))
+          if (active.length === 0) {
             return (
-              <ul className="ft-feed">
-                {active.slice(0, 3).map((s) => (
-                  <li key={s.id}>
-                    <div>
-                      <strong>{accountName(s.toAccountId)}</strong>
-                      <span className="ft-muted">
-                        {s.frequency === 'WEEKLY' ? 'Weekly' : 'Monthly'}, next on{' '}
-                        {formatCalendarDate(s.nextDueOn)}
-                      </span>
-                    </div>
-                    <MoneyText minor={s.amountMinor} currency={currency} />
-                  </li>
-                ))}
-              </ul>
+              <EmptyState
+                illustration={<Illustration name="allClear" size={150} />}
+                headingAs="h3"
+                title="No allowances scheduled"
+                description="Set up a weekly or monthly allowance for a kid and it is paid from the pool on the day."
+                action={
+                  <Button asChild variant="secondary">
+                    <ModuleLink to={`/h/${household.id}/allowances`}>Go to allowances</ModuleLink>
+                  </Button>
+                }
+              />
             )
-          }}
-        </QueryState>
-      </CardContent>
-    </Card>
+          }
+          return (
+            <>
+              <ul className="ft-people ft-plain-list">
+                {active.slice(0, 3).map((s) => {
+                  const owner = ownerOf(s.toAccountId)
+                  const name = owner ? memberName(owner) : accountName(s.toAccountId)
+                  return (
+                    <li key={s.id}>
+                      <Avatar name={name} size="sm" decorative />
+                      <div>
+                        <strong>{accountName(s.toAccountId)}</strong>
+                        <span className="ft-muted">
+                          {s.frequency === 'WEEKLY' ? 'Weekly' : 'Monthly'}, next on{' '}
+                          {formatCalendarDate(s.nextDueOn)}
+                        </span>
+                      </div>
+                      <MoneyText minor={s.amountMinor} currency={currency} />
+                    </li>
+                  )
+                })}
+              </ul>
+              <p>
+                <ModuleLink to={`/h/${household.id}/allowances`}>Manage allowances</ModuleLink>
+              </p>
+            </>
+          )
+        }}
+      </QueryState>
+    </section>
   )
 }
 
 function KidDashboard() {
   const { household, myPot, currency, me } = useHousehold()
-  const approvals = useApprovals(household.id, PENDING)
-  const statement = useStatement(household.id, myPot?.id ?? '', { page: 0, size: 5 })
-  const pendingCount = approvals.data?.length
+  const statement = useStatement(household.id, myPot?.id ?? '', { page: 0, size: 500 })
   return (
     <>
       <PageHeader
+        eyebrow={<RoleBadge role={me.role} />}
         title={`Hi ${me.displayName ?? 'there'}`}
-        description="This is your own pot. You can spend from it and ask for bigger things to be approved."
-        actions={
-          <Button asChild>
-            <ModuleLink to={`/h/${household.id}/move`}>Spend from my pot</ModuleLink>
-          </Button>
-        }
+        description={`Your pot in the ${household.name} household.`}
       />
-      <div className="ft-grid">
-        <StatCard
-          label="My pot"
-          value={
-            myPot ? <MoneyText minor={myPot.balanceMinor} currency={currency} /> : 'No pot yet'
-          }
-        />
-        <StatCard
-          label="Requests waiting"
-          value={pendingCount ?? '...'}
-          hint={<ModuleLink to={`/h/${household.id}/approvals`}>See my requests</ModuleLink>}
-        />
-      </div>
+      <PoolHero />
+      <ApprovalsPanel />
       <QueryState query={statement} loading={<LoadingBlock label="Loading activity" />}>
-        {(s) => <RecentStatementRows rows={s.rows} currency={currency} />}
+        {(s) => <RecentStatementRows rows={s.rows.slice(-5)} currency={currency} />}
       </QueryState>
     </>
   )
 }
 
 function FullDashboard() {
-  const { household, pool, pots, currency, trusted, role, memberName } = useHousehold()
-  const ownerRole = (uid: string | null) => household.members.find((m) => m.uid === uid)?.role
-  const approvals = useApprovals(household.id, PENDING)
-  const entries = useEntries(household.id, 0, 5)
-  const base = `/h/${household.id}`
-  const threshold = household.approvalThresholdMinor
-
+  const { household, trusted, role } = useHousehold()
+  const entries = useEntries(household.id, 0, 6)
+  const people = household.members.length
   return (
     <>
       <PageHeader
         eyebrow={<RoleBadge role={role} />}
         title={household.name}
-        description={
-          threshold === null
-            ? 'No approval limit: every spend is recorded straight away.'
-            : `Spends above ${formatMinor(threshold, currency)} need a second person to approve.`
-        }
-        actions={
-          <>
-            <Button asChild>
-              <ModuleLink to={`${base}/move?tab=deposit`}>Deposit</ModuleLink>
-            </Button>
-            <Button asChild variant="secondary">
-              <ModuleLink to={`${base}/move?tab=spend`}>Spend</ModuleLink>
-            </Button>
-            <Button asChild variant="secondary">
-              <ModuleLink to={`${base}/move?tab=transfer`}>Transfer</ModuleLink>
-            </Button>
-          </>
-        }
+        description={`${people} ${people === 1 ? 'person shares' : 'people share'} one pool in ${household.currency}. Every change is a ledger entry that can be reversed, never edited.`}
       />
-      <div className="ft-grid">
-        <StatCard
-          label="Shared pool"
-          value={
-            pool ? <MoneyText minor={pool.balanceMinor} currency={currency} /> : 'Not available'
-          }
-          hint="Money the household holds together"
-        />
-        <StatCard
-          label="Pending approvals"
-          value={approvals.isPending ? '...' : (approvals.data?.length ?? 0)}
-          hint={
-            <ModuleLink to={`${base}/approvals`}>
-              {trusted ? 'Review requests' : 'See requests'}
-            </ModuleLink>
-          }
-        />
-      </div>
-
-      <section aria-labelledby="pots-heading" className="ft-section">
-        <h2 id="pots-heading" className="ft-h2">
-          Member pots
-        </h2>
-        {pots.length === 0 ? (
-          <EmptyState title="No member pots" description="Add a member to give them a pot." />
-        ) : (
-          <ul className="ft-grid ft-plain-list">
-            {pots.map((p) => (
-              <li key={p.id}>
-                <Card>
-                  <CardContent>
-                    <p className="ft-stat-label">
-                      {p.ownerUid ? memberName(p.ownerUid) : p.name}{' '}
-                      {ownerRole(p.ownerUid) ? <RoleBadge role={ownerRole(p.ownerUid)!} /> : null}
-                    </p>
-                    <p className="ft-stat-value">
-                      <MoneyText minor={p.balanceMinor} currency={currency} />
-                    </p>
-                    <ModuleLink to={`${base}/statement?account=${p.id}`}>Statement</ModuleLink>
-                  </CardContent>
-                </Card>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
+      <PoolHero />
+      <ApprovalsPanel />
+      <PotTiles />
       <div className="ft-two-col">
         <QueryState query={entries} loading={<LoadingBlock label="Loading activity" />}>
           {(list) => <RecentEntries entries={list} />}

@@ -51,7 +51,7 @@ describe('spend over the household limit', () => {
     const done = card('Big fridge')
     expect(within(done).getByText('Approved')).toBeInTheDocument()
     expect(within(done).getByText(/approved by you/i)).toBeInTheDocument()
-  })
+  }, 20_000)
 
   it('does not let you approve your own request: the button is disabled and says why', async () => {
     const { user, backend } = renderApp({

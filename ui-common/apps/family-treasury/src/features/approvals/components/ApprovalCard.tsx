@@ -1,9 +1,12 @@
 import {
+  Avatar,
   Badge,
   Button,
   Card,
   CardContent,
+  ClockIcon,
   Field,
+  KeyValueList,
   Textarea,
   useToast,
   type BadgeVariant,
@@ -97,44 +100,56 @@ export function ApprovalCard({ approval }: { approval: ApprovalView }) {
 
   const reasonId = `approval-reason-${approval.id}`
   const status = STATUS[approval.status]
+  const requester = mine ? 'you' : h.memberName(approval.requestedByUid)
   return (
-    <Card>
+    <Card className="ft-approval-card" data-status={approval.status}>
       <CardContent>
         <div className="ft-approval">
+          <div className="ft-approval-amount">
+            <p className="ft-approval-figure">
+              <MoneyText minor={approval.amountMinor} currency={approval.currency} />
+            </p>
+            <Badge variant={status.variant} dot>
+              {status.label}
+            </Badge>
+          </div>
           <div className="ft-approval-main">
             <h3 className="ft-h3">{approval.description}</h3>
-            <p className="ft-muted">
-              Requested by {mine ? 'you' : h.memberName(approval.requestedByUid)} on{' '}
-              {formatDateTime(approval.createdAt)}
+            <p className="ft-who">
+              <Avatar name={h.memberName(approval.requestedByUid)} size="xs" decorative />
+              <span>
+                Requested by {requester} on {formatDateTime(approval.createdAt)}
+              </span>
             </p>
-            <p className="ft-muted">
-              From {h.accountName(approval.fromAccountId)} for {h.accountName(approval.toAccountId)}
-            </p>
+            <KeyValueList
+              dense
+              layout="stacked"
+              className="ft-approval-facts"
+              items={[
+                { id: 'from', label: 'Paid from', value: h.accountName(approval.fromAccountId) },
+                { id: 'for', label: 'Category', value: h.accountName(approval.toAccountId) },
+              ]}
+            />
             {pending ? (
-              <p>
-                Expires {formatRelative(approval.expiresAt, now)} (
-                {formatDateTime(approval.expiresAt)})
+              <p className="ft-expiry">
+                <ClockIcon size={16} />
+                <span>
+                  Expires {formatRelative(approval.expiresAt, now)} (
+                  {formatDateTime(approval.expiresAt)})
+                </span>
               </p>
             ) : null}
             {approval.status === 'EXPIRED' ? (
-              <p>Expired on {formatDateTime(approval.expiresAt)}.</p>
+              <p className="ft-muted">Expired on {formatDateTime(approval.expiresAt)}.</p>
             ) : null}
             {approval.decidedByUid && approval.decidedAt ? (
-              <p>
+              <p className="ft-muted">
                 {approval.status === 'APPROVED' ? 'Approved' : 'Closed'} by{' '}
                 {approval.decidedByUid === h.me.uid ? 'you' : h.memberName(approval.decidedByUid)}{' '}
                 on {formatDateTime(approval.decidedAt)}.
                 {approval.decisionNote ? ` Note: ${approval.decisionNote}` : ''}
               </p>
             ) : null}
-          </div>
-          <div className="ft-approval-side">
-            <p className="ft-stat-value">
-              <MoneyText minor={approval.amountMinor} currency={approval.currency} />
-            </p>
-            <Badge variant={status.variant} dot>
-              {status.label}
-            </Badge>
           </div>
         </div>
 
