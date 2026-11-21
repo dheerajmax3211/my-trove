@@ -35,7 +35,7 @@ Contracts to honour are in design doc section 5. Workstreams run in parallel aft
 - [x] 1.0 Pre-wire: new modules in root pom (`gateway`, `platform-service`), `platform` schema + jOOQ execution, compose Kafka (commit 63befa5; Spring Cloud 2026.0.0 BOM resolves on Boot 4.1.2)
 - [ ] 1.A RBAC in `auth`: roles/permissions/user_roles migration, seed personas, USER→MEMBER, bootstrap→OWNER, permission catalogue
 - [ ] 1.A Token exchange endpoint + JWKS + `permissions_version`; admin APIs (list users, assign/revoke role, suspend) with guardrails and audit table
-- [ ] 1.A `platform-security`: `app.security.mode=platform`, platform-token decoder, `@RequiresPermission`, authorities converter, test helpers
+- [x] 1.A `platform-security`: `app.security.mode=platform`, platform-token decoder, `@RequiresPermission`, authorities converter, test helpers (merged; 42 tests; consent-gateway 158 unchanged; helper `PlatformTestTokens` in src/main; only consent-gateway built its own decoder)
 - [ ] 1.A Permission matrix test (every persona × every guarded endpoint)
 - [ ] 1.B `gateway`: routes to all services, firebase credential → exchange (cached), request id, CORS
 - [ ] 1.B Per-plan rate limiting (Bucket4j) and monthly quota check; 429 problem responses with headers
