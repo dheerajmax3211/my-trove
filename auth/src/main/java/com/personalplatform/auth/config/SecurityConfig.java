@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/actuator/health/**", "/actuator/info").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/.well-known/jwks.json").permitAll()
                         // Coarse gate; every admin handler additionally carries its own @PreAuthorize.
                         .requestMatchers(HttpMethod.GET, "/v1/admin/**").hasAnyAuthority("users:read", "audit:read")
                         .requestMatchers("/v1/admin/**").hasAnyAuthority("users:write", "roles:assign", "plans:manage")
