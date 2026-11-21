@@ -1,6 +1,11 @@
 spring:
   application:
     name: gateway
+  cloud:
+    # Spring Cloud 2026.0.0 declares Boot 4.2.x as its supported line and refuses to start on the repo's Boot 4.1.2.
+    # The artifacts do run on 4.1.2 (covered by this module's tests); re-enable once the repo moves to Boot 4.2.
+    compatibility-verifier:
+      enabled: false
 server:
   port: 8080
 management:
@@ -8,3 +13,55 @@ management:
     web:
       exposure:
         include: health,info,prometheus
+
+gateway:
+  # Base URIs default to http://localhost:<port> (auth 8081, shared 8082, waiting-on 8083, consent 8084,
+  # home-pulse 8085, ask-your-life 8086, digital-legacy 8087, family-treasury 8088, platform 8089).
+  # Override with gateway.services.<name>.uri, e.g. GATEWAY_SERVICES_AUTH_URI.
+  #
+  # Route policy: product routes require products:use, auth/shared/platform need only a valid token. Override with
+  # gateway.routes.<name>.required-permission (empty string = none).
+
+  # Requests the downstream service authenticates with its own credential. They are forwarded untouched, with no
+  # exchange. Verified against each service's SecurityConfig / controllers; everything else needs a platform token.
+  passthrough:
+    # home-pulse: device ingestion, Authorization: Bearer hpd_... checked by DeviceTokenFilter (chain order 1).
+    - service: home-pulse
+      path: /v1/ingest/**
+      description: device ingestion token (hpd_...)
+    # waiting-on: inbound email provider webhook, X-Webhook-Secret checked by WebhookSecretFilter (chain order 1).
+    - service: waiting-on
+      methods: [POST]
+      path: /v1/webhooks/**
+      description: shared secret header X-Webhook-Secret
+    # consent: OAuth token endpoints (client credentials in the request) and the public JWKS.
+    - service: consent
+      path: /v1/oauth/**
+      principal-type: CONSENT_CLIENT
+      description: OAuth client authentication at the token, introspect and revoke endpoints
+    - service: consent
+      path: /.well-known/**
+      description: public JWKS of the consent token issuer
+    # consent: data and request endpoints called by third-party clients with tokens consent itself issued.
+    - service: consent
+      path: /v1/gateway/**
+      principal-type: CONSENT_CLIENT
+      description: consent gateway tokens (TOKEN_ACCESS, TOKEN_CLIENT) issued by consent
+    # shared: signed, expiring download links; the signed token is the authorization.
+    - service: shared
+      methods: [GET]
+      path: /v1/files/download
+      description: signed download link
+    # digital-legacy: trustees are not platform users; they present a trustee token (or accept an invitation).
+    - service: digital-legacy
+      path: /v1/legacy/trustee/**
+      description: trustee portal token / invitation acceptance
+    # auth: the exchange takes the identity provider's token itself, and the JWKS is public.
+    - service: auth
+      methods: [POST]
+      path: /v1/token/exchange
+      description: takes the Firebase ID token directly
+    - service: auth
+      methods: [GET]
+      path: /.well-known/jwks.json
+      description: public platform JWKS
