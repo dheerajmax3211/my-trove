@@ -30,6 +30,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done and verified · `[!]` bloc
 
 ## Phase 1: Platform core
 Execution: 4 agents in git worktrees after pre-wiring: A-auth (plan tasks 1-3, branch `phase-1/auth`), A-lib (tasks 4-5, `phase-1/lib`), B (tasks 6-8, `phase-1/gateway`), C (tasks 9-11, `phase-1/platform`). Coordinator merges, then tasks 12-13. Status of each agent is noted below as it changes.
+- Agents A-auth, A-lib, B, C dispatched 2026-11-21 (background, each in a worktree on its branch; use `ListAgents` and `git worktree list` to find them after a context reset). Their final reports arrive as notifications; verify each in the real repo (run its tests) before merging. Merge order: lib, auth, platform, gateway; then swap `@PreAuthorize` for `@RequiresPermission` in auth/platform-service; then tasks 12-13.
 Contracts to honour are in design doc section 5. Workstreams run in parallel after pre-wiring.
 - [x] 1.0 Pre-wire: new modules in root pom (`gateway`, `platform-service`), `platform` schema + jOOQ execution, compose Kafka (commit 63befa5; Spring Cloud 2026.0.0 BOM resolves on Boot 4.1.2)
 - [ ] 1.A RBAC in `auth`: roles/permissions/user_roles migration, seed personas, USER→MEMBER, bootstrap→OWNER, permission catalogue
