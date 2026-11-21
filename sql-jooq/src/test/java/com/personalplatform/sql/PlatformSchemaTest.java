@@ -1,6 +1,7 @@
 package com.personalplatform.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.personalplatform.sql.jooq.platform.platform.Platform;
 import java.sql.Connection;
@@ -68,7 +69,7 @@ class PlatformSchemaTest {
         List<String> versions = inDsl(dsl -> dsl.fetch(
                 "select version from platform.flyway_schema_history where success and version is not null order by installed_rank")
                 .getValues(0, String.class));
-        assertThat(versions).containsExactly("1", "2", "100", "101", "102");
+        assertThat(versions).containsExactly("1", "2", "3", "100", "101", "102", "103");
     }
 
     @Test
@@ -129,9 +130,51 @@ class PlatformSchemaTest {
     }
 
     @Test
+    void featureFlagsTableEnforcesKeyRolloutAndArrayColumns() throws Exception {
+        inDsl(dsl -> {
+            assertThat(dsl.fetch("select column_name from information_schema.columns where table_schema = 'platform' "
+                    + "and table_name = 'feature_flags' order by ordinal_position").getValues(0, String.class))
+                    .containsExactly("key", "description", "enabled", "rollout_percent", "allowed_plans", "allowed_roles",
+                            "created_at", "updated_at", "updated_by");
+            String insert = "insert into platform.feature_flags (key, description, enabled, rollout_percent, allowed_plans, allowed_roles) "
+                    + "values (?, 'd', true, ?, ?::text[], null)";
+            assertThat(dsl.execute(insert, "schema-ok", 100, "{PRO,DEVELOPER}")).isEqualTo(1);
+            assertThat(dsl.fetchValue("select array_to_string(allowed_plans, ',') from platform.feature_flags where key = 'schema-ok'"))
+                    .isEqualTo("PRO,DEVELOPER");
+            assertThat(dsl.fetchValue("select allowed_roles is null from platform.feature_flags where key = 'schema-ok'")).isEqualTo(true);
+
+            assertThatThrownBy(() -> dsl.execute(insert, "schema-ok", 10, null)).as("primary key").isInstanceOf(Exception.class);
+            assertThatThrownBy(() -> dsl.execute(insert, "schema-low", -1, null)).as("rollout >= 0").isInstanceOf(Exception.class);
+            assertThatThrownBy(() -> dsl.execute(insert, "schema-high", 101, null)).as("rollout <= 100").isInstanceOf(Exception.class);
+            assertThatThrownBy(() -> dsl.execute(insert, "Bad Key", 10, null)).as("key format").isInstanceOf(Exception.class);
+            assertThatThrownBy(() -> dsl.execute(insert, "x".repeat(65), 10, null)).as("key length").isInstanceOf(Exception.class);
+            return null;
+        });
+    }
+
+    @Test
+    void flagAuditIsAnAppendOnlyLogThatOutlivesTheFlag() throws Exception {
+        inDsl(dsl -> {
+            assertThat(dsl.execute("insert into platform.flag_audit (flag_key, action, actor, detail) "
+                    + "values ('audit-flag', 'CREATE', 'u1', '{\"enabled\":true}'::jsonb)")).isEqualTo(1);
+            assertThat(count(dsl, "select count(*) from platform.flag_audit where flag_key = 'audit-flag' and at is not null"))
+                    .isEqualTo(1);
+            assertThatThrownBy(() -> dsl.execute("insert into platform.flag_audit (flag_key, action, actor) values ('f', 'EXPLODE', 'u')"))
+                    .as("action is constrained").isInstanceOf(Exception.class);
+            assertThatThrownBy(() -> dsl.execute("update platform.flag_audit set actor = 'x'"))
+                    .as("update refused").isInstanceOf(Exception.class).hasMessageContaining("append-only");
+            assertThatThrownBy(() -> dsl.execute("delete from platform.flag_audit"))
+                    .as("delete refused").isInstanceOf(Exception.class).hasMessageContaining("append-only");
+            assertThatThrownBy(() -> dsl.execute("truncate platform.flag_audit"))
+                    .as("truncate refused").isInstanceOf(Exception.class).hasMessageContaining("append-only");
+            return null;
+        });
+    }
+
+    @Test
     void everyGeneratedTableMatchesThePostgresSchema() throws Exception {
         inDsl(dsl -> {
-            assertThat(Platform.PLATFORM.getTables()).hasSize(2);
+            assertThat(Platform.PLATFORM.getTables()).hasSize(4);
             for (Table<?> t : Platform.PLATFORM.getTables()) {
                 dsl.selectFrom(t).limit(0).fetch();   // fails if any generated column is missing in the database
             }
