@@ -170,16 +170,18 @@ export function SearchPage() {
                 type="search"
                 name="q"
                 aria-label="Search your notes, documents and receipts"
-                placeholder="What did the landlord say about the deposit?"
+                placeholder="How much was the deposit?"
                 value={draft}
                 maxLength={MAX_QUERY_LENGTH}
                 onChange={(e) => setDraft(e.target.value)}
                 autoComplete="off"
                 spellCheck={false}
               />
-              <kbd className="ayl-kbd" aria-hidden="true">
-                /
-              </kbd>
+              {draft === '' ? (
+                <kbd className="ayl-kbd" aria-hidden="true">
+                  /
+                </kbd>
+              ) : null}
             </div>
             <Button type="submit" size="lg">
               Search

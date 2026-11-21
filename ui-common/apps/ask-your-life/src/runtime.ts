@@ -65,9 +65,16 @@ function createLiveRuntime(env: Env): Runtime {
 
 /**
  * Demo mode is the default: it is used whenever `VITE_USE_MOCK=true`, or Firebase is not
- * configured. Otherwise the app signs in with Firebase and talks to the real service.
+ * configured (add `?empty=1` for an empty demo library). Otherwise the app signs in with Firebase and talks
+ * to the real service.
  */
-export function createRuntime(env: Env = import.meta.env): Runtime {
+export function createRuntime(
+  env: Env = import.meta.env,
+  search: string = typeof window === 'undefined' ? '' : window.location.search,
+): Runtime {
   const forceMock = env.VITE_USE_MOCK === 'true' || env.VITE_USE_MOCK === true
-  return forceMock || !isFirebaseConfigured(env) ? createDemoRuntime() : createLiveRuntime(env)
+  if (!forceMock && isFirebaseConfigured(env)) return createLiveRuntime(env)
+  // `?empty=1` starts the demo with an empty library, to see the first-run screen.
+  const empty = new URLSearchParams(search).get('empty') === '1'
+  return createDemoRuntime(empty ? { mock: { seed: false } } : {})
 }

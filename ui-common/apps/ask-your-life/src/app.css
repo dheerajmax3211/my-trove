@@ -59,6 +59,19 @@
   }
 }
 
+@media (max-width: 480px) {
+  .ayl-theme {
+    max-width: 5.75rem;
+  }
+  .ayl-brand {
+    font-size: var(--pp-text-body-size);
+    gap: var(--pp-space-2);
+  }
+  .ayl-brand [data-product-mark] {
+    display: none;
+  }
+}
+
 .ayl-link {
   color: var(--pp-color-accent-text);
   text-underline-offset: 0.2em;
@@ -829,6 +842,11 @@ mark {
   align-items: center;
   gap: var(--pp-space-2);
   font-size: var(--pp-text-label-size);
+}
+
+/* DataTable keeps a visually hidden caption span absolutely positioned; contain it so it cannot widen the page. */
+.ayl-stack caption {
+  position: relative;
 }
 
 .ayl-pager {
