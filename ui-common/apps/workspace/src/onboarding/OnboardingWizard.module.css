@@ -23,6 +23,11 @@
   justify-content: space-between;
   gap: var(--pp-space-4);
 }
+.toplineEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+}
 .stepper {
   max-width: 100%;
 }

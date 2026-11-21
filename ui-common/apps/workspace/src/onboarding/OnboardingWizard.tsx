@@ -1,4 +1,4 @@
-import { Button, Checkbox, Container, KeyCut, Logo, Stepper } from '@platform/ui'
+import { Badge, Button, Checkbox, Container, KeyCut, Logo, Stepper } from '@platform/ui'
 import { useWorkspaceSession } from '@platform/workspace-kit'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -69,9 +69,12 @@ export function OnboardingWizard() {
         <Container size="narrow" className={styles.bandInner}>
           <div className={styles.topline}>
             <Logo size="md" />
-            <Button variant="ghost" size="sm" onClick={onboarding.skip}>
-              Skip for now
-            </Button>
+            <div className={styles.toplineEnd}>
+              {session.isDemo ? <Badge variant="warning">Demo data</Badge> : null}
+              <Button variant="ghost" size="sm" onClick={onboarding.skip}>
+                Skip for now
+              </Button>
+            </div>
           </div>
           <Stepper
             steps={STEPS}
