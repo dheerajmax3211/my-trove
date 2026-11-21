@@ -1,6 +1,6 @@
 import { Button, Dialog, DialogClose, Field, Input, useToast } from '@platform/ui'
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useModuleNavigate } from '@platform/workspace-kit'
 import { errorMessage } from '../../../lib/errors'
 import { useAcceptInvite } from '../hooks'
 
@@ -12,7 +12,7 @@ export function JoinHouseholdDialog({
   onOpenChange: (open: boolean) => void
 }) {
   const { toast } = useToast()
-  const navigate = useNavigate()
+  const navigate = useModuleNavigate()
   const [code, setCode] = useState('')
   const [fieldError, setFieldError] = useState<string>()
   const accept = useAcceptInvite()

@@ -1,4 +1,3 @@
-import { useAuth } from '@platform/auth-web'
 import {
   Button,
   Card,
@@ -19,7 +18,7 @@ import { useState, type FormEvent } from 'react'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { CopyButton } from '../../../components/CopyButton'
 import { ErrorState } from '../../../components/ErrorState'
-import { MemberLabel } from '../../../components/MemberLabel'
+import { PersonLabel } from '../../../components/People'
 import { errorMessage } from '../../../lib/errors'
 import { formatDateTime } from '../../../lib/format'
 import { useCreateInvite, useInvites, useRevokeInvite } from '../hooks'
@@ -29,7 +28,6 @@ export const DEFAULT_TTL_HOURS = 168
 const MAX_TTL_HOURS = 720
 
 export function InvitesCard({ householdId }: { householdId: string }) {
-  const { user } = useAuth()
   const { toast } = useToast()
   const invites = useInvites(householdId, true)
   const createInvite = useCreateInvite(householdId)
@@ -67,7 +65,7 @@ export function InvitesCard({ householdId }: { householdId: string }) {
     {
       id: 'by',
       header: 'Created by',
-      cell: (i) => <MemberLabel uid={i.createdBy} currentUid={user?.uid} />,
+      cell: (i) => <PersonLabel uid={i.createdBy} />,
     },
     {
       id: 'expires',

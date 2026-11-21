@@ -1,6 +1,6 @@
 import { Button, Dialog, DialogClose, Field, Input, useToast } from '@platform/ui'
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useModuleNavigate } from '@platform/workspace-kit'
 import { errorMessage } from '../../../lib/errors'
 import { useCreateHousehold } from '../hooks'
 
@@ -14,7 +14,7 @@ export function CreateHouseholdDialog({
   onOpenChange: (open: boolean) => void
 }) {
   const { toast } = useToast()
-  const navigate = useNavigate()
+  const navigate = useModuleNavigate()
   const [name, setName] = useState('')
   const [fieldError, setFieldError] = useState<string>()
   const create = useCreateHousehold()

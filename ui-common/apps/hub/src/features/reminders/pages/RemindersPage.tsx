@@ -1,32 +1,34 @@
-import { useAuth } from '@platform/auth-web'
 import {
   Badge,
   Button,
-  DataTable,
   EmptyState,
+  IllustrationLetter,
   PageHeader,
   PlusIcon,
+  Skeleton,
   Tabs,
   TabsList,
   TabsTrigger,
   useToast,
-  VisuallyHidden,
   type BadgeVariant,
-  type DataTableColumn,
 } from '@platform/ui'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { ErrorState } from '../../../components/ErrorState'
 import { ScopeSelect, SCOPE_ALL, SCOPE_PERSONAL, scopeName } from '../../../components/ScopeSelect'
-import { formatDateTime, formatRelative } from '../../../lib/format'
+import { useCoreEnv } from '../../../core/env'
+import { usePeople } from '../../../core/people'
+import { formatDay, formatTime, groupByDay, type DayGroup } from '../../../lib/day'
 import { usePageTitle } from '../../../lib/usePageTitle'
-import { useRuntime } from '../../../runtime/context'
 import { useHouseholds } from '../../households/hooks'
 import type { Household } from '../../households/types'
+import { QuickAdd } from '../components/QuickAdd'
 import { ReminderDialog } from '../components/ReminderDialog'
 import { useCancelReminder, useReminders } from '../hooks'
 import { describeRecurrence } from '../recurrence'
 import type { Reminder, ReminderStatus } from '../types'
+import styles from './Reminders.module.css'
 
 type StatusFilter = ReminderStatus | 'ALL'
 
@@ -51,13 +53,21 @@ function canModify(reminder: Reminder, uid: string | undefined, households: read
   return households.find((h) => h.id === reminder.householdId)?.role === 'OWNER'
 }
 
+/** Today and tomorrow need only the time; further out the day matters too. */
+function whenLabel(group: DayGroup, ms: number): string {
+  return group === 'today' || group === 'tomorrow'
+    ? formatTime(ms)
+    : `${formatDay(ms)}, ${formatTime(ms)}`
+}
+
 export function RemindersPage() {
   usePageTitle('Reminders')
-  const { user } = useAuth()
+  const people = usePeople()
   const { toast } = useToast()
-  const { now } = useRuntime()
+  const { now } = useCoreEnv()
   const households = useHouseholds()
-  const [scope, setScope] = useState(SCOPE_ALL)
+  const [params] = useSearchParams()
+  const [scope, setScope] = useState(params.get('household') ?? SCOPE_ALL)
   const [status, setStatus] = useState<StatusFilter>('ACTIVE')
   const [dialog, setDialog] = useState<Reminder | 'new' | null>(null)
   const [cancelling, setCancelling] = useState<Reminder | null>(null)
@@ -69,76 +79,17 @@ export function RemindersPage() {
     ...(householdScope ? { householdId: householdScope } : {}),
     ...(status !== 'ALL' ? { status } : {}),
   })
-  const rows = (reminders.data ?? []).filter(
-    (r) => scope !== SCOPE_PERSONAL || r.householdId === null,
-  )
-
-  const columns: DataTableColumn<Reminder>[] = [
-    {
-      id: 'title',
-      header: 'Reminder',
-      sortValue: (r) => r.title,
-      cell: (r) => <strong>{r.title}</strong>,
-    },
-    {
-      id: 'due',
-      header: 'Due',
-      sortValue: (r) => r.dueAt,
-      cell: (r) => (
-        <span className="hub-stack-sm" style={{ gap: 2 }}>
-          <span>{formatDateTime(r.dueAt)}</span>
-          <span className="hub-muted">
-            {r.status === 'ACTIVE' && new Date(r.dueAt).getTime() < now() ? 'Overdue, ' : ''}
-            {formatRelative(r.dueAt, now())}
-          </span>
-        </span>
-      ),
-    },
-    { id: 'repeats', header: 'Repeats', cell: (r) => describeRecurrence(r.recurrence) },
-    {
-      id: 'scope',
-      header: 'For',
-      sortValue: (r) => scopeName(r.householdId, householdList),
-      cell: (r) => scopeName(r.householdId, householdList),
-    },
-    {
-      id: 'status',
-      header: 'Status',
-      sortValue: (r) => r.status,
-      cell: (r) => (
-        <Badge variant={STATUS_BADGE[r.status].variant} dot>
-          {STATUS_BADGE[r.status].label}
-        </Badge>
-      ),
-    },
-    {
-      id: 'actions',
-      header: <VisuallyHidden>Actions</VisuallyHidden>,
-      headerLabel: 'Actions',
-      align: 'end',
-      cell: (r) =>
-        canModify(r, user?.uid, householdList) ? (
-          <span className="hub-row">
-            <Button
-              size="sm"
-              variant="ghost"
-              aria-label={`Edit ${r.title}`}
-              onClick={() => setDialog(r)}
-            >
-              Edit
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              aria-label={`Cancel ${r.title}`}
-              onClick={() => setCancelling(r)}
-            >
-              Cancel
-            </Button>
-          </span>
-        ) : null,
-    },
-  ]
+  const rows = (reminders.data ?? [])
+    .filter((r) => scope !== SCOPE_PERSONAL || r.householdId === null)
+    .sort((a, b) => a.dueAt.localeCompare(b.dueAt))
+  const nowMs = now()
+  const groups = groupByDay(rows, nowMs, (r) => ({
+    dueMs: new Date(r.dueAt).getTime(),
+    active: r.status === 'ACTIVE',
+  }))
+  // The agenda reads soonest first; what is already finished reads newest first.
+  const earlier = groups.find((g) => g.group === 'earlier')
+  if (earlier) earlier.items.reverse()
 
   return (
     <>
@@ -153,6 +104,7 @@ export function RemindersPage() {
         }
       />
       <div className="hub-stack">
+        <QuickAdd households={householdList} defaultScope={householdScope} />
         <div className="hub-toolbar">
           <ScopeSelect
             label="Show reminders for"
@@ -173,23 +125,79 @@ export function RemindersPage() {
 
         {reminders.isError ? (
           <ErrorState error={reminders.error} onRetry={() => void reminders.refetch()} />
-        ) : (
-          <DataTable
-            caption="Reminders"
-            columns={columns}
-            data={rows}
-            getRowId={(r) => r.id}
-            loading={reminders.isPending}
-            defaultSort={{ columnId: 'due', direction: 'asc' }}
-            emptyState={
-              <EmptyState
-                headingAs="h2"
-                title="No reminders here"
-                description={EMPTY_COPY[status]}
-                action={<Button onClick={() => setDialog('new')}>New reminder</Button>}
-              />
-            }
+        ) : reminders.isPending ? (
+          <div className="hub-stack-sm" aria-busy="true" aria-label="Loading reminders">
+            <Skeleton height={56} />
+            <Skeleton height={56} />
+            <Skeleton height={56} />
+          </div>
+        ) : groups.length === 0 ? (
+          <EmptyState
+            illustration={<IllustrationLetter />}
+            headingAs="h2"
+            title="No reminders here"
+            description={EMPTY_COPY[status]}
+            action={<Button onClick={() => setDialog('new')}>New reminder</Button>}
           />
+        ) : (
+          <div className={styles.agenda}>
+            {groups.map((g) => (
+              <section key={g.group} aria-labelledby={`agenda-${g.group}`} className={styles.day}>
+                <h2
+                  id={`agenda-${g.group}`}
+                  className={g.group === 'overdue' ? styles.dayLate : styles.dayTitle}
+                >
+                  {g.label}
+                  <span className={styles.count}>{g.items.length}</span>
+                </h2>
+                <ul className={styles.items}>
+                  {g.items.map((r) => {
+                    const dueMs = new Date(r.dueAt).getTime()
+                    return (
+                      <li key={r.id} className={styles.item}>
+                        <span className={styles.time}>{whenLabel(g.group, dueMs)}</span>
+                        <div className={styles.body}>
+                          <span className={styles.title}>{r.title}</span>
+                          <span className={styles.meta}>
+                            {scopeName(r.householdId, householdList)}
+                            {r.recurrence ? `, ${describeRecurrence(r.recurrence)}` : ''}
+                            {r.householdId && r.ownerUid !== people.selfUid
+                              ? `, added by ${people.nameOf(r.ownerUid)}`
+                              : ''}
+                          </span>
+                        </div>
+                        {r.status !== 'ACTIVE' ? (
+                          <Badge variant={STATUS_BADGE[r.status].variant} dot>
+                            {STATUS_BADGE[r.status].label}
+                          </Badge>
+                        ) : null}
+                        {canModify(r, people.selfUid, householdList) ? (
+                          <span className={styles.actions}>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              aria-label={`Edit ${r.title}`}
+                              onClick={() => setDialog(r)}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              aria-label={`Cancel ${r.title}`}
+                              onClick={() => setCancelling(r)}
+                            >
+                              Cancel
+                            </Button>
+                          </span>
+                        ) : null}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </section>
+            ))}
+          </div>
         )}
       </div>
 

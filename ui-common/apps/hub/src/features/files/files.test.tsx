@@ -4,6 +4,7 @@ import { callsTo, pageHeading, renderHub } from '../../test/renderHub'
 import { MAX_UPLOAD_BYTES } from './limits'
 
 const FILES = '/api/shared/v1/files'
+const fileList = () => screen.findByRole('list', { name: 'Files' })
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -28,14 +29,14 @@ describe('files', () => {
     expect(post?.body).toBeInstanceOf(FormData)
     expect((post?.body as FormData).get('file')).toHaveProperty('name', 'notes.txt')
     expect((post?.body as FormData).has('householdId')).toBe(false)
-    const row = await screen.findByRole('row', { name: /notes\.txt/ })
-    expect(within(row).getByText('5 B')).toBeInTheDocument()
-    expect(within(row).getByText('Personal')).toBeInTheDocument()
+    const item = (await within(await fileList()).findByText('notes.txt')).closest('li')!
+    expect(within(item).getByText(/5 B, Personal/)).toBeInTheDocument()
+    expect(within(item).getByText('TXT')).toBeInTheDocument()
   })
 
   it('uploads into a household and filters by it', async () => {
     const { user, requests } = renderHub({ seed: 'demo', route: '/files' })
-    await screen.findByRole('row', { name: /Home insurance summary/ })
+    await within(await fileList()).findByText('Home insurance summary.txt')
     await user.selectOptions(screen.getByRole('combobox', { name: 'Save to' }), 'Rivera household')
     await user.upload(
       screen.getByLabelText('File'),
@@ -52,9 +53,7 @@ describe('files', () => {
       'Personal only',
     )
     expect(await screen.findByRole('heading', { name: 'No files yet' })).toBeInTheDocument()
-    expect(
-      within(screen.getByRole('table', { name: 'Files' })).queryByText('deed.pdf'),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('list', { name: 'Files' })).not.toBeInTheDocument()
   })
 
   it('refuses a missing file or one over the limit before uploading', async () => {
@@ -136,7 +135,7 @@ describe('files', () => {
 
   it('hides Delete from a household member who did not upload the file', async () => {
     const { user } = renderHub({ seed: 'demo', route: '/files' })
-    await screen.findByRole('row', { name: /Home insurance summary/ })
+    await within(await fileList()).findByText('Home insurance summary.txt')
     await user.selectOptions(screen.getByRole('combobox', { name: 'Switch demo user' }), 'demo-bob')
     expect(
       await screen.findByRole('button', { name: 'Get link for Home insurance summary.txt' }),

@@ -22,18 +22,3 @@ export function RequireAdmin({ children }: { children: ReactNode }) {
     )
   return <>{children}</>
 }
-
-export function NotFoundPage() {
-  usePageTitle('Page not found')
-  return (
-    <EmptyState
-      title="Page not found"
-      description="That address does not lead anywhere in the hub."
-      action={
-        <Button asChild>
-          <Link to="/">Back to home</Link>
-        </Button>
-      }
-    />
-  )
-}

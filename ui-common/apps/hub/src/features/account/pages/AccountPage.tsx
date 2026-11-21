@@ -14,11 +14,11 @@ import {
   useToast,
 } from '@platform/ui'
 import { useQueryClient } from '@tanstack/react-query'
-import { authPaths } from '../../../api/paths'
+import { authPaths } from '../../session/authPaths'
 import { CopyButton } from '../../../components/CopyButton'
 import { ThemeSelect } from '../../../components/ThemeSelect'
 import { usePageTitle } from '../../../lib/usePageTitle'
-import { useRuntime } from '../../../runtime/context'
+import { useRuntime, useSharedQueryClient } from '../../../runtime/context'
 import { useProfile } from '../../session/profile'
 
 const DAY_MS = 86_400_000
@@ -28,11 +28,13 @@ function DemoTools() {
   const { user } = useAuth()
   const { toast } = useToast()
   const queryClient = useQueryClient()
+  const sharedQueryClient = useSharedQueryClient()
   if (!demo) return null
 
   const advance = (days: number) => {
     demo.advanceClock(days * DAY_MS)
     void queryClient.invalidateQueries()
+    void sharedQueryClient?.invalidateQueries()
     toast({
       title: `Moved the demo clock forward ${days === 1 ? 'a day' : `${days} days`}`,
       description: 'Reminders that came due have fired.',

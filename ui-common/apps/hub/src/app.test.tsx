@@ -59,39 +59,52 @@ describe('launcher home', () => {
     })
   })
 
-  it('shows empty states for a new user, with a next action', async () => {
+  it('explains households to a new user and offers both ways in', async () => {
     renderHub()
-    expect(await screen.findByRole('heading', { name: 'Nothing due' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Add a reminder' })).toHaveAttribute(
-      'href',
-      '/reminders',
-    )
-    expect(screen.getByRole('heading', { name: 'No activity yet' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Share the small stuff with the people you live with',
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Create a household' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Join with a code' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'A household is the people you share with' }),
+    ).toBeInTheDocument()
   })
 
-  it('summarises upcoming reminders and recent activity for the seeded demo account', async () => {
+  it('summarises the household, what is coming up and what happened lately for the seeded demo account', async () => {
     renderHub({ seed: 'demo' })
-    const upcoming = (await screen.findByRole('heading', { name: 'Upcoming reminders' })).closest(
-      'div',
-    )!.parentElement!
+    expect(await screen.findByRole('heading', { name: 'Rivera household' })).toBeInTheDocument()
+    const upcoming = (await screen.findByRole('heading', { name: 'Coming up' })).closest('section')!
     expect(await within(upcoming).findByText('Water the plants')).toBeInTheDocument()
-    expect(within(upcoming).getByText('Renew passport')).toBeInTheDocument()
+    expect(within(upcoming).getByText('Put the bins out')).toBeInTheDocument()
+    // Only the next four are listed here.
+    expect(within(upcoming).queryByText('Renew passport')).not.toBeInTheDocument()
     expect(within(upcoming).queryByText('Book dentist')).not.toBeInTheDocument()
-    expect(await screen.findAllByText(/You: Created a reminder/)).not.toHaveLength(0)
+    const lately = screen
+      .getByRole('heading', { name: /Lately in Rivera household/ })
+      .closest('section')!
+    expect(await within(lately).findByText('Home insurance summary.txt (77 B)')).toBeInTheDocument()
+    expect(within(lately).getByText('Bob Rivera joined the household')).toBeInTheDocument()
   })
 
-  it('shows a retryable error when upcoming reminders fail to load', async () => {
+  it('shows a retryable error when the households fail to load', async () => {
     let failing = true
     const { user } = renderHub({
       respond: (r) =>
-        failing && r.path.endsWith('/shared/v1/reminders')
+        failing && r.path.endsWith('/shared/v1/households')
           ? problem(500, 'Database is down')
           : undefined,
     })
     expect(await screen.findByText('Database is down')).toBeInTheDocument()
     failing = false
     await user.click(screen.getAllByRole('button', { name: 'Try again' })[0]!)
-    expect(await screen.findByRole('heading', { name: 'Nothing due' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Share the small stuff with the people you live with',
+      }),
+    ).toBeInTheDocument()
   })
 })
 

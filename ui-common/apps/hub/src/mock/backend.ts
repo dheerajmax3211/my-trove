@@ -11,7 +11,7 @@ import { createHouseholdRoutes } from './households'
 import { errorResponse, HttpError } from './http'
 import { createReminderRoutes } from './reminders'
 import type { MockEnv, Route } from './route'
-import { createSeededState, type SeedKind } from './seed'
+import { createSeededState, type DemoUserSeed, type SeedKind } from './seed'
 
 export const DEMO_TOKEN_PREFIX = 'demo-token:'
 
@@ -22,6 +22,8 @@ export interface MockBackendOptions {
   latencyMs?: number
   /** `demo`: a lived-in household and reminders. `empty`: only the demo users. Default `demo`. */
   seed?: SeedKind
+  /** Who exists. The first user owns the seeded household. Default: the standalone hub's three demo users. */
+  users?: readonly DemoUserSeed[]
 }
 
 export interface MockBackend {
@@ -40,7 +42,7 @@ export function createMockBackend(options: MockBackendOptions = {}): MockBackend
   let offset = 0
   const now = () => realNow() + offset
 
-  const env: MockEnv = { state: createSeededState(seed, now()), now }
+  const env: MockEnv = { state: createSeededState(seed, now(), options.users), now }
   const reminders = createReminderRoutes(env)
   const routes: Record<'auth' | 'shared', Route[]> = {
     auth: createAuthRoutes(env),

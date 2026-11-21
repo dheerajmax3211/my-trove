@@ -1,12 +1,38 @@
-import { Badge, Button, PageHeader, Skeleton } from '@platform/ui'
-import { Link, useParams } from 'react-router-dom'
+import { Badge, Button, PageHeader, Skeleton, Stat } from '@platform/ui'
+import { ModuleLink } from '@platform/workspace-kit'
+import { useParams } from 'react-router-dom'
 import { ErrorState } from '../../../components/ErrorState'
 import { formatDate } from '../../../lib/format'
 import { usePageTitle } from '../../../lib/usePageTitle'
+import { useFiles } from '../../files/hooks'
+import { useReminders } from '../../reminders/hooks'
 import { DangerZone } from '../components/DangerZone'
 import { InvitesCard } from '../components/InvitesCard'
 import { MembersCard } from '../components/MembersCard'
 import { useHousehold } from '../hooks'
+import styles from './Households.module.css'
+
+function SharedHere({ householdId, people }: { householdId: string; people: number }) {
+  const reminders = useReminders({ householdId, status: 'ACTIVE' })
+  const files = useFiles(householdId)
+  const count = (q: { data?: unknown[] | undefined; isPending: boolean; isError: boolean }) =>
+    q.isPending ? '...' : q.isError ? 'Unavailable' : String(q.data?.length ?? 0)
+  return (
+    <section className={styles.shared} aria-label="Shared in this household">
+      <Stat label="People" value={String(people)} />
+      <Stat
+        label="Active reminders"
+        value={count(reminders)}
+        hint={<ModuleLink to={`/reminders?household=${householdId}`}>See reminders</ModuleLink>}
+      />
+      <Stat
+        label="Files"
+        value={count(files)}
+        hint={<ModuleLink to={`/files?household=${householdId}`}>See files</ModuleLink>}
+      />
+    </section>
+  )
+}
 
 export function HouseholdDetailPage() {
   const { householdId = '' } = useParams()
@@ -27,7 +53,7 @@ export function HouseholdDetailPage() {
   return (
     <>
       <PageHeader
-        eyebrow={<Link to="/households">Households</Link>}
+        eyebrow={<ModuleLink to="/households">Households</ModuleLink>}
         title={h.name}
         description={
           <span className="hub-row">
@@ -40,11 +66,12 @@ export function HouseholdDetailPage() {
         }
         actions={
           <Button variant="secondary" asChild>
-            <Link to={`/activity?household=${h.id}`}>View activity</Link>
+            <ModuleLink to={`/activity?household=${h.id}`}>View activity</ModuleLink>
           </Button>
         }
       />
       <div className="hub-stack">
+        <SharedHere householdId={h.id} people={h.members.length} />
         <MembersCard household={h} />
         {h.callerRole === 'OWNER' ? <InvitesCard householdId={h.id} /> : null}
         <DangerZone household={h} />

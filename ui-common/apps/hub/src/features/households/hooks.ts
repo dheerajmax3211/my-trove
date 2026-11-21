@@ -1,4 +1,5 @@
-import { apiQueryKey, useApiMutation, useApiQuery } from '@platform/api-client'
+import { apiQueryKey, useApiClient, useApiMutation, useApiQuery } from '@platform/api-client'
+import { useQueries } from '@tanstack/react-query'
 import { sharedPaths } from '../../api/paths'
 import type {
   Household,
@@ -79,3 +80,18 @@ export const useDeleteHousehold = (id: string) =>
       apiQueryKey(sharedPaths.audit),
     ],
   })
+
+/**
+ * Members for several households at once (the overview and the list show who you share with). Uses the same
+ * cache keys as `useHousehold`, so opening a household afterwards costs nothing.
+ */
+export function useHouseholdDetails(ids: readonly string[]) {
+  const client = useApiClient()
+  return useQueries({
+    queries: ids.map((id) => ({
+      queryKey: apiQueryKey(sharedPaths.household(id)),
+      queryFn: ({ signal }: { signal: AbortSignal }) =>
+        client.get<HouseholdDetail>(sharedPaths.household(id), { signal }),
+    })),
+  })
+}

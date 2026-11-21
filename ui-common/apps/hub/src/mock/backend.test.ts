@@ -282,7 +282,7 @@ describe('mock backend: shared-service contract', () => {
     expect(households).toHaveLength(1)
     const reminders = (await call('demo-alice', 'GET', '/shared/v1/reminders?status=ACTIVE'))
       .json as unknown as unknown[]
-    expect(reminders).toHaveLength(3)
+    expect(reminders).toHaveLength(5)
   })
 })
 

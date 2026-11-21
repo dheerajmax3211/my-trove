@@ -29,7 +29,10 @@ export interface DemoControls {
 export interface HubRuntime {
   mode: HubMode
   authClient: AuthClient
-  apiClient: ApiClient
+  /** Bound to `<gateway>/auth`. Standalone only: the session call, profile and the admin screens. */
+  authApi: ApiClient
+  /** Bound to `<gateway>/shared`: what the Household module talks through (paths start at `/v1`). */
+  sharedApi: ApiClient
   /** Root of the API gateway (`/api` by default). */
   apiBaseUrl: string
   /** Present in demo mode only. */
@@ -115,8 +118,14 @@ export function createRuntime(options: CreateRuntimeOptions = {}): HubRuntime {
     return {
       mode: 'demo',
       authClient: auth,
-      apiClient: createApiClient({
-        baseUrl: apiBaseUrl,
+      authApi: createApiClient({
+        baseUrl: `${apiBaseUrl}/auth`,
+        getToken: () => auth.getIdToken(),
+        fetch: mockFetch,
+        onUnauthorized: () => void auth.signOut(),
+      }),
+      sharedApi: createApiClient({
+        baseUrl: `${apiBaseUrl}/shared`,
         getToken: () => auth.getIdToken(),
         fetch: mockFetch,
         onUnauthorized: () => void auth.signOut(),
@@ -144,8 +153,13 @@ export function createRuntime(options: CreateRuntimeOptions = {}): HubRuntime {
   return {
     mode: 'live',
     authClient: auth,
-    apiClient: createApiClient({
-      baseUrl: apiBaseUrl,
+    authApi: createApiClient({
+      baseUrl: `${apiBaseUrl}/auth`,
+      getToken: (forceRefresh) => auth.getIdToken(forceRefresh),
+      onUnauthorized: () => void auth.signOut(),
+    }),
+    sharedApi: createApiClient({
+      baseUrl: `${apiBaseUrl}/shared`,
       getToken: (forceRefresh) => auth.getIdToken(forceRefresh),
       onUnauthorized: () => void auth.signOut(),
     }),

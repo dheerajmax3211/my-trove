@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { ScopeSelect, SCOPE_PERSONAL } from '../../../components/ScopeSelect'
 import { errorMessage } from '../../../lib/errors'
 import { toLocalInputValue } from '../../../lib/format'
-import { useRuntime } from '../../../runtime/context'
+import { useCoreEnv } from '../../../core/env'
 import type { Household } from '../../households/types'
 import { useCreateReminder, useUpdateReminder } from '../hooks'
 import {
@@ -45,7 +45,7 @@ function ReminderFormBody({
   onClose,
 }: Omit<ReminderDialogProps, 'target'> & { target: Reminder | 'new' }) {
   const { toast } = useToast()
-  const { now } = useRuntime()
+  const { now } = useCoreEnv()
   const editing = target !== 'new'
   const [form, setForm] = useState(() => initialForm(target, now()))
   const [scope, setScope] = useState(SCOPE_PERSONAL)

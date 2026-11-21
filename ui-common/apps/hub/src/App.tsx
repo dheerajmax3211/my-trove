@@ -1,34 +1,54 @@
 import { ApiProvider } from '@platform/api-client'
 import { AuthProvider, RequireAuth, useAuth } from '@platform/auth-web'
 import { Spinner, ThemeProvider, ToastProvider } from '@platform/ui'
-import { useState } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import type { QueryClient } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
+import { Outlet, Route, Routes } from 'react-router-dom'
+import { CoreRoutes } from './core/CoreRoutes'
+import { CoreEnvProvider, type CoreEnv } from './core/env'
 import { AccountPage } from './features/account/pages/AccountPage'
-import { ActivityPage } from './features/activity/pages/ActivityPage'
 import { AdminPage } from './features/admin/pages/AdminPage'
-import { FilesPage } from './features/files/pages/FilesPage'
 import { HomePage } from './features/home/HomePage'
-import { HouseholdDetailPage } from './features/households/pages/HouseholdDetailPage'
-import { HouseholdsPage } from './features/households/pages/HouseholdsPage'
-import { RemindersPage } from './features/reminders/pages/RemindersPage'
 import { DemoSignIn } from './features/session/DemoSignIn'
 import { SessionGate } from './features/session/SessionGate'
 import { SignIn } from './features/session/SignIn'
 import { HubShell } from './layout/HubShell'
-import { NotFoundPage, RequireAdmin } from './layout/guards'
-import { RuntimeProvider, useRuntime } from './runtime/context'
+import { RequireAdmin } from './layout/guards'
+import { RuntimeProvider, SharedQueryClientContext, useRuntime } from './runtime/context'
 import type { HubRuntime } from './runtime/runtime'
 
-function HubRoutes() {
+/**
+ * The Household module inside the standalone hub: its own API client (bound to the shared service) and its
+ * own query cache, apart from the auth client the shell uses, exactly as the workspace mounts it.
+ */
+function HouseholdScope({ queryClient }: { queryClient: QueryClient }) {
+  const runtime = useRuntime()
+  const env = useMemo<CoreEnv>(
+    () => ({
+      now: runtime.now,
+      downloadUrl: runtime.downloadUrl,
+      saveDownload: runtime.saveDownload,
+      directory: Object.fromEntries((runtime.demo?.users ?? []).map((u) => [u.uid, u.displayName])),
+    }),
+    [runtime],
+  )
+  return (
+    <ApiProvider client={runtime.sharedApi} queryClient={queryClient}>
+      <CoreEnvProvider env={env}>
+        <Outlet />
+      </CoreEnvProvider>
+    </ApiProvider>
+  )
+}
+
+function HubRoutes({ sharedQueryClient }: { sharedQueryClient: QueryClient }) {
   return (
     <Routes>
       <Route element={<HubShell />}>
-        <Route index element={<HomePage />} />
-        <Route path="households" element={<HouseholdsPage />} />
-        <Route path="households/:householdId" element={<HouseholdDetailPage />} />
-        <Route path="reminders" element={<RemindersPage />} />
-        <Route path="files" element={<FilesPage />} />
-        <Route path="activity" element={<ActivityPage />} />
+        <Route element={<HouseholdScope queryClient={sharedQueryClient} />}>
+          <Route index element={<HomePage />} />
+          <Route path="*" element={<CoreRoutes />} />
+        </Route>
         <Route path="account" element={<AccountPage />} />
         <Route
           path="admin"
@@ -38,7 +58,6 @@ function HubRoutes() {
             </RequireAdmin>
           }
         />
-        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   )
@@ -53,11 +72,14 @@ function SignedIn() {
 
 function SignedInTree({ runtime }: { runtime: HubRuntime }) {
   const [queryClient] = useState(() => runtime.createQueryClient())
+  const [sharedQueryClient] = useState(() => runtime.createQueryClient())
   return (
-    <ApiProvider client={runtime.apiClient} queryClient={queryClient}>
-      <SessionGate>
-        <HubRoutes />
-      </SessionGate>
+    <ApiProvider client={runtime.authApi} queryClient={queryClient}>
+      <SharedQueryClientContext value={sharedQueryClient}>
+        <SessionGate>
+          <HubRoutes sharedQueryClient={sharedQueryClient} />
+        </SessionGate>
+      </SharedQueryClientContext>
     </ApiProvider>
   )
 }

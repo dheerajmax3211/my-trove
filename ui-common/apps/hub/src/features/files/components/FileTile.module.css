@@ -1,0 +1,45 @@
+.tile {
+  --_tint: var(--pp-color-surface-sunken);
+  --_ink: var(--pp-color-text-muted);
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: end center;
+  width: 2.75rem;
+  height: 3.5rem;
+  padding-bottom: 0.4rem;
+  border-radius: var(--pp-radius-sm) 14px var(--pp-radius-sm) var(--pp-radius-sm);
+  background: var(--_tint);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--_ink) 35%, transparent);
+  color: var(--_ink);
+  /* the folded corner */
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+}
+
+.tile::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  background: color-mix(in srgb, var(--_ink) 25%, var(--pp-color-surface));
+  border-bottom-left-radius: 3px;
+}
+
+.label {
+  font-family: var(--pp-font-mono);
+  font-size: 0.6875rem;
+  font-weight: var(--pp-weight-semibold);
+  letter-spacing: 0.02em;
+}
+
+.tile[data-kind='document'] {
+  --_tint: var(--pp-color-accent-subtle);
+  --_ink: var(--pp-color-accent-text);
+}
+
+.tile[data-kind='image'] {
+  --_tint: var(--pp-color-brass-subtle);
+  --_ink: var(--pp-color-brass-text);
+}
