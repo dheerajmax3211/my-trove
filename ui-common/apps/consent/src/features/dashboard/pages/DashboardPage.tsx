@@ -10,7 +10,7 @@ import {
   PageHeader,
   Skeleton,
 } from '@platform/ui'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import type { Grant } from '../../../shared/api/types'
 import { ErrorState } from '../../../shared/components/ErrorState'
 import { ScopeList } from '../../../shared/components/ScopeList'
@@ -54,7 +54,7 @@ function ChainCard() {
         )}
         <div className="row-wrap">
           <Button variant="secondary" asChild>
-            <Link to="/audit">Open audit</Link>
+            <ModuleLink to="/audit">Open audit</ModuleLink>
           </Button>
         </div>
       </CardContent>
@@ -106,7 +106,7 @@ export function DashboardPage() {
                       asChild
                       variant={dashboard.data.pendingRequests > 0 ? 'primary' : 'secondary'}
                     >
-                      <Link to="/requests">Open requests</Link>
+                      <ModuleLink to="/requests">Open requests</ModuleLink>
                     </Button>
                   </div>
                 </>
@@ -141,7 +141,7 @@ export function DashboardPage() {
               )}
               <div className="row-wrap">
                 <Button variant="secondary" asChild>
-                  <Link to="/grants">Manage grants</Link>
+                  <ModuleLink to="/grants">Manage grants</ModuleLink>
                 </Button>
               </div>
             </CardContent>
@@ -181,7 +181,7 @@ export function DashboardPage() {
               )}
               <div className="row-wrap">
                 <Button variant="secondary" asChild>
-                  <Link to="/history">See all history</Link>
+                  <ModuleLink to="/history">See all history</ModuleLink>
                 </Button>
               </div>
             </CardContent>

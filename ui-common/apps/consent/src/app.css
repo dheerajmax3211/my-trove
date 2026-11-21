@@ -403,3 +403,7 @@
     display: none;
   }
 }
+
+.product-root {
+  display: contents;
+}
