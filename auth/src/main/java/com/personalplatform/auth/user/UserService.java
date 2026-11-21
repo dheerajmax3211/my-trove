@@ -1,7 +1,9 @@
 package com.personalplatform.auth.user;
 
 import com.personalplatform.auth.config.AppProperties;
+import com.personalplatform.auth.admin.AuditRepository;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -10,15 +12,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserService {
 
-    public static final String ROLE_USER = "USER";
+    /** Baseline persona of every user; cannot be revoked. */
+    public static final String ROLE_MEMBER = "MEMBER";
     public static final String ROLE_ADMIN = "ADMIN";
+    public static final String ROLE_OWNER = "OWNER";
 
     private final UserRepository users;
     private final AppProperties props;
+    private final AuditRepository audit;
 
-    public UserService(UserRepository users, AppProperties props) {
+    public UserService(UserRepository users, AppProperties props, AuditRepository audit) {
         this.users = users;
         this.props = props;
+        this.audit = audit;
     }
 
     /** Creates the local user on first sight of a Firebase uid and ensures baseline roles. */
@@ -27,17 +33,23 @@ public class UserService {
         String email = jwt.getClaimAsString("email");
         String name = jwt.getClaimAsString("name");
         UUID id = users.upsertByFirebaseUid(jwt.getSubject(), email, name);
-        users.grantRole(id, ROLE_USER, null);
-        if (shouldBootstrapAdmin(jwt, email)) {
-            users.grantRole(id, ROLE_ADMIN, null);
+        users.grantRole(id, ROLE_MEMBER, null);
+        if (shouldBootstrapOwner(jwt, email) && users.grantRole(id, ROLE_OWNER, null)) {
+            users.bumpPermissionsVersion(id);
+            audit.record(null, AuditRepository.ROLE_GRANTED, id, Map.of("role", ROLE_OWNER, "source", "bootstrap"));
         }
         return users.findById(id).orElseThrow();
     }
 
-    /** Read-mostly path for per-request auth: only writes when the user is new. */
+    /**
+     * Read-mostly path for per-request auth: only writes when the user is new, or when a configured bootstrap owner
+     * (verified email) has not been made OWNER yet.
+     */
     @Transactional
     public AuthUser resolve(Jwt jwt) {
-        return users.findByFirebaseUid(jwt.getSubject()).orElseGet(() -> provision(jwt));
+        return users.findByFirebaseUid(jwt.getSubject())
+                .filter(u -> !needsBootstrapOwner(u, jwt))
+                .orElseGet(() -> provision(jwt));
     }
 
     @Transactional
@@ -47,7 +59,11 @@ public class UserService {
         return user;
     }
 
-    private boolean shouldBootstrapAdmin(Jwt jwt, String email) {
+    private boolean needsBootstrapOwner(AuthUser user, Jwt jwt) {
+        return !user.roles().contains(ROLE_OWNER) && shouldBootstrapOwner(jwt, jwt.getClaimAsString("email"));
+    }
+
+    private boolean shouldBootstrapOwner(Jwt jwt, String email) {
         if (email == null || !Boolean.TRUE.equals(jwt.getClaimAsBoolean("email_verified"))) {
             return false;
         }

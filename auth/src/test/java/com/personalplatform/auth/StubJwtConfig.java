@@ -10,7 +10,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 /** Test-only decoder: token "uid|email|emailVerified" becomes a Jwt, anything else is rejected. */
 @TestConfiguration(proxyBeanMethods = false)
-class StubJwtConfig {
+public class StubJwtConfig {
 
     @Bean
     JwtDecoder stubJwtDecoder() {

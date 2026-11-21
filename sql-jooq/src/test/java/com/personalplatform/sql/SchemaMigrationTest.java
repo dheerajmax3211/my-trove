@@ -1,6 +1,7 @@
 package com.personalplatform.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.personalplatform.sql.jooq.auth.auth.Auth;
 import com.personalplatform.sql.jooq.auth.auth.Tables;
@@ -8,6 +9,7 @@ import java.sql.Connection;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.jooq.DSLContext;
@@ -47,7 +49,7 @@ class SchemaMigrationTest {
                 .dataSource(ds)
                 .schemas("auth")
                 .defaultSchema("auth")
-                .locations("classpath:db/migration/auth")
+                .locations("classpath:db/migration/auth", "classpath:db/migration/auth_ext")
                 .load()
                 .migrate();
     }
@@ -62,7 +64,7 @@ class SchemaMigrationTest {
     void everyGeneratedTableMatchesTheDatabase() throws Exception {
         try (Connection c = dataSource.getConnection()) {
             DSLContext dsl = dsl(c, new ArrayList<>());
-            assertThat(Auth.AUTH.getTables()).hasSize(3);
+            assertThat(Auth.AUTH.getTables()).hasSize(7);
             for (Table<?> table : Auth.AUTH.getTables()) {
                 // Selecting every generated column fails if any column is missing or misnamed in Postgres.
                 dsl.selectFrom(table).limit(0).fetch();
@@ -71,10 +73,73 @@ class SchemaMigrationTest {
     }
 
     @Test
-    void seedsBaselineRoles() throws Exception {
+    void seedsPersonaRolesAndDropsLegacyUserRole() throws Exception {
         try (Connection c = dataSource.getConnection()) {
             assertThat(dsl(c, new ArrayList<>()).select(Tables.ROLES.NAME).from(Tables.ROLES).fetch(Tables.ROLES.NAME))
-                    .contains("USER", "ADMIN");
+                    .containsExactlyInAnyOrder("OWNER", "ADMIN", "DEVELOPER", "MEMBER", "AUDITOR");
+        }
+    }
+
+    @Test
+    void seedsPermissionCatalogueAndRoleMatrix() throws Exception {
+        try (Connection c = dataSource.getConnection()) {
+            DSLContext dsl = dsl(c, new ArrayList<>());
+            assertThat(dsl.fetchCount(Tables.PERMISSIONS)).isEqualTo(19);
+            assertThat(dsl.select(Tables.ROLE_PERMISSIONS.PERMISSION_NAME).from(Tables.ROLE_PERMISSIONS)
+                            .where(Tables.ROLE_PERMISSIONS.ROLE_NAME.eq("MEMBER"))
+                            .fetch(Tables.ROLE_PERMISSIONS.PERMISSION_NAME))
+                    .containsExactlyInAnyOrder("products:use", "usage:read:self", "connections:manage");
+            assertThat(dsl.fetchCount(Tables.ROLE_PERMISSIONS, Tables.ROLE_PERMISSIONS.ROLE_NAME.eq("OWNER")))
+                    .isEqualTo(19);
+        }
+    }
+
+    @Test
+    void userDefaultsAreFreePlanVersionOneNotSuspended() throws Exception {
+        try (Connection c = dataSource.getConnection()) {
+            var row = dsl(c, new ArrayList<>())
+                    .insertInto(Tables.USERS)
+                    .set(Tables.USERS.FIREBASE_UID, "plan-defaults")
+                    .returning(Tables.USERS.PLAN, Tables.USERS.PERMISSIONS_VERSION, Tables.USERS.SUSPENDED_AT)
+                    .fetchOne();
+            assertThat(row.getPlan()).isEqualTo("FREE");
+            assertThat(row.getPermissionsVersion()).isEqualTo(1);
+            assertThat(row.getSuspendedAt()).isNull();
+        }
+    }
+
+    @Test
+    void auditLogIsAppendOnly() throws Exception {
+        try (Connection c = dataSource.getConnection()) {
+            DSLContext dsl = dsl(c, new ArrayList<>());
+            UUID id = UuidV7.next();
+            dsl.insertInto(Tables.AUDIT_LOG).set(Tables.AUDIT_LOG.ID, id).set(Tables.AUDIT_LOG.ACTION, "TEST").execute();
+            assertThatThrownBy(() -> dsl.update(Tables.AUDIT_LOG).set(Tables.AUDIT_LOG.ACTION, "X")
+                            .where(Tables.AUDIT_LOG.ID.eq(id)).execute())
+                    .hasMessageContaining("append-only");
+            assertThatThrownBy(() -> dsl.deleteFrom(Tables.AUDIT_LOG).where(Tables.AUDIT_LOG.ID.eq(id)).execute())
+                    .hasMessageContaining("append-only");
+            assertThatThrownBy(() -> dsl.execute("truncate auth.audit_log")).hasMessageContaining("append-only");
+        }
+    }
+
+    @Test
+    void onlyOneSigningKeyCanBeActive() throws Exception {
+        try (Connection c = dataSource.getConnection()) {
+            DSLContext dsl = dsl(c, new ArrayList<>());
+            dsl.deleteFrom(Tables.SIGNING_KEYS).execute();
+            Runnable insert = () -> dsl.insertInto(Tables.SIGNING_KEYS)
+                    .set(Tables.SIGNING_KEYS.KID, UUID.randomUUID().toString())
+                    .set(Tables.SIGNING_KEYS.ALGORITHM, "RS256")
+                    .set(Tables.SIGNING_KEYS.STATUS, "ACTIVE")
+                    .set(Tables.SIGNING_KEYS.PUBLIC_JWK, "{}")
+                    .set(Tables.SIGNING_KEYS.PRIVATE_KEY_ENC, new byte[] {1})
+                    .set(Tables.SIGNING_KEYS.ENC_ALG, "test")
+                    .set(Tables.SIGNING_KEYS.CREATED_AT, java.time.OffsetDateTime.now())
+                    .execute();
+            insert.run();
+            assertThatThrownBy(insert::run).hasMessageContaining("signing_keys_one_active");
+            dsl.deleteFrom(Tables.SIGNING_KEYS).execute();
         }
     }
 
