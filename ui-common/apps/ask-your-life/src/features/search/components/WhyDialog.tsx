@@ -1,7 +1,9 @@
-import { Button, Dialog, DialogClose } from '@platform/ui'
+import { Button, Callout, Dialog, DialogClose, KeyValueList, Timeline } from '@platform/ui'
 import { explainHit } from '../lib/explain'
 import type { SearchDebug, SearchHit, SearchMode } from '../api/types'
 import { MODE_OPTIONS } from './ModeToggle'
+
+const sentence = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1)
 
 /** "Why this result": the ranks behind a hit, in plain language. */
 export function WhyDialog({
@@ -31,32 +33,45 @@ export function WhyDialog({
       }
     >
       <div className="ayl-why">
-        <p className="ayl-why-summary">{explanation.summary}</p>
-        <ul className="ayl-why-list">
-          {explanation.details.map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
-        <dl className="ayl-why-ranks">
-          {mode !== 'semantic' ? (
-            <div>
-              <dt>Keyword rank</dt>
-              <dd>{hit.explain?.ftsRank == null ? 'Not listed' : `#${hit.explain.ftsRank}`}</dd>
-            </div>
-          ) : null}
-          {mode !== 'keyword' ? (
-            <div>
-              <dt>Meaning rank</dt>
-              <dd>
-                {hit.explain?.semanticRank == null ? 'Not listed' : `#${hit.explain.semanticRank}`}
-              </dd>
-            </div>
-          ) : null}
-          <div>
-            <dt>Combined score</dt>
-            <dd>{hit.score.toFixed(4)}</dd>
-          </div>
-        </dl>
+        <Callout variant="info" title={explanation.summary} />
+        <Timeline
+          label="How it was found"
+          compact
+          items={explanation.steps.map((step) => ({
+            id: step.id,
+            title: step.label || 'Best passage',
+            description: sentence(step.text),
+            tone: step.found === null ? 'accent' : step.found ? 'success' : 'neutral',
+          }))}
+        />
+        <KeyValueList
+          dense
+          layout="stacked"
+          items={[
+            ...(mode !== 'semantic'
+              ? [
+                  {
+                    id: 'keyword',
+                    label: 'Keyword rank',
+                    value: hit.explain?.ftsRank == null ? 'Not listed' : `#${hit.explain.ftsRank}`,
+                  },
+                ]
+              : []),
+            ...(mode !== 'keyword'
+              ? [
+                  {
+                    id: 'meaning',
+                    label: 'Meaning rank',
+                    value:
+                      hit.explain?.semanticRank == null
+                        ? 'Not listed'
+                        : `#${hit.explain.semanticRank}`,
+                  },
+                ]
+              : []),
+            { id: 'score', label: 'Combined score', value: hit.score.toFixed(4), mono: true },
+          ]}
+        />
         <p className="ayl-why-score">{explanation.scoreLine}</p>
       </div>
     </Dialog>

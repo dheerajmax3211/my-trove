@@ -1,4 +1,5 @@
 import { Button, Dialog, DialogClose, useToast } from '@platform/ui'
+import { FailureCallout } from '../../../components/FailureCallout'
 import { describeIngestError } from '../api/documentsApi'
 import type { DocumentResponse } from '../api/types'
 import { useDeleteDocument } from '../hooks/useDocuments'
@@ -51,12 +52,7 @@ export function DeleteDocumentDialog({
         </>
       }
     >
-      {failure ? (
-        <div role="alert" className="ayl-callout" data-tone="danger">
-          <strong>{failure.title}</strong>
-          <span>{failure.message}</span>
-        </div>
-      ) : null}
+      {failure ? <FailureCallout failure={failure} /> : null}
     </Dialog>
   )
 }

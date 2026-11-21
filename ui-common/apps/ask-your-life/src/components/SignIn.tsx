@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
   Field,
+  IllustrationLocked,
   Input,
 } from '@platform/ui'
 import { useState, type FormEvent } from 'react'
@@ -38,6 +39,9 @@ export function SignIn({ mode }: { mode: Runtime['mode'] }) {
   return (
     <main className="ayl-signin">
       <Card variant="elevated" className="ayl-signin-card">
+        <div className="ayl-signin-art" aria-hidden="true">
+          <IllustrationLocked size={150} />
+        </div>
         <CardHeader>
           <CardTitle as="h1">Sign in to Ask your life</CardTitle>
           <CardDescription>

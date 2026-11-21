@@ -4,6 +4,16 @@ One private search box across your own notes, documents and receipts. The servic
 (`personal-platform/ask-your-life`, port 8086) runs a hybrid of keyword and semantic search and keeps every
 user's content isolated; this app is its web front end.
 
+## In the workspace
+
+The app is also a workspace module (`src/module.tsx`, exported as `@platform/ask-your-life/module`). The workspace
+mounts `productModule.Routes` under `/app/ask-your-life`, wraps it in `productModule.Providers`, and gives it an API
+client bound to `<gateway>/api/ask-your-life` with its own query cache. Every link goes through `ModuleLink` /
+`useModuleNavigate`, so the same screens work at the root (standalone) and under the base. The module adds a
+Today feed (`useTodayItems`: documents that failed to index or are still indexing, each linking to the library) and
+`createDemoFetch` (the in-memory mock API below, which answers both `/api/v1/...` and `/api/ask-your-life/v1/...`).
+Recent searches are kept in this browser only (`localStorage`, per signed-in user) and can be cleared from the home.
+
 ## Screens
 
 ```
@@ -33,7 +43,7 @@ Every screen has loading (skeletons or spinners), empty and error (readable mess
 
 ## Run it
 
-Demo mode needs nothing but this repo:
+Demo mode needs nothing but this repo (open `http://localhost:5185/?empty=1` to start with an empty library and see the first-run screen):
 
 ```
 pnpm install

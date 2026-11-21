@@ -4,12 +4,15 @@ import {
   DialogClose,
   Field,
   Input,
+  KeyValueList,
+  type KeyValueItem,
   Skeleton,
   Textarea,
   useToast,
 } from '@platform/ui'
 import { useState, type FormEvent } from 'react'
 import { SourceBadge, StatusBadge } from '../../../components/Badges'
+import { FailureCallout } from '../../../components/FailureCallout'
 import { ErrorPanel } from '../../../components/ErrorPanel'
 import { describeIngestError } from '../api/documentsApi'
 import type { DocumentResponse } from '../api/types'
@@ -66,12 +69,7 @@ function ReplaceContentForm({ document }: { document: DocumentResponse }) {
         >
           <Textarea rows={6} value={text} onChange={(e) => setText(e.target.value)} />
         </Field>
-        {failure ? (
-          <div role="alert" className="ayl-callout" data-tone="danger">
-            <strong>{failure.title}</strong>
-            <span>{failure.message}</span>
-          </div>
-        ) : null}
+        {failure ? <FailureCallout failure={failure} /> : null}
         <div>
           <Button type="submit" loading={replace.isPending}>
             Replace content
@@ -82,6 +80,20 @@ function ReplaceContentForm({ document }: { document: DocumentResponse }) {
   )
 }
 
+function facts(document: DocumentResponse): KeyValueItem[] {
+  return [
+    { label: 'Searchable passages', value: document.chunkCount },
+    { label: 'Format', value: document.mimeType },
+    { label: 'Added', value: formatDateTime(document.createdAt) },
+    { label: 'Last changed', value: formatDateTime(document.updatedAt) },
+    { label: 'Indexed', value: formatDateTime(document.ingestedAt) },
+    ...(document.externalId
+      ? [{ label: 'External ID', value: document.externalId, mono: true }]
+      : []),
+    { label: 'Fingerprint', value: document.contentHash.slice(0, 12), mono: true },
+  ]
+}
+
 function Details({ document }: { document: DocumentResponse }) {
   return (
     <div className="ayl-detail">
@@ -90,38 +102,7 @@ function Details({ document }: { document: DocumentResponse }) {
         <StatusBadge status={document.status} />
       </div>
       <p className="ayl-muted">{STATUS_INFO[document.status].description}</p>
-      <dl className="ayl-facts">
-        <div>
-          <dt>Searchable passages</dt>
-          <dd>{document.chunkCount}</dd>
-        </div>
-        <div>
-          <dt>Format</dt>
-          <dd>{document.mimeType}</dd>
-        </div>
-        <div>
-          <dt>Added</dt>
-          <dd>{formatDateTime(document.createdAt)}</dd>
-        </div>
-        <div>
-          <dt>Last changed</dt>
-          <dd>{formatDateTime(document.updatedAt)}</dd>
-        </div>
-        <div>
-          <dt>Indexed</dt>
-          <dd>{formatDateTime(document.ingestedAt)}</dd>
-        </div>
-        {document.externalId ? (
-          <div>
-            <dt>External ID</dt>
-            <dd>{document.externalId}</dd>
-          </div>
-        ) : null}
-        <div>
-          <dt>Fingerprint</dt>
-          <dd className="ayl-mono">{document.contentHash.slice(0, 12)}</dd>
-        </div>
-      </dl>
+      <KeyValueList dense items={facts(document)} />
       <ReplaceContentForm document={document} />
     </div>
   )

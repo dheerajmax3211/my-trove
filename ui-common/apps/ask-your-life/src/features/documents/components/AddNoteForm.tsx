@@ -1,5 +1,6 @@
 import { Button, Field, Input, Textarea, useToast } from '@platform/ui'
 import { useState, type FormEvent } from 'react'
+import { FailureCallout } from '../../../components/FailureCallout'
 import { describeIngestError, validateNote, type FieldErrors } from '../api/documentsApi'
 import type { IngestResponse, SourceType } from '../api/types'
 import { useAddNote } from '../hooks/useDocuments'
@@ -48,23 +49,25 @@ export function AddNoteForm({ onAdded }: { onAdded: (response: IngestResponse) =
   return (
     <form className="ayl-form" onSubmit={onSubmit} noValidate aria-label="Paste a note">
       <Field
-        label="Title"
-        description="Optional. If you leave it empty, the first line becomes the title."
-        error={errors.title}
+        label="Note"
+        required
+        description="Paste or type anything: a receipt, a message, a lease clause. Markdown is welcome."
+        error={errors.text}
       >
-        <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Textarea rows={9} value={text} onChange={(e) => setText(e.target.value)} />
       </Field>
-      <Field label="Note" required description="Markdown is welcome." error={errors.text}>
-        <Textarea rows={10} value={text} onChange={(e) => setText(e.target.value)} />
-      </Field>
-      <SourceSelect value={sourceType} onChange={setSourceType} options={NOTE_KINDS} />
+      <div className="ayl-form-row">
+        <Field
+          label="Title"
+          description="Optional. Empty means the first line is the title."
+          error={errors.title}
+        >
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+        </Field>
+        <SourceSelect value={sourceType} onChange={setSourceType} options={NOTE_KINDS} />
+      </div>
       <ExternalIdField value={externalId} onChange={setExternalId} error={errors.externalId} />
-      {failure ? (
-        <div role="alert" className="ayl-callout" data-tone="danger">
-          <strong>{failure.title}</strong>
-          <span>{failure.message}</span>
-        </div>
-      ) : null}
+      {failure ? <FailureCallout failure={failure} /> : null}
       <div>
         <Button type="submit" loading={add.isPending}>
           Save note

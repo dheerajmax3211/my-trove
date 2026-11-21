@@ -1,8 +1,9 @@
 import {
   Button,
+  Callout,
   DataTable,
   EmptyState,
-  InboxIcon,
+  IllustrationEmpty,
   PageHeader,
   PlusIcon,
   Select,
@@ -10,7 +11,8 @@ import {
   type DataTableColumn,
 } from '@platform/ui'
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
+import { useSearchParams } from 'react-router-dom'
 import { SourceBadge, StatusBadge } from '../../../components/Badges'
 import { ErrorPanel } from '../../../components/ErrorPanel'
 import { PAGE_SIZE } from '../api/documentsApi'
@@ -86,6 +88,8 @@ export function LibraryPage() {
   ]
 
   const documents = list.data ?? []
+  const failed = documents.filter((d) => d.status === 'FAILED').length
+  const indexing = documents.filter((d) => d.status === 'PENDING').length
   const isEmptyLibrary = list.data?.length === 0 && offset === 0 && sourceType === null
 
   let body
@@ -100,12 +104,12 @@ export function LibraryPage() {
   else if (isEmptyLibrary)
     body = (
       <EmptyState
-        icon={<InboxIcon size={24} />}
+        illustration={<IllustrationEmpty />}
         title="Your library is empty"
         description="Notes, files and receipts you add show up here. Only you can see them."
         action={
           <Button asChild leftIcon={<PlusIcon size={18} />}>
-            <Link to="/add">Add your first note</Link>
+            <ModuleLink to="/add">Add your first note</ModuleLink>
           </Button>
         }
       />
@@ -113,6 +117,28 @@ export function LibraryPage() {
   else
     body = (
       <>
+        {failed > 0 ? (
+          <Callout
+            variant="warning"
+            role="note"
+            title={
+              failed === 1 ? '1 item could not be indexed' : `${failed} items could not be indexed`
+            }
+          >
+            Search cannot find {failed === 1 ? 'it' : 'them'}. Open the item, delete it and add it
+            again.
+          </Callout>
+        ) : null}
+        {indexing > 0 ? (
+          <Callout
+            variant="info"
+            title={
+              indexing === 1 ? '1 item is still indexing' : `${indexing} items are still indexing`
+            }
+          >
+            This list updates by itself. Items become searchable when they show Ready.
+          </Callout>
+        ) : null}
         <DataTable
           caption="Your documents"
           columns={columns}
@@ -160,7 +186,7 @@ export function LibraryPage() {
         description="Everything you have added. Only you can see it."
         actions={
           <Button asChild leftIcon={<PlusIcon size={18} />}>
-            <Link to="/add">Add content</Link>
+            <ModuleLink to="/add">Add content</ModuleLink>
           </Button>
         }
       />

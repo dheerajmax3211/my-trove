@@ -1,6 +1,6 @@
 import { ApiError } from '@platform/api-client'
 import { Button, Skeleton } from '@platform/ui'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { SourceBadge, StatusBadge } from '../../../components/Badges'
 import { useDocument } from '../hooks/useDocuments'
 import type { DocumentResponse, IngestOutcome } from '../api/types'
@@ -50,12 +50,18 @@ export function TrackedDocument({ item }: { item: TrackedItem }) {
       <div className="ayl-tracked-actions">
         {document.status === 'INDEXED' && !gone ? (
           <Button asChild size="sm">
-            <Link to={`/?q=${encodeURIComponent(document.title)}`}>Search for it</Link>
+            <ModuleLink to={{ pathname: '/', search: `?q=${encodeURIComponent(document.title)}` }}>
+              Search for it
+            </ModuleLink>
           </Button>
         ) : null}
         {!gone ? (
           <Button asChild size="sm" variant="secondary">
-            <Link to={`/library?open=${encodeURIComponent(document.id)}`}>View in library</Link>
+            <ModuleLink
+              to={{ pathname: '/library', search: `?open=${encodeURIComponent(document.id)}` }}
+            >
+              View in library
+            </ModuleLink>
           </Button>
         ) : null}
         {query.isPending && !query.data ? <Skeleton width="4rem" height="1rem" /> : null}
