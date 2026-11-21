@@ -1,7 +1,7 @@
 import { isApiError } from '@platform/api-client'
 import { Button, EmptyState, PageHeader, PlusIcon } from '@platform/ui'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { Callout } from '../../components/Callout'
 import { ErrorNotice } from '../../components/ErrorNotice'
 import { PageSkeleton } from '../../components/PageSkeleton'
@@ -30,7 +30,7 @@ export function TrusteesPage() {
           description="Trustees hold pieces of your vault's key, so there has to be a vault."
           action={
             <Button asChild>
-              <Link to="/vault">Create your vault</Link>
+              <ModuleLink to="/vault">Create your vault</ModuleLink>
             </Button>
           }
         />

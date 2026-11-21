@@ -1,6 +1,6 @@
 import { isApiError } from '@platform/api-client'
 import { Button, EmptyState, PageHeader } from '@platform/ui'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { Callout } from '../../components/Callout'
 import { ErrorNotice } from '../../components/ErrorNotice'
 import { PageSkeleton } from '../../components/PageSkeleton'
@@ -23,7 +23,7 @@ export function OverviewPage() {
           description="Write what you want to leave behind. It is encrypted in this browser before anything is uploaded."
           action={
             <Button asChild>
-              <Link to="/vault">Create your vault</Link>
+              <ModuleLink to="/vault">Create your vault</ModuleLink>
             </Button>
           }
         />

@@ -20,7 +20,7 @@ import {
   useToast,
 } from '@platform/ui'
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { ModuleLink } from '@platform/workspace-kit'
 import { ownerPaths } from '../../api/paths'
 import {
   AUDIENCES,
@@ -371,7 +371,7 @@ function PolicyForm({
 
       <Callout tone="info" title={`Quorum: ${quorum} trustee${quorum === 1 ? '' : 's'} must agree`}>
         <p>
-          Change it on the <Link to="/trustees">Trustees</Link> page, where you can see what each
+          Change it on the <ModuleLink to="/trustees">Trustees</ModuleLink> page, where you can see what each
           choice means.
         </p>
       </Callout>
@@ -402,7 +402,7 @@ export function PolicyPage() {
           description="The policy belongs to a vault."
           action={
             <Button asChild>
-              <Link to="/vault">Create your vault</Link>
+              <ModuleLink to="/vault">Create your vault</ModuleLink>
             </Button>
           }
         />

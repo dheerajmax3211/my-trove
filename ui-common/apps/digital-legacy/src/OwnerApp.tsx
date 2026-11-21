@@ -17,16 +17,12 @@ import {
 } from '@platform/ui'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, Route, Routes } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { DemoControls } from './components/DemoControls'
 import { NavItem } from './components/NavItem'
 import { ThemeSelect } from './components/ThemeSelect'
-import { OverviewPage } from './features/overview/OverviewPage'
-import { PolicyPage } from './features/policy/PolicyPage'
-import { TimelinePage } from './features/timeline/TimelinePage'
-import { TrusteesPage } from './features/trustees/TrusteesPage'
 import { VaultKeyProvider, useVaultKey } from './features/vault/VaultKeyContext'
-import { VaultPage } from './features/vault/VaultPage'
+import { OwnerRoutes } from './OwnerRoutes'
 import type { AuthMode, Runtime } from './runtime'
 
 function SignIn({ mode }: { mode: AuthMode }) {
@@ -170,14 +166,7 @@ function Shell({ runtime }: { runtime: Runtime }) {
         </>
       }
     >
-      <Routes>
-        <Route index element={<OverviewPage />} />
-        <Route path="vault" element={<VaultPage />} />
-        <Route path="trustees" element={<TrusteesPage />} />
-        <Route path="policy" element={<PolicyPage />} />
-        <Route path="timeline" element={<TimelinePage />} />
-        <Route path="*" element={<OverviewPage />} />
-      </Routes>
+      <OwnerRoutes />
     </AppShell>
   )
 }
