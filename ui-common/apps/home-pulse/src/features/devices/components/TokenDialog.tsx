@@ -2,6 +2,7 @@ import { Button, Dialog, Input, Tabs, TabsContent, TabsList, TabsTrigger } from 
 import { CopyButton } from '../../../components/CopyButton'
 import { useClock } from '../../../lib/clock'
 import { useRuntime } from '../../../runtime'
+import { ConnectSteps } from './ConnectSteps'
 import { curlSnippet, mqttSnippet } from '../snippets'
 import type { RegisteredDevice } from '../types'
 
@@ -38,6 +39,7 @@ export function TokenDialog({ registered, applianceName, onDone }: TokenDialogPr
       footer={<Button onClick={onDone}>I have saved the token</Button>}
     >
       <div className="hp-stack-4">
+        <ConnectSteps at="token" />
         <div role="alert" className="hp-warning-box">
           <strong>This is the only time you will see this token.</strong> We keep only a fingerprint
           of it, so it cannot be shown again. If you lose it, revoke this device and register a new

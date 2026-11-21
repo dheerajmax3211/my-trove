@@ -1,6 +1,7 @@
 import { Button, Dialog, DialogClose, Field, Input, Select } from '@platform/ui'
 import { useState, type FormEvent } from 'react'
 import { errorMessage, fieldErrorsFrom } from '../../../lib/errors'
+import { ConnectSteps } from './ConnectSteps'
 import type { Appliance } from '../../appliances/types'
 import { useRegisterDevice } from '../hooks'
 import type { RegisteredDevice } from '../types'
@@ -74,6 +75,7 @@ export function RegisterDeviceDialog({
       }
     >
       <form id="register-device-form" className="hp-stack-4" onSubmit={submit} noValidate>
+        <ConnectSteps at={applianceId ? 'name' : 'appliance'} />
         {register.error && !serverLabelError ? (
           <p role="alert" className="hp-form-error">
             {errorMessage(register.error)}

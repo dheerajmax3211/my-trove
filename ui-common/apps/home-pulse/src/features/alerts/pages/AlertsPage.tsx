@@ -1,4 +1,4 @@
-import { Button, EmptyState, PageHeader, Select, Field, Skeleton } from '@platform/ui'
+import { Button, EmptyState, Field, Illustration, PageHeader, Select, Skeleton } from '@platform/ui'
 import { useSearchParams } from 'react-router-dom'
 import { ModuleLink } from '@platform/workspace-kit'
 import { ErrorState } from '../../../components/ErrorState'
@@ -102,6 +102,7 @@ export function AlertsPage() {
         />
       ) : alerts.data.length === 0 ? (
         <EmptyState
+          illustration={<Illustration name={filter === 'ACTIVE' ? 'allClear' : 'empty'} />}
           title={EMPTY_COPY[filter].title}
           description={EMPTY_COPY[filter].description}
           action={

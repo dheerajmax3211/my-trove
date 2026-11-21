@@ -1,4 +1,4 @@
-import { Badge, Card, CardContent, CardHeader, CardTitle } from '@platform/ui'
+import { Badge, Card, CardContent, CardHeader, CardTitle, KeyValueList } from '@platform/ui'
 import { formatDate, formatDaysUntil } from '../../../lib/format'
 import { ReminderItem } from '../../reminders/components/ReminderItem'
 import type { Reminder } from '../../reminders/types'
@@ -33,43 +33,47 @@ export function ServicePanel({ appliance, service, reminders }: ServicePanelProp
       </CardHeader>
       <CardContent>
         <div className="hp-stack-4">
-          <dl className="hp-facts hp-facts-stacked">
-            <div>
-              <dt>Warranty</dt>
-              <dd>
-                <WarrantyBadge service={info} />
-                {info.warrantyEndDate ? (
-                  <span className="hp-small">
-                    {' '}
-                    ends {formatDate(info.warrantyEndDate)}
-                    {info.underWarranty && info.daysToWarrantyEnd !== null
-                      ? ` (${formatDaysUntil(info.daysToWarrantyEnd)})`
-                      : ''}
-                  </span>
-                ) : null}
-              </dd>
-            </div>
-            <div>
-              <dt>Purchased</dt>
-              <dd>{formatDate(appliance.purchaseDate)}</dd>
-            </div>
-            <div>
-              <dt>Last serviced</dt>
-              <dd>{formatDate(info.lastServiceDate)}</dd>
-            </div>
-            <div>
-              <dt>Next service</dt>
-              <dd>
-                {formatDate(info.nextServiceDate)}
-                {info.serviceOverdue ? (
+          <KeyValueList
+            dense
+            layout="stacked"
+            items={[
+              {
+                id: 'warranty',
+                label: 'Warranty',
+                value: (
                   <>
-                    {' '}
-                    <Badge variant="warning">Overdue</Badge>
+                    <WarrantyBadge service={info} />
+                    {info.warrantyEndDate ? (
+                      <span className="hp-small">
+                        {' '}
+                        ends {formatDate(info.warrantyEndDate)}
+                        {info.underWarranty && info.daysToWarrantyEnd !== null
+                          ? ` (${formatDaysUntil(info.daysToWarrantyEnd)})`
+                          : ''}
+                      </span>
+                    ) : null}
                   </>
-                ) : null}
-              </dd>
-            </div>
-          </dl>
+                ),
+              },
+              { id: 'purchased', label: 'Purchased', value: formatDate(appliance.purchaseDate) },
+              { id: 'last', label: 'Last serviced', value: formatDate(info.lastServiceDate) },
+              {
+                id: 'next',
+                label: 'Next service',
+                value: (
+                  <>
+                    {formatDate(info.nextServiceDate)}
+                    {info.serviceOverdue ? (
+                      <>
+                        {' '}
+                        <Badge variant="warning">Overdue</Badge>
+                      </>
+                    ) : null}
+                  </>
+                ),
+              },
+            ]}
+          />
           {appliance.notes ? <p className="hp-small hp-notes">{appliance.notes}</p> : null}
           <div className="hp-stack-2">
             <h3 className="hp-subheading">Upcoming reminders</h3>

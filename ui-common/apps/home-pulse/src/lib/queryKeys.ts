@@ -10,6 +10,7 @@ export const keys = {
   health: (id: string) => ['appliances', id, 'health'] as const,
   devices: (id: string) => ['appliances', id, 'devices'] as const,
   currentDraw: (id: string) => ['appliances', id, 'current-draw'] as const,
+  trend: (id: string) => ['appliances', id, 'trend'] as const,
   readings: (id: string, range: string) => ['appliances', id, 'readings', range] as const,
   alerts: ['alerts'] as const,
   alertList: (filter: AlertFilter, applianceId?: string) =>

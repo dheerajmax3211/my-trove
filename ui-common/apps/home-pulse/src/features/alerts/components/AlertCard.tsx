@@ -1,4 +1,13 @@
-import { Button, Card, CardContent, CardHeader, CardTitle, CheckIcon, useToast } from '@platform/ui'
+import {
+  Button,
+  Callout,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CheckIcon,
+  useToast,
+} from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
 import { useClock } from '../../../lib/clock'
 import { errorMessage } from '../../../lib/errors'
@@ -42,7 +51,13 @@ export function AlertCard({ alert, showAppliance = true, headingAs = 'h2' }: Ale
 
   const now = clock()
   return (
-    <Card role="group" className="hp-alert-card" aria-labelledby={`alert-${alert.id}`}>
+    <Card
+      role="group"
+      className="hp-alert-card"
+      data-severity={alert.severity}
+      data-status={alert.status}
+      aria-labelledby={`alert-${alert.id}`}
+    >
       <CardHeader>
         <div className="hp-badge-row">
           <SeverityBadge severity={alert.severity} />
@@ -67,9 +82,9 @@ export function AlertCard({ alert, showAppliance = true, headingAs = 'h2' }: Ale
             {explanation.suggestion}
           </p>
           {context.map((line) => (
-            <p key={line} className="hp-callout">
+            <Callout key={line} variant="note">
               {line}
-            </p>
+            </Callout>
           ))}
           <p className="hp-muted hp-small">
             {showAppliance ? (

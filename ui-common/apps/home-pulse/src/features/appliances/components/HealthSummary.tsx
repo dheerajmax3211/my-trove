@@ -1,4 +1,13 @@
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@platform/ui'
+import {
+  Button,
+  Callout,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Stat,
+  type CalloutVariant,
+} from '@platform/ui'
 import {
   formatDate,
   formatDuration,
@@ -16,6 +25,14 @@ const STATUS_COPY: Record<ApplianceHealth['status'], string> = {
   LEARNING:
     'We are learning what normal looks like for this appliance. This takes about a week of readings, and alerts start after that.',
   NO_DEVICE: 'No device is connected, so there is nothing to learn from yet.',
+}
+
+const STATUS_TONE: Record<ApplianceHealth['status'], CalloutVariant> = {
+  HEALTHY: 'success',
+  WARNING: 'warning',
+  CRITICAL: 'danger',
+  LEARNING: 'info',
+  NO_DEVICE: 'note',
 }
 
 /** `+14%`, `-3%`, or null when there is nothing sensible to compare. */
@@ -77,25 +94,21 @@ export function HealthSummary({ health, onRelearn }: HealthSummaryProps) {
           <CardTitle as="h2">Health</CardTitle>
           <HealthStatusBadge status={health.status} />
         </div>
-        <CardDescription>{STATUS_COPY[health.status]}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="hp-stack-4">
+          <Callout variant={STATUS_TONE[health.status]} role="note">
+            {STATUS_COPY[health.status]}
+          </Callout>
           {last24h ? (
-            <dl className="hp-stat-grid">
-              <div>
-                <dt>Average draw, 24 h</dt>
-                <dd>{formatWatts(last24h.avgWatts)}</dd>
-              </div>
-              <div>
-                <dt>Energy, 24 h</dt>
-                <dd>{formatKwh(last24h.energyKwh)}</dd>
-              </div>
-              <div>
-                <dt>Data received</dt>
-                <dd>{formatPercent((last24h.minutesWithData / 1440) * 100)}</dd>
-              </div>
-            </dl>
+            <div className="hp-stat-grid">
+              <Stat label="Average draw, 24 h" value={formatWatts(last24h.avgWatts)} />
+              <Stat label="Energy, 24 h" value={formatKwh(last24h.energyKwh)} />
+              <Stat
+                label="Data received"
+                value={formatPercent((last24h.minutesWithData / 1440) * 100)}
+              />
+            </div>
           ) : null}
           {baseline ? (
             <table className="hp-compare-table">

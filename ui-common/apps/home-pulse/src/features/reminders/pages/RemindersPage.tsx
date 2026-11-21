@@ -1,4 +1,4 @@
-import { Button, EmptyState, PageHeader, Skeleton } from '@platform/ui'
+import { Button, EmptyState, Illustration, PageHeader, Skeleton } from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
 import { ErrorState } from '../../../components/ErrorState'
 import { useDocumentTitle } from '../../../lib/useDocumentTitle'
@@ -29,6 +29,7 @@ export function RemindersPage() {
         />
       ) : reminders.data.length === 0 ? (
         <EmptyState
+          illustration={<Illustration name="allClear" />}
           title="Nothing due soon"
           description="Add service and warranty dates to your appliances and we will remind you before they matter."
           action={

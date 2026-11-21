@@ -1,7 +1,9 @@
 import {
   Badge,
   Button,
+  Callout,
   DataTable,
+  Illustration,
   EmptyState,
   PageHeader,
   PlusIcon,
@@ -48,6 +50,7 @@ export function DevicesPage() {
     (deviceQueries[i]?.data ?? []).map((device) => ({ ...device, applianceName: appliance.name })),
   )
   const occupied = new Set(rows.filter((d) => d.active).map((d) => d.applianceId))
+  const waiting = rows.filter((d) => d.active && d.lastSeenAt === null)
   const devicesLoading = deviceQueries.some((q) => q.isPending)
   const devicesError = deviceQueries.find((q) => q.isError)
 
@@ -142,6 +145,7 @@ export function DevicesPage() {
   else if (applianceList.length === 0)
     body = (
       <EmptyState
+        illustration={<Illustration name="empty" />}
         title="Add an appliance first"
         description="A device always belongs to an appliance. Add the appliance, then come back to register its smart plug or sensor."
         action={
@@ -161,22 +165,32 @@ export function DevicesPage() {
     )
   else
     body = (
-      <DataTable
-        caption="Devices"
-        columns={columns}
-        data={rows}
-        getRowId={(d) => d.id}
-        loading={devicesLoading}
-        defaultSort={{ columnId: 'status', direction: 'asc' }}
-        emptyState={
-          <EmptyState
-            headingAs="h2"
-            title="No devices yet"
-            description="Register the smart plug or sensor that measures an appliance. We will show you a one-time token to put on it."
-            action={<Button onClick={() => setRegistering(true)}>Register a device</Button>}
-          />
-        }
-      />
+      <div className="hp-stack-4">
+        {waiting.map((d) => (
+          <Callout key={d.id} variant="info" title={`${d.label} has not sent a reading yet`}>
+            Power up the plug and check it is online. The first reading usually arrives within a
+            minute. About a week after that, Home Pulse has learned what normal looks like for{' '}
+            {d.applianceName}.
+          </Callout>
+        ))}
+        <DataTable
+          caption="Devices"
+          columns={columns}
+          data={rows}
+          getRowId={(d) => d.id}
+          loading={devicesLoading}
+          defaultSort={{ columnId: 'status', direction: 'asc' }}
+          emptyState={
+            <EmptyState
+              headingAs="h2"
+              illustration={<Illustration name="key" size={180} />}
+              title="No devices yet"
+              description="Register the smart plug or sensor that measures an appliance. We will show you a one-time token to put on it."
+              action={<Button onClick={() => setRegistering(true)}>Register a device</Button>}
+            />
+          }
+        />
+      </div>
     )
 
   return (
