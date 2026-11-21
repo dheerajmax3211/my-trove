@@ -1,0 +1,122 @@
+/* Layout pieces every admin screen shares. Colours and spacing come from the design tokens only. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-8);
+  min-width: 0;
+}
+.stackTight {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-4);
+  min-width: 0;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--pp-space-3) var(--pp-space-4);
+}
+.grow {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+.panel {
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-lg);
+  box-shadow:
+    inset 0 1px 0 var(--pp-color-highlight),
+    var(--pp-shadow-xs);
+  min-width: 0;
+}
+.panelBody {
+  padding: var(--pp-space-5) var(--pp-space-6) var(--pp-space-6);
+}
+.panelHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--pp-space-1) var(--pp-space-4);
+  padding: var(--pp-space-5) var(--pp-space-6) 0;
+}
+.panelTitle {
+  font-size: var(--pp-text-h4-size);
+  line-height: var(--pp-text-h4-line);
+  font-weight: var(--pp-text-h4-weight);
+}
+.panelHint {
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-body-small-size);
+}
+.sectionTitle {
+  font-family: var(--pp-font-display);
+  font-weight: 400;
+  font-size: var(--pp-text-h2-size);
+  line-height: var(--pp-text-h2-line);
+  letter-spacing: var(--pp-text-h2-tracking);
+}
+.muted {
+  color: var(--pp-color-text-muted);
+}
+.subtle {
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-body-small-size);
+}
+.mono {
+  font-family: var(--pp-font-mono);
+  font-size: var(--pp-text-code-size);
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+  min-width: 0;
+}
+.personText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.personName {
+  font-weight: var(--pp-weight-semibold);
+  overflow-wrap: anywhere;
+}
+.link {
+  color: var(--pp-color-accent-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.link:hover {
+  text-decoration-thickness: 2px;
+}
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-space-1);
+}
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-space-3);
+}
+.pagerButtons {
+  display: flex;
+  gap: var(--pp-space-2);
+}
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-3);
+}
+.centered {
+  display: flex;
+  justify-content: center;
+}

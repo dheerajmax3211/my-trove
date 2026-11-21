@@ -1,0 +1,111 @@
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-2);
+  min-width: 0;
+}
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--pp-space-5);
+  font-size: var(--pp-text-body-small-size);
+  color: var(--pp-color-text-muted);
+}
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pp-space-2);
+}
+.swatchLine {
+  display: inline-block;
+  width: 1.25rem;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--pp-color-accent);
+  vertical-align: middle;
+}
+.swatchBar {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.9rem;
+  border-radius: 2px 2px 0 0;
+  background: var(--pp-color-danger);
+  vertical-align: middle;
+}
+.frame {
+  position: relative;
+  width: 100%;
+  border-radius: var(--pp-radius-md);
+  outline-offset: 4px;
+  touch-action: pan-y;
+}
+.svg {
+  display: block;
+  max-width: 100%;
+  font-family: var(--pp-font-sans);
+  overflow: visible;
+}
+.grid {
+  stroke: var(--pp-color-hairline);
+  stroke-width: 1;
+}
+.axis {
+  stroke: var(--pp-color-border);
+  stroke-width: 1;
+}
+.tick {
+  fill: var(--pp-color-text-subtle);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.stripLabel {
+  fill: var(--pp-color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.requests {
+  color: var(--pp-color-accent);
+}
+.requestsLine {
+  stroke: var(--pp-color-accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.requestsDot {
+  fill: var(--pp-color-accent);
+  stroke: var(--pp-color-surface);
+  stroke-width: 2;
+}
+.errorBar {
+  fill: var(--pp-color-danger);
+}
+.cursor {
+  stroke: var(--pp-color-border-strong);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.tooltip {
+  position: absolute;
+  top: 8px;
+  pointer-events: none;
+  z-index: 2;
+  min-width: 10rem;
+  padding: var(--pp-space-2) var(--pp-space-3);
+  background: var(--pp-color-surface-overlay);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-md);
+  box-shadow: var(--pp-shadow-md);
+  font-size: var(--pp-text-body-small-size);
+  font-variant-numeric: tabular-nums;
+}
+.tooltipTime {
+  font-weight: var(--pp-weight-semibold);
+  margin-bottom: 2px;
+}
+.hint {
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-caption-size);
+}
