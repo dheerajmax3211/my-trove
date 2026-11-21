@@ -5,11 +5,16 @@ export const MAX_RECENT = 6
 
 const keyFor = (uid: string): string => `ask-your-life:recent:${uid}`
 
+const tidy = (query: string): string => query.trim().replace(/\s+/g, ' ')
+
 /** Newest first, no repeats (ignoring case and spacing), at most `MAX_RECENT`. */
 export function pushRecent(list: readonly string[], query: string): string[] {
-  const q = query.trim().replace(/\s+/g, ' ')
+  const q = tidy(query)
   if (q === '') return [...list]
-  return [q, ...list.filter((item) => item.toLowerCase() !== q.toLowerCase())].slice(0, MAX_RECENT)
+  return [q, ...list.filter((item) => tidy(item).toLowerCase() !== q.toLowerCase())].slice(
+    0,
+    MAX_RECENT,
+  )
 }
 
 function read(uid: string): string[] {
