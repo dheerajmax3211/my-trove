@@ -1,6 +1,6 @@
 # Local dev stack: real services, no Firebase project
 
-Runs all eight Spring Boot services and the web apps against real Postgres (with TimescaleDB and pgvector) and a
+Runs the gateway, all nine Spring Boot services and the web apps against real Postgres (with TimescaleDB and pgvector) and a
 real Temporal server. Sign-in uses a small local identity provider instead of Firebase, so nothing here needs an
 account or a network connection.
 
@@ -15,6 +15,9 @@ docker compose -f dev/docker-compose.yml up -d
 ./mvnw -DskipTests package
 dev/up.sh                       # or: dev/up.sh auth shared-service
 
+# 2b. prove it: 33 end-to-end checks through the gateway (personas, suspension, rate limits, metering)
+dev/e2e-phase1.sh        # needs dev/up.sh in dev-identity-provider mode (the default)
+
 # 3. the web apps, in real mode (each app's .env.local already points at the identity provider)
 cd ui-common && pnpm --filter @platform/hub dev      # 5181; likewise waiting-on, consent, home-pulse,
                                                      # ask-your-life, digital-legacy, family-treasury (5182-5187)
@@ -24,6 +27,22 @@ Stop with `dev/down.sh` and `docker compose -f dev/docker-compose.yml stop`. Log
 Open http://localhost:8233 for the Temporal UI.
 
 The root `docker-compose.yml` (plain `postgres:16`) uses the same port 5433; stop it first if it is running.
+
+## Architecture of the stack
+
+```
+ browser ──► gateway :8080 ──► auth :8081 (identity provider, roles, token exchange)
+                │   │     ├──► shared, waiting-on, consent, home-pulse, ask-your-life,
+                │   │     │    digital-legacy, family-treasury   (:8082-8088, verify platform tokens)
+                │   │     └──► platform-service :8089 (usage analytics, plans, quotas)
+                │   └─ usage events ─► Kafka :9092 ─► platform-service ─► Timescale (platform schema)
+                └─ Firebase ID token ─► auth /v1/token/exchange ─► short-lived platform token (roles, permissions, plan)
+```
+
+Every app calls `http://localhost:8080/api/<service>/v1/...` (`use-firebase.sh` writes that into each `.env.local`).
+The gateway authenticates the caller, exchanges the credential for a platform token (cached 60 s), checks the route's
+permission, applies the plan's rate limit and quota, forwards, and meters the call to Kafka. Services started by
+`up.sh` run with `APP_SECURITY_MODE=platform`. Roles and permissions: `docs/superpowers/specs/2026-11-21-trove-platform-v2-design.md` §5.2.
 
 ## How sign-in works
 

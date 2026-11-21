@@ -8,7 +8,7 @@ gateway, time-series anomaly detection, private hybrid search, threshold cryptog
 Everything shares one Firebase sign-in, one PostgreSQL database (a schema per service), one design system and one
 frontend monorepo.
 
-Java 21 · Spring Boot 4.1 · jOOQ · Flyway · PostgreSQL 16 · TimescaleDB · pgvector · Temporal · Firebase Auth · React 19 ·
+Java 21 · Spring Boot 4.1 · Spring Cloud Gateway · Kafka · jOOQ · Flyway · PostgreSQL 16 · TimescaleDB · pgvector · Temporal · Firebase Auth · React 19 ·
 TypeScript · Vite · TanStack Query · Vitest
 
 ## The products
@@ -28,7 +28,9 @@ TypeScript · Vite · TanStack Query · Vitest
 ├── pom.xml                  Maven parent + aggregator (build everything: ./mvnw verify)
 ├── sql-jooq/                Flyway migrations (one folder per schema), generated jOOQ classes, UUIDv7, slow-query log
 ├── libs/platform-security/  Firebase ID-token verification + secure-by-default filter chain
-├── auth/                    Authentication/authorization service (users, roles in Postgres)   :8081
+├── gateway/                 The single public entrance: authn, token exchange, permissions, rate limits, usage metering :8080
+├── auth/                    Identity provider: RBAC personas, platform tokens (JWKS), admin APIs, audit  :8081
+├── platform-service/        Usage analytics (Kafka → Timescale), plans, quotas                          :8089
 ├── shared-service/          Households, reminders/notifications, files, audit                   :8082
 ├── waiting-on/              Durable follow-ups (Temporal)                                       :8083
 ├── consent-gateway/         Scoped, revocable data access + tamper-evident log                  :8084
@@ -57,7 +59,7 @@ dev/up.sh                                          # local identity provider + a
 cd ui-common && pnpm install && pnpm --filter @platform/hub dev     # http://localhost:5181
 ```
 
-Click "Continue with Google" and you are signed in as a local dev user. Every app also has a zero-setup demo mode
+Click "Continue with Google" and you are signed in as a local dev user. `dev/e2e-phase1.sh` then proves the platform layer end to end (33 checks). Every app also has a zero-setup demo mode
 (stub sign-in and an in-memory mock API): run any app without a `.env.local`. Details, ports and how sign-in works:
 [`dev/README.md`](dev/README.md). To use a real Firebase project instead: [`dev/FIREBASE.md`](dev/FIREBASE.md).
 
@@ -66,7 +68,7 @@ Click "Continue with Google" and you are signed in as a local dev user. Every ap
 Backend tests use Testcontainers, so Docker must be running:
 
 ```bash
-./mvnw clean verify                # all modules: 745 tests against real Postgres, Timescale and pgvector containers
+./mvnw clean verify                # all modules: 1,027 tests against real Postgres, Timescale, pgvector and Kafka containers
 ./mvnw -pl waiting-on -am verify   # one service plus what it needs
 ```
 

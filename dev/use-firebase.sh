@@ -21,6 +21,8 @@ VITE_FIREBASE_APP_ID=$FIREBASE_APP_ID
 "
 fi
 for app in "${APPS[@]}"; do
-  printf '%s' "$body" > "$ROOT/ui-common/apps/$app/.env.local"
+  # Every app talks to the gateway: /api/<service>/v1/... (the hub calls several services, so it takes the bare /api)
+  if [ "$app" = hub ]; then api="http://localhost:8080/api"; else api="http://localhost:8080/api/$app"; fi
+  printf '%sVITE_API_BASE_URL=%s\n' "$body" "$api" > "$ROOT/ui-common/apps/$app/.env.local"
   echo "wrote ui-common/apps/$app/.env.local"
 done

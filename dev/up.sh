@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Start the dev identity provider and every backend service against the dev database.
+# Start the dev identity provider and every backend service (and the gateway, the single public entrance on :8080)
+# against the dev database.
 #   dev/up.sh            all services
 #   dev/up.sh auth shared-service     just these
 # Needs: dev database running (docker compose -f dev/docker-compose.yml up -d) and built jars
@@ -10,7 +11,7 @@ STATE="$ROOT/dev/.state"
 mkdir -p "$STATE/logs" "$STATE/pids" "$STATE/blobs"
 
 # service:port, in start order
-ALL=(auth:8081 shared-service:8082 waiting-on:8083 consent-gateway:8084 home-pulse:8085 ask-your-life:8086 digital-legacy:8087 family-treasury:8088)
+ALL=(auth:8081 platform-service:8089 shared-service:8082 waiting-on:8083 consent-gateway:8084 home-pulse:8085 ask-your-life:8086 digital-legacy:8087 family-treasury:8088 gateway:8080)
 
 secret() { # secret <name>: a random value, created once and reused so restarts keep working
   local f="$STATE/$1"
@@ -45,6 +46,15 @@ export CONSENT_KEY_ENCRYPTION_KEY="$(secret consent-kek)"
 export FILE_TOKEN_SECRET="$(secret file-token-secret)"
 export FILES_ROOT="$STATE/blobs"
 export INBOUND_WEBHOOK_SECRET="$(secret inbound-secret)"
+# Platform layer: every service verifies platform tokens issued by auth (the gateway exchanges the Firebase token);
+# auth itself accepts both kinds. platform-service and the gateway share an internal key for /internal/** calls.
+export APP_SECURITY_MODE=platform
+export APP_PLATFORM_JWK_SET_URI="${APP_PLATFORM_JWK_SET_URI:-http://localhost:8081/.well-known/jwks.json}"
+export APP_PLATFORM_KEY_ENCRYPTION_KEY="$(secret platform-kek)"
+export APP_PLATFORM_ACCEPT_PLATFORM_TOKENS=true
+export APP_INTERNAL_API_KEY="$(secret internal-api-key)"
+export GATEWAY_INTERNAL_API_KEY="$APP_INTERNAL_API_KEY"
+export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:--Xmx512m}"
 export TEMPORAL_ENABLED="${TEMPORAL_ENABLED:-true}"   # the compose file starts a Temporal dev server on :7233; set false to run without
 
 wanted=("$@")

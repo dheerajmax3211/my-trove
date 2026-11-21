@@ -16,7 +16,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done and verified · `[!]` bloc
 ## Working agreements
 - One git branch per workstream in a worktree (`phase-N/<name>`); merge to `main` locally after verification. Never push without a yes.
 - Pre-wire shared files (root `pom.xml`, `sql-jooq/pom.xml`, compose) before parallel work so merges stay trivial.
-- Existing tests must keep passing: backend `./mvnw verify` (745 at start of v2), frontend `pnpm test` (1,188).
+- Existing tests must keep passing: backend `./mvnw verify` (745 at start of v2; 1,027 after Phase 1), frontend `pnpm test` (1,188).
 - Backend tests need Docker: `export DOCKER_HOST=unix://$HOME/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock`
 - Dev stack: see `dev/README.md`. Real Firebase project id `personal-platform-af952`; owner email `dheerajdheeru3211@gmail.com`.
 - Never commit `.env.local`, `dev/.state/`, keys. Run the secret scan before each push.
@@ -37,16 +37,16 @@ Contracts to honour are in design doc section 5. Workstreams run in parallel aft
 - [x] 1.A Token exchange endpoint + JWKS + `permissions_version`; admin APIs (list users, assign/revoke role, suspend) with guardrails and audit table (dev stack needs `APP_PLATFORM_KEY_ENCRYPTION_KEY`; ADMIN cannot touch any ADMIN/OWNER target; MEMBER is baseline and irrevocable; bootstrap emails re-granted OWNER on login)
 - [x] 1.A `platform-security`: `app.security.mode=platform`, platform-token decoder, `@RequiresPermission`, authorities converter, test helpers (merged; 42 tests; consent-gateway 158 unchanged; helper `PlatformTestTokens` in src/main; only consent-gateway built its own decoder)
 - [x] 1.A Permission matrix test (`AdminApiTest`, 27 tests, auth endpoints; platform-service matrix is in 1.C)
-- [ ] 1.B `gateway`: routes to all services, firebase credential → exchange (cached), request id, CORS
-- [ ] 1.B Per-plan rate limiting (Bucket4j) and monthly quota check; 429 problem responses with headers
-- [ ] 1.B Usage event emit to Kafka `platform.usage.v1` (reactor-kafka), never blocks the request path
-- [ ] 1.C `platform-service`: usage consumer (idempotent) → `platform.usage_events` hypertable + continuous aggregates
-- [ ] 1.C Plans/quotas tables + seed; `/internal/v1/quota/{principalId}`
-- [ ] 1.C Owner analytics API (`usage:read:all`) and self usage API (`usage:read:self`): totals, by service, by user, errors, latency p50/p95, active users
-- [ ] 1.D Dev stack: compose Kafka, `up.sh` starts gateway + platform-service, services in `platform` mode, Vite proxies → gateway
-- [ ] 1.D CI: workflow builds new modules; Kafka-using tests use Testcontainers
-- [ ] 1.E End-to-end proof: sign in (dev IdP) → gateway → service; usage rows appear; MEMBER blocked from admin API, OWNER allowed; 429 reproduced
-- [ ] 1.F Full `./mvnw verify` green, clean-checkout build, tracker + README updated, local commit
+- [x] 1.B `gateway`: routes to all services, firebase credential → exchange (cached), request id, CORS (merged; 118 tests; Spring Cloud compatibility verifier disabled because 2026.0.0 expects Boot 4.2, re-enable on upgrade)
+- [x] 1.B Per-plan rate limiting (Bucket4j) and monthly quota check; 429 problem responses with headers
+- [x] 1.B Usage event emit to Kafka `platform.usage.v1` (reactor-kafka), never blocks the request path
+- [x] 1.C `platform-service`: usage consumer (idempotent) → `platform.usage_events` hypertable + continuous aggregates (merged; 64 tests; sql-jooq now 68)
+- [x] 1.C Plans/quotas tables + seed; `/internal/v1/quota/{principalId}`
+- [x] 1.C Owner analytics API (`usage:read:all`) and self usage API (`usage:read:self`): totals, by service, by user, errors, latency p50/p95, active users
+- [x] 1.D Dev stack: compose Kafka, `up.sh` starts gateway + platform-service, services in `platform` mode, Vite proxies → gateway (apps now use `VITE_API_BASE_URL=http://localhost:8080/api/<service>`; frontend not re-driven in a browser yet)
+- [x] 1.D CI: workflow builds new modules; Kafka-using tests use Testcontainers (the aggregate `./mvnw verify` already covers them)
+- [x] 1.E End-to-end proof: sign in (dev IdP) → gateway → service; usage rows appear; MEMBER blocked from admin API, OWNER allowed; 429 reproduced (`dev/e2e-phase1.sh`: 33/33 checks passed)
+- [x] 1.F Full `./mvnw verify` green: 12 modules, 1,027 tests (was 745), 0 failures; tracker + README updated, committed locally (push awaits owner's yes)
 
 ## Phase 2: Front door
 - [ ] 2.0 Design language: brand, tokens v2, typography, motion principles (use the frontend-design skill)
@@ -87,6 +87,13 @@ Contracts to honour are in design doc section 5. Workstreams run in parallel aft
 - 2026-11-21: Workspace app hosts products as modules (not micro-frontends).
 - 2026-11-21: Rate limiting in-memory (Bucket4j); no Redis. Kafka via `apache/kafka` KRaft.
 - 2026-11-21: Project name My-Trove; Java packages stay `com.personalplatform.*`, frontend `@platform/*`.
+
+## Phase 1 notes (read before Phase 2)
+- Integration fixes made by the coordinator after merge: `auth` accepts platform tokens via `DualTokenDecoder` (`app.platform.accept-platform-tokens=true`); `platform-service` chain maps token permissions to authorities.
+- Auth decisions: ADMIN cannot touch any ADMIN/OWNER target; MEMBER is a baseline role that cannot be revoked; bootstrap emails re-granted OWNER on login; role changes reach a cached credential within 60 s (a fresh credential sees them at once).
+- Gateway passthrough (service does its own auth): home-pulse `/v1/ingest/**`, waiting-on `/v1/webhooks/**`, consent `/v1/oauth/**` `/.well-known/**` `/v1/gateway/**`, shared `/v1/files/download`, digital-legacy `/v1/legacy/trustee/**`, auth `/v1/token/exchange` and JWKS. `/internal/**` and `/actuator/**` are blocked at the gateway.
+- Plans: FREE 120 rpm / 10k month, PRO 600 / 200k, DEVELOPER 1,200 / 1M. `errorRate` counts 5xx only. `top-users` excludes anonymous.
+- `@RequiresPermission` exists in `platform-security`; auth and platform-service still use the equivalent `@PreAuthorize("hasAuthority(...)")` (cosmetic swap, optional).
 
 ## Known issues / notes
 - Seven product apps currently each have their own sign-in and Vite proxy; Phase 1.D repoints proxies at the gateway.
