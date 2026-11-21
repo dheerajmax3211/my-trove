@@ -1,12 +1,11 @@
 import type { TodayItem } from '@platform/workspace-kit'
 import type { AccessRequest, Grant } from './shared/api/types'
 import { formatDuration } from './shared/lib/format'
+import { requestExpiresAt } from './shared/lib/requests'
 import { useGrants } from './features/grants/hooks/useGrants'
 import { usePendingRequests } from './features/requests/hooks/useRequests'
 
 const DAY_MS = 86_400_000
-/** The gateway lets a request wait this long before it expires on its own. */
-export const REQUEST_TTL_MS = 7 * DAY_MS
 /** Grants ending within this window show up on Today. */
 export const EXPIRY_WINDOW_MS = 7 * DAY_MS
 
@@ -32,7 +31,7 @@ export function buildTodayItems(
       id: `request:${r.id}`,
       title: `${r.clientName} is asking to read your data`,
       subtitle: `${scopeSummary(r.scopes)} for ${formatDuration(r.durationSeconds)}. ${r.purpose}`,
-      dueAt: new Date(Date.parse(r.createdAt) + REQUEST_TTL_MS).toISOString(),
+      dueAt: requestExpiresAt(r),
       severity: 'warn' as const,
       to: '/requests',
     }))

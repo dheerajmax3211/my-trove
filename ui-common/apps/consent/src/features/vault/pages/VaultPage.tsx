@@ -3,7 +3,7 @@ import {
   EmptyState,
   Field,
   Input,
-  InboxIcon,
+  Illustration,
   PageHeader,
   PlusIcon,
   Tabs,
@@ -13,6 +13,7 @@ import {
   useToast,
 } from '@platform/ui'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import type { Attribute } from '../../../shared/api/types'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
 import { ErrorState } from '../../../shared/components/ErrorState'
@@ -30,7 +31,11 @@ export function VaultPage() {
   const remove = useDeleteAttribute()
   const [filter, setFilter] = useState('')
   const [view, setView] = useState('tree')
-  const [editing, setEditing] = useState<Editing>({ mode: 'closed' })
+  // `?add=1` (from the home page's first-run and vault panels) opens the add dialog straight away.
+  const [params, setParams] = useSearchParams()
+  const [editing, setEditing] = useState<Editing>(
+    params.get('add') === '1' ? { mode: 'add' } : { mode: 'closed' },
+  )
   const [deleting, setDeleting] = useState<Attribute | null>(null)
 
   const visible = filterAttributes(attributes.data ?? [], filter)
@@ -56,9 +61,9 @@ export function VaultPage() {
   else if (attributes.data.length === 0)
     content = (
       <EmptyState
-        icon={<InboxIcon size={24} />}
+        illustration={<Illustration name="empty" />}
         title="Your vault is empty"
-        description="Add the first piece of information you might want to share, such as a shoe size or an allergy."
+        description="Add the first piece of information you might want to share, such as a shoe size or an allergy. It stays here until you approve an app's request for it."
         action={
           <Button onClick={() => setEditing({ mode: 'add' })}>Add your first attribute</Button>
         }
@@ -121,7 +126,15 @@ export function VaultPage() {
       </div>
       <AttributeDialog
         open={editing.mode !== 'closed'}
-        onOpenChange={(open) => !open && setEditing({ mode: 'closed' })}
+        onOpenChange={(open) => {
+          if (open) return
+          setEditing({ mode: 'closed' })
+          if (params.has('add')) {
+            const next = new URLSearchParams(params)
+            next.delete('add')
+            setParams(next, { replace: true })
+          }
+        }}
         attribute={editing.mode === 'edit' ? editing.attribute : null}
       />
       <ConfirmDialog

@@ -1,7 +1,9 @@
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pp-space-3);
   font-family: var(--pp-font-display);
-  font-weight: var(--pp-weight-semibold);
-  font-size: var(--pp-text-h4-size);
+  font-size: var(--pp-text-h3-size);
 }
 
 .mono {
@@ -115,8 +117,7 @@
   overflow-wrap: anywhere;
 }
 
-.card-list,
-.compact-list {
+.card-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -210,10 +211,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--pp-space-2);
-  padding: var(--pp-space-4);
-  background: var(--pp-color-accent-subtle);
+  padding: var(--pp-space-4) var(--pp-space-5);
+  background: var(--pp-color-brass-subtle);
   border: 1px solid var(--pp-color-border);
-  border-radius: var(--pp-radius-md);
+  border-inline-start: 4px solid var(--pp-color-brass);
+  border-radius: var(--pp-radius-lg);
 }
 
 .summary p {
@@ -300,48 +302,10 @@
   max-width: 100%;
 }
 
-/* Dashboard */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--pp-space-5);
-}
-
-.span-all {
-  grid-column: 1 / -1;
-}
-
 @media (max-width: 800px) {
-  .dashboard-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .form-row {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-
-.big-number {
-  margin: 0;
-  font-family: var(--pp-font-display);
-  font-size: var(--pp-text-display-size);
-  line-height: 1;
-}
-
-.compact-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--pp-space-2) var(--pp-space-4);
-  padding-bottom: var(--pp-space-3);
-  border-bottom: 1px solid var(--pp-color-border);
-}
-
-.compact-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
 }
 
 .pager {
@@ -368,19 +332,6 @@
   align-items: center;
   gap: var(--pp-space-2);
   font-size: var(--pp-text-body-small-size);
-}
-
-.avatar {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--pp-radius-full);
-  background: var(--pp-color-accent);
-  color: var(--pp-color-on-accent);
-  font-weight: var(--pp-weight-semibold);
-  font-size: var(--pp-text-caption-size);
 }
 
 .demo-tools {

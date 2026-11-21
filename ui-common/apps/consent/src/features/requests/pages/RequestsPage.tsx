@@ -1,7 +1,7 @@
 import {
   DataTable,
   EmptyState,
-  InboxIcon,
+  Illustration,
   PageHeader,
   Tabs,
   TabsContent,
@@ -20,6 +20,7 @@ import { formatDateTime, formatDuration } from '../../../shared/lib/format'
 import { ApproveDialog } from '../components/ApproveDialog'
 import { DenyDialog } from '../components/DenyDialog'
 import { RequestCard } from '../components/RequestCard'
+import { useAttributes } from '../../vault/hooks/useVault'
 import { useAllRequests, usePendingRequests } from '../hooks/useRequests'
 
 const pastColumns: DataTableColumn<AccessRequest>[] = [
@@ -68,6 +69,7 @@ function PendingList({
   onDeny: (request: AccessRequest) => void
 }) {
   const pending = usePendingRequests()
+  const attributes = useAttributes()
   if (pending.isPending) return <LoadingBlock label="Loading requests" />
   if (pending.isError)
     return <ErrorState error={pending.error} onRetry={() => void pending.refetch()} />
@@ -75,16 +77,21 @@ function PendingList({
   if (open.length === 0)
     return (
       <EmptyState
-        icon={<InboxIcon size={24} />}
+        illustration={<Illustration name="letter" />}
         title="No requests waiting"
-        description="When an app asks to read your data, the request shows up here for you to approve or deny."
+        description="When an app asks to read your data, the request shows up here for you to approve or deny. Nothing is shared until you do."
       />
     )
   return (
     <ul className="card-list" aria-label="Pending requests">
       {open.map((request) => (
         <li key={request.id}>
-          <RequestCard request={request} onApprove={onApprove} onDeny={onDeny} />
+          <RequestCard
+            request={request}
+            {...(attributes.data ? { attributes: attributes.data } : {})}
+            onApprove={onApprove}
+            onDeny={onDeny}
+          />
         </li>
       ))}
     </ul>
@@ -124,7 +131,7 @@ export function RequestsPage() {
     <>
       <PageHeader
         title="Requests"
-        description="Apps ask first. You decide what they can see, and for how long."
+        description="Apps ask first. You decide which part of your vault they can read, and for how long."
       />
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList aria-label="Request lists">

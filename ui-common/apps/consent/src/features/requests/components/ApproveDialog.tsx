@@ -62,11 +62,24 @@ function ApproveForm({
 
   return (
     <form id={FORM_ID} className="stack" onSubmit={onSubmit} noValidate>
-      <p className="muted">
-        <strong>{request.clientName}</strong> asked for access for{' '}
-        <strong>{formatDuration(request.durationSeconds)}</strong>: &ldquo;{request.purpose}&rdquo;.
-        You can narrow this request. You cannot widen it.
-      </p>
+      <div className="approve-intro">
+        <span className="request-seal" aria-hidden="true">
+          {Array.from(request.clientName)[0]?.toUpperCase() ?? '?'}
+        </span>
+        <div className="stack-sm">
+          <p className="approve-ask">
+            <strong>{request.clientName}</strong> asked for access for{' '}
+            <strong>{formatDuration(request.durationSeconds)}</strong>.
+          </p>
+          <p className="request-why">
+            <span className="request-label">Purpose</span>
+            &ldquo;{request.purpose}&rdquo;
+          </p>
+          <p className="muted">
+            You can narrow this request. You cannot widen it. Nothing is shared until you approve.
+          </p>
+        </div>
+      </div>
 
       <fieldset className="fieldset">
         <legend>What it may read</legend>
@@ -192,7 +205,7 @@ export function ApproveDialog({ request, onOpenChange }: ApproveDialogProps) {
       open={request !== null}
       onOpenChange={handleOpenChange}
       title={request ? `Approve access for ${request.clientName}` : 'Approve access'}
-      description="Choose exactly what to allow. Nothing is shared until you approve."
+      description="Choose exactly what to allow, for how long and how often. Your choice becomes a grant you can revoke at any time."
       size="lg"
       footer={
         <>
