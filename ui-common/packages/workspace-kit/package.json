@@ -1,0 +1,32 @@
+{
+  "name": "@platform/workspace-kit",
+  "version": "0.1.0",
+  "description": "The contract between the workspace shell and the product modules: ProductModule, module-relative links, workspace session.",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    ".": {
+      "@platform/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-router-dom": "^7.0.0"
+  },
+  "devDependencies": {
+    "react": "19.3.1",
+    "react-router-dom": "7.18.6",
+    "tsup": "9.0.0"
+  }
+}

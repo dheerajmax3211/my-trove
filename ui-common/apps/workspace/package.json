@@ -1,0 +1,32 @@
+{
+  "name": "@platform/workspace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The signed-in My-Trove workspace: every product in one place.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@platform/admin-console": "workspace:*",
+    "@platform/api-client": "workspace:*",
+    "@platform/ask-your-life": "workspace:*",
+    "@platform/auth-web": "workspace:*",
+    "@platform/consent": "workspace:*",
+    "@platform/digital-legacy": "workspace:*",
+    "@platform/family-treasury": "workspace:*",
+    "@platform/home-pulse": "workspace:*",
+    "@platform/hub": "workspace:*",
+    "@platform/tokens": "workspace:*",
+    "@platform/ui": "workspace:*",
+    "@platform/waiting-on": "workspace:*",
+    "@platform/workspace-kit": "workspace:*",
+    "@tanstack/react-query": "5.108.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-router-dom": "7.18.6"
+  }
+}

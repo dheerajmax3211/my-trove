@@ -49,14 +49,16 @@ Contracts to honour are in design doc section 5. Workstreams run in parallel aft
 - [x] 1.F Full `./mvnw verify` green: 12 modules, 1,027 tests (was 745), 0 failures; tracker + README updated, committed locally (push awaits owner's yes)
 
 ## Phase 2: Front door
-- [ ] 2.0 Design language: brand, tokens v2, typography, motion principles (use the frontend-design skill)
-- [ ] 2.A `site`: home (hero, how it works, products, security, developers, plans, FAQ), per-product pages, docs entry, live-demo link
-- [ ] 2.B `workspace` shell: single sign-in, app launcher, persona-aware nav, onboarding flow, ⌘K palette, notifications
-- [ ] 2.B Module contract + embed Waiting On, Consent, Home Pulse, Ask Your Life, Digital Legacy, Family Treasury, Hub features (staged; standalone apps keep working)
-- [ ] 2.C "Today" home: cross-product feed (due follow-ups, alerts, reminders, approvals)
-- [ ] 2.D Admin console: users + roles + suspend, support sessions, plans/flags, usage analytics (owner), audit log viewer
-- [ ] 2.E Per-product redesign pass: purposeful empty states, first-run guidance, real product screens (not generic tables)
-- [ ] 2.F Visual QA in browser at desktop + phone, light + dark; frontend tests, lint, typecheck, build green; commit
+Plan: `docs/superpowers/plans/2026-11-21-phase-2-front-door.md` (module contract is in it and in `packages/workspace-kit`). Order: 2.1 alone, then 2.2/2.3/2.4/2.5 in parallel, then 2.6 in batches. **No new dependencies after 2.1 merges** (lockfile conflicts); ask the coordinator.
+Deferred on purpose (not built in Phase 2): support "view as user" sessions (needs a token `act` flow end to end); mention honestly in docs, do not fake in UI.
+- [x] 2.0 Pre-wiring: `packages/workspace-kit`, `module.tsx` stubs in all 7 apps, skeletons `apps/site` (5191), `apps/workspace` (5190), `packages/admin-console`; frontend 1,193 tests green
+- [ ] 2.1 Design language v2 (agent D): tokens, restyled UI kit, new components (Stat, Sparkline, Avatar, PersonaBadge, Stepper, CommandPalette, Logo, ProductMark...), gallery, `docs/design/brand.md`
+- [ ] 2.2 Public site (agent S): home, six product pages, platform, security, pricing, docs landing, about, 404, SEO tags, screenshots
+- [ ] 2.3 Workspace shell (agent W): sign-in, session from `/me`, persona-aware nav, module mounting + per-module API client, Today feed, onboarding, ⌘K, account, demo mode
+- [ ] 2.4 Admin console (agent A): users, roles matrix, usage analytics, audit, flags, plans
+- [ ] 2.5 Backend (agent F): feature flags in platform-service (+ evaluate endpoint), `GET /v1/admin/users/lookup`
+- [ ] 2.6 Product modules + redesign pass, one agent per app: waiting-on, consent, home-pulse, ask-your-life, digital-legacy, family-treasury, hub→core
+- [ ] 2.7 Integration and QA: merges green, `dev/up.sh` starts workspace + site, browser pass as MEMBER/DEVELOPER/ADMIN/OWNER, screenshots, docs, commit (ask before push)
 
 ## Phase 3: Developer platform
 - [ ] 3.A Developer apps: register OAuth clients (via consent-gateway), scopes catalog, workspaces/teams

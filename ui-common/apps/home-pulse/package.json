@@ -15,9 +15,13 @@
     "@platform/auth-web": "workspace:*",
     "@platform/tokens": "workspace:*",
     "@platform/ui": "workspace:*",
+    "@platform/workspace-kit": "workspace:*",
     "@tanstack/react-query": "5.108.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-router-dom": "7.18.6"
+  },
+  "exports": {
+    "./module": "./src/module.tsx"
   }
 }

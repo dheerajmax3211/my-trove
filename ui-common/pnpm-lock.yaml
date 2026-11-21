@@ -92,6 +92,9 @@ importers:
       '@platform/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@platform/workspace-kit':
+        specifier: workspace:*
+        version: link:../../packages/workspace-kit
       '@tanstack/react-query':
         specifier: 5.108.0
         version: 5.108.0(@types/react@19.3.0)(react@19.3.1)
@@ -116,6 +119,9 @@ importers:
       '@platform/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@platform/workspace-kit':
+        specifier: workspace:*
+        version: link:../../packages/workspace-kit
       '@tanstack/react-query':
         specifier: 5.108.0
         version: 5.108.0(@types/react@19.3.0)(react@19.3.1)
@@ -140,6 +146,9 @@ importers:
       '@platform/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@platform/workspace-kit':
+        specifier: workspace:*
+        version: link:../../packages/workspace-kit
       '@tanstack/react-query':
         specifier: 5.108.0
         version: 5.108.0(@types/react@19.3.0)(react@19.3.1)
@@ -164,6 +173,9 @@ importers:
       '@platform/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@platform/workspace-kit':
+        specifier: workspace:*
+        version: link:../../packages/workspace-kit
       '@tanstack/react-query':
         specifier: 5.108.0
         version: 5.108.0(@types/react@19.3.0)(react@19.3.1)
@@ -218,6 +230,9 @@ importers:
       '@platform/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@platform/workspace-kit':
+        specifier: workspace:*
+        version: link:../../packages/workspace-kit
       '@tanstack/react-query':
         specifier: 5.108.0
         version: 5.108.0(@types/react@19.3.0)(react@19.3.1)
@@ -242,9 +257,27 @@ importers:
       '@platform/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@platform/workspace-kit':
+        specifier: workspace:*
+        version: link:../../packages/workspace-kit
       '@tanstack/react-query':
         specifier: 5.108.0
         version: 5.108.0(@types/react@19.3.0)(react@19.3.1)
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: 19.3.1
+        version: 19.3.1(react@19.3.1)
+      react-router-dom:
+        specifier: 7.18.6
+        version: 7.18.6(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+
+  apps/site:
+    dependencies:
+      '@platform/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       react:
         specifier: 19.3.1
         version: 19.3.1
@@ -266,6 +299,87 @@ importers:
       '@platform/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@platform/workspace-kit':
+        specifier: workspace:*
+        version: link:../../packages/workspace-kit
+      '@tanstack/react-query':
+        specifier: 5.108.0
+        version: 5.108.0(@types/react@19.3.0)(react@19.3.1)
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: 19.3.1
+        version: 19.3.1(react@19.3.1)
+      react-router-dom:
+        specifier: 7.18.6
+        version: 7.18.6(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+
+  apps/workspace:
+    dependencies:
+      '@platform/admin-console':
+        specifier: workspace:*
+        version: link:../../packages/admin-console
+      '@platform/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
+      '@platform/ask-your-life':
+        specifier: workspace:*
+        version: link:../ask-your-life
+      '@platform/auth-web':
+        specifier: workspace:*
+        version: link:../../packages/auth-web
+      '@platform/consent':
+        specifier: workspace:*
+        version: link:../consent
+      '@platform/digital-legacy':
+        specifier: workspace:*
+        version: link:../digital-legacy
+      '@platform/family-treasury':
+        specifier: workspace:*
+        version: link:../family-treasury
+      '@platform/home-pulse':
+        specifier: workspace:*
+        version: link:../home-pulse
+      '@platform/hub':
+        specifier: workspace:*
+        version: link:../hub
+      '@platform/tokens':
+        specifier: workspace:*
+        version: link:../../packages/tokens
+      '@platform/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@platform/waiting-on':
+        specifier: workspace:*
+        version: link:../waiting-on
+      '@platform/workspace-kit':
+        specifier: workspace:*
+        version: link:../../packages/workspace-kit
+      '@tanstack/react-query':
+        specifier: 5.108.0
+        version: 5.108.0(@types/react@19.3.0)(react@19.3.1)
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: 19.3.1
+        version: 19.3.1(react@19.3.1)
+      react-router-dom:
+        specifier: 7.18.6
+        version: 7.18.6(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+
+  packages/admin-console:
+    dependencies:
+      '@platform/api-client':
+        specifier: workspace:*
+        version: link:../api-client
+      '@platform/ui':
+        specifier: workspace:*
+        version: link:../ui
+      '@platform/workspace-kit':
+        specifier: workspace:*
+        version: link:../workspace-kit
       '@tanstack/react-query':
         specifier: 5.108.0
         version: 5.108.0(@types/react@19.3.0)(react@19.3.1)
@@ -328,6 +442,18 @@ importers:
       react-dom:
         specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
+
+  packages/workspace-kit:
+    devDependencies:
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      react-router-dom:
+        specifier: 7.18.6
+        version: 7.18.6(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      tsup:
+        specifier: 9.0.0
+        version: 9.0.0(jiti@2.7.0)(postcss@8.5.33)(tsx@4.23.15)(typescript@6.0.3)
 
 packages:
 
