@@ -1,25 +1,27 @@
-import { useAuth } from '@platform/auth-web'
 import {
   Button,
-  DataTable,
   EmptyState,
+  IllustrationEmpty,
   PageHeader,
+  Skeleton,
   useToast,
-  VisuallyHidden,
-  type DataTableColumn,
 } from '@platform/ui'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { ErrorState } from '../../../components/ErrorState'
 import { ScopeSelect, SCOPE_ALL, SCOPE_PERSONAL, scopeName } from '../../../components/ScopeSelect'
+import { usePeople } from '../../../core/people'
 import { formatBytes, formatDateTime } from '../../../lib/format'
 import { usePageTitle } from '../../../lib/usePageTitle'
 import { useHouseholds } from '../../households/hooks'
 import type { Household } from '../../households/types'
 import { DownloadLinkDialog } from '../components/DownloadLinkDialog'
+import { FileTile } from '../components/FileTile'
 import { UploadForm } from '../components/UploadForm'
 import { useDeleteFile, useFiles } from '../hooks'
 import type { StoredFile } from '../types'
+import styles from './Files.module.css'
 
 /** The uploader can delete; so can a household owner for household files. */
 function canDelete(file: StoredFile, uid: string | undefined, households: readonly Household[]) {
@@ -29,10 +31,11 @@ function canDelete(file: StoredFile, uid: string | undefined, households: readon
 
 export function FilesPage() {
   usePageTitle('Files')
-  const { user } = useAuth()
+  const people = usePeople()
   const { toast } = useToast()
   const households = useHouseholds()
-  const [scope, setScope] = useState(SCOPE_ALL)
+  const [params] = useSearchParams()
+  const [scope, setScope] = useState(params.get('household') ?? SCOPE_ALL)
   const [sharing, setSharing] = useState<StoredFile | null>(null)
   const [deleting, setDeleting] = useState<StoredFile | null>(null)
   const remove = useDeleteFile()
@@ -40,62 +43,9 @@ export function FilesPage() {
   const householdList = households.data ?? []
   const householdScope = scope !== SCOPE_ALL && scope !== SCOPE_PERSONAL ? scope : undefined
   const files = useFiles(householdScope)
-  const rows = (files.data ?? []).filter((f) => scope !== SCOPE_PERSONAL || f.householdId === null)
-
-  const columns: DataTableColumn<StoredFile>[] = [
-    {
-      id: 'name',
-      header: 'Name',
-      sortValue: (f) => f.name,
-      cell: (f) => <strong>{f.name}</strong>,
-    },
-    {
-      id: 'size',
-      header: 'Size',
-      sortValue: (f) => f.sizeBytes,
-      cell: (f) => formatBytes(f.sizeBytes),
-    },
-    {
-      id: 'scope',
-      header: 'Saved to',
-      sortValue: (f) => scopeName(f.householdId, householdList),
-      cell: (f) => scopeName(f.householdId, householdList),
-    },
-    {
-      id: 'uploaded',
-      header: 'Uploaded',
-      sortValue: (f) => f.createdAt,
-      cell: (f) => formatDateTime(f.createdAt),
-    },
-    {
-      id: 'actions',
-      header: <VisuallyHidden>Actions</VisuallyHidden>,
-      headerLabel: 'Actions',
-      align: 'end',
-      cell: (f) => (
-        <span className="hub-row">
-          <Button
-            size="sm"
-            variant="ghost"
-            aria-label={`Get link for ${f.name}`}
-            onClick={() => setSharing(f)}
-          >
-            Get link
-          </Button>
-          {canDelete(f, user?.uid, householdList) ? (
-            <Button
-              size="sm"
-              variant="ghost"
-              aria-label={`Delete ${f.name}`}
-              onClick={() => setDeleting(f)}
-            >
-              Delete
-            </Button>
-          ) : null}
-        </span>
-      ),
-    },
-  ]
+  const rows = (files.data ?? [])
+    .filter((f) => scope !== SCOPE_PERSONAL || f.householdId === null)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
   return (
     <>
@@ -105,7 +55,7 @@ export function FilesPage() {
         description="Keep important documents in one place and share them with a short-lived link."
       />
       <div className="hub-stack">
-        <UploadForm households={householdList} />
+        <UploadForm households={householdList} defaultScope={householdScope} />
         <div className="hub-toolbar">
           <ScopeSelect
             label="Show files for"
@@ -117,22 +67,56 @@ export function FilesPage() {
         </div>
         {files.isError ? (
           <ErrorState error={files.error} onRetry={() => void files.refetch()} />
-        ) : (
-          <DataTable
-            caption="Files"
-            columns={columns}
-            data={rows}
-            getRowId={(f) => f.id}
-            loading={files.isPending}
-            defaultSort={{ columnId: 'uploaded', direction: 'desc' }}
-            emptyState={
-              <EmptyState
-                headingAs="h2"
-                title="No files yet"
-                description="Upload a document above and it will be listed here."
-              />
-            }
+        ) : files.isPending ? (
+          <div className="hub-stack-sm" aria-busy="true" aria-label="Loading files">
+            <Skeleton height={64} />
+            <Skeleton height={64} />
+          </div>
+        ) : rows.length === 0 ? (
+          <EmptyState
+            illustration={<IllustrationEmpty />}
+            headingAs="h2"
+            title="No files yet"
+            description="Drop a document above and it will be listed here. Household files are visible to every member."
           />
+        ) : (
+          <ul className={styles.list} aria-label="Files">
+            {rows.map((f) => (
+              <li key={f.id} className={styles.item}>
+                <FileTile name={f.name} contentType={f.contentType} />
+                <div className={styles.body}>
+                  <span className={styles.name}>{f.name}</span>
+                  <span className={styles.meta}>
+                    {formatBytes(f.sizeBytes)}, {scopeName(f.householdId, householdList)}
+                    {f.householdId && f.ownerUid !== people.selfUid
+                      ? `, added by ${people.nameOf(f.ownerUid)}`
+                      : ''}
+                  </span>
+                  <span className={styles.meta}>Uploaded {formatDateTime(f.createdAt)}</span>
+                </div>
+                <span className={styles.actions}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    aria-label={`Get link for ${f.name}`}
+                    onClick={() => setSharing(f)}
+                  >
+                    Get link
+                  </Button>
+                  {canDelete(f, people.selfUid, householdList) ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      aria-label={`Delete ${f.name}`}
+                      onClick={() => setDeleting(f)}
+                    >
+                      Delete
+                    </Button>
+                  ) : null}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 

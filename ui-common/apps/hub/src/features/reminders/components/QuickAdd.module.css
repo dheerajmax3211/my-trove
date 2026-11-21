@@ -1,0 +1,46 @@
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--pp-space-3) var(--pp-space-4);
+  padding: var(--pp-space-4) var(--pp-space-5);
+  border-radius: var(--pp-radius-lg);
+  background: var(--pp-color-surface);
+  box-shadow:
+    inset 0 1px 0 var(--pp-color-highlight),
+    var(--pp-shadow-xs),
+    inset 0 0 0 1px var(--pp-color-border);
+}
+
+.title {
+  min-width: 0;
+}
+
+.submit {
+  align-self: end;
+}
+
+.error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--pp-color-danger-text);
+}
+
+@media (max-width: 960px) {
+  .form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .title {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .form {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--pp-space-4);
+  }
+  .submit {
+    width: 100%;
+  }
+}

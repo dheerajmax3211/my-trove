@@ -1,0 +1,22 @@
+.days {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-8);
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-3);
+}
+
+.dayTitle {
+  margin: 0;
+  padding-bottom: var(--pp-space-2);
+  border-bottom: 1px solid var(--pp-color-border-strong);
+  font-family: var(--pp-font-display);
+  font-weight: 400;
+  font-size: var(--pp-text-h2-size);
+  line-height: var(--pp-text-h2-line);
+  letter-spacing: var(--pp-text-h2-tracking);
+}

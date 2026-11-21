@@ -1,4 +1,4 @@
-import { useAuth } from '@platform/auth-web'
+import { usePeople } from '../../../core/people'
 import {
   Button,
   Card,
@@ -16,14 +16,14 @@ import { canLeave } from '../rules'
 import type { HouseholdDetail } from '../types'
 
 export function DangerZone({ household }: { household: HouseholdDetail }) {
-  const { user } = useAuth()
+  const { selfUid } = usePeople()
   const { toast } = useToast()
   const navigate = useModuleNavigate()
   const leave = useLeaveHousehold(household.id)
   const remove = useDeleteHousehold(household.id)
   const [leaving, setLeaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const leaveRule = canLeave(household.members, user?.uid ?? '')
+  const leaveRule = canLeave(household.members, selfUid ?? '')
 
   return (
     <Card>

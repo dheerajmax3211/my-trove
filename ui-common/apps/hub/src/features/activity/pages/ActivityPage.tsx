@@ -1,29 +1,57 @@
-import { useAuth } from '@platform/auth-web'
 import {
-  DataTable,
   EmptyState,
   Field,
+  IllustrationSearch,
   PageHeader,
   Select,
-  type DataTableColumn,
+  Skeleton,
+  Timeline,
+  type TimelineItem,
 } from '@platform/ui'
 import { useSearchParams } from 'react-router-dom'
 import { ErrorState } from '../../../components/ErrorState'
-import { MemberLabel } from '../../../components/MemberLabel'
 import { Pager } from '../../../components/Pager'
 import { ScopeSelect, SCOPE_PERSONAL } from '../../../components/ScopeSelect'
-import { formatDateTime } from '../../../lib/format'
+import { useCoreEnv } from '../../../core/env'
+import { usePeople } from '../../../core/people'
+import { dayOffset, formatDay, formatTime } from '../../../lib/day'
 import { usePageTitle } from '../../../lib/usePageTitle'
 import { useHouseholds } from '../../households/hooks'
-import { ACTION_LABELS, actionLabel, describeDetails } from '../describe'
+import { ACTION_LABELS } from '../describe'
 import { useAudit } from '../hooks'
+import { KindIcon } from '../KindIcon'
+import { describeEvent } from '../sentence'
 import type { AuditEvent } from '../types'
+import styles from './Activity.module.css'
 
 const PAGE_SIZE = 20
 
+function dayLabel(ms: number, nowMs: number): string {
+  const offset = dayOffset(ms, nowMs)
+  if (offset === 0) return 'Today'
+  if (offset === -1) return 'Yesterday'
+  return formatDay(ms)
+}
+
+/** Events arrive newest first; this keeps that order and starts a new group when the calendar day changes. */
+export function groupEventsByDay(
+  events: readonly AuditEvent[],
+  nowMs: number,
+): Array<{ label: string; events: AuditEvent[] }> {
+  const groups: Array<{ label: string; events: AuditEvent[] }> = []
+  for (const event of events) {
+    const label = dayLabel(new Date(event.createdAt).getTime(), nowMs)
+    const last = groups[groups.length - 1]
+    if (last && last.label === label) last.events.push(event)
+    else groups.push({ label, events: [event] })
+  }
+  return groups
+}
+
 export function ActivityPage() {
   usePageTitle('Activity')
-  const { user } = useAuth()
+  const people = usePeople()
+  const { now } = useCoreEnv()
   const households = useHouseholds()
   const [params, setParams] = useSearchParams()
   const householdId = params.get('household') ?? undefined
@@ -42,20 +70,21 @@ export function ActivityPage() {
       return next
     })
 
-  const columns: DataTableColumn<AuditEvent>[] = [
-    { id: 'when', header: 'When', cell: (e) => formatDateTime(e.createdAt) },
-    {
-      id: 'who',
-      header: 'Who',
-      cell: (e) => <MemberLabel uid={e.actorUid} currentUid={user?.uid} />,
-    },
-    { id: 'what', header: 'What', cell: (e) => <strong>{actionLabel(e.action)}</strong> },
-    {
-      id: 'details',
-      header: 'Details',
-      cell: (e) => <span className="hub-muted">{describeDetails(e) || e.subjectType}</span>,
-    },
-  ]
+  const nowMs = now()
+  const groups = groupEventsByDay(audit.data?.items ?? [], nowMs)
+  const toItem = (event: AuditEvent): TimelineItem => {
+    const sentence = describeEvent(event, people.nameOf)
+    const when = new Date(event.createdAt).getTime()
+    return {
+      id: event.id,
+      title: sentence.title,
+      ...(sentence.description ? { description: sentence.description } : {}),
+      time: formatTime(when),
+      dateTime: event.createdAt,
+      tone: sentence.tone,
+      icon: <KindIcon kind={sentence.kind} />,
+    }
+  }
 
   return (
     <>
@@ -91,36 +120,41 @@ export function ActivityPage() {
 
         {audit.isError ? (
           <ErrorState error={audit.error} onRetry={() => void audit.refetch()} />
+        ) : audit.isPending ? (
+          <div className="hub-stack-sm" aria-busy="true" aria-label="Loading activity">
+            <Skeleton height={48} />
+            <Skeleton height={48} />
+            <Skeleton height={48} />
+          </div>
+        ) : groups.length === 0 ? (
+          <EmptyState
+            illustration={<IllustrationSearch />}
+            headingAs="h2"
+            title="No activity to show"
+            description={
+              action
+                ? 'No events of that kind yet. Choose "All events" to see everything.'
+                : householdId
+                  ? 'Nothing has happened in this household yet.'
+                  : 'Personal reminders and files you add will be recorded here. Choose a household to see shared activity.'
+            }
+          />
         ) : (
           <>
-            <DataTable
-              caption="Activity"
-              columns={columns}
-              data={audit.data?.items ?? []}
-              getRowId={(e) => e.id}
-              loading={audit.isPending}
-              emptyState={
-                <EmptyState
-                  headingAs="h2"
-                  title="No activity to show"
-                  description={
-                    action
-                      ? 'No events of that kind yet. Choose "All events" to see everything.'
-                      : householdId
-                        ? 'Nothing has happened in this household yet.'
-                        : 'Personal reminders and files you add will be recorded here. Choose a household to see shared activity.'
-                  }
-                />
-              }
+            <div className={styles.days}>
+              {groups.map((g) => (
+                <section key={g.label} aria-label={g.label} className={styles.day}>
+                  <h2 className={styles.dayTitle}>{g.label}</h2>
+                  <Timeline items={g.events.map(toItem)} label={`Activity, ${g.label}`} />
+                </section>
+              ))}
+            </div>
+            <Pager
+              page={page}
+              size={PAGE_SIZE}
+              total={audit.data.total}
+              onPageChange={(next) => update({ page: next === 0 ? null : String(next) })}
             />
-            {audit.data ? (
-              <Pager
-                page={page}
-                size={PAGE_SIZE}
-                total={audit.data.total}
-                onPageChange={(next) => update({ page: next === 0 ? null : String(next) })}
-              />
-            ) : null}
           </>
         )}
       </div>
