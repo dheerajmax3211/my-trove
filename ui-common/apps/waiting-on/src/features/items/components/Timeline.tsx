@@ -36,7 +36,7 @@ export function ItemTimeline({ events }: { events: readonly TimelineEvent[] }) {
             <pre className="wo-pre">{event.detail}</pre>
           </details>
         ) : (
-          <p className="wo-muted">{event.detail}</p>
+          <p className="wo-muted wo-timeline-detail">{event.detail}</p>
         )
       ) : undefined,
     }

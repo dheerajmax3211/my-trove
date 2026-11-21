@@ -585,3 +585,9 @@
   margin-bottom: var(--pp-space-2);
   color: var(--pp-color-accent-text);
 }
+
+.wo-timeline-detail {
+  margin: 0;
+  font-size: var(--pp-text-body-small-size);
+  line-height: var(--pp-text-body-small-line);
+}

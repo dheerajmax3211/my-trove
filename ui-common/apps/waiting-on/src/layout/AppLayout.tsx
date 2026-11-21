@@ -42,7 +42,9 @@ export function AppLayout({ demo, children }: { demo: boolean; children: ReactNo
     <AppShell
       brand={
         <ModuleLink to="/" className="wo-brand">
-          <ProductMark product="waiting-on" size={28} variant="solid" />
+          <span className="wo-hide-xs">
+            <ProductMark product="waiting-on" size={28} variant="solid" />
+          </span>
           Waiting On
         </ModuleLink>
       }
