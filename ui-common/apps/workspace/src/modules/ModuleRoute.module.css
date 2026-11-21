@@ -1,0 +1,18 @@
+/* The wrapper exists only so the dev fallback can tell whether the module drew anything. */
+.outlet {
+  display: contents;
+}
+.fallback {
+  display: grid;
+  gap: var(--pp-space-6);
+  max-width: var(--pp-layout-narrow);
+}
+.pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-space-2) var(--pp-space-5);
+}
+.pages a {
+  color: var(--pp-color-accent-text);
+  font-weight: var(--pp-weight-medium);
+}
