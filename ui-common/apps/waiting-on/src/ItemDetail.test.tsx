@@ -74,7 +74,8 @@ describe('draft letters', () => {
 
     expect(await subject()).toBe('Following up: Refund for returned jacket')
     expect(body()).toContain('Hello Northwind Outfitters,')
-    expect(body()).toContain('8 day(s) past that date')
+    expect(body()).toContain('8 days past that date')
+    expect(body()).not.toContain('day(s)')
 
     await user.click(screen.getByRole('tab', { name: 'Formal escalation' }))
     await waitFor(async () =>
@@ -141,7 +142,7 @@ describe('snooze', () => {
     expect(status.getByText('14 days in total')).toBeInTheDocument()
     expect(requests.find((r) => r.path.endsWith('/snooze'))?.body).toEqual({ days: 14 })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(await screen.findByText('Follow-ups postponed by 14 day(s)')).toBeInTheDocument()
+    expect(await screen.findByText('Follow-ups postponed by 14 days')).toBeInTheDocument()
     expect(await screen.findByText('Snoozed for 14 days')).toBeInTheDocument()
   })
 

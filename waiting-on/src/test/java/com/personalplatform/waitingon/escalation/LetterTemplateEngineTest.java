@@ -30,7 +30,7 @@ class LetterTemplateEngineTest {
         assertThat(l.subject()).startsWith("Formal complaint:").contains("Water damage claim #8841");
         assertThat(l.body())
                 .contains("Acme Insurance Ltd", "Water damage claim #8841", "GBP 1250", "1 March 2026",
-                        "10 day(s)", "within 14 days", "25 March 2026", "Dana Reyes",
+                        "10 days", "within 14 days", "25 March 2026", "Dana Reyes",
                         "waiting+abc@reply.example.com")
                 .doesNotContain("{{", "}}");
     }
@@ -49,6 +49,24 @@ class LetterTemplateEngineTest {
     })
     void categoryWordingIsSpecific(ItemCategory category, String expectedPhrase) {
         assertThat(engine.draft(Tone.ESCALATION, ctx(category, "Thing")).body()).contains(expectedPhrase);
+    }
+
+    @ParameterizedTest
+    @EnumSource(Tone.class)
+    void dayCountsUseTheSingularForOneAndNeverShowPluralBrackets(Tone tone) {
+        // 1 day overdue, waiting 2 days: singular for the one, plural for the other
+        LetterContext c = new LetterContext("Thing", "Bob", ItemCategory.REFUND, null, null,
+                LocalDate.of(2026, 3, 1), LocalDate.of(2026, 2, 27), LocalDate.of(2026, 3, 2), null, null);
+        String body = engine.draft(tone, c).body();
+        assertThat(body).doesNotContain("(s)", "day(s)", "1 days").contains("1 day");
+    }
+
+    @Test
+    void zeroDaysOverdueReadsAsPlural() {
+        LetterContext c = new LetterContext("Thing", "Bob", ItemCategory.CLAIM, null, null,
+                LocalDate.of(2026, 3, 2), LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 2), null, null);
+        assertThat(engine.draft(Tone.NUDGE, c).body()).contains("0 days past that date")
+                .doesNotContain("day(s)");
     }
 
     @Test
@@ -78,7 +96,7 @@ class LetterTemplateEngineTest {
         LetterContext c = new LetterContext("Thing", "Bob", ItemCategory.OTHER, null, null, LocalDate.of(2026, 3, 1),
                 LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 1), null, null);
         Letter l = engine.draft(Tone.ESCALATION, c);
-        assertThat(l.body()).contains("[Your name]", "[your email address]", "0 day(s) overdue");
+        assertThat(l.body()).contains("[Your name]", "[your email address]", "0 days overdue");
     }
 
     @Test

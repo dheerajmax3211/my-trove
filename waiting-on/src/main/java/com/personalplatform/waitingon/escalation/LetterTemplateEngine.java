@@ -1,5 +1,6 @@
 package com.personalplatform.waitingon.escalation;
 
+import com.personalplatform.waitingon.common.Plurals;
 import com.personalplatform.waitingon.item.ItemCategory;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -32,8 +33,8 @@ public final class LetterTemplateEngine {
     static {
         WORDING.put(ItemCategory.REFUND, new Wording(
                 "I requested a refund{{amountPhrase}} in connection with \"{{title}}\". I expected to receive it by "
-                        + "{{expectedBy}}; as of {{today}} it is {{daysOverdue}} day(s) overdue and I have been waiting "
-                        + "{{daysWaiting}} day(s).",
+                        + "{{expectedBy}}; as of {{today}} it is {{overdueDays}} overdue and I have been waiting "
+                        + "{{waitingDays}}.",
                 "Under consumer protection law (for example, in the UK the Consumer Rights Act 2015 and the Consumer "
                         + "Contracts (Information, Cancellation and Additional Charges) Regulations 2013, and in the EU "
                         + "Directive 2011/83/EU on consumer rights), a consumer who is entitled to a refund must receive "
@@ -45,8 +46,8 @@ public final class LetterTemplateEngine {
                         + "relevant consumer protection authority, and consider a small-claims action."));
         WORDING.put(ItemCategory.CLAIM, new Wording(
                 "I submitted a claim{{amountPhrase}} regarding \"{{title}}\". A decision or payment was expected by "
-                        + "{{expectedBy}}; as of {{today}} that is {{daysOverdue}} day(s) ago and I have been waiting "
-                        + "{{daysWaiting}} day(s).",
+                        + "{{expectedBy}}; as of {{today}} that is {{overdueDays}} ago and I have been waiting "
+                        + "{{waitingDays}}.",
                 "An insurer is required to handle claims promptly, fairly and reasonably and must not unreasonably "
                         + "delay or withhold payment of a valid claim (for example the UK Insurance Act 2015, s.13A, and "
                         + "the FCA ICOBS 8.1 claims-handling rules; unfair claims settlement practices legislation in "
@@ -57,7 +58,7 @@ public final class LetterTemplateEngine {
                         + "Financial Ombudsman Service or the competent insurance regulator or ombudsman."));
         WORDING.put(ItemCategory.REIMBURSEMENT, new Wording(
                 "I submitted an expense reimbursement{{amountPhrase}} for \"{{title}}\", due by {{expectedBy}}. As of "
-                        + "{{today}} it is {{daysOverdue}} day(s) overdue and I have been waiting {{daysWaiting}} day(s).",
+                        + "{{today}} it is {{overdueDays}} overdue and I have been waiting {{waitingDays}}.",
                 "Business expenses properly incurred and submitted under the applicable expenses policy are owed to me "
                         + "under the terms of my agreement with you, and in some jurisdictions unpaid reimbursements can "
                         + "be treated as wages owed (for example, unlawful deductions or late payment provisions in "
@@ -67,8 +68,7 @@ public final class LetterTemplateEngine {
                         + "about the formal remedies available to me."));
         WORDING.put(ItemCategory.APPROVAL, new Wording(
                 "I am waiting for a decision on \"{{title}}\"{{amountPhrase}}, which I expected by {{expectedBy}}. As "
-                        + "of {{today}} it is {{daysOverdue}} day(s) overdue and I have been waiting {{daysWaiting}} "
-                        + "day(s).",
+                        + "of {{today}} it is {{overdueDays}} overdue and I have been waiting {{waitingDays}}.",
                 "Organisations and public bodies are expected to decide applications within any statutory or published "
                         + "service-standard time limit, and otherwise within a reasonable time, and to give reasons. "
                         + "Please confirm which time limit applies to my request.",
@@ -78,7 +78,7 @@ public final class LetterTemplateEngine {
                         + "procedure and, if necessary, refer the matter to the competent ombudsman or regulator."));
         WORDING.put(ItemCategory.DELIVERY, new Wording(
                 "I ordered \"{{title}}\"{{amountPhrase}} for delivery by {{expectedBy}}. As of {{today}} it is "
-                        + "{{daysOverdue}} day(s) late and I have been waiting {{daysWaiting}} day(s).",
+                        + "{{overdueDays}} late and I have been waiting {{waitingDays}}.",
                 "Under consumer protection law (for example the UK Consumer Rights Act 2015, s.28, and Article 18 of "
                         + "EU Directive 2011/83/EU) goods must be delivered within the agreed time, or within 30 days "
                         + "of the order if none was agreed. If they are not, I may set a final deadline and then treat "
@@ -88,7 +88,7 @@ public final class LetterTemplateEngine {
                         + "issuer or payment provider, and report the matter to the consumer protection authority."));
         WORDING.put(ItemCategory.OTHER, new Wording(
                 "I have been waiting since {{createdOn}} for \"{{title}}\"{{amountPhrase}}, which I expected by "
-                        + "{{expectedBy}}. As of {{today}} it is {{daysOverdue}} day(s) overdue.",
+                        + "{{expectedBy}}. As of {{today}} it is {{overdueDays}} overdue.",
                 "I am relying on the commitment you made to me and on my rights under the agreement between us and "
                         + "under applicable law, including the duty to perform obligations within a reasonable time.",
                 "do what you committed to, or confirm in writing exactly when I will receive it",
@@ -110,7 +110,7 @@ public final class LetterTemplateEngine {
                 Hello {{counterparty}},
 
                 I am following up on "{{title}}"{{amountPhrase}}. I was expecting this by {{expectedBy}} and it \
-                is now {{daysOverdue}} day(s) past that date.
+                is now {{overdueDays}} past that date.
 
                 Could you please let me know the current status and when I can expect it to be completed? \
                 If you need anything further from me, just reply to this message and I will send it right away.
@@ -172,8 +172,8 @@ public final class LetterTemplateEngine {
         v.put("expectedBy", DATE.format(c.expectedBy()));
         v.put("createdOn", DATE.format(c.createdOn()));
         v.put("today", DATE.format(c.today()));
-        v.put("daysOverdue", Long.toString(Math.max(0, ChronoUnit.DAYS.between(c.expectedBy(), c.today()))));
-        v.put("daysWaiting", Long.toString(Math.max(0, ChronoUnit.DAYS.between(c.createdOn(), c.today()))));
+        v.put("overdueDays", Plurals.days(Math.max(0, ChronoUnit.DAYS.between(c.expectedBy(), c.today()))));
+        v.put("waitingDays", Plurals.days(Math.max(0, ChronoUnit.DAYS.between(c.createdOn(), c.today()))));
         v.put("amountPhrase", amountPhrase(c.amount(), c.currency()));
         v.put("senderName", c.senderName() == null || c.senderName().isBlank() ? "[Your name]" : c.senderName());
         v.put("replyTo", c.replyTo() == null || c.replyTo().isBlank() ? "[your email address]" : c.replyTo());

@@ -3,7 +3,7 @@
  * status codes, RFC 9457 problem documents and validation rules as ItemController / ItemService,
  * including "another user's item is a 404" and the service's generic 400 for bean-validation failures.
  */
-import { addDays, calendarDaysBetween, parseCalendarDate } from '../lib/dates'
+import { addDays, calendarDaysBetween, parseCalendarDate, pluralDays } from '../lib/dates'
 import type { Clock } from '../lib/clock'
 import {
   ITEM_CATEGORIES,
@@ -355,7 +355,7 @@ export function createMockBackend(options: MockBackendOptions): { fetch: typeof 
         throw GENERIC_VALIDATION
       if (isTerminal(item.status))
         throw new Problem(409, 'Conflict', `Item is already ${item.status}`)
-      record(item, 'SNOOZED', `Follow-ups postponed by ${days} day(s)`, null)
+      record(item, 'SNOOZED', `Follow-ups postponed by ${pluralDays(days)}`, null)
       item.snoozedDays += days
       item.updatedAt = clock().toISOString()
       return json(view(item, true))

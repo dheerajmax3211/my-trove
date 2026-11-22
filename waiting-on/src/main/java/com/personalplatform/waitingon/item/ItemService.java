@@ -1,6 +1,7 @@
 package com.personalplatform.waitingon.item;
 
 import com.personalplatform.sql.UuidV7;
+import com.personalplatform.waitingon.common.Plurals;
 import com.personalplatform.waitingon.escalation.EscalationPlan;
 import com.personalplatform.waitingon.escalation.Letter;
 import com.personalplatform.waitingon.escalation.Tone;
@@ -135,7 +136,7 @@ public class ItemService {
             throw new InvalidStateException("Item is already " + item.status());
         }
         OffsetDateTime now = OffsetDateTime.now(clock);
-        events.append(id, ownerUid, EventType.SNOOZED, "Follow-ups postponed by " + days + " day(s)", null, null, now);
+        events.append(id, ownerUid, EventType.SNOOZED, "Follow-ups postponed by " + Plurals.days(days), null, null, now);
         items.touch(id, now);
         scheduler.snooze(id, days); // failure rolls back the event
         return new ItemDetail(require(ownerUid, id), letters.replyAddress(item), safeState(id));
