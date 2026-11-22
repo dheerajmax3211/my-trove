@@ -1,15 +1,6 @@
 import { useApiMutation } from '@platform/api-client'
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Dialog,
-  DialogClose,
-  useToast,
-} from '@platform/ui'
+import { BentoCard, Button, Dialog, DialogClose, ShieldIcon, useToast } from '@platform/ui'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { ModuleLink } from '@platform/workspace-kit'
 import { ownerPaths } from '../../api/paths'
@@ -18,7 +9,15 @@ import { Callout } from '../../components/Callout'
 import { ErrorNotice } from '../../components/ErrorNotice'
 import { OWNER_KEYS } from '../queries'
 
-export function ArmCard({ state }: { state: StateView }) {
+export function ArmCard({
+  state,
+  className,
+  style,
+}: {
+  state: StateView
+  className?: string
+  style?: CSSProperties
+}) {
   const { toast } = useToast()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const arm = useApiMutation<StateView>({
@@ -42,18 +41,19 @@ export function ArmCard({ state }: { state: StateView }) {
   const released = state.state === 'RELEASED'
 
   return (
-    <Card aria-labelledby="arm-title">
-      <CardHeader>
-        <CardTitle as="h2" id="arm-title">
-          Arm or disarm
-        </CardTitle>
-        <CardDescription>
+    <BentoCard
+      span={5}
+      title="Arm or disarm"
+      icon={<ShieldIcon size={18} />}
+      {...(className ? { className } : {})}
+      {...(style ? { style } : {})}
+    >
+      <div className="stack-3">
+        <p className="small muted" style={{ margin: 0 }}>
           {state.armed
             ? 'The switch is armed: missing a check-in starts the process that can release your vault.'
             : 'While disarmed the switch does nothing. Arm it once your vault, trustees and policy are ready.'}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
         <div className="stack-3">
           {!state.armed && !state.readiness.armable ? (
             <Callout tone="warning" title="Not ready to arm yet">
@@ -107,7 +107,7 @@ export function ArmCard({ state }: { state: StateView }) {
           )}
           {arm.error ? <ErrorNotice error={arm.error} title="Could not arm" /> : null}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </BentoCard>
   )
 }

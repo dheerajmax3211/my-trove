@@ -98,3 +98,19 @@ export function summarize(s: StateView): StatusSummary {
       }
   }
 }
+
+/** How long the stretch the countdown is counting down is, so a ring can show how much of it is left. */
+export function ringTotalSeconds(s: StateView): number | null {
+  const p = s.policy
+  if (!p) return null
+  switch (s.state) {
+    case 'ACTIVE':
+      return s.pausedUntil ? null : p.checkInIntervalSeconds
+    case 'GRACE':
+      return p.graceSeconds
+    case 'RELEASE_PENDING':
+      return p.coolOffSeconds
+    default:
+      return null
+  }
+}

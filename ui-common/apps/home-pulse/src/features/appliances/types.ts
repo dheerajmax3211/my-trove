@@ -90,6 +90,8 @@ export interface ApplianceHealth {
   last24h: Last24h | null
   activeAlerts: AlertDto[]
   service: ServiceInfo
+  /** The readings behind this health come from the built-in simulator. */
+  simulated?: boolean
 }
 
 export const TYPE_LABELS: Record<ApplianceType, string> = {

@@ -1,16 +1,16 @@
 import {
+  AreaChart,
+  BentoCard,
+  BigStat,
   Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
+  cx,
   KeyValueList,
   Skeleton,
-  Stat,
+  type ChartTone,
   type KeyValueItem,
 } from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
-import type { ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { useClock } from '../../../lib/clock'
 import { errorMessage } from '../../../lib/errors'
 import {
@@ -25,7 +25,9 @@ import type { AlertDto } from '../../alerts/types'
 import { useCurrentDraw, useTrend } from '../../readings/hooks'
 import { useHealth } from '../hooks'
 import { TYPE_LABELS, type Appliance, type ApplianceHealth } from '../types'
+import { SimulatedBadge } from '../../simulation/SimulationControls'
 import { HealthStatusBadge } from './HealthStatusBadge'
+import type { Slot } from './slot'
 
 /** "Kitchen fridge draws 14% more power." becomes "Draws 14% more power." so the card does not repeat its own title. */
 function withoutName(headline: string, name: string): string {
@@ -77,8 +79,21 @@ export function dateFacts(service: ApplianceHealth['service'] | Appliance): KeyV
   return items
 }
 
-/** One appliance on the home: status in a sentence, current draw with its 24-hour shape, and the dates that matter. */
-export function ApplianceCard({ appliance }: { appliance: Appliance }) {
+const TREND_TONE: Partial<Record<ApplianceHealth['status'], ChartTone>> = {
+  CRITICAL: 'danger',
+  WARNING: 'brass',
+}
+
+/**
+ * One appliance as a bento card: a huge live wattage, its 24-hour shape drawn as a smooth area, the status as a pill and
+ * the dates that matter underneath. The whole card is the link.
+ */
+export function ApplianceCard({
+  appliance,
+  span = 4,
+  className,
+  style,
+}: { appliance: Appliance; span?: number } & Slot) {
   const clock = useClock()
   const health = useHealth(appliance.id)
   const hasDevice = health.data ? health.data.status !== 'NO_DEVICE' : false
@@ -89,9 +104,24 @@ export function ApplianceCard({ appliance }: { appliance: Appliance }) {
   const acknowledged =
     health.data?.activeAlerts.filter((a) => a.status === 'ACKNOWLEDGED').length ?? 0
 
-  let currentDraw: ReactNode = <Skeleton width="4rem" height="1.5rem" />
+  const points = useMemo(
+    () => (trend.data ?? []).map((watts, i) => ({ label: `${i}`, value: watts })),
+    [trend.data],
+  )
+
+  let currentDraw: ReactNode = <Skeleton width="6rem" height="2.5rem" />
   if (health.data && !hasDevice) currentDraw = <span className="hp-stat-note">No device</span>
-  else if (draw.data) currentDraw = formatWatts(draw.data.watts)
+  else if (draw.data)
+    currentDraw = (
+      <BigStat
+        size="md"
+        value={
+          draw.data.watts < 10 ? Math.round(draw.data.watts * 10) / 10 : Math.round(draw.data.watts)
+        }
+        unit="W"
+        format={{ maximumFractionDigits: draw.data.watts < 10 ? 1 : 0 }}
+      />
+    )
   else if (draw.isSuccess) currentDraw = <span className="hp-stat-note">No recent reading</span>
   else if (draw.isError) currentDraw = <span className="hp-stat-note">Unavailable</span>
 
@@ -127,68 +157,69 @@ export function ApplianceCard({ appliance }: { appliance: Appliance }) {
   ]
 
   return (
-    <Card
-      interactive
-      className="hp-appliance-card"
+    <BentoCard
+      span={span}
+      className={cx('hp-appliance-card', className)}
+      {...(style ? { style } : {})}
       {...(health.data ? { 'data-status': health.data.status } : {})}
+      title={
+        <ModuleLink to={`/appliances/${appliance.id}`} className="hp-stretched-link">
+          {appliance.name}
+        </ModuleLink>
+      }
+      actions={
+        health.data ? (
+          <span className="hp-inline-meta">
+            {health.data.simulated ? <SimulatedBadge /> : null}
+            <HealthStatusBadge status={health.data.status} />
+          </span>
+        ) : null
+      }
     >
-      <CardHeader>
-        <div className="hp-card-title-row">
-          <CardTitle as="h2">
-            <ModuleLink to={`/appliances/${appliance.id}`} className="hp-stretched-link">
-              {appliance.name}
-            </ModuleLink>
-          </CardTitle>
-          {health.data ? <HealthStatusBadge status={health.data.status} /> : null}
+      <p className="hp-muted hp-small hp-card-sub">
+        {TYPE_LABELS[appliance.type]}
+        {appliance.location ? `, ${appliance.location}` : ''}
+      </p>
+      {health.isError ? (
+        <div className="hp-stack-2">
+          <p className="hp-small">{errorMessage(health.error)}</p>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="hp-above-link"
+            onClick={() => void health.refetch()}
+          >
+            Retry
+          </Button>
         </div>
-        <p className="hp-muted hp-small">
-          {TYPE_LABELS[appliance.type]}
-          {appliance.location ? `, ${appliance.location}` : ''}
-        </p>
-      </CardHeader>
-      <CardContent>
-        {health.isError ? (
-          <div className="hp-stack-2">
-            <p className="hp-small">{errorMessage(health.error)}</p>
-            <Button
-              size="sm"
-              variant="secondary"
-              className="hp-above-link"
-              onClick={() => void health.refetch()}
-            >
-              Retry
-            </Button>
+      ) : (
+        <div className="hp-stack-3">
+          <p className="hp-card-status">
+            {health.data ? (
+              statusLine(health.data, health.data.activeAlerts)
+            ) : (
+              <Skeleton width="80%" height="1rem" />
+            )}
+          </p>
+          <div className="hp-draw">
+            <span className="hp-draw-label">Current draw</span>
+            <div className="hp-draw-value">{currentDraw}</div>
+            {points.length > 1 ? (
+              <AreaChart
+                className="hp-draw-chart"
+                label="Average draw per hour, last 24 hours"
+                data={points}
+                height={84}
+                gridLines={1}
+                showAxis={false}
+                tone={TREND_TONE[health.data?.status ?? 'HEALTHY'] ?? 'ink'}
+                format={(v) => formatWatts(v)}
+              />
+            ) : null}
           </div>
-        ) : (
-          <div className="hp-stack-3">
-            <p className="hp-card-status">
-              {health.data ? (
-                statusLine(health.data, health.data.activeAlerts)
-              ) : (
-                <Skeleton width="80%" height="1rem" />
-              )}
-            </p>
-            <Stat
-              className="hp-card-stat"
-              label="Current draw"
-              value={currentDraw}
-              {...(trend.data && trend.data.length > 1
-                ? {
-                    sparkline: trend.data,
-                    sparklineLabel: 'Average draw per hour, last 24 hours',
-                    sparklineTone:
-                      health.data?.status === 'CRITICAL'
-                        ? ('danger' as const)
-                        : health.data?.status === 'WARNING'
-                          ? ('brass' as const)
-                          : ('accent' as const),
-                  }
-                : {})}
-            />
-            <KeyValueList dense divided={false} items={facts} className="hp-card-facts" />
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          <KeyValueList dense divided={false} items={facts} className="hp-card-facts" />
+        </div>
+      )}
+    </BentoCard>
   )
 }

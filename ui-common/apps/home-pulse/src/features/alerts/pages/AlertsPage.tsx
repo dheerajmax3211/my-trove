@@ -6,6 +6,7 @@ import { pluralize } from '../../../lib/format'
 import { useDocumentTitle } from '../../../lib/useDocumentTitle'
 import { useAppliances } from '../../appliances/hooks'
 import { AlertCard } from '../components/AlertCard'
+import { AlertsSummary } from '../components/AlertsSummary'
 import { useAlerts } from '../hooks'
 import { ALERT_FILTERS, type AlertFilter } from '../types'
 
@@ -81,6 +82,7 @@ export function AlertsPage() {
           </Field>
         }
       />
+      <AlertsSummary />
       {applianceId ? (
         <p className="hp-filter-chip">
           Showing alerts for <strong>{applianceName ?? 'one appliance'}</strong>.{' '}
@@ -116,7 +118,7 @@ export function AlertsPage() {
           <p className="hp-muted hp-small" role="status">
             {pluralize(alerts.data.length, 'alert')}
           </p>
-          <ul className="hp-stack-3 hp-plain-list" aria-label="Alerts">
+          <ul className="hp-alert-grid hp-plain-list" aria-label="Alerts">
             {alerts.data.map((alert) => (
               <li key={alert.id}>
                 <AlertCard alert={alert} />

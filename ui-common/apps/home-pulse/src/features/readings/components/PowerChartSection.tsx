@@ -1,16 +1,10 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  EmptyState,
-  Skeleton,
-} from '@platform/ui'
+import { ActivityIcon, BentoCard, EmptyState, Skeleton } from '@platform/ui'
 import { useState, type ReactNode } from 'react'
 import { ErrorState } from '../../../components/ErrorState'
 import { useReadings } from '../hooks'
 import type { RangeKey } from '../types'
+import type { Slot } from '../../appliances/components/slot'
+import { SimulatedBadge } from '../../simulation/SimulationControls'
 import { PowerChart } from './PowerChart'
 import { RangeSelector } from './RangeSelector'
 
@@ -21,7 +15,7 @@ const RANGE_LABELS: Record<RangeKey, string> = {
   month: 'last 30 days',
 }
 
-export interface PowerChartSectionProps {
+export interface PowerChartSectionProps extends Slot {
   applianceId: string
   hasDevice: boolean
   /** Shown as the dashed "learned normal" line. */
@@ -39,6 +33,8 @@ export function PowerChartSection({
   normalWatts,
   noDeviceAction,
   loading = false,
+  className,
+  style,
 }: PowerChartSectionProps) {
   const [range, setRange] = useState<RangeKey>('day')
   const readings = useReadings(applianceId, range, hasDevice)
@@ -93,17 +89,23 @@ export function PowerChartSection({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="hp-section-head">
-          <div>
-            <CardTitle as="h2">Power draw</CardTitle>
-            <CardDescription>Watts reported by the plug, {RANGE_LABELS[range]}.</CardDescription>
-          </div>
-          {hasDevice ? <RangeSelector value={range} onChange={setRange} /> : null}
-        </div>
-      </CardHeader>
-      <CardContent>{body}</CardContent>
-    </Card>
+    <BentoCard
+      span={8}
+      title="Power draw"
+      icon={<ActivityIcon size={18} />}
+      actions={hasDevice ? <RangeSelector value={range} onChange={setRange} /> : null}
+      {...(className ? { className } : {})}
+      {...(style ? { style } : {})}
+    >
+      <p className="hp-muted hp-small hp-inline-meta">
+        <span>
+          {readings.data?.simulated
+            ? `Watts from the simulated plug, ${RANGE_LABELS[range]}.`
+            : `Watts reported by the plug, ${RANGE_LABELS[range]}.`}
+        </span>
+        {readings.data?.simulated ? <SimulatedBadge /> : null}
+      </p>
+      {body}
+    </BentoCard>
   )
 }

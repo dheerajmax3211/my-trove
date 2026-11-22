@@ -103,6 +103,7 @@ export function createMockApi(options: MockApiOptions): MockApi {
     ),
     revokedAt: d.revokedAt,
     active: d.revokedAt === null,
+    simulated: d.simulated === true,
   })
 
   const alertView = (a: StoredAlert): AlertDto => {
@@ -138,7 +139,7 @@ export function createMockApi(options: MockApiOptions): MockApi {
   const baselineFor = (device: StoredDevice): Baseline => {
     const p = device.profile
     const learnedFrom = Math.max(
-      Date.parse(device.createdAt),
+      device.learnFromMs ?? Date.parse(device.createdAt),
       relearnedAt.get(device.applianceId) ?? 0,
     )
     return {
@@ -165,7 +166,7 @@ export function createMockApi(options: MockApiOptions): MockApi {
     const device = activeDevice(a.id)
     const live = liveAlerts(a.id).map(alertView)
     const learnedSince = device
-      ? Math.max(Date.parse(device.createdAt), relearnedAt.get(a.id) ?? 0)
+      ? Math.max(device.learnFromMs ?? Date.parse(device.createdAt), relearnedAt.get(a.id) ?? 0)
       : null
     const ready = learnedSince !== null && now - learnedSince >= LEARN_DAYS * DAY
     const baseline = device && ready ? baselineFor(device) : null
@@ -227,6 +228,7 @@ export function createMockApi(options: MockApiOptions): MockApi {
       last24h,
       activeAlerts: live,
       service,
+      simulated: device?.simulated === true,
     }
   }
 
@@ -262,8 +264,103 @@ export function createMockApi(options: MockApiOptions): MockApi {
       to: new Date(end).toISOString(),
       resolution,
       points,
+      simulated: owned.some((d) => d.simulated === true && d.revokedAt === null),
     }
     return json(body)
+  }
+
+  // ---- simulation --------------------------------------------------------------------------------------
+
+  /** Mirrors `POST /v1/appliances/{id}/simulation`: five-minute readings, a learned baseline, and for ANOMALY a spike. */
+  const simulate = (a: StoredAppliance, raw: unknown): Response => {
+    const body = (raw ?? {}) as { days?: unknown; scenario?: unknown }
+    const days = body.days === undefined ? 7 : body.days
+    if (typeof days !== 'number' || !Number.isInteger(days) || days < 1 || days > 14)
+      throw new BadRequest('days must be between 1 and 14')
+    const scenario = body.scenario === undefined ? 'NORMAL' : body.scenario
+    if (scenario !== 'NORMAL' && scenario !== 'ANOMALY')
+      throw new BadRequest('scenario must be NORMAL or ANOMALY')
+
+    const real = devices.find(
+      (d) => d.applianceId === a.id && d.revokedAt === null && d.simulated !== true,
+    )
+    if (real)
+      throw new Conflict(
+        'This appliance already has a real device; revoke it before using the simulator',
+      )
+
+    const now = nowMs()
+    let device = devices.find((d) => d.applianceId === a.id && d.simulated === true)
+    if (!device) {
+      device = {
+        id: nextId(),
+        applianceId: a.id,
+        label: 'Built-in simulator',
+        token: `hpd_${nextId().replace(/-/g, '')}${nextId().replace(/-/g, '')}`.slice(0, 47),
+        createdAt: nowIso(),
+        revokedAt: null,
+        simulated: true,
+        profile: {
+          seed: counter,
+          ...TYPE_SIGNALS[a.type],
+          dataFrom: now,
+          dataTo: null,
+          outages: [],
+        },
+      }
+      devices.push(device)
+    }
+    device.profile = {
+      ...device.profile,
+      dataFrom: now - days * DAY,
+      ...(scenario === 'ANOMALY' ? { stuckOnSince: now - 3 * 60 * MIN } : {}),
+    }
+    if (scenario === 'NORMAL') delete device.profile.stuckOnSince
+    device.learnFromMs = now - days * DAY
+
+    const ready = days >= LEARN_DAYS
+    let alertOpened = false
+    if (scenario === 'ANOMALY' && ready) {
+      const open = alerts.some(
+        (x) => x.applianceId === a.id && x.kind === 'STUCK_ON' && x.status !== 'RESOLVED',
+      )
+      if (!open) {
+        alerts.push({
+          id: nextId(),
+          applianceId: a.id,
+          kind: 'STUCK_ON',
+          severity: 'CRITICAL',
+          status: 'OPEN',
+          message: 'Has been running non-stop for 3 h; the longest normal run is much shorter.',
+          evidence: {
+            runMinutes: 180,
+            limitMinutes: 60,
+            longestNormalRunMinutes: Math.round(
+              TYPE_SIGNALS[a.type].periodMin * TYPE_SIGNALS[a.type].duty * 1.3,
+            ),
+            since: new Date(now - 3 * 60 * MIN).toISOString(),
+          },
+          openedAt: nowIso(),
+          updatedAt: nowIso(),
+          acknowledgedAt: null,
+          resolvedAt: null,
+          simulated: true,
+        })
+      }
+      alertOpened = true
+    }
+    if (scenario === 'NORMAL')
+      for (const alert of alerts)
+        if (alert.simulated === true && alert.applianceId === a.id && alert.status !== 'RESOLVED') {
+          alert.status = 'RESOLVED'
+          alert.resolvedAt = nowIso()
+          alert.updatedAt = nowIso()
+        }
+    return json({
+      readingsInserted: days * 288,
+      baselineStatus: ready ? 'READY' : 'LEARNING',
+      alertOpened,
+    })
   }
 
   // ---- routing -----------------------------------------------------------------------------------------
@@ -355,6 +452,27 @@ export function createMockApi(options: MockApiOptions): MockApi {
         }
         devices.push(device)
         return json({ device: deviceView(device), ingestionToken: token }, 201)
+      }
+    }
+
+    if ((m = /^\/v1\/appliances\/([^/]+)\/simulation$/.exec(path))) {
+      const a = find(m[1] as string)
+      if (method === 'POST') return simulate(a, readBody(init))
+      if (method === 'DELETE') {
+        const sim = devices.find((d) => d.applianceId === a.id && d.simulated === true)
+        const index = sim ? devices.indexOf(sim) : -1
+        if (index >= 0) devices.splice(index, 1)
+        for (const alert of alerts)
+          if (
+            alert.simulated === true &&
+            alert.applianceId === a.id &&
+            alert.status !== 'RESOLVED'
+          ) {
+            alert.status = 'RESOLVED'
+            alert.resolvedAt = nowIso()
+            alert.updatedAt = nowIso()
+          }
+        return noContent()
       }
     }
 

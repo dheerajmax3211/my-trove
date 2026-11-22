@@ -24,6 +24,10 @@ export interface StoredDevice {
   createdAt: string
   revokedAt: string | null
   profile: SignalProfile
+  /** The built-in simulator. */
+  simulated?: boolean
+  /** Where baseline learning counts from, when it is not the registration time (a simulated history). */
+  learnFromMs?: number
 }
 
 export interface StoredAlert {
@@ -38,4 +42,6 @@ export interface StoredAlert {
   updatedAt: string
   acknowledgedAt: string | null
   resolvedAt: string | null
+  /** Opened by the simulator; removed or closed when the simulation is. */
+  simulated?: boolean
 }

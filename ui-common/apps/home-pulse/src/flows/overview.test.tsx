@@ -10,7 +10,9 @@ describe('home overview', () => {
     const fridge = await applianceCard('Kitchen fridge')
     await within(fridge).findByText('Watch')
     expect(within(fridge).getByText('Fridge, Kitchen')).toBeInTheDocument()
-    expect(await within(fridge).findByText(/^\d+ W$/)).toBeInTheDocument()
+    await waitFor(() =>
+      expect(fridge.querySelector('.hp-draw-value')).toHaveTextContent(/^\d+(\.\d)?\s?W$/),
+    )
     expect(within(fridge).getByText(/Just now|min ago/)).toBeInTheDocument()
     const alerts = within(fridge).getByText('Open alerts').nextElementSibling
     expect(alerts).toHaveTextContent('1')

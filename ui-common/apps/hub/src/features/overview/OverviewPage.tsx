@@ -1,16 +1,22 @@
 import {
   Badge,
+  BentoCard,
+  BentoGrid,
+  BigStat,
   Button,
   Callout,
+  ClockIcon,
   EmptyState,
+  FileIcon,
+  HomeIcon,
   PageHeader,
   Skeleton,
-  Stat,
   Timeline,
+  UsersIcon,
   type TimelineItem,
 } from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
-import { useMemo, type ReactNode } from 'react'
+import { useMemo, type CSSProperties, type ReactNode } from 'react'
 import { AvatarStack, PersonLabel } from '../../components/People'
 import { ErrorState } from '../../components/ErrorState'
 import { scopeName } from '../../components/ScopeSelect'
@@ -38,6 +44,16 @@ const DEFAULT_HEADER = {
 
 const WEEK_MS = 7 * 86_400_000
 
+/** BentoGrid hands its direct children a className and style (the entrance stagger); cards must pass them on. */
+interface Slot {
+  className?: string
+  style?: CSSProperties
+}
+const slot = ({ className, style }: Slot) => ({
+  ...(className ? { className } : {}),
+  ...(style ? { style } : {}),
+})
+
 /** The household the page leads with: one you own, otherwise the oldest you belong to. */
 export function pickPrimary(households: readonly Household[]): Household | undefined {
   const byAge = [...households].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
@@ -58,11 +74,12 @@ function HouseholdPanel({
   household,
   detail,
   step,
+  ...rest
 }: {
   household: Household
   detail: HouseholdDetail | undefined
   step: ReturnType<typeof nextStep> | null
-}) {
+} & Slot) {
   const people = usePeople()
   const members = detail?.members ?? []
   const others = members.filter((m) => !people.isSelf(m.uid))
@@ -73,42 +90,47 @@ function HouseholdPanel({
         ? 'Only you so far.'
         : `You share it with ${joinNames(others.map((m) => people.plainNameOf(m.uid)))}.`
   return (
-    <section className={styles.vault} data-surface="vault" aria-labelledby="household-panel-title">
-      <div className={styles.vaultHead}>
-        <h2 id="household-panel-title" className={styles.vaultTitle}>
-          {household.name}
-        </h2>
+    <BentoCard
+      tone="dark"
+      span={7}
+      title={household.name}
+      icon={<HomeIcon size={18} />}
+      actions={
         <Badge variant={household.role === 'OWNER' ? 'accent' : 'neutral'}>
           {household.role === 'OWNER' ? 'Owner' : 'Member'}
         </Badge>
-      </div>
-      <p className={styles.vaultMeta}>
-        Created {formatDate(household.createdAt)}. {together}
-      </p>
-      {members.length > 0 ? (
-        <ul className={styles.people} aria-label="Members">
-          {members.map((m) => (
-            <li key={m.uid} className={styles.person}>
-              <PersonLabel uid={m.uid} size="md" />
-              <span className={styles.personRole}>{m.role === 'OWNER' ? 'Owner' : 'Member'}</span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      <div className={styles.vaultFoot}>
-        {step ? (
-          <div className={styles.next}>
-            <p className={styles.nextText}>{step.text}</p>
-            <Button asChild>
-              <ModuleLink to={step.to}>{step.label}</ModuleLink>
-            </Button>
-          </div>
+      }
+      {...slot(rest)}
+    >
+      <div className={styles.householdBody}>
+        <p className={styles.vaultMeta}>
+          Created {formatDate(household.createdAt)}. {together}
+        </p>
+        {members.length > 0 ? (
+          <ul className={styles.people} aria-label="Members">
+            {members.map((m) => (
+              <li key={m.uid} className={styles.person}>
+                <PersonLabel uid={m.uid} size="md" />
+                <span className={styles.personRole}>{m.role === 'OWNER' ? 'Owner' : 'Member'}</span>
+              </li>
+            ))}
+          </ul>
         ) : null}
-        <Button variant="secondary" asChild>
-          <ModuleLink to={`/households/${household.id}`}>Open household</ModuleLink>
-        </Button>
+        <div className={styles.vaultFoot}>
+          {step ? (
+            <div className={styles.next}>
+              <p className={styles.nextText}>{step.text}</p>
+              <Button asChild>
+                <ModuleLink to={step.to}>{step.label}</ModuleLink>
+              </Button>
+            </div>
+          ) : null}
+          <Button variant="secondary" asChild>
+            <ModuleLink to={`/households/${household.id}`}>Open household</ModuleLink>
+          </Button>
+        </div>
       </div>
-    </section>
+    </BentoCard>
   )
 }
 
@@ -121,22 +143,23 @@ function ComingUp({
   reminders,
   households,
   loading,
+  ...rest
 }: {
   reminders: readonly Reminder[]
   households: readonly Household[]
   loading: boolean
-}) {
+} & Slot) {
   const { now } = useCoreEnv()
   const nowMs = now()
   const upcoming = [...reminders].sort((a, b) => a.dueAt.localeCompare(b.dueAt)).slice(0, 4)
   return (
-    <section className={styles.panel} aria-labelledby="coming-up-title">
-      <div className={styles.panelHead}>
-        <h2 id="coming-up-title" className={styles.panelTitle}>
-          Coming up
-        </h2>
-        <ModuleLink to="/reminders">All reminders</ModuleLink>
-      </div>
+    <BentoCard
+      span={6}
+      title="Coming up"
+      icon={<ClockIcon size={18} />}
+      actions={<ModuleLink to="/reminders">All reminders</ModuleLink>}
+      {...slot(rest)}
+    >
       {loading ? (
         <Skeleton height={96} />
       ) : upcoming.length === 0 ? (
@@ -167,11 +190,11 @@ function ComingUp({
           })}
         </ul>
       )}
-    </section>
+    </BentoCard>
   )
 }
 
-function Lately({ household }: { household: Household }) {
+function Lately({ household, ...rest }: { household: Household } & Slot) {
   const people = usePeople()
   const audit = useAudit({ householdId: household.id, size: 5 })
   const items: TimelineItem[] = (audit.data?.items ?? []).map((event) => {
@@ -187,13 +210,13 @@ function Lately({ household }: { household: Household }) {
     }
   })
   return (
-    <section className={styles.panel} aria-labelledby="lately-title">
-      <div className={styles.panelHead}>
-        <h2 id="lately-title" className={styles.panelTitle}>
-          Lately in {household.name}
-        </h2>
-        <ModuleLink to={`/activity?household=${household.id}`}>All activity</ModuleLink>
-      </div>
+    <BentoCard
+      span={6}
+      title={`Lately in ${household.name}`}
+      icon={<FileIcon size={18} />}
+      actions={<ModuleLink to={`/activity?household=${household.id}`}>All activity</ModuleLink>}
+      {...slot(rest)}
+    >
       {audit.isPending ? (
         <Skeleton height={96} />
       ) : audit.isError ? (
@@ -203,7 +226,61 @@ function Lately({ household }: { household: Household }) {
       ) : (
         <Timeline items={items} compact label={`Recent activity in ${household.name}`} />
       )}
-    </section>
+    </BentoCard>
+  )
+}
+
+function StatCard({
+  title,
+  icon,
+  value,
+  unit,
+  hint,
+  span = 4,
+  tone = 'light',
+  ...rest
+}: {
+  title: string
+  icon: ReactNode
+  value: number
+  unit: string
+  hint: string
+  span?: number
+  tone?: 'light' | 'lilac' | 'lime'
+} & Slot) {
+  return (
+    <BentoCard span={span} tone={tone} title={title} icon={icon} {...slot(rest)}>
+      <BigStat value={value} unit={unit} caption={hint} />
+    </BentoCard>
+  )
+}
+
+function OtherHouseholds({
+  others,
+  detailOf,
+  ...rest
+}: {
+  others: readonly Household[]
+  detailOf: (id: string) => HouseholdDetail | undefined
+} & Slot) {
+  return (
+    <BentoCard
+      span={4}
+      title="Your other households"
+      icon={<UsersIcon size={18} />}
+      {...slot(rest)}
+    >
+      <ul className={styles.others}>
+        {others.map((h) => (
+          <li key={h.id}>
+            <ModuleLink to={`/households/${h.id}`} className={styles.otherLink}>
+              <span>{h.name}</span>
+              <AvatarStack uids={detailOf(h.id)?.members.map((m) => m.uid) ?? []} />
+            </ModuleLink>
+          </li>
+        ))}
+      </ul>
+    </BentoCard>
   )
 }
 
@@ -304,8 +381,6 @@ export function OverviewPage({
         }
       />
       <div className={styles.page}>
-        <HouseholdPanel household={primary} detail={primaryDetail} step={step} />
-
         {overdue.length > 0 ? (
           <Callout
             variant="warning"
@@ -328,46 +403,37 @@ export function OverviewPage({
           </Callout>
         ) : null}
 
-        <section className={styles.stats} aria-label="At a glance">
-          <Stat
-            label="People you share with"
-            value={String(peopleCount)}
-            hint={list.length > 1 ? `across ${list.length} households` : 'besides you'}
-          />
-          <Stat
-            label="Reminders due this week"
-            value={String(dueThisWeek.length)}
+        <BentoGrid>
+          <HouseholdPanel household={primary} detail={primaryDetail} step={step} />
+          <StatCard
+            span={5}
+            tone={overdue.length > 0 ? 'lilac' : 'light'}
+            title="Reminders due this week"
+            icon={<ClockIcon size={18} />}
+            value={dueThisWeek.length}
+            unit={dueThisWeek.length === 1 ? 'reminder' : 'reminders'}
             hint={overdue.length > 0 ? `${overdue.length} overdue` : 'none overdue'}
           />
-          <Stat
-            label="Files shared"
-            value={String(sharedFiles.length)}
+          <StatCard
+            span={others.length > 0 ? 4 : 6}
+            title="People you share with"
+            icon={<UsersIcon size={18} />}
+            value={peopleCount}
+            unit={peopleCount === 1 ? 'person' : 'people'}
+            hint={list.length > 1 ? `across ${list.length} households` : 'besides you'}
+          />
+          <StatCard
+            span={others.length > 0 ? 4 : 6}
+            title="Files shared"
+            icon={<FileIcon size={18} />}
+            value={sharedFiles.length}
+            unit={sharedFiles.length === 1 ? 'file' : 'files'}
             hint={sharedFiles.length === 1 ? 'saved to a household' : 'saved to households'}
           />
-        </section>
-
-        <div className={styles.columns}>
+          {others.length > 0 ? <OtherHouseholds others={others} detailOf={detailOf} /> : null}
           <ComingUp reminders={allReminders} households={list} loading={reminders.isPending} />
           <Lately household={primary} />
-        </div>
-
-        {others.length > 0 ? (
-          <section className={styles.panel} aria-labelledby="others-title">
-            <h2 id="others-title" className={styles.panelTitle}>
-              Your other households
-            </h2>
-            <ul className={styles.others}>
-              {others.map((h) => (
-                <li key={h.id}>
-                  <ModuleLink to={`/households/${h.id}`} className={styles.otherLink}>
-                    <span>{h.name}</span>
-                    <AvatarStack uids={detailOf(h.id)?.members.map((m) => m.uid) ?? []} />
-                  </ModuleLink>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
+        </BentoGrid>
         {footer}
       </div>
     </>

@@ -331,63 +331,10 @@ span:has(> .ft-inline-select) {
 
 /* ---- dashboard: the pool on the vault surface ---- */
 
-.ft-hero {
-  position: relative;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--pp-space-6) var(--pp-space-10);
-  align-items: end;
-  padding: var(--pp-space-10);
-  border-radius: var(--pp-radius-xl);
-  border: 1px solid var(--pp-color-vault-border);
-  box-shadow:
-    inset 0 1px 0 var(--pp-color-highlight),
-    var(--pp-shadow-md);
-  --pp-text-stat-size: clamp(2.75rem, 9vw, 4.75rem);
-  --pp-text-stat-line: 1.04;
-  /* the semantic text colours are tuned for paper; on the vault the change reads in the vault's own tones */
-  --pp-color-success-text: var(--pp-color-vault-accent);
-  --pp-color-danger-text: color-mix(in srgb, var(--pp-color-danger) 45%, white);
-}
-.ft-hero-rings {
-  position: absolute;
-  z-index: 0;
-  inset-inline-end: -9rem;
-  top: 50%;
-  width: 30rem;
-  height: auto;
-  aspect-ratio: 1;
-  transform: translateY(-50%);
-  color: var(--pp-color-vault-border-strong);
-  opacity: 0.4;
-  pointer-events: none;
-}
-.ft-hero-body,
-.ft-hero-actions {
-  position: relative;
-  z-index: 1;
-  min-width: 0;
-}
-.ft-hero-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pp-space-4);
-}
-.ft-hero-line {
-  max-width: 100%;
-  height: auto;
-}
 .ft-hero-note {
   margin: 0;
   max-width: 34rem;
-  color: var(--pp-color-text-muted);
-}
-.ft-hero-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--pp-space-3);
+  color: rgb(255 255 255 / 0.72);
 }
 .ft-quick {
   display: flex;
@@ -395,35 +342,12 @@ span:has(> .ft-inline-select) {
   justify-content: center;
 }
 .ft-quick a {
-  color: var(--pp-color-text);
+  color: inherit;
   text-underline-offset: 3px;
 }
 
 /* ---- approvals: the action area ---- */
 
-.ft-attention {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pp-space-3);
-  padding: var(--pp-space-5);
-  border-radius: var(--pp-radius-lg);
-  border: 1px solid var(--pp-color-warning);
-  border-inline-start-width: 6px;
-  background: var(--pp-color-warning-subtle);
-}
-.ft-attention .ft-muted {
-  margin: 0;
-  color: var(--pp-color-text);
-}
-.ft-attention-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--pp-space-3);
-}
-.ft-attention-head .ft-h2 {
-  margin: 0;
-}
 .ft-approval-card {
   border-top: 3px solid var(--pp-color-brass);
 }
@@ -499,10 +423,6 @@ span:has(> .ft-inline-select) {
 .ft-panel > * {
   margin: 0;
 }
-.ft-calm {
-  box-shadow: none;
-  background: transparent;
-}
 .ft-section-head {
   display: flex;
   flex-wrap: wrap;
@@ -513,52 +433,6 @@ span:has(> .ft-inline-select) {
 .ft-section-head .ft-h2,
 .ft-section-head p {
   margin: 0;
-}
-.ft-pots {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
-  gap: var(--pp-space-4);
-}
-.ft-pot {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pp-space-3);
-  padding: var(--pp-space-4);
-  border-radius: var(--pp-radius-lg);
-  border: 1px solid var(--pp-color-border);
-  background: var(--pp-color-surface);
-  box-shadow:
-    inset 0 1px 0 var(--pp-color-highlight),
-    var(--pp-shadow-xs);
-}
-.ft-pot-who {
-  display: flex;
-  align-items: center;
-  gap: var(--pp-space-3);
-}
-.ft-pot-name {
-  margin: 0 0 var(--pp-space-1);
-  font-weight: var(--pp-weight-semibold);
-  overflow-wrap: anywhere;
-}
-.ft-pot-balance {
-  margin: 0;
-  font-family: var(--pp-font-display);
-  font-size: var(--pp-text-h2-size);
-  line-height: var(--pp-text-h2-line);
-  letter-spacing: -0.015em;
-}
-.ft-share {
-  block-size: 6px;
-  border-radius: var(--pp-radius-full);
-  background: var(--pp-color-surface-sunken);
-  overflow: hidden;
-}
-.ft-share span {
-  display: block;
-  block-size: 100%;
-  border-radius: var(--pp-radius-full);
-  background: var(--pp-color-accent);
 }
 .ft-line {
   display: flex;
@@ -668,13 +542,6 @@ span:has(> .ft-inline-select) {
   }
 }
 @media (max-width: 719.98px) {
-  .ft-hero {
-    grid-template-columns: minmax(0, 1fr);
-    padding: var(--pp-space-5);
-  }
-  .ft-hero-rings {
-    display: none;
-  }
   .ft-approval {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -683,10 +550,59 @@ span:has(> .ft-inline-select) {
     align-items: center;
     flex-wrap: wrap;
   }
-  .ft-attention {
-    padding: var(--pp-space-4);
-  }
-  .ft-pots {
-    grid-template-columns: minmax(0, 1fr);
-  }
+}
+
+/* ---- bento dashboard ---- */
+
+.ft-promo-note {
+  margin: 0;
+  padding: var(--pp-space-3) var(--pp-space-2);
+  font-size: var(--pp-text-caption-size);
+  color: rgb(255 255 255 / 0.7);
+}
+.ft-pot-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-5);
+  align-items: flex-start;
+}
+.ft-pot-body > * {
+  inline-size: 100%;
+}
+.ft-pot-body > a,
+.ft-pot-body > button {
+  inline-size: auto;
+}
+.ft-approval-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  gap: var(--pp-space-4);
+}
+.ft-approval-grid > li {
+  min-width: 0;
+  display: flex;
+}
+.ft-approval-grid > li > * {
+  flex: 1;
+}
+.ft-approval-card {
+  border: 0;
+  border-radius: var(--pp-radius-lg);
+  background: var(--pp-color-surface-sunken);
+  box-shadow: none;
+}
+.ft-hero-chart {
+  margin-block: var(--pp-space-4);
+}
+.ft-approval-grid .ft-approval {
+  grid-template-columns: minmax(0, 1fr);
+}
+.ft-approval-grid .ft-approval-amount {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--pp-space-3);
+}
+.ft-approval-grid .ft-approval-facts {
+  max-width: none;
 }

@@ -1,10 +1,11 @@
-import { Badge, Card, CardContent, CardHeader, CardTitle, KeyValueList } from '@platform/ui'
+import { Badge, BentoCard, KeyValueList, ShieldIcon } from '@platform/ui'
 import { formatDate, formatDaysUntil } from '../../../lib/format'
 import { ReminderItem } from '../../reminders/components/ReminderItem'
 import type { Reminder } from '../../reminders/types'
 import type { Appliance, ApplianceHealth } from '../types'
+import type { Slot } from './slot'
 
-export interface ServicePanelProps {
+export interface ServicePanelProps extends Slot {
   appliance: Appliance
   service: ApplianceHealth['service'] | null
   reminders: readonly Reminder[]
@@ -17,7 +18,13 @@ function WarrantyBadge({ service }: { service: ApplianceHealth['service'] }) {
   return <Badge variant={days <= 30 ? 'warning' : 'success'}>Under warranty</Badge>
 }
 
-export function ServicePanel({ appliance, service, reminders }: ServicePanelProps) {
+export function ServicePanel({
+  appliance,
+  service,
+  reminders,
+  className,
+  style,
+}: ServicePanelProps) {
   const info: ApplianceHealth['service'] = service ?? {
     underWarranty: appliance.underWarranty,
     warrantyEndDate: appliance.warrantyEndDate,
@@ -27,71 +34,72 @@ export function ServicePanel({ appliance, service, reminders }: ServicePanelProp
     serviceOverdue: appliance.serviceOverdue,
   }
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle as="h2">Warranty and service</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="hp-stack-4">
-          <KeyValueList
-            className="hp-service-list"
-            dense
-            layout="stacked"
-            items={[
-              {
-                id: 'warranty',
-                label: 'Warranty',
-                value: (
-                  <>
-                    <WarrantyBadge service={info} />
-                    {info.warrantyEndDate ? (
-                      <span className="hp-small">
-                        {' '}
-                        ends {formatDate(info.warrantyEndDate)}
-                        {info.underWarranty && info.daysToWarrantyEnd !== null
-                          ? ` (${formatDaysUntil(info.daysToWarrantyEnd)})`
-                          : ''}
-                      </span>
-                    ) : null}
-                  </>
-                ),
-              },
-              { id: 'purchased', label: 'Purchased', value: formatDate(appliance.purchaseDate) },
-              { id: 'last', label: 'Last serviced', value: formatDate(info.lastServiceDate) },
-              {
-                id: 'next',
-                label: 'Next service',
-                value: (
-                  <>
-                    {formatDate(info.nextServiceDate)}
-                    {info.serviceOverdue ? (
-                      <>
-                        {' '}
-                        <Badge variant="warning">Overdue</Badge>
-                      </>
-                    ) : null}
-                  </>
-                ),
-              },
-            ]}
-          />
-          {appliance.notes ? <p className="hp-small hp-notes">{appliance.notes}</p> : null}
-          <div className="hp-stack-2">
-            <h3 className="hp-subheading">Upcoming reminders</h3>
-            {reminders.length === 0 ? (
-              <p className="hp-muted hp-small">Nothing due in the next 60 days.</p>
-            ) : (
-              <ul className="hp-stack-3 hp-plain-list">
-                {reminders.map((r) => (
-                  <li key={r.type}>
-                    <ReminderItem reminder={r} showAppliance={false} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+    <BentoCard
+      span={5}
+      title="Warranty and service"
+      icon={<ShieldIcon size={18} />}
+      {...(className ? { className } : {})}
+      {...(style ? { style } : {})}
+    >
+      <div className="hp-stack-4">
+        <KeyValueList
+          className="hp-service-list"
+          dense
+          layout="stacked"
+          items={[
+            {
+              id: 'warranty',
+              label: 'Warranty',
+              value: (
+                <>
+                  <WarrantyBadge service={info} />
+                  {info.warrantyEndDate ? (
+                    <span className="hp-small">
+                      {' '}
+                      ends {formatDate(info.warrantyEndDate)}
+                      {info.underWarranty && info.daysToWarrantyEnd !== null
+                        ? ` (${formatDaysUntil(info.daysToWarrantyEnd)})`
+                        : ''}
+                    </span>
+                  ) : null}
+                </>
+              ),
+            },
+            { id: 'purchased', label: 'Purchased', value: formatDate(appliance.purchaseDate) },
+            { id: 'last', label: 'Last serviced', value: formatDate(info.lastServiceDate) },
+            {
+              id: 'next',
+              label: 'Next service',
+              value: (
+                <>
+                  {formatDate(info.nextServiceDate)}
+                  {info.serviceOverdue ? (
+                    <>
+                      {' '}
+                      <Badge variant="warning">Overdue</Badge>
+                    </>
+                  ) : null}
+                </>
+              ),
+            },
+          ]}
+        />
+        {appliance.notes ? <p className="hp-small hp-notes">{appliance.notes}</p> : null}
+        <div className="hp-stack-2">
+          <h3 className="hp-subheading">Upcoming reminders</h3>
+          {reminders.length === 0 ? (
+            <p className="hp-muted hp-small">Nothing due in the next 60 days.</p>
+          ) : (
+            <ul className="hp-stack-3 hp-plain-list">
+              {reminders.map((r) => (
+                <li key={r.type}>
+                  <ReminderItem reminder={r} showAppliance={false} />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </BentoCard>
   )
 }

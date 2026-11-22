@@ -1,5 +1,14 @@
-import { Button, Illustration, Stepper } from '@platform/ui'
+import {
+  BentoCard,
+  BentoGrid,
+  Button,
+  HourglassIcon,
+  Illustration,
+  LockIcon,
+  Stepper,
+} from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
+import type { CSSProperties } from 'react'
 
 const STEPS = [
   {
@@ -22,16 +31,26 @@ const STEPS = [
   },
 ]
 
-/** Shown before there is a vault: what this product is, in plain words, and what is locked where. */
-export function FirstRun() {
+interface Slot {
+  className?: string
+  style?: CSSProperties
+}
+const slot = ({ className, style }: Slot) => ({
+  ...(className ? { className } : {}),
+  ...(style ? { style } : {}),
+})
+
+function Welcome(props: Slot) {
   return (
-    <div className="page-stack">
-      <section
-        className="switch-hero pp-grain first-run-hero"
-        data-surface="vault"
-        aria-labelledby="first-run-title"
-      >
-        <div className="switch-hero-body">
+    <BentoCard
+      tone="dark"
+      span={12}
+      title="Digital Legacy"
+      icon={<LockIcon size={18} />}
+      {...slot(props)}
+    >
+      <div className="switch-hero-grid first-run-hero-grid">
+        <div className="switch-hero-body dl-hero-copy">
           <h1 id="first-run-title" className="switch-hero-title">
             You have no vault yet
           </h1>
@@ -50,50 +69,68 @@ export function FirstRun() {
           </p>
         </div>
         <div className="first-run-art" aria-hidden="true">
-          <Illustration name="locked" size={260} />
+          <Illustration name="locked" size={240} />
         </div>
-      </section>
+      </div>
+    </BentoCard>
+  )
+}
 
-      <section className="ladder" aria-labelledby="how-title">
-        <h2 className="section-title" id="how-title">
-          How it works
-        </h2>
-        <Stepper
-          label="How Digital Legacy works"
-          orientation="vertical"
-          current={0}
-          steps={STEPS}
-          className="how-steps"
-        />
-      </section>
+function HowItWorks(props: Slot) {
+  return (
+    <BentoCard span={7} title="How it works" icon={<HourglassIcon size={18} />} {...slot(props)}>
+      <Stepper
+        label="How Digital Legacy works"
+        orientation="vertical"
+        current={0}
+        steps={STEPS}
+        className="how-steps"
+      />
+    </BentoCard>
+  )
+}
 
-      <section className="split" aria-labelledby="where-title">
-        <h2 className="section-title" id="where-title">
-          What is locked, and where
-        </h2>
-        <div className="split-columns">
-          <div className="stack-2">
-            <h3 className="split-heading">Stays on your device</h3>
-            <ul className="plain-list">
-              <li>Everything you write in the vault</li>
-              <li>The key that locks it, held only in memory while you work</li>
-              <li>The passphrase that protects your key file</li>
-            </ul>
-          </div>
-          <div className="stack-2">
-            <h3 className="split-heading">What the server holds</h3>
-            <ul className="plain-list">
-              <li>The vault as scrambled ciphertext it cannot read</li>
-              <li>Each trustee&apos;s piece of the key, sealed so only that trustee can open it</li>
-              <li>Who your trustees are, and when you check in</li>
-            </ul>
-          </div>
+function WhatIsLocked(props: Slot) {
+  return (
+    <BentoCard
+      span={5}
+      title="What is locked, and where"
+      icon={<LockIcon size={18} />}
+      {...slot(props)}
+    >
+      <div className="stack-3">
+        <div className="stack-2">
+          <h3 className="split-heading">Stays on your device</h3>
+          <ul className="plain-list">
+            <li>Everything you write in the vault</li>
+            <li>The key that locks it, held only in memory while you work</li>
+            <li>The passphrase that protects your key file</li>
+          </ul>
         </div>
-        <p className="small muted">
+        <div className="stack-2">
+          <h3 className="split-heading">What the server holds</h3>
+          <ul className="plain-list">
+            <li>The vault as scrambled ciphertext it cannot read</li>
+            <li>Each trustee&apos;s piece of the key, sealed so only that trustee can open it</li>
+            <li>Who your trustees are, and when you check in</li>
+          </ul>
+        </div>
+        <p className="small muted" style={{ margin: 0 }}>
           If you lose your key file and forget its passphrase, nobody can recover it for you. You
           will be asked to save a backup before the vault is created.
         </p>
-      </section>
-    </div>
+      </div>
+    </BentoCard>
+  )
+}
+
+/** Shown before there is a vault: what this product is, in plain words, and what is locked where. */
+export function FirstRun() {
+  return (
+    <BentoGrid>
+      <Welcome />
+      <HowItWorks />
+      <WhatIsLocked />
+    </BentoGrid>
   )
 }

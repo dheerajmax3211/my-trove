@@ -1,15 +1,16 @@
 import { isApiError } from '@platform/api-client'
+import type { CSSProperties } from 'react'
 import {
   Badge,
+  BentoCard,
+  BentoGrid,
+  BigStat,
   Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  ClockIcon,
   EmptyState,
   Illustration,
   PageHeader,
+  ShieldIcon,
   Timeline,
   type TimelineTone,
 } from '@platform/ui'
@@ -31,22 +32,23 @@ function toneOf(eventType: string): TimelineTone {
   return 'neutral'
 }
 
-function VerifyCard() {
+function VerifyCard({ className, style }: { className?: string; style?: CSSProperties }) {
   const api = useOwnerApi()
   const verify = useMutation<ChainView, Error>({ mutationFn: () => api.verifyAudit() })
   const result = verify.data
   return (
-    <Card aria-labelledby="verify-title">
-      <CardHeader>
-        <CardTitle as="h2" id="verify-title">
-          Verify the audit trail
-        </CardTitle>
-        <CardDescription>
+    <BentoCard
+      span={8}
+      title="Verify the audit trail"
+      icon={<ShieldIcon size={18} />}
+      {...(className ? { className } : {})}
+      {...(style ? { style } : {})}
+    >
+      <div className="stack-3">
+        <p className="small muted" style={{ margin: 0 }}>
           Every event is chained to the one before it with a SHA-256 hash. If anyone edits or
           deletes history, the chain breaks. Verifying asks the server to recompute it.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
         <div className="stack-3">
           <div>
             <Button variant="secondary" loading={verify.isPending} onClick={() => verify.mutate()}>
@@ -82,8 +84,37 @@ function VerifyCard() {
             </Callout>
           ) : null}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </BentoCard>
+  )
+}
+
+function CountCard({
+  count,
+  latest,
+  className,
+  style,
+}: {
+  count: number
+  latest: string | null
+  className?: string
+  style?: CSSProperties
+}) {
+  return (
+    <BentoCard
+      tone="dark"
+      span={4}
+      title="Events on record"
+      icon={<ClockIcon size={18} />}
+      {...(className ? { className } : {})}
+      {...(style ? { style } : {})}
+    >
+      <BigStat
+        value={count}
+        unit={count === 1 ? 'event' : 'events'}
+        caption={latest ? `Latest: ${latest}` : 'The trail starts when you create your vault.'}
+      />
+    </BentoCard>
   )
 }
 
@@ -102,19 +133,18 @@ export function TimelinePage() {
     return <ErrorNotice error={timeline.error} onRetry={() => void timeline.refetch()} />
   }
   return (
-    <div className="page-stack">
+    <>
       <PageHeader
         title="Timeline"
         description="Everything that has happened to your vault, newest first. Nobody can change this record without it showing."
       />
-      <VerifyCard />
-      <Card aria-labelledby="events-title">
-        <CardHeader>
-          <CardTitle as="h2" id="events-title">
-            Events
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <BentoGrid>
+        <CountCard
+          count={timeline.data.length}
+          latest={timeline.data[0] ? formatDateTime(timeline.data[0].at) : null}
+        />
+        <VerifyCard />
+        <BentoCard span={12} title="Events" icon={<ClockIcon size={18} />} className="dl-events">
           {timeline.data.length === 0 ? (
             <EmptyState headingAs="h3" title="No events yet" />
           ) : (
@@ -134,8 +164,8 @@ export function TimelinePage() {
               })}
             />
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </BentoCard>
+      </BentoGrid>
+    </>
   )
 }

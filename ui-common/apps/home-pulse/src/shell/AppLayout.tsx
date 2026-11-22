@@ -1,11 +1,11 @@
 import { useAuth } from '@platform/auth-web'
 import {
-  AppShell,
-  Avatar,
+  AppFrame,
   Badge,
   Button,
   ProductMark,
   Select,
+  SidebarCount,
   SidebarLink,
   SidebarNav,
   SidebarSection,
@@ -45,10 +45,10 @@ function AlertCount() {
   const count = alerts.data?.length ?? 0
   if (count === 0) return null
   return (
-    <Badge variant="danger" className="hp-nav-count">
+    <SidebarCount>
       {count}
       <span className="hp-sr-only"> open</span>
-    </Badge>
+    </SidebarCount>
   )
 }
 
@@ -72,13 +72,31 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const who = user?.displayName ?? user?.email ?? 'You'
   useFocusMainOnNavigate()
 
+  const alerts = useAlerts('OPEN')
+
   return (
-    <AppShell
+    <AppFrame
       brand={
         <span className="hp-brand">
           <ProductMark product="home-pulse" variant="solid" size={28} />
           Home Pulse
         </span>
+      }
+      user={{ name: who, ...(user?.email ? { email: user.email } : {}) }}
+      search={false}
+      notifications={alerts.data?.length ?? 0}
+      headerEnd={
+        <>
+          {mode === 'demo' ? (
+            <Badge variant="warning" className="hp-hide-xs">
+              Demo data
+            </Badge>
+          ) : null}
+          <ThemeSelect />
+          <Button size="sm" variant="secondary" onClick={() => void signOut()}>
+            Sign out
+          </Button>
+        </>
       }
       sidebar={
         <SidebarNav label="Primary">
@@ -99,25 +117,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </SidebarSection>
         </SidebarNav>
       }
-      topbar={
-        <>
-          {mode === 'demo' ? (
-            <Badge variant="warning" className="hp-hide-xs">
-              Demo data
-            </Badge>
-          ) : null}
-          <ThemeSelect />
-          <div className="hp-user-chip hp-hide-sm">
-            <Avatar name={who} size="xs" decorative />
-            <span>{user?.email}</span>
-          </div>
-          <Button size="sm" variant="secondary" onClick={() => void signOut()}>
-            Sign out
-          </Button>
-        </>
-      }
     >
       {children}
-    </AppShell>
+    </AppFrame>
   )
 }

@@ -41,22 +41,19 @@ describe('dashboard', () => {
     expect(within(hero).getByRole('link', { name: 'Move money' })).toBeInTheDocument()
 
     const approvals = await screen.findByRole('region', { name: 'Waiting for approval' })
-    expect(within(approvals).getByText('1 request')).toBeInTheDocument()
+    expect(await within(approvals).findByText('1 request')).toBeInTheDocument()
     expect(
-      within(approvals).getByRole('heading', { name: 'Winter coats for the kids' }),
+      await within(approvals).findByRole('heading', { name: 'Winter coats for the kids' }),
     ).toBeInTheDocument()
 
-    const pots = screen
-      .getByRole('heading', { name: 'Member pots' })
-      .closest('section') as HTMLElement
     for (const [name, balance] of [
       ['Maya Okafor', '$66.66'],
       ['Dev Okafor', '$0.00'],
       ['Sam Okafor', '$51.67'],
       ['Ada Okafor', '$26.67'],
     ] as const) {
-      const card = within(pots).getByText(name, { exact: false }).closest('li')!
-      expect(within(card).getByText(balance)).toBeInTheDocument()
+      const card = await screen.findByRole('region', { name })
+      expect(within(card).getAllByText(balance, { exact: false }).length).toBeGreaterThan(0)
     }
 
     expect(await screen.findByRole('heading', { name: 'Upcoming allowances' })).toBeInTheDocument()

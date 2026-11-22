@@ -1,19 +1,21 @@
 .days {
   display: flex;
   flex-direction: column;
-  gap: var(--pp-space-8);
+  gap: var(--pp-space-5);
 }
 
 .day {
   display: flex;
   flex-direction: column;
   gap: var(--pp-space-3);
+  padding: var(--pp-space-6);
+  border-radius: 28px;
+  background: var(--pp-color-surface);
+  box-shadow: var(--pp-shadow-xs);
 }
 
 .dayTitle {
   margin: 0;
-  padding-bottom: var(--pp-space-2);
-  border-bottom: 1px solid var(--pp-color-border-strong);
   font-family: var(--pp-font-display);
   font-weight: 400;
   font-size: var(--pp-text-h2-size);

@@ -1,13 +1,4 @@
-import {
-  Button,
-  Callout,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Stat,
-  type CalloutVariant,
-} from '@platform/ui'
+import { BentoCard, BigStat, Button, ChartIcon, HeartIcon } from '@platform/ui'
 import {
   formatDate,
   formatDuration,
@@ -17,6 +8,7 @@ import {
 } from '../../../lib/format'
 import type { ApplianceHealth } from '../types'
 import { HealthStatusBadge } from './HealthStatusBadge'
+import type { Slot } from './slot'
 
 const STATUS_COPY: Record<ApplianceHealth['status'], string> = {
   HEALTHY: 'Its power draw matches what we learned as normal.',
@@ -27,14 +19,6 @@ const STATUS_COPY: Record<ApplianceHealth['status'], string> = {
   NO_DEVICE: 'No device is connected, so there is nothing to learn from yet.',
 }
 
-const STATUS_TONE: Record<ApplianceHealth['status'], CalloutVariant> = {
-  HEALTHY: 'success',
-  WARNING: 'warning',
-  CRITICAL: 'danger',
-  LEARNING: 'info',
-  NO_DEVICE: 'note',
-}
-
 /** `+14%`, `-3%`, or null when there is nothing sensible to compare. */
 export function changePct(normal: number, now: number | null): string | null {
   if (now === null || normal === 0) return null
@@ -43,15 +27,13 @@ export function changePct(normal: number, now: number | null): string | null {
   return `${rounded > 0 ? '+' : ''}${rounded}%`
 }
 
-export interface HealthSummaryProps {
+export interface HealthSummaryProps extends Slot {
   health: ApplianceHealth
   onRelearn: () => void
 }
 
-/** Learned baseline against the last 24 hours, with the numbers a person can act on. */
-export function HealthSummary({ health, onRelearn }: HealthSummaryProps) {
-  const { baseline, last24h } = health
-  const rows = baseline
+function baselineRows(baseline: ApplianceHealth['baseline'], last24h: ApplianceHealth['last24h']) {
+  return baseline
     ? [
         {
           measure: 'Peak draw',
@@ -86,72 +68,99 @@ export function HealthSummary({ health, onRelearn }: HealthSummaryProps) {
         },
       ]
     : []
+}
+
+/** Learned baseline against the last 24 hours, with the numbers a person can act on. */
+export function BaselineCard({ health, className, style }: { health: ApplianceHealth } & Slot) {
+  const { baseline, last24h } = health
+  const rows = baselineRows(baseline, last24h)
+  if (!baseline) return null
+  return (
+    <BentoCard
+      span={7}
+      title="Normal compared with now"
+      icon={<ChartIcon size={18} />}
+      {...(className ? { className } : {})}
+      {...(style ? { style } : {})}
+    >
+      <div className="hp-stack-4">
+        {baseline ? (
+          <table className="hp-compare-table">
+            <caption>Baseline compared with the last 24 hours</caption>
+            <thead>
+              <tr>
+                <th scope="col">Measure</th>
+                <th scope="col">Normal</th>
+                <th scope="col">Last 24 h</th>
+                <th scope="col">Change</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.measure}>
+                  <th scope="row">{row.measure}</th>
+                  <td>{row.normal}</td>
+                  <td>{row.now ?? <span className="hp-muted">Not measured</span>}</td>
+                  <td>{row.change ?? <span className="hp-muted">-</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : null}
+        {baseline ? (
+          <p className="hp-muted hp-small">
+            Learned from {baseline.windowsUsed} six-hour windows ending{' '}
+            {formatDate(baseline.learnedTo.slice(0, 10))}. Normal is the middle value, so the odd
+            door-open or power cut does not skew it.
+          </p>
+        ) : null}
+      </div>
+    </BentoCard>
+  )
+}
+
+export function HealthSummary({ health, onRelearn, className, style }: HealthSummaryProps) {
+  const { last24h } = health
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="hp-section-head">
-          <CardTitle as="h2">Health</CardTitle>
-          <HealthStatusBadge status={health.status} />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="hp-stack-4">
-          <Callout variant={STATUS_TONE[health.status]} role="note">
-            {STATUS_COPY[health.status]}
-          </Callout>
-          {last24h ? (
-            <div className="hp-stat-grid">
-              <Stat label="Average draw, 24 h" value={formatWatts(last24h.avgWatts)} />
-              <Stat label="Energy, 24 h" value={formatKwh(last24h.energyKwh)} />
-              <Stat
-                label="Data received"
-                value={formatPercent((last24h.minutesWithData / 1440) * 100)}
-              />
-            </div>
-          ) : null}
-          {baseline ? (
-            <table className="hp-compare-table">
-              <caption>Baseline compared with the last 24 hours</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Measure</th>
-                  <th scope="col">Normal</th>
-                  <th scope="col">Last 24 h</th>
-                  <th scope="col">Change</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.measure}>
-                    <th scope="row">{row.measure}</th>
-                    <td>{row.normal}</td>
-                    <td>{row.now ?? <span className="hp-muted">Not measured</span>}</td>
-                    <td>{row.change ?? <span className="hp-muted">-</span>}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : null}
-          {baseline ? (
-            <p className="hp-muted hp-small">
-              Learned from {baseline.windowsUsed} six-hour windows ending{' '}
-              {formatDate(baseline.learnedTo.slice(0, 10))}. Normal is the middle value, so the odd
-              door-open or power cut does not skew it.
+    <BentoCard
+      tone="dark"
+      span={4}
+      title="Health"
+      icon={<HeartIcon size={18} />}
+      actions={<HealthStatusBadge status={health.status} />}
+      {...(className ? { className } : {})}
+      {...(style ? { style } : {})}
+    >
+      <div className="hp-stack-4">
+        {last24h ? (
+          <BigStat
+            value={Math.round(last24h.avgWatts)}
+            unit="W"
+            caption="Average draw, 24 h"
+            secondary={[
+              { label: 'Energy, 24 h', value: formatKwh(last24h.energyKwh) },
+              {
+                label: 'Data received',
+                value: formatPercent((last24h.minutesWithData / 1440) * 100),
+              },
+            ]}
+          />
+        ) : null}
+        <p className="hp-health-note" role="note">
+          {STATUS_COPY[health.status]}
+        </p>
+        {health.baselineStatus !== 'NONE' ? (
+          <div>
+            <Button variant="secondary" size="sm" onClick={onRelearn}>
+              Relearn baseline
+            </Button>
+            <p className="hp-muted hp-small hp-hint">
+              Use this after a repair or service, when the appliance has a new normal.
             </p>
-          ) : null}
-          {health.baselineStatus !== 'NONE' ? (
-            <div>
-              <Button variant="secondary" size="sm" onClick={onRelearn}>
-                Relearn baseline
-              </Button>
-              <p className="hp-muted hp-small hp-hint">
-                Use this after a repair or service, when the appliance has a new normal.
-              </p>
-            </div>
-          ) : null}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        ) : null}
+      </div>
+    </BentoCard>
   )
 }

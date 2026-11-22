@@ -1,4 +1,5 @@
-import { Avatar, Badge, Button, type BadgeVariant } from '@platform/ui'
+import { Avatar, BentoCard, Badge, Button, UsersIcon, type BadgeVariant } from '@platform/ui'
+import type { CSSProperties } from 'react'
 import { ModuleLink } from '@platform/workspace-kit'
 import type { StateView, TrusteeView } from '../../api/types'
 
@@ -25,26 +26,31 @@ export function ringPositions(count: number): { x: number; y: number }[] {
 export function TrusteeCircle({
   state,
   trustees,
+  className,
+  style,
 }: {
   state: StateView
   trustees: readonly TrusteeView[]
+  className?: string
+  style?: CSSProperties
 }) {
   const active = trustees.filter((t) => t.status !== 'REVOKED')
   const required = state.policy?.quorum ?? state.quorum.required
   const spots = ringPositions(active.length)
 
   return (
-    <section className="circle" aria-labelledby="circle-title">
-      <div className="stack-2">
-        <h2 className="section-title" id="circle-title">
-          Your trustees
-        </h2>
-        <p className="section-lead">
-          {active.length === 0
-            ? 'Nobody can open your vault yet. Invite the people you would trust with it.'
-            : `${required} of ${active.length} must agree before anything is released. No single trustee can open it alone.`}
-        </p>
-      </div>
+    <BentoCard
+      span={7}
+      title="Your trustees"
+      icon={<UsersIcon size={18} />}
+      className={className ? `circle ${className}` : 'circle'}
+      {...(style ? { style } : {})}
+    >
+      <p className="section-lead">
+        {active.length === 0
+          ? 'Nobody can open your vault yet. Invite the people you would trust with it.'
+          : `${required} of ${active.length} must agree before anything is released. No single trustee can open it alone.`}
+      </p>
       <div className="circle-body">
         <div className="circle-ring" aria-hidden="true">
           <div className="circle-core">
@@ -83,6 +89,6 @@ export function TrusteeCircle({
           </li>
         </ul>
       </div>
-    </section>
+    </BentoCard>
   )
 }

@@ -26,6 +26,9 @@ export interface Runtime {
   ingestBaseUrl: string
 }
 
+/** The gateway route of this service in local development (`dev/up.sh`); the same default the workspace uses. */
+export const DEV_INGEST_BASE_URL = 'http://localhost:8080/api/home-pulse'
+
 const str = (value: string | boolean | undefined): string | undefined =>
   typeof value === 'string' && value.trim() !== '' ? value.trim() : undefined
 
@@ -50,7 +53,7 @@ export function createRuntime(env: Env = import.meta.env, clock: Clock = systemC
         onUnauthorized: () => void stub.signOut(),
       }),
       clock,
-      ingestBaseUrl: 'https://your-home-pulse-host.example',
+      ingestBaseUrl: DEV_INGEST_BASE_URL,
     }
   }
   const authClient = createFirebaseAuthClient(getFirebaseConfigFromEnv(env))
@@ -78,17 +81,22 @@ export function RuntimeProvider({ runtime, children }: { runtime: Runtime; child
 /**
  * Where a device should send readings. The standalone app knows it from its runtime. Inside the workspace there is no
  * runtime, so it is the gateway route for this service (`VITE_API_BASE_URL` is `<gateway>/api`, the workspace's own
- * setting), falling back to this origin's `/api`.
+ * setting), falling back to the local development gateway.
  */
 export function useIngestBaseUrl(): string {
   const runtime = useContext(RuntimeContext)
   if (runtime) return runtime.ingestBaseUrl
   const configured = (import.meta.env as Record<string, string | boolean | undefined>)
     .VITE_API_BASE_URL
+  return gatewayIngestBaseUrl(configured)
+}
+
+/** `<gateway>/api/home-pulse`: the configured gateway, or the local development gateway when none is set. */
+export function gatewayIngestBaseUrl(configured: string | boolean | undefined): string {
   const base =
     typeof configured === 'string' && configured.trim() !== ''
       ? configured.trim().replace(/\/+$/, '')
-      : `${window.location.origin}/api`
+      : 'http://localhost:8080/api'
   return `${base}/home-pulse`
 }
 

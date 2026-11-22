@@ -1,7 +1,6 @@
 import { useAuth } from '@platform/auth-web'
 import {
-  AppShell,
-  Avatar,
+  AppFrame,
   Button,
   ProductMark,
   Select,
@@ -69,12 +68,30 @@ export function StandaloneLayout({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
   const who = user?.displayName ?? user?.email ?? ''
   return (
-    <AppShell
+    <AppFrame
       brand={
         <span className="ft-brand">
           <ProductMark product="family-treasury" size={28} variant="solid" />
           Family Treasury
         </span>
+      }
+      user={{ name: who || 'You', ...(user?.email ? { email: user.email } : {}) }}
+      search={false}
+      headerEnd={
+        <>
+          <PersonaSwitcher />
+          <ThemeSelect />
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              queryClient.clear()
+              void signOut()
+            }}
+          >
+            Sign out
+          </Button>
+        </>
       }
       sidebar={
         <SidebarNav label="Main">
@@ -89,33 +106,11 @@ export function StandaloneLayout({ children }: { children: ReactNode }) {
           </SidebarSection>
         </SidebarNav>
       }
-      sidebarFooter={
-        <p className="ft-footnote">Bookkeeping only. No real money ever moves in this app.</p>
-      }
-      topbar={
-        <>
-          <PersonaSwitcher />
-          <ThemeSelect />
-          {who ? (
-            <span className="ft-user ft-hide-sm" title={user?.email ?? ''}>
-              <Avatar name={who} size="sm" decorative />
-              {who}
-            </span>
-          ) : null}
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => {
-              queryClient.clear()
-              void signOut()
-            }}
-          >
-            Sign out
-          </Button>
-        </>
+      promo={
+        <p className="ft-promo-note">Bookkeeping only. No real money ever moves in this app.</p>
       }
     >
       {children}
-    </AppShell>
+    </AppFrame>
   )
 }

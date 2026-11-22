@@ -1,5 +1,6 @@
 import { Button, Stepper, type StepperStep } from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
+import { DataSourceExplainer } from '../../devices/components/DataSourceExplainer'
 import { BaselineDiagram } from './BaselineDiagram'
 
 const STEPS: StepperStep[] = [
@@ -52,6 +53,11 @@ export function FirstRun() {
             <ModuleLink to="/appliances/new">Add an appliance</ModuleLink>
           </Button>
         </div>
+        <p className="hp-small hp-muted">
+          No smart plug? After you add an appliance you can simulate one and see charts, the learned
+          normal and an alert, clearly labelled Simulated.
+        </p>
+        <DataSourceExplainer headingAs="h3" />
       </div>
       <figure className="hp-firstrun-figure">
         <BaselineDiagram />
