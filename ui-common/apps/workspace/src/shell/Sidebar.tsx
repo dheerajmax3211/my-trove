@@ -1,8 +1,9 @@
-import { HomeIcon, SidebarLink, SidebarNav, SidebarSection, UserIcon } from '@platform/ui'
+import { CodeIcon, HomeIcon, SidebarLink, SidebarNav, SidebarSection, UserIcon } from '@platform/ui'
 import { joinPath, useWorkspaceSession, type ProductModule } from '@platform/workspace-kit'
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ModuleMark } from '../components/ModuleMark'
+import { canOpenDeveloper } from '../lib/developer'
 import { useOnboarding } from '../onboarding/OnboardingProvider'
 import {
   ADMIN_MODULE_ID,
@@ -123,6 +124,14 @@ export function Sidebar() {
       ) : null}
 
       {admin ? <SidebarSection title="Admin">{moduleItem(admin)}</SidebarSection> : null}
+
+      {canOpenDeveloper(session) ? (
+        <SidebarSection title="Build">
+          <Item to="/developer" active={pathname === '/developer'} icon={<CodeIcon size={18} />}>
+            Developer
+          </Item>
+        </SidebarSection>
+      ) : null}
 
       <SidebarSection>
         <Item to="/account" active={pathname === '/account'} icon={<UserIcon size={18} />}>

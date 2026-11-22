@@ -1,0 +1,11 @@
+.list {
+  display: grid;
+  gap: var(--pp-space-2);
+  margin: 0;
+  padding-inline-start: var(--pp-space-5);
+}
+
+.list code {
+  font-size: var(--pp-text-body-small-size);
+  color: var(--pp-color-text-muted);
+}
