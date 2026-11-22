@@ -1,0 +1,97 @@
+.dial {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.dial g,
+.dial circle {
+  transform-box: view-box;
+  transform-origin: 300px 300px;
+}
+
+.hair {
+  fill: none;
+  stroke: var(--pp-color-border-strong);
+  stroke-opacity: 0.55;
+  stroke-width: 1;
+}
+.dash {
+  fill: none;
+  stroke: var(--pp-color-text-subtle);
+  stroke-opacity: 0.6;
+  stroke-width: 1;
+  stroke-dasharray: 2 9;
+  stroke-linecap: round;
+}
+.tick {
+  fill: none;
+  stroke: var(--pp-color-text-subtle);
+  stroke-opacity: 0.7;
+  stroke-width: 1.25;
+}
+.arc {
+  fill: none;
+  stroke: var(--pp-color-lilac);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.spoke {
+  stroke: var(--pp-color-text-subtle);
+  stroke-opacity: 0.35;
+  stroke-width: 1;
+  stroke-dasharray: 3 6;
+}
+.coreRing {
+  fill: color-mix(in srgb, var(--pp-color-canvas) 80%, transparent);
+  stroke: var(--pp-color-lime);
+  stroke-opacity: 0.7;
+  stroke-width: 1.5;
+}
+
+.ringA {
+  animation: spin 90s linear infinite;
+}
+.ringB {
+  animation: spin 60s linear infinite reverse;
+}
+.ringC {
+  animation: spin 34s linear infinite;
+}
+.orbit {
+  animation: spin 70s linear infinite;
+}
+.pulse {
+  animation: pulse 6s ease-in-out infinite;
+}
+.keyhole {
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--pp-color-lime) 70%, transparent));
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+.dial[data-playing='false'] * {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dial * {
+    animation: none;
+  }
+}

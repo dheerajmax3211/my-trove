@@ -58,7 +58,6 @@ export function Platform() {
   return (
     <>
       <PageIntro
-        eyebrow="Platform"
         title="One front door for all six products"
         lead="Every request passes one gateway that works out who is calling, what they may do and which plan they are on. The products stay simple because that is settled before they see the call."
         actions={<CtaPair size="lg" />}

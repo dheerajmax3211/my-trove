@@ -1,0 +1,120 @@
+/*
+ * Shared building blocks for the public site. Page and component styles live in CSS modules;
+ * these few classes are the vocabulary every page uses (the wrap, section rhythm, the big headings).
+ * Motion rule for everything here: transform and opacity only.
+ */
+
+:root {
+  --st-gutter: clamp(1.25rem, 4.5vw, 3.5rem);
+  --st-wrap: 78rem;
+  --st-section: clamp(4.5rem, 10vw, 9rem);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  overflow-x: clip;
+}
+
+/* A dark band that stays dark in both themes (the hero, the story, the closing call to action). */
+.st-dark {
+  position: relative;
+  isolation: isolate;
+  background: var(--pp-color-canvas);
+  color: var(--pp-color-text);
+}
+
+.st-wrap {
+  width: 100%;
+  max-width: calc(var(--st-wrap) + var(--st-gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--st-gutter);
+}
+
+.st-section {
+  padding-block: var(--st-section);
+}
+
+.st-h2 {
+  font-family: var(--pp-font-editorial);
+  font-size: clamp(2.375rem, 5.4vw, 4.75rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.st-lead {
+  max-width: 40rem;
+  color: var(--pp-color-text-muted);
+  font-size: clamp(1.0625rem, 1.5vw, 1.3125rem);
+  line-height: 1.55;
+}
+
+.st-head {
+  display: grid;
+  gap: var(--pp-space-5);
+  justify-items: start;
+  margin-bottom: clamp(2rem, 5vw, 4rem);
+}
+
+/* A small glass chip used for the one label a section may carry. */
+.st-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pp-space-2);
+  padding: var(--pp-space-1) var(--pp-space-4);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-full);
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+  font-weight: 600;
+}
+.st-chip::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pp-color-lime);
+  box-shadow: 0 0 10px var(--pp-color-lime);
+}
+
+.st-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-space-3);
+}
+
+/* ---- Reduce motion (the site's own switch; the OS setting is handled by the tokens) ---- */
+:root[data-motion='reduce'] *,
+:root[data-motion='reduce'] *::before,
+:root[data-motion='reduce'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  animation-delay: 0s !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+
+/* ---- High contrast ---- */
+:root[data-contrast='high'],
+:root[data-contrast='high'] [data-theme='dark'],
+:root[data-contrast='high'] [data-surface='vault'] {
+  --pp-color-text-muted: var(--pp-color-text);
+  --pp-color-text-subtle: var(--pp-color-text);
+  --pp-color-border: var(--pp-color-border-strong);
+  --pp-color-hairline: var(--pp-color-border-strong);
+  --pp-color-glass: var(--pp-color-surface-sunken);
+  --pp-color-glass-strong: var(--pp-color-surface-sunken);
+  --pp-color-glass-border: var(--pp-color-border-strong);
+}
+:root[data-contrast='high'] a {
+  text-decoration-thickness: 2px;
+}
+:root[data-contrast='high'] :focus-visible {
+  outline: 3px solid var(--pp-color-focus-ring);
+  outline-offset: 3px;
+}

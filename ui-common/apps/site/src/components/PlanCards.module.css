@@ -1,0 +1,89 @@
+.plans {
+  display: grid;
+  gap: var(--pp-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.item {
+  display: flex;
+  min-width: 0;
+}
+.card {
+  --tone: var(--pp-color-lime);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 22rem;
+  padding: var(--pp-space-8);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-xl);
+  background: var(--pp-color-surface);
+  color: var(--pp-color-text);
+  overflow: hidden;
+}
+/* A bar of the plan's colour across the top edge. */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--tone);
+}
+.name {
+  font-family: var(--pp-font-editorial);
+  font-size: var(--pp-text-h2-size);
+  font-weight: 400;
+}
+.note {
+  margin-top: var(--pp-space-1);
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+  min-height: 2.8em;
+}
+.big {
+  display: grid;
+  gap: var(--pp-space-1);
+  margin-top: auto;
+  padding-top: var(--pp-space-8);
+  font-family: var(--pp-font-editorial);
+  font-size: clamp(3.25rem, 6vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.unit {
+  color: var(--pp-color-text-muted);
+  font-family: var(--pp-font-sans);
+  font-size: var(--pp-text-body-small-size);
+  letter-spacing: 0;
+}
+.facts {
+  display: grid;
+  gap: var(--pp-space-3);
+  margin: var(--pp-space-6) 0 0;
+  padding-top: var(--pp-space-5);
+  border-top: 1px solid var(--pp-color-border);
+}
+.facts > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--pp-space-3);
+}
+.facts dt {
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+}
+.facts dd {
+  margin: 0;
+  font-size: var(--pp-text-h3-size);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+@media (min-width: 56rem) {
+  .plans {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

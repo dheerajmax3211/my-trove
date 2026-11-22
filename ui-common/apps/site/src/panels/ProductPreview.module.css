@@ -1,0 +1,64 @@
+/* The rounded "window" that holds a product's bento dashboard. The app's light canvas, in both themes. */
+.frame {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-2xl);
+  background: var(--pp-color-canvas);
+  color: var(--pp-color-text);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent),
+    0 40px 90px -30px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-3) var(--pp-space-5);
+  border-bottom: 1px solid var(--pp-color-hairline);
+  background: var(--pp-color-surface);
+}
+.name {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.sample {
+  margin-inline-start: auto;
+  padding: 2px var(--pp-space-3);
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-surface-sunken);
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-caption-size);
+  font-weight: 600;
+}
+
+.body {
+  padding: var(--pp-space-4);
+  container-type: inline-size;
+}
+
+/* Previews are smaller than the app: tighter cards, whatever the screen. */
+.body .grid {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--pp-space-3);
+}
+.body .grid > * {
+  --_pad: var(--pp-space-5);
+  grid-column: span var(--_span, 4);
+}
+.chart {
+  margin-top: var(--pp-space-4);
+}
+.bars {
+  display: grid;
+  gap: var(--pp-space-5);
+  margin-top: var(--pp-space-5);
+}
+
+@container (max-width: 34rem) {
+  .body .grid > * {
+    grid-column: 1 / -1;
+  }
+}

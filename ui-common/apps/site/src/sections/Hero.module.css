@@ -1,0 +1,134 @@
+.hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: min(100svh, 62rem);
+  padding-block: 8rem 6.5rem;
+  overflow: hidden;
+}
+
+/* The dial sits behind the right half of the headline and drifts against the scroll. */
+.art {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: 50%;
+  inset-inline-end: -26%;
+  width: min(86vw, 52rem);
+  margin-top: calc(min(86vw, 52rem) / -2);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: var(--pp-space-6);
+  justify-items: start;
+}
+
+.chipRow {
+  display: block;
+}
+
+.title {
+  display: block;
+  max-width: 11ch;
+  font-family: var(--pp-font-editorial);
+  font-size: clamp(3.4rem, 11.5vw, 9.25rem);
+  font-weight: 400;
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.lead p {
+  max-width: 36rem;
+  color: var(--pp-color-text-muted);
+  font-size: clamp(1.0625rem, 1.5vw, 1.3125rem);
+  line-height: 1.55;
+}
+
+.actions {
+  margin-top: var(--pp-space-2);
+}
+
+.note {
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-body-small-size);
+}
+
+.foot {
+  position: absolute;
+  z-index: 3;
+  inset-block-end: var(--pp-space-6);
+  inset-inline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-space-4);
+}
+
+.cue,
+.play {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+  min-height: 2.75rem;
+  padding: 0 var(--pp-space-4);
+  border: 1px solid var(--pp-color-glass-border);
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-glass);
+  color: var(--pp-color-text);
+  font: inherit;
+  font-size: var(--pp-text-body-small-size);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--pp-duration-normal) var(--pp-ease-standard);
+}
+.cue:hover,
+.play:hover:not(:disabled) {
+  background: var(--pp-color-glass-strong);
+}
+.play:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.cueLine {
+  width: 1px;
+  height: 1.125rem;
+  background: var(--pp-color-lime);
+  transform-origin: top;
+  animation: cue 1.8s var(--pp-ease-standard) infinite;
+}
+[data-playing='false'] .cueLine {
+  animation-play-state: paused;
+}
+@keyframes cue {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@media (min-width: 64rem) {
+  .art {
+    inset-inline-end: -6%;
+    width: min(50vw, 52rem);
+    margin-top: calc(min(50vw, 52rem) / -2);
+    opacity: 1;
+  }
+  .title {
+    max-width: 9ch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cueLine {
+    animation: none;
+  }
+}

@@ -1,0 +1,102 @@
+.section {
+  display: grid;
+  gap: var(--pp-space-10);
+}
+.head {
+  align-self: start;
+}
+.list {
+  border-top: 1px solid var(--pp-color-border-strong);
+}
+.item {
+  border-bottom: 1px solid var(--pp-color-border);
+}
+.question {
+  margin: 0;
+  font-size: inherit;
+}
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-space-6);
+  width: 100%;
+  min-height: 4.5rem;
+  padding: var(--pp-space-5) 0;
+  border: 0;
+  background: transparent;
+  color: var(--pp-color-text);
+  font: inherit;
+  font-size: clamp(1.125rem, 1.8vw, 1.5rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-align: start;
+  cursor: pointer;
+  transition: color var(--pp-duration-normal) var(--pp-ease-standard);
+}
+.button:hover {
+  color: var(--pp-color-accent-text);
+}
+.icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--pp-color-border-strong);
+  border-radius: var(--pp-radius-full);
+  transition:
+    transform var(--pp-duration-slower) var(--pp-ease-emphasized),
+    background-color var(--pp-duration-normal) var(--pp-ease-standard);
+}
+.open .icon {
+  transform: rotate(135deg);
+  border-color: var(--pp-color-lime);
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
+}
+
+/* The answer opens by animating the grid row from 0fr to 1fr. */
+.panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows var(--pp-duration-slower) var(--pp-ease-emphasized),
+    visibility 0s linear var(--pp-duration-slower);
+}
+.panel[data-open='true'] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows var(--pp-duration-slower) var(--pp-ease-emphasized),
+    visibility 0s;
+}
+.clip {
+  min-height: 0;
+  overflow: hidden;
+}
+.answer {
+  max-width: 44rem;
+  padding-bottom: var(--pp-space-6);
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-lead-size);
+  line-height: 1.55;
+  opacity: 0;
+  transform: translate3d(0, -6px, 0);
+  transition:
+    opacity var(--pp-duration-slow) var(--pp-ease-standard),
+    transform var(--pp-duration-slower) var(--pp-ease-emphasized);
+}
+.panel[data-open='true'] .answer {
+  opacity: 1;
+  transform: none;
+  transition-delay: 80ms;
+}
+
+@media (min-width: 64rem) {
+  .section {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: var(--pp-space-12);
+  }
+}

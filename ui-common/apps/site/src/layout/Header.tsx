@@ -1,4 +1,5 @@
 import {
+  ArrowRightIcon,
   ChevronDownIcon,
   CloseIcon,
   IconButton,
@@ -7,11 +8,11 @@ import {
   ProductMark,
   cx,
 } from '@platform/ui'
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { CtaPair } from '../components/CtaPair'
 import { ThemeToggle } from '../components/ThemeToggle'
-import { products } from '../content/products'
+import { products, type ProductContent } from '../content/products'
 import { productPath } from '../routes'
 import styles from './Header.module.css'
 
@@ -24,16 +25,38 @@ const links = [
 
 const navClass = ({ isActive }: { isActive: boolean }) => cx(styles.link, isActive && styles.active)
 
+function accent(id: string): CSSProperties {
+  return { '--accent': `var(--pp-color-product-${id})` } as CSSProperties
+}
+
+/** The right-hand side of the mega-menu: what the product under the pointer is, in a sentence. */
+function Feature({ product }: { product: ProductContent }) {
+  return (
+    <div className={styles.feature} style={accent(product.id)} aria-hidden="true">
+      <ProductMark product={product.id} size={56} variant="solid" />
+      {/* Re-keyed so the text re-enters whenever the highlighted product changes. */}
+      <div key={product.id} className={styles.featureText}>
+        <p className={styles.featureName}>{product.name}</p>
+        <p className={styles.featureSummary}>{product.summary}</p>
+        <p className={styles.featureHard}>{product.hardPart}</p>
+      </div>
+    </div>
+  )
+}
+
 /**
- * "Products" disclosure. It is a button that reveals a list of links (not an ARIA menu), so Tab
- * moves through the links as it does anywhere else. Escape closes it and returns focus.
+ * "Products" mega-menu. It is a button that reveals a panel of links (not an ARIA menu), so Tab
+ * moves through the links as it does anywhere else. Opens on click, focus-in via the keyboard,
+ * and on hover for a mouse. Escape closes it and returns focus.
  */
 function ProductsMenu({ currentKey }: { currentKey: string }) {
   // The menu is open only for the location it was opened on, so navigating closes it without an effect.
   const [openAt, setOpenAt] = useState<string | null>(null)
+  const [highlight, setHighlight] = useState<ProductContent>(products[0] as ProductContent)
   const open = openAt === currentKey
   const rootRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
+  const closeTimer = useRef<number | undefined>(undefined)
   const { pathname } = useLocation()
   const inProducts = pathname.startsWith('/products/')
 
@@ -46,6 +69,8 @@ function ProductsMenu({ currentKey }: { currentKey: string }) {
     return () => document.removeEventListener('pointerdown', onPointer)
   }, [open])
 
+  useEffect(() => () => window.clearTimeout(closeTimer.current), [])
+
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Escape' && open) {
       setOpenAt(null)
@@ -54,12 +79,21 @@ function ProductsMenu({ currentKey }: { currentKey: string }) {
   }
 
   return (
-    // Key and blur events bubble up from the real button and links inside; the div itself is not a control.
+    // Key, blur and pointer events bubble up from the real button and links inside; the div itself is not a control.
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
       ref={rootRef}
       className={styles.menuRoot}
       onKeyDown={onKeyDown}
+      onPointerEnter={(event) => {
+        if (event.pointerType !== 'mouse') return
+        window.clearTimeout(closeTimer.current)
+        setOpenAt(currentKey)
+      }}
+      onPointerLeave={(event) => {
+        if (event.pointerType !== 'mouse') return
+        closeTimer.current = window.setTimeout(() => setOpenAt(null), 160)
+      }}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setOpenAt(null)
       }}
@@ -77,21 +111,31 @@ function ProductsMenu({ currentKey }: { currentKey: string }) {
       </button>
       {open ? (
         <div id="products-menu" className={styles.panel}>
-          <ul className={styles.productList}>
-            {products.map((product) => (
-              <li key={product.id}>
-                <Link to={productPath(product.id)} className={styles.productLink}>
-                  <ProductMark product={product.id} size={36} />
-                  <span>
-                    <span className={styles.productName}>{product.name}</span>
-                    <span className={styles.productTagline}>{product.tagline}</span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className={styles.panelGrid}>
+            <ul className={styles.productList}>
+              {products.map((product) => (
+                <li key={product.id}>
+                  <Link
+                    to={productPath(product.id)}
+                    className={styles.productLink}
+                    style={accent(product.id)}
+                    onPointerEnter={() => setHighlight(product)}
+                    onFocus={() => setHighlight(product)}
+                  >
+                    <ProductMark product={product.id} size={36} />
+                    <span>
+                      <span className={styles.productName}>{product.name}</span>
+                      <span className={styles.productTagline}>{product.tagline}</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Feature product={highlight} />
+          </div>
           <Link to="/#products" className={styles.allProducts}>
             Compare all six on one page
+            <ArrowRightIcon size={16} />
           </Link>
         </div>
       ) : null}
@@ -114,10 +158,10 @@ export function Header() {
   }, [mobileOpen])
 
   return (
-    <header className={styles.header}>
+    <header className={styles.header} data-theme="dark">
       <div className={styles.bar}>
         <Link to="/" className={styles.brand} aria-label="My-Trove, home">
-          <Logo size="md" title="" />
+          <Logo size="md" tone="inverse" title="" />
         </Link>
 
         <nav className={styles.nav} aria-label="Main">
@@ -151,7 +195,11 @@ export function Header() {
           <ul className={styles.mobileProducts}>
             {products.map((product) => (
               <li key={product.id}>
-                <Link to={productPath(product.id)} className={styles.mobileProduct}>
+                <Link
+                  to={productPath(product.id)}
+                  className={styles.mobileProduct}
+                  style={accent(product.id)}
+                >
                   <ProductMark product={product.id} size={32} />
                   {product.name}
                 </Link>
