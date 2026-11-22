@@ -66,6 +66,7 @@
 
 .header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--pp-space-3);
   min-width: 0;
@@ -106,6 +107,7 @@
 }
 .headerEnd {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--pp-space-2);
   margin-inline-start: auto;

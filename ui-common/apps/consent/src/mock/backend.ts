@@ -362,6 +362,8 @@ export function createMockBackend(options: MockBackendOptions = {}): MockBackend
     request.status = 'APPROVED'
     request.decidedAt = iso()
     seq.grant += 1
+    // One reading of the clock, so the lifetime is exactly the requested duration.
+    const issued = nowMs()
     const grant: GrantRow = {
       id: uuid(2000 + seq.grant),
       requestId: request.id,
@@ -370,8 +372,8 @@ export function createMockBackend(options: MockBackendOptions = {}): MockBackend
       scopes,
       purpose: request.purpose,
       maxSensitivity: ceiling,
-      createdAt: iso(),
-      expiresAt: new Date(nowMs() + duration * 1000).toISOString(),
+      createdAt: new Date(issued).toISOString(),
+      expiresAt: new Date(issued + duration * 1000).toISOString(),
       maxReads,
       readsUsed: 0,
       allowedHours: request.allowedHours,

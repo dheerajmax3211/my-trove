@@ -19,7 +19,11 @@ export async function loadChromium() {
 
 export async function launch() {
   const chromium = await loadChromium();
-  return chromium.launch({ headless: true });
+  // QA_CHROMIUM lets a run use a Chromium build other than the one this Playwright expects.
+  return chromium.launch({
+    headless: true,
+    executablePath: process.env.QA_CHROMIUM || undefined,
+  });
 }
 
 /**
