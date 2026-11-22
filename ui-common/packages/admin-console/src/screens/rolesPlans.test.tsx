@@ -50,8 +50,8 @@ describe('Roles', () => {
 describe('Plans', () => {
   it('shows the three plans with the real limits and says billing is simulated', async () => {
     renderAdmin({ route: '/plans', persona: 'AUDITOR' })
-    const table = await screen.findByRole('table', { name: 'Plans and their limits' })
-    const rows = within(table).getAllByRole('row').slice(1)
+    const table = await screen.findByRole('list', { name: 'Plans and their limits' })
+    const rows = within(table).getAllByRole('listitem')
     expect(rows).toHaveLength(3)
     const text = rows.map((r) => r.textContent ?? '')
     expect(text[0]).toContain('FREE')
@@ -67,9 +67,9 @@ describe('Plans', () => {
     expect(screen.getByRole('note')).toHaveTextContent('does not charge anyone')
   })
 
-  it('makes no request: the table is fixed data', async () => {
+  it('makes no request: the plans are fixed data', async () => {
     const { requests } = renderAdmin({ route: '/plans' })
-    await screen.findByRole('table')
+    await screen.findByRole('list', { name: 'Plans and their limits' })
     expect(requests).toHaveLength(0)
   })
 })

@@ -1,4 +1,13 @@
-import { Stat, type StatTrend } from '@platform/ui'
+import {
+  ActivityIcon,
+  AlertIcon,
+  BigStat,
+  ClockIcon,
+  Sparkline,
+  UsersIcon,
+  type StatTrend,
+} from '@platform/ui'
+import type { ReactNode } from 'react'
 import { fillSeries } from '../charts/geometry'
 import { formatInt, formatMs, formatPercent } from '../lib/format'
 import type { UsageSummary } from '../lib/types'
@@ -46,7 +55,40 @@ export interface UsageStatsProps {
   showActiveUsers?: boolean
 }
 
-/** The four headline numbers. Errors and latency use `goodDirection="down"`: a rise is bad news. */
+function Tile({
+  label,
+  icon,
+  dark,
+  children,
+}: {
+  label: string
+  icon: ReactNode
+  dark?: boolean
+  children: ReactNode
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className={`${styles.tile} ${dark ? styles.dark : ''}`}
+      {...(dark ? { 'data-surface': 'vault' } : {})}
+    >
+      <p className={styles.tileHead}>
+        <span className={styles.chip} aria-hidden="true">
+          {icon}
+        </span>
+        {label}
+      </p>
+      {children}
+    </div>
+  )
+}
+
+/** The lime pill follows "better": for errors and latency a fall is good. The sign in the text says which way it moved. */
+const pillTrend = (trend: StatTrend, good: 'up' | 'down'): 'up' | 'down' =>
+  trend === 'flat' || trend === good ? 'up' : 'down'
+
+/** The four headline numbers, one card each; the first is the page's one black card. */
 export function UsageStats({
   summary,
   previous,
@@ -61,36 +103,49 @@ export function UsageStats({
   const users = relativeChange(summary.activeUsers, previous?.activeUsers)
 
   return (
-    <div className={styles.row}>
-      <Stat
-        label="Requests"
-        value={formatInt(summary.totalRequests)}
-        {...(requests ? { delta: requests.text, trend: requests.trend } : {})}
-        {...(requests && against ? { hint: against } : {})}
-        sparkline={buckets.map((b) => b.requests)}
-        sparklineLabel="Requests over the range"
-      />
-      <Stat
-        label="Error rate"
-        value={formatPercent(summary.errorRate)}
-        goodDirection="down"
-        {...(errors ? { delta: errors.text, trend: errors.trend } : {})}
-        hint={errors && against ? against : 'Server errors (5xx) only'}
-      />
-      <Stat
-        label="Latency, p95"
-        value={formatMs(summary.p95Ms)}
-        goodDirection="down"
-        {...(latency ? { delta: latency.text, trend: latency.trend } : {})}
-        hint={`Median ${formatMs(summary.p50Ms)}`}
-      />
-      {showActiveUsers ? (
-        <Stat
-          label="Active users"
-          value={formatInt(summary.activeUsers)}
-          {...(users ? { delta: users.text, trend: users.trend } : {})}
-          hint={users && against ? against : 'People with at least one request'}
+    <div className={styles.row} data-count={showActiveUsers ? 4 : 3}>
+      <Tile label="Requests" icon={<ActivityIcon size={18} />} dark>
+        <BigStat
+          size="md"
+          value={formatInt(summary.totalRequests)}
+          {...(requests ? { delta: requests.text, trend: pillTrend(requests.trend, 'up') } : {})}
+          caption={requests && against ? against : 'Everything through the gateway'}
         />
+        {buckets.length > 1 ? (
+          <Sparkline
+            data={buckets.map((b) => b.requests)}
+            label="Requests over the range"
+            tone="accent"
+            height={48}
+            className={styles.spark}
+          />
+        ) : null}
+      </Tile>
+      <Tile label="Error rate" icon={<AlertIcon size={18} />}>
+        <BigStat
+          size="md"
+          value={formatPercent(summary.errorRate)}
+          {...(errors ? { delta: errors.text, trend: pillTrend(errors.trend, 'down') } : {})}
+          caption={errors && against ? against : 'Server errors (5xx) only'}
+        />
+      </Tile>
+      <Tile label="Latency, p95" icon={<ClockIcon size={18} />}>
+        <BigStat
+          size="md"
+          value={formatMs(summary.p95Ms)}
+          {...(latency ? { delta: latency.text, trend: pillTrend(latency.trend, 'down') } : {})}
+          caption={`Median ${formatMs(summary.p50Ms)}`}
+        />
+      </Tile>
+      {showActiveUsers ? (
+        <Tile label="Active users" icon={<UsersIcon size={18} />}>
+          <BigStat
+            size="md"
+            value={formatInt(summary.activeUsers)}
+            {...(users ? { delta: users.text, trend: pillTrend(users.trend, 'up') } : {})}
+            caption={users && against ? against : 'People with at least one request'}
+          />
+        </Tile>
       ) : null}
     </div>
   )

@@ -112,6 +112,13 @@ function FlagsBody() {
         </Button>
       </div>
 
+      <Callout variant="info" title="Nothing reads these flags yet">
+        Flags are evaluated by the platform at <code>/v1/flags/evaluate</code> and every change is
+        audited, but no My-Trove product asks for them yet, so switching one here changes nothing
+        you can see in the products. They are ready for the first feature that needs a gradual
+        rollout.
+      </Callout>
+
       {failure ? (
         <Callout variant="danger" title="That did not go through">
           {failure}

@@ -1,4 +1,12 @@
-import { Avatar, Badge, EmptyState, Illustration, PageHeader } from '@platform/ui'
+import {
+  ArrowUpRightIcon,
+  Avatar,
+  Badge,
+  EmptyState,
+  Illustration,
+  PageHeader,
+  Stagger,
+} from '@platform/ui'
 import { ModuleLink, useWorkspaceSession } from '@platform/workspace-kit'
 import { ErrorPanel, LoadingBlock, RoleBadges } from '../components/common'
 import shared from '../components/shared.module.css'
@@ -22,7 +30,6 @@ export function OverviewScreen() {
   return (
     <div className={shared.stack}>
       <PageHeader
-        eyebrow="Admin"
         title="Admin console"
         description="Run the platform: people and roles, usage, the audit log and feature flags. You see the parts your role allows."
       />
@@ -34,32 +41,35 @@ export function OverviewScreen() {
           {session.displayName && session.email ? (
             <p className={shared.muted}>{session.email}</p>
           ) : null}
-          <div className={styles.badges}>
-            {session.roles.length > 0 ? <RoleBadges roles={session.roles} size="md" /> : null}
-            <Badge>{session.plan} plan</Badge>
-            {session.isDemo ? <Badge variant="info">Demo data</Badge> : null}
-          </div>
+        </div>
+        <div className={styles.badges}>
+          {session.roles.length > 0 ? <RoleBadges roles={session.roles} size="md" /> : null}
+          <Badge>{session.plan} plan</Badge>
+          {session.isDemo ? <Badge variant="info">Demo data</Badge> : null}
         </div>
       </section>
 
       {canReadAll ? <Headline win={win} /> : null}
 
       {links.length > 0 ? (
-        <nav aria-label="Admin screens">
+        <nav aria-label="Admin screens" className={styles.nextWrap}>
           <h2 className={shared.sectionTitle}>Where to next</h2>
-          <ul className={styles.links}>
+          <Stagger as="ul" className={styles.links} interval={0.06}>
             {links.map((s) => (
               <li key={s.to}>
                 <ModuleLink to={s.to} className={styles.link}>
-                  {s.icon ? <s.icon size={20} /> : null}
+                  <span className={styles.linkChip} aria-hidden="true">
+                    {s.icon ? <s.icon size={20} /> : null}
+                  </span>
                   <span className={styles.linkText}>
                     <span className={styles.linkLabel}>{s.label}</span>
                     <span className={shared.subtle}>{s.description}</span>
                   </span>
+                  <ArrowUpRightIcon size={18} className={styles.arrow} aria-hidden="true" />
                 </ModuleLink>
               </li>
             ))}
-          </ul>
+          </Stagger>
         </nav>
       ) : (
         <EmptyState
@@ -86,32 +96,27 @@ function Headline({ win }: { win: ReturnType<typeof useUsageWindow> }) {
     to: win.previousTo,
   })
   return (
-    <section className={shared.panel} aria-labelledby="overview-usage">
-      <div className={shared.panelHead}>
-        <h2 id="overview-usage" className={shared.panelTitle}>
+    <section className={shared.stackTight} aria-labelledby="overview-usage">
+      <div className={styles.headRow}>
+        <h2 id="overview-usage" className={shared.sectionTitle}>
           The last 24 hours
         </h2>
-        <ModuleLink to="/usage" className={shared.link}>
+        <ModuleLink to="/usage" className={styles.openUsage}>
           Open usage
+          <ArrowUpRightIcon size={16} aria-hidden="true" />
         </ModuleLink>
       </div>
-      <div className={shared.panelBody}>
-        {summary.isPending ? (
-          <LoadingBlock label="Loading usage" rows={1} />
-        ) : summary.isError ? (
-          <ErrorPanel
-            error={summary.error}
-            subject="usage"
-            onRetry={() => void summary.refetch()}
-          />
-        ) : (
-          <UsageStats
-            summary={summary.data}
-            previous={previous.data}
-            against="vs. the 24 hours before"
-          />
-        )}
-      </div>
+      {summary.isPending ? (
+        <LoadingBlock label="Loading usage" rows={1} />
+      ) : summary.isError ? (
+        <ErrorPanel error={summary.error} subject="usage" onRetry={() => void summary.refetch()} />
+      ) : (
+        <UsageStats
+          summary={summary.data}
+          previous={previous.data}
+          against="vs. the 24 hours before"
+        />
+      )}
     </section>
   )
 }

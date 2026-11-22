@@ -1,94 +1,94 @@
 .page {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--pp-color-canvas);
   color: var(--pp-color-text);
 }
 
-/* The vault: the one dark, bold thing on the page. */
+/* The cinematic half: aurora, grain, a huge headline and the products as cards. */
 .hero {
   position: relative;
   display: flex;
   overflow: hidden;
-  background: var(--pp-color-vault);
+  background: #070707;
   color: var(--pp-color-text);
-}
-.rings {
-  position: absolute;
-  inset-inline-end: -20rem;
-  bottom: -20rem;
-  width: 46rem;
-  height: 46rem;
-  opacity: 0.35;
-  pointer-events: none;
 }
 .heroInner {
   position: relative;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: var(--pp-space-10);
   width: 100%;
-  max-width: 40rem;
+  max-width: 46rem;
   margin-inline: auto;
-  padding: var(--pp-space-10) var(--pp-space-10) var(--pp-space-16);
+  padding: var(--pp-space-10) var(--pp-space-10) var(--pp-space-12);
 }
 .pitch {
   display: grid;
-  gap: var(--pp-space-5);
+  gap: var(--pp-space-6);
 }
 .headline {
   margin: 0;
   font-family: var(--pp-font-display);
-  font-size: var(--pp-text-display-lg-size);
-  line-height: var(--pp-text-display-lg-line);
-  font-weight: var(--pp-text-display-lg-weight);
-  letter-spacing: var(--pp-text-display-lg-tracking);
+  font-size: clamp(2.5rem, 5.4vw, 5.25rem);
+  line-height: 0.98;
+  font-weight: 500;
+  letter-spacing: -0.05em;
   text-wrap: balance;
 }
 .lead {
   margin: 0;
-  max-width: 48ch;
+  max-width: 46ch;
   font-size: var(--pp-text-lead-size);
   line-height: var(--pp-text-lead-line);
   color: var(--pp-color-text-muted);
 }
 .products {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--pp-space-4) var(--pp-space-6);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pp-space-3);
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.products li {
+.products > li:last-child:nth-child(3n + 1) {
+  grid-column: 1 / -1;
+}
+.product {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   gap: var(--pp-space-3);
+  height: 100%;
+  padding: var(--pp-space-4);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: var(--pp-radius-xl);
+  background: rgb(255 255 255 / 0.05);
+}
+.productText {
+  display: grid;
+  gap: 2px;
   font-size: var(--pp-text-body-small-size);
   line-height: var(--pp-text-body-small-line);
 }
-.products strong {
-  display: block;
+.productText strong {
   font-weight: var(--pp-weight-semibold);
 }
 .tagline {
   display: block;
+  font-size: var(--pp-text-caption-size);
+  line-height: var(--pp-text-caption-line);
   color: var(--pp-color-text-muted);
 }
-.keycut {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  color: var(--pp-color-vault-raised);
-  pointer-events: none;
-}
 
+/* The form half: one graphite card on the ink canvas. */
 .panel {
   display: grid;
   place-items: center;
-  padding: var(--pp-space-10) var(--pp-space-6);
+  padding: var(--pp-space-8) var(--pp-space-6);
+  background: var(--pp-color-canvas);
 }
 .panel:focus {
   outline: none;
@@ -97,13 +97,21 @@
   display: grid;
   gap: var(--pp-space-5);
   width: 100%;
-  max-width: 24rem;
+  max-width: 28rem;
+  padding: var(--pp-space-8);
+  border: 1px solid var(--pp-color-hairline);
+  border-radius: var(--pp-radius-2xl);
+  background: var(--pp-color-surface);
 }
 .formTitle {
   margin: 0;
   font: var(--pp-text-h1-weight) var(--pp-text-h1-size) / var(--pp-text-h1-line)
     var(--pp-font-display);
   letter-spacing: var(--pp-text-h1-tracking);
+}
+.formLead {
+  margin: calc(var(--pp-space-3) * -1) 0 0;
+  color: var(--pp-color-text-muted);
 }
 .or {
   display: flex;
@@ -132,13 +140,13 @@
 .demo {
   display: grid;
   justify-items: start;
-  gap: var(--pp-space-2);
+  gap: var(--pp-space-4);
   padding: var(--pp-space-5);
-  border: 1px dashed var(--pp-color-border-strong);
-  border-radius: var(--pp-radius-lg);
+  border-radius: var(--pp-radius-xl);
+  background: var(--pp-color-surface-sunken);
 }
 .demoTitle {
-  margin: 0;
+  margin: 0 0 var(--pp-space-1);
   font-weight: var(--pp-weight-semibold);
 }
 .site {
@@ -156,22 +164,23 @@
   }
   .heroInner {
     gap: var(--pp-space-6);
-    padding: var(--pp-space-6) var(--pp-space-5) var(--pp-space-12);
-  }
-  .rings {
-    width: 28rem;
-    height: 28rem;
-    inset-inline-end: -10rem;
-    bottom: -12rem;
+    padding: var(--pp-space-6) var(--pp-space-5) var(--pp-space-8);
   }
 }
 @media (max-width: 36rem) {
   .products {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--pp-space-3);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  /* On a phone the pitch is enough; the full list is one tap away on the site. */
-  .products li:nth-child(n + 4) {
+  .products li:nth-child(n + 5) {
     display: none;
+  }
+  .tagline {
+    display: none;
+  }
+  .form {
+    padding: var(--pp-space-6);
+  }
+  .panel {
+    padding-inline: var(--pp-space-4);
   }
 }

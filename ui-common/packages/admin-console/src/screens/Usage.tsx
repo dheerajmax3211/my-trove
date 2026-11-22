@@ -1,13 +1,22 @@
 import {
   Badge,
+  BentoCard,
+  BentoGrid,
   Button,
+  ChartIcon,
+  CheckCircleIcon,
+  CodeIcon,
   DataTable,
+  Donut,
   EmptyState,
   Illustration,
+  UsersIcon,
+  type ChartTone,
   type DataTableColumn,
+  type DonutSegment,
 } from '@platform/ui'
 import { useWorkspaceSession } from '@platform/workspace-kit'
-import { BarList, StackedBar, type Segment, type SegmentTone } from '../charts/Bars'
+import { BarList } from '../charts/Bars'
 import { fillSeries } from '../charts/geometry'
 import { TimeSeriesChart } from '../charts/TimeSeriesChart'
 import { ErrorPanel, LoadingBlock, MonoId, Person, Screen } from '../components/common'
@@ -15,7 +24,7 @@ import shared from '../components/shared.module.css'
 import { UsageStats } from '../components/UsageStats'
 import { PERMISSIONS } from '../lib/catalogue'
 import { useNames, usePlatformQuery } from '../lib/api'
-import { formatInt, formatPercent } from '../lib/format'
+import { formatCompact, formatInt, formatPercent } from '../lib/format'
 import { RANGES, useUsageWindow, type RangeId, type UsageWindow } from '../lib/range'
 import type { ServiceUsage, TopUser, UsageSummary } from '../lib/types'
 import { YourUsage } from './YourUsage'
@@ -68,10 +77,10 @@ export function UsageScreen() {
   )
 }
 
-const STATUS_TONE: Record<string, SegmentTone> = {
-  '2xx': 'success',
-  '3xx': 'info',
-  '4xx': 'warning',
+const STATUS_TONE: Record<string, ChartTone> = {
+  '2xx': 'lime',
+  '3xx': 'lilac',
+  '4xx': 'brass',
   '5xx': 'danger',
 }
 const STATUS_LABEL: Record<string, string> = {
@@ -102,14 +111,14 @@ function UsageBody({ win }: { win: UsageWindow }) {
   const data = summary.data
   const buckets = fillSeries(data.series, data.resolution, data.from, data.to)
   const unit = data.resolution === '1d' ? 'day' : data.resolution === '1h' ? 'hour' : 'minute'
-  const statusSegments: Segment[] = Object.entries(data.byStatusClass)
+  const statusSegments: DonutSegment[] = Object.entries(data.byStatusClass)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([cls, value]) => ({
-      id: cls,
       label: STATUS_LABEL[cls] ?? cls,
       value,
-      tone: STATUS_TONE[cls] ?? 'neutral',
+      tone: STATUS_TONE[cls] ?? 'ink',
     }))
+  const totalResponses = statusSegments.reduce((sum, seg) => sum + seg.value, 0)
   const serviceColumns: DataTableColumn<ServiceUsage>[] = [
     {
       id: 'service',
@@ -146,26 +155,19 @@ function UsageBody({ win }: { win: UsageWindow }) {
 
   return (
     <div className={shared.stack}>
-      <section className={shared.panel} aria-label="Headline numbers">
-        <div className={shared.panelBody}>
-          <UsageStats
-            summary={data}
-            previous={previous.data}
-            against={`vs. the previous ${win.range.long.replace('last ', '')}`}
-          />
-        </div>
+      <section aria-label="Headline numbers">
+        <UsageStats
+          summary={data}
+          previous={previous.data}
+          against={`vs. the previous ${win.range.long.replace('last ', '')}`}
+        />
       </section>
 
-      <section className={shared.panel} aria-labelledby="usage-traffic">
-        <div className={shared.panelHead}>
-          <h2 id="usage-traffic" className={shared.panelTitle}>
-            Traffic
-          </h2>
-          <span className={shared.panelHint}>
+      <BentoGrid>
+        <BentoCard span={12} title="Traffic" icon={<ChartIcon size={18} />}>
+          <p className={`${shared.panelHint} ${styles.hint}`}>
             One point per {unit}, UTC. {data.resolution} resolution.
-          </span>
-        </div>
-        <div className={shared.panelBody}>
+          </p>
           {data.totalRequests === 0 ? (
             <EmptyState
               illustration={<Illustration name="empty" />}
@@ -187,48 +189,40 @@ function UsageBody({ win }: { win: UsageWindow }) {
               label={`Requests and errors, ${win.range.long}`}
             />
           )}
-        </div>
-      </section>
+        </BentoCard>
 
-      <div className={styles.twoUp}>
-        <section className={shared.panel} aria-labelledby="usage-services">
-          <div className={shared.panelHead}>
-            <h2 id="usage-services" className={shared.panelTitle}>
-              By service
-            </h2>
-          </div>
-          <div className={shared.panelBody}>
-            <DataTable
-              dense
-              caption="Requests by service"
-              columns={serviceColumns}
-              data={data.byService}
-              getRowId={(s) => s.service}
-              defaultSort={{ columnId: 'requests', direction: 'desc' }}
-              emptyState={
-                <span className={shared.muted}>No service saw traffic in this range.</span>
+        <BentoCard span={7} title="By service" icon={<CodeIcon size={18} />}>
+          <DataTable
+            dense
+            caption="Requests by service"
+            columns={serviceColumns}
+            data={data.byService}
+            getRowId={(s) => s.service}
+            defaultSort={{ columnId: 'requests', direction: 'desc' }}
+            emptyState={<span className={shared.muted}>No service saw traffic in this range.</span>}
+          />
+        </BentoCard>
+
+        <BentoCard span={5} title="Responses" icon={<CheckCircleIcon size={18} />}>
+          {statusSegments.length === 0 ? (
+            <p className={shared.muted}>No responses in this range.</p>
+          ) : (
+            <Donut
+              label="Share of responses by status class"
+              segments={statusSegments}
+              center={
+                <span className={styles.donutCenter}>
+                  <strong>{formatCompact(totalResponses)}</strong>
+                  <span>responses</span>
+                </span>
               }
+              format={formatInt}
             />
-          </div>
-        </section>
+          )}
+        </BentoCard>
 
-        <section className={shared.panel} aria-labelledby="usage-status">
-          <div className={shared.panelHead}>
-            <h2 id="usage-status" className={shared.panelTitle}>
-              Responses
-            </h2>
-          </div>
-          <div className={shared.panelBody}>
-            {statusSegments.length === 0 ? (
-              <p className={shared.muted}>No responses in this range.</p>
-            ) : (
-              <StackedBar segments={statusSegments} label="Share of responses by status class" />
-            )}
-          </div>
-        </section>
-      </div>
-
-      <TopUsers win={win} />
+        <TopUsers win={win} />
+      </BentoGrid>
 
       {can(PERMISSIONS.usageReadSelf) ? (
         <YourUsage from={win.from} to={win.to} rangeLabel={win.range.long} />
@@ -248,44 +242,44 @@ function TopUsers({ win }: { win: UsageWindow }) {
   )
 
   return (
-    <section className={shared.panel} aria-labelledby="usage-top">
-      <div className={shared.panelHead}>
-        <h2 id="usage-top" className={shared.panelTitle}>
-          Top users
-        </h2>
-        <span className={shared.panelHint}>By requests, {win.range.long}</span>
-      </div>
-      <div className={shared.panelBody}>
-        {top.isPending ? (
-          <LoadingBlock label="Loading top users" rows={3} />
-        ) : top.isError ? (
-          <ErrorPanel error={top.error} subject="top users" onRetry={() => void top.refetch()} />
-        ) : top.data.length === 0 ? (
-          <p className={shared.muted}>Nobody made a request in this range.</p>
-        ) : (
-          <BarList
-            label="Top users by requests"
-            items={top.data.map((u) => ({
-              id: `${u.principalType}:${u.principalId}`,
-              value: u.requests,
-              note: u.errors > 0 ? `${formatInt(u.errors)} errors` : undefined,
-              label:
-                u.principalType === 'USER' ? (
-                  <Person
-                    name={names.nameOf(u.principalId)}
-                    to={`/users/${u.principalId}`}
-                    size="xs"
-                  />
-                ) : (
-                  <span className={styles.principal}>
-                    <Badge>{u.principalType}</Badge>
-                    <MonoId id={u.principalId} />
-                  </span>
-                ),
-            }))}
-          />
-        )}
-      </div>
-    </section>
+    <BentoCard
+      span={12}
+      title="Top users"
+      icon={<UsersIcon size={18} />}
+      actions={<span className={shared.panelHint}>By requests, {win.range.long}</span>}
+    >
+      {top.isPending ? (
+        <LoadingBlock label="Loading top users" rows={3} />
+      ) : top.isError ? (
+        <ErrorPanel error={top.error} subject="top users" onRetry={() => void top.refetch()} />
+      ) : top.data.length === 0 ? (
+        <p className={shared.muted}>Nobody made a request in this range.</p>
+      ) : (
+        <BarList
+          label="Top users by requests"
+          items={top.data.map((u) => ({
+            id: `${u.principalType}:${u.principalId}`,
+            value: u.requests,
+            note:
+              u.errors > 0
+                ? `${formatInt(u.errors)} ${u.errors === 1 ? 'error' : 'errors'}`
+                : undefined,
+            label:
+              u.principalType === 'USER' ? (
+                <Person
+                  name={names.nameOf(u.principalId)}
+                  to={`/users/${u.principalId}`}
+                  size="xs"
+                />
+              ) : (
+                <span className={styles.principal}>
+                  <Badge>{u.principalType}</Badge>
+                  <MonoId id={u.principalId} />
+                </span>
+              ),
+          }))}
+        />
+      )}
+    </BentoCard>
   )
 }

@@ -24,7 +24,7 @@ describe('command palette', () => {
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Search the workspace' }))
+    await user.click(screen.getByRole('searchbox', { name: 'Search the workspace' }))
     expect(await screen.findByRole('dialog', { name: 'Search the workspace' })).toBeInTheDocument()
   })
 

@@ -1,65 +1,72 @@
+/* The wizard is the app frame's little sibling: a floating panel on the lime-tinted ground. */
 .page {
   min-height: 100vh;
   min-height: 100dvh;
+  padding: var(--pp-space-5);
+  background: var(--pp-color-backdrop);
+  color: var(--pp-color-text);
+}
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-8);
+  max-width: 68rem;
+  min-height: calc(100dvh - var(--pp-space-10));
+  margin-inline: auto;
+  padding: var(--pp-space-8) var(--pp-space-10);
+  border-radius: var(--pp-radius-2xl);
   background: var(--pp-color-canvas);
-  color: var(--pp-color-text);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.5) inset,
+    0 30px 80px -30px rgb(20 30 0 / 0.35);
 }
-
-/* The vault band: logo, skip, progress. The one dark thing on the screen. */
-.band {
-  position: relative;
-  background: var(--pp-color-vault);
-  color: var(--pp-color-text);
-  padding-top: var(--pp-space-6);
-}
-.bandInner {
-  display: grid;
-  gap: var(--pp-space-6);
-  padding-bottom: var(--pp-space-10);
-}
-.topline {
+.top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--pp-space-4);
 }
-.toplineEnd {
+.topEnd {
   display: flex;
   align-items: center;
   gap: var(--pp-space-3);
 }
 .stepper {
-  max-width: 100%;
+  max-width: 40rem;
 }
-.keycut {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  color: var(--pp-color-canvas);
-  pointer-events: none;
-}
-
 .main {
-  padding-block: var(--pp-space-12) var(--pp-space-20);
+  flex: 1;
+  min-width: 0;
 }
 .main:focus {
   outline: none;
 }
+/* Each step rises into place when it arrives (CSS only; the swap itself is instant). */
+.step {
+  animation: stepIn var(--pp-duration-slower) var(--pp-ease-emphasized) both;
+}
+@keyframes stepIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
 .title {
   margin: 0 0 var(--pp-space-4);
+  max-width: 18ch;
   font-family: var(--pp-font-display);
-  font-size: var(--pp-text-display-size);
-  line-height: var(--pp-text-display-line);
-  font-weight: var(--pp-text-display-weight);
-  letter-spacing: var(--pp-text-display-tracking);
+  font-size: var(--pp-text-h1-size);
+  line-height: var(--pp-text-h1-line);
+  font-weight: var(--pp-text-h1-weight);
+  letter-spacing: var(--pp-text-h1-tracking);
   text-wrap: balance;
 }
 .title:focus {
   outline: none;
 }
 .lead {
-  max-width: 54ch;
   margin: 0 0 var(--pp-space-8);
+  max-width: 56ch;
   font-size: var(--pp-text-lead-size);
   line-height: var(--pp-text-lead-line);
   color: var(--pp-color-text-muted);
@@ -70,60 +77,92 @@
 
 .facts {
   display: grid;
-  gap: var(--pp-space-5);
-  margin: 0 0 var(--pp-space-10);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pp-space-4);
+  margin: 0;
   padding: 0;
   list-style: none;
-  max-width: 58ch;
 }
 .facts li {
-  padding-inline-start: var(--pp-space-5);
-  border-inline-start: 2px solid var(--pp-color-brass);
+  padding: var(--pp-space-6);
+  border-radius: var(--pp-radius-xl);
+  background: var(--pp-color-surface);
   color: var(--pp-color-text-muted);
+  line-height: 1.5;
+}
+.facts li:first-child {
+  background: var(--pp-color-vault);
+  color: var(--pp-color-on-vault-muted);
+}
+.facts li:first-child strong {
+  color: var(--pp-color-lime);
+}
+.facts li:last-child {
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
 }
 .facts strong {
   display: block;
+  margin-bottom: var(--pp-space-2);
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-h3-size);
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.02em;
   color: var(--pp-color-text);
-  font-weight: var(--pp-weight-semibold);
+}
+.facts li:last-child strong {
+  color: var(--pp-color-on-lime);
 }
 
 .choices {
-  display: grid;
-  gap: 0;
-  margin: 0 0 var(--pp-space-8);
+  min-width: 0;
+  margin: 0;
   padding: 0;
   border: 0;
-  border-top: 1px solid var(--pp-color-hairline);
 }
 .legend {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
+  padding: 0;
+  margin-bottom: var(--pp-space-3);
+  font-weight: var(--pp-weight-semibold);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pp-space-3);
 }
 .choice {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   gap: var(--pp-space-4);
-  padding-block: var(--pp-space-4);
-  border-bottom: 1px solid var(--pp-color-hairline);
+  padding: var(--pp-space-5);
+  border: 2px solid transparent;
+  border-radius: var(--pp-radius-xl);
+  background: var(--pp-color-surface);
+  cursor: pointer;
+  transition:
+    border-color var(--pp-duration-normal) var(--pp-ease-standard),
+    background-color var(--pp-duration-normal) var(--pp-ease-standard);
+}
+.choice[data-picked] {
+  border-color: var(--pp-color-accent);
+  background: var(--pp-color-accent-subtle);
 }
 
 .firstSteps {
   display: grid;
-  gap: 0;
-  margin: 0 0 var(--pp-space-8);
+  gap: var(--pp-space-3);
+  margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--pp-color-hairline);
 }
 .firstStep {
   display: flex;
   align-items: center;
   gap: var(--pp-space-4);
-  padding-block: var(--pp-space-4);
-  border-bottom: 1px solid var(--pp-color-hairline);
+  padding: var(--pp-space-4) var(--pp-space-5);
+  border-radius: var(--pp-radius-xl);
+  background: var(--pp-color-surface);
 }
 .firstStepText {
   flex: 1;
@@ -131,25 +170,42 @@
 }
 .firstStepText h2 {
   margin: 0;
-  font: var(--pp-text-h4-weight) var(--pp-text-h4-size) / var(--pp-text-h4-line) var(--pp-font-sans);
+  font-size: var(--pp-text-h4-size);
+  font-weight: 600;
 }
 .firstStepText p {
-  margin: var(--pp-space-1) 0 0;
-  font-size: var(--pp-text-body-small-size);
+  margin: 2px 0 0;
   color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--pp-space-3);
+  margin-top: var(--pp-space-8);
+}
+.foot p {
+  margin: 0;
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-caption-size);
 }
 
-@media (max-width: 36rem) {
-  .main {
-    padding-block: var(--pp-space-8) var(--pp-space-16);
+@media (max-width: 56rem) {
+  .facts,
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .firstStep {
-    flex-wrap: wrap;
+  .panel {
+    padding: var(--pp-space-6) var(--pp-space-5);
+  }
+}
+@media (max-width: 47.99rem) {
+  .page {
+    padding: 0;
+  }
+  .panel {
+    min-height: 100dvh;
+    border-radius: 0;
   }
 }

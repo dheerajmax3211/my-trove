@@ -1,5 +1,17 @@
 import { useAuth } from '@platform/auth-web'
-import { Button, Callout, Field, Input, KeyCut, Logo, VaultRings } from '@platform/ui'
+import {
+  ArrowRightIcon,
+  Aurora,
+  Button,
+  Callout,
+  Field,
+  Grain,
+  Input,
+  Logo,
+  Reveal,
+  SpotlightCard,
+  SplitText,
+} from '@platform/ui'
 import type { ProductModule } from '@platform/workspace-kit'
 import { useState, type FormEvent } from 'react'
 import { ModuleMark } from '../../components/ModuleMark'
@@ -46,38 +58,45 @@ export function SignInPage({
   }
 
   return (
-    <div className={styles.page}>
-      <section className={styles.hero} data-surface="vault" aria-labelledby="signin-title">
-        <VaultRings className={styles.rings} />
+    <div className={styles.page} data-theme="dark">
+      <section className={styles.hero} aria-labelledby="signin-title">
+        <Aurora palette="brand" intensity="vivid" />
+        <Grain opacity={0.06} />
         <div className={styles.heroInner}>
           <Logo size="lg" />
           <div className={styles.pitch}>
-            <h1 id="signin-title" className={styles.headline}>
-              Keep your household&rsquo;s life data in one private place.
-            </h1>
-            <p className={styles.lead}>
-              My-Trove brings your follow-ups, consent, home, documents, legacy plans and household
-              money into one workspace, and you decide who can see each part.
-            </p>
+            <SplitText as="h1" id="signin-title" className={styles.headline} immediate>
+              Keep your household’s life data in one private place.
+            </SplitText>
+            <Reveal delay={0.5} distance={14}>
+              <p className={styles.lead}>
+                My-Trove brings your follow-ups, consent, home, documents, legacy plans and
+                household money into one workspace, and you decide who can see each part.
+              </p>
+            </Reveal>
           </div>
           <ul className={styles.products} aria-label="What is inside">
-            {products.map((module) => (
-              <li key={module.id}>
-                <ModuleMark module={module} size={32} />
-                <span>
-                  <strong>{module.title}</strong>
-                  <span className={styles.tagline}>{module.tagline}</span>
-                </span>
-              </li>
+            {products.map((module, index) => (
+              <Reveal as="li" key={module.id} delay={0.7 + index * 0.07} distance={18} scale={0.97}>
+                <SpotlightCard className={styles.product} tilt={2} radius={220}>
+                  <ModuleMark module={module} size={36} />
+                  <span className={styles.productText}>
+                    <strong>{module.title}</strong>
+                    <span className={styles.tagline}>{module.tagline}</span>
+                  </span>
+                </SpotlightCard>
+              </Reveal>
             ))}
           </ul>
         </div>
-        <KeyCut className={styles.keycut} height={20} />
       </section>
 
       <main className={styles.panel}>
-        <div className={styles.form}>
+        <Reveal className={styles.form} distance={20} duration={0.9} delay={0.2}>
           <h2 className={styles.formTitle}>{confirming ? 'Confirm your email' : 'Sign in'}</h2>
+          <p className={styles.formLead}>
+            {confirming ? 'One last step.' : 'Welcome back. Your workspace is where you left it.'}
+          </p>
 
           {implicitDemo ? (
             <Callout variant="note" title="Demo build">
@@ -134,12 +153,14 @@ export function SignInPage({
           ) : null}
 
           <div className={styles.demo}>
-            <p className={styles.demoTitle}>Just looking?</p>
-            <p className={styles.muted}>
-              Open the workspace with sample data. No account, nothing saved, and you can switch
-              between roles to see what each one sees.
-            </p>
-            <Button asChild variant="ghost">
+            <div>
+              <p className={styles.demoTitle}>Just looking?</p>
+              <p className={styles.muted}>
+                Open the workspace with sample data. No account, nothing saved, and you can switch
+                between roles to see what each one sees.
+              </p>
+            </div>
+            <Button asChild variant="glow" rightIcon={<ArrowRightIcon size={16} />}>
               <a href="/?demo=1">Try the demo</a>
             </Button>
           </div>
@@ -147,7 +168,7 @@ export function SignInPage({
           <p className={styles.site}>
             New here? <a href={runtime.siteUrl}>Read what My-Trove is on our site</a>.
           </p>
-        </div>
+        </Reveal>
       </main>
     </div>
   )

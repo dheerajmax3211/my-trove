@@ -1,0 +1,96 @@
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--pp-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-8) var(--pp-space-7);
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-hairline);
+  border-radius: var(--pp-radius-xl);
+  color: var(--pp-color-text);
+}
+.top {
+  background: var(--pp-color-vault);
+  color: var(--pp-color-on-vault);
+  border-color: transparent;
+}
+.name {
+  margin: 0;
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 4px 14px;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
+  font-size: var(--pp-text-caption-size);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.blurb {
+  margin: 0;
+  color: var(--pp-color-text-muted);
+  min-height: 3em;
+}
+.figure {
+  display: flex;
+  flex-direction: column;
+  margin: var(--pp-space-4) 0 0;
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-figure-size);
+  line-height: var(--pp-text-figure-line);
+  font-weight: var(--pp-text-figure-weight);
+  letter-spacing: var(--pp-text-figure-tracking);
+  font-variant-numeric: tabular-nums;
+}
+.unit {
+  font-family: var(--pp-font-sans);
+  font-size: var(--pp-text-body-small-size);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.6;
+  margin-top: var(--pp-space-2);
+  color: var(--pp-color-text-muted);
+}
+.meter {
+  display: block;
+  height: 8px;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-surface-sunken);
+  overflow: hidden;
+}
+.top .meter {
+  background: rgb(255 255 255 / 0.12);
+}
+.meter span {
+  display: block;
+  height: 100%;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-lilac);
+}
+.top .meter span {
+  background: var(--pp-color-lime);
+}
+.month {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--pp-space-3);
+  margin: var(--pp-space-4) 0 0;
+}
+.month dt {
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+}
+.month dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: var(--pp-text-h3-size);
+  font-variant-numeric: tabular-nums;
+}

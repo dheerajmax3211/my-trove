@@ -1,4 +1,4 @@
-import { Badge, Skeleton, type BadgeVariant } from '@platform/ui'
+import { Badge, Skeleton, Stagger, type BadgeVariant } from '@platform/ui'
 import { joinPath, type ProductModule, type TodayItem } from '@platform/workspace-kit'
 import {
   Component,
@@ -115,7 +115,14 @@ export function useTodayFeed(modules: readonly ProductModule[]): {
 
 export function FeedList({ items, now }: { items: readonly FeedItem[]; now: Date }) {
   return (
-    <ul className={styles.list} aria-label="Items that need you">
+    <Stagger
+      as="ul"
+      className={styles.list}
+      aria-label="Items that need you"
+      interval={0.06}
+      distance={14}
+      duration={0.6}
+    >
       {items.map((item) => {
         const due = describeDue(item.dueAt, now)
         return (
@@ -125,12 +132,12 @@ export function FeedList({ items, now }: { items: readonly FeedItem[]; now: Date
             data-severity={item.severity}
           >
             <Link to={item.href} className={styles.link}>
-              <ModuleMark module={item.module} size={32} />
+              <ModuleMark module={item.module} size={40} />
               <span className={styles.text}>
                 <span className={styles.title}>{item.title}</span>
                 <span className={styles.meta}>
                   {item.module.title}
-                  {item.subtitle ? `. ${item.subtitle}` : ''}
+                  {item.subtitle ? ` · ${item.subtitle}` : ''}
                 </span>
               </span>
               <span className={styles.flags}>
@@ -143,7 +150,7 @@ export function FeedList({ items, now }: { items: readonly FeedItem[]; now: Date
           </li>
         )
       })}
-    </ul>
+    </Stagger>
   )
 }
 
@@ -152,7 +159,7 @@ export function FeedSkeleton() {
     <div className={styles.skeleton} aria-busy="true" aria-label="Loading your items" role="status">
       {[0, 1, 2].map((row) => (
         <div key={row} className={styles.skeletonRow}>
-          <Skeleton width={32} height={32} />
+          <Skeleton width={40} height={40} />
           <div className={styles.skeletonText}>
             <Skeleton width="55%" height="1rem" />
             <Skeleton width="35%" height="0.75rem" />

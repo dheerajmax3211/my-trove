@@ -1,35 +1,27 @@
 import {
-  Badge,
+  Avatar,
   Button,
-  DataTable,
   EmptyState,
   Field,
   Illustration,
   Input,
-  type BadgeVariant,
-  type DataTableColumn,
+  Timeline,
+  type TimelineItem,
 } from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
 import { keepPreviousData } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ErrorPanel, Pagination, Screen } from '../components/common'
+import { ErrorPanel, LoadingBlock, Pagination, Screen } from '../components/common'
 import shared from '../components/shared.module.css'
-import { auditDetail, auditTitle } from '../lib/audit'
+import { auditDetail, auditTitle, auditTone } from '../lib/audit'
 import { PERMISSIONS } from '../lib/catalogue'
 import { useAuthQuery, useNames } from '../lib/api'
 import { formatDateTime, formatRelative, isUuid } from '../lib/format'
 import type { AuditEntry, Page } from '../lib/types'
+import styles from './Audit.module.css'
 
 export const AUDIT_PAGE_SIZE = 20
-
-const ACTION_VARIANT: Record<string, BadgeVariant> = {
-  ROLE_GRANTED: 'accent',
-  ROLE_REVOKED: 'warning',
-  USER_SUSPENDED: 'danger',
-  USER_RESTORED: 'success',
-  PLAN_CHANGED: 'info',
-}
 
 export function AuditScreen() {
   return (
@@ -73,51 +65,38 @@ function AuditLog() {
     validTarget || undefined,
   ])
 
-  const columns: DataTableColumn<AuditEntry>[] = [
-    {
-      id: 'when',
-      header: 'When',
-      cell: (e) => (
-        <time dateTime={e.at} title={formatDateTime(e.at)}>
-          {formatRelative(e.at)}
-        </time>
-      ),
-    },
-    {
-      id: 'actor',
-      header: 'Who',
-      cell: (e) =>
-        e.actorId ? (
-          <ModuleLink to={`/users/${e.actorId}`} className={shared.link}>
-            {names.nameOf(e.actorId)}
-          </ModuleLink>
-        ) : (
-          <span className={shared.muted}>System</span>
-        ),
-    },
-    {
-      id: 'action',
-      header: 'What',
-      cell: (e) => (
-        <span className={shared.cellStack}>
-          <Badge variant={ACTION_VARIANT[e.action] ?? 'neutral'}>{auditTitle(e)}</Badge>
-          {auditDetail(e) ? <span className={shared.subtle}>{auditDetail(e)}</span> : null}
+  const timelineItems: TimelineItem[] = entries.map((e) => ({
+    id: e.id,
+    tone: auditTone(e),
+    title: auditTitle(e),
+    description: auditDetail(e) || undefined,
+    time: <span title={formatDateTime(e.at)}>{formatRelative(e.at)}</span>,
+    dateTime: e.at,
+    meta: (
+      <span className={styles.meta}>
+        <span className={styles.actor}>
+          <Avatar name={e.actorId ? names.nameOf(e.actorId) : 'System'} size="xs" decorative />
+          {e.actorId ? (
+            <ModuleLink to={`/users/${e.actorId}`} className={shared.link}>
+              {names.nameOf(e.actorId)}
+            </ModuleLink>
+          ) : (
+            <span className={shared.muted}>System</span>
+          )}
         </span>
-      ),
-    },
-    {
-      id: 'target',
-      header: 'Whom',
-      cell: (e) =>
-        e.targetId ? (
+        <span className={shared.subtle} aria-hidden="true">
+          &rarr;
+        </span>
+        {e.targetId ? (
           <ModuleLink to={`/users/${e.targetId}`} className={shared.link}>
             {names.nameOf(e.targetId)}
           </ModuleLink>
         ) : (
           <span className={shared.muted}>None</span>
-        ),
-    },
-  ]
+        )}
+      </span>
+    ),
+  }))
 
   const apply = () => {
     const value = draft.trim()
@@ -186,38 +165,35 @@ function AuditLog() {
         />
       ) : (
         <>
-          <DataTable
-            caption="Audit log"
-            columns={columns}
-            data={entries}
-            getRowId={(e) => e.id}
-            loading={audit.isPending}
-            emptyState={
-              <EmptyState
-                illustration={<Illustration name={validTarget ? 'search' : 'empty'} />}
-                headingAs="h3"
-                title={
-                  validTarget
-                    ? 'No recorded changes for this user'
-                    : 'Nothing has been recorded yet'
-                }
-                description={
-                  validTarget
-                    ? 'Role grants, suspensions and plan changes for them would appear here.'
-                    : 'Role grants, suspensions, restorations and plan changes are written here as they happen.'
-                }
-                {...(validTarget
-                  ? {
-                      action: (
-                        <Button variant="secondary" onClick={clear}>
-                          Clear filter
-                        </Button>
-                      ),
-                    }
-                  : {})}
-              />
-            }
-          />
+          {audit.isPending ? (
+            <LoadingBlock label="Loading the audit log" rows={5} />
+          ) : entries.length === 0 ? (
+            <EmptyState
+              illustration={<Illustration name={validTarget ? 'search' : 'empty'} />}
+              headingAs="h3"
+              title={
+                validTarget ? 'No recorded changes for this user' : 'Nothing has been recorded yet'
+              }
+              description={
+                validTarget
+                  ? 'Role grants, suspensions and plan changes for them would appear here.'
+                  : 'Role grants, suspensions, restorations and plan changes are written here as they happen.'
+              }
+              {...(validTarget
+                ? {
+                    action: (
+                      <Button variant="secondary" onClick={clear}>
+                        Clear filter
+                      </Button>
+                    ),
+                  }
+                : {})}
+            />
+          ) : (
+            <div className={styles.card}>
+              <Timeline label="Audit log" items={timelineItems} />
+            </div>
+          )}
           {audit.data ? (
             <Pagination
               label="Audit log"

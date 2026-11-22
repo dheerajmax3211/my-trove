@@ -35,7 +35,7 @@
 }
 .track {
   display: block;
-  height: 6px;
+  height: 10px;
   border-radius: var(--pp-radius-full);
   background: var(--pp-color-surface-sunken);
   overflow: hidden;
@@ -44,7 +44,7 @@
   display: block;
   height: 100%;
   border-radius: var(--pp-radius-full);
-  background: var(--pp-color-accent);
+  background: var(--pp-color-lilac);
 }
 
 .stacked {
