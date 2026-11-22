@@ -115,6 +115,13 @@
   gap: var(--pp-space-3);
   min-width: 0;
 }
+.person .link {
+  color: var(--pp-color-text);
+  text-decoration: none;
+}
+.person .link:hover {
+  text-decoration: underline;
+}
 .personText {
   display: flex;
   flex-direction: column;

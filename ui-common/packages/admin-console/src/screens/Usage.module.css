@@ -32,8 +32,8 @@
   color: var(--pp-color-text);
 }
 .rangeButton[aria-pressed='true'] {
-  background: var(--pp-color-vault);
-  color: var(--pp-color-on-vault);
+  background: var(--pp-color-action);
+  color: var(--pp-color-on-action);
 }
 .rangeButton:focus-visible {
   outline: 2px solid var(--pp-color-focus-ring);
@@ -58,4 +58,7 @@
   letter-spacing: -0.04em;
   font-weight: 500;
   color: var(--pp-color-text);
+}
+.hint {
+  margin: calc(var(--pp-space-2) * -1) 0 var(--pp-space-3);
 }

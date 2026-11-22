@@ -64,26 +64,49 @@ export function AccountPage() {
       />
 
       <BentoGrid>
-        <BentoCard span={5} title="Profile" icon={<UserIcon size={18} />}>
-          <div className={styles.profile}>
-            <Avatar name={name} size="lg" />
-            <p className={styles.bigName}>{session.displayName ?? name}</p>
-          </div>
-          <KeyValueList
-            className={styles.facts}
-            items={[
-              { id: 'email', label: 'Email', value: session.email ?? 'Not set' },
-              { id: 'id', label: 'Account id', value: session.uid, mono: true },
-            ]}
-          />
-        </BentoCard>
+        <div className={styles.leftCol}>
+          <BentoCard span={5} title="Profile" icon={<UserIcon size={18} />}>
+            <div className={styles.profile}>
+              <Avatar name={name} size="lg" />
+              <p className={styles.bigName}>{session.displayName ?? name}</p>
+            </div>
+            <KeyValueList
+              className={styles.facts}
+              items={[
+                { id: 'email', label: 'Email', value: session.email ?? 'Not set' },
+                { id: 'id', label: 'Account id', value: session.uid, mono: true },
+              ]}
+            />
+          </BentoCard>
 
-        <BentoCard
-          span={7}
-          rowSpan={2}
-          title="Role and permissions"
-          icon={<ShieldIcon size={18} />}
-        >
+          <BentoCard
+            span={5}
+            tone="dark"
+            title="Plan"
+            icon={<CoinsIcon size={18} />}
+            actions={<Badge variant="accent">{plan?.name ?? session.plan}</Badge>}
+          >
+            {plan ? (
+              <>
+                <BigStat
+                  value={plan.perMonth}
+                  locale="en"
+                  caption="requests a month"
+                  secondary={[{ label: 'Per minute', value: number.format(plan.perMinute) }]}
+                />
+                <p className={styles.planNote}>
+                  Up to {number.format(plan.perMinute)} requests a minute and{' '}
+                  {number.format(plan.perMonth)} a month. Today shows how much of the month you have
+                  used.
+                </p>
+              </>
+            ) : (
+              <p className={styles.planNote}>This plan has no limits we can show.</p>
+            )}
+          </BentoCard>
+        </div>
+
+        <BentoCard span={7} title="Role and permissions" icon={<ShieldIcon size={18} />}>
           <p className={styles.lead}>{PERSONA_SUMMARY[main]}</p>
           <p className={styles.roles}>
             {(held.length > 0 ? held : [main]).map((persona) => (
@@ -113,32 +136,6 @@ export function AccountPage() {
             Roles are changed by an admin or the owner. A change reaches this page within about a
             minute.
           </p>
-        </BentoCard>
-
-        <BentoCard
-          span={5}
-          tone="dark"
-          title="Plan"
-          icon={<CoinsIcon size={18} />}
-          actions={<Badge variant="accent">{plan?.name ?? session.plan}</Badge>}
-        >
-          {plan ? (
-            <>
-              <BigStat
-                value={plan.perMonth}
-                locale="en"
-                caption="requests a month"
-                secondary={[{ label: 'Per minute', value: number.format(plan.perMinute) }]}
-              />
-              <p className={styles.planNote}>
-                Up to {number.format(plan.perMinute)} requests a minute and{' '}
-                {number.format(plan.perMonth)} a month. Today shows how much of the month you have
-                used.
-              </p>
-            </>
-          ) : (
-            <p className={styles.planNote}>This plan has no limits we can show.</p>
-          )}
         </BentoCard>
 
         <BentoCard span={6} title="Preferences" icon={<SettingsIcon size={18} />}>

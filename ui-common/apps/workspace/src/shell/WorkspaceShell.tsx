@@ -120,12 +120,13 @@ export function WorkspaceShell() {
   const { pathname } = useLocation()
   const outlet = useOutlet()
   const [paletteOpen, setPaletteOpen] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
+  // The menu is open for one page only: it closes by itself when the route changes.
+  const [menuAt, setMenuAt] = useState<string | null>(null)
+  const menuOpen = menuAt === pathname
   useHotkey('mod+k', () => setPaletteOpen((open) => !open))
   useFocusHeadingOnNavigate()
 
   const name = session.displayName ?? session.email ?? 'Account'
-  useEffect(() => setMenuOpen(false), [pathname])
 
   return (
     <>
@@ -141,7 +142,7 @@ export function WorkspaceShell() {
         user={{
           name,
           ...(session.email && session.email !== name ? { email: session.email } : {}),
-          onClick: () => setMenuOpen((open) => !open),
+          onClick: () => setMenuAt(menuOpen ? null : pathname),
         }}
         search={{
           label: 'Search the workspace',
@@ -167,7 +168,11 @@ export function WorkspaceShell() {
             ) : null}
             <PersonaBadge persona={primaryPersona(session.roles)} className={styles.persona} />
             <ThemePill />
-            <UserMenu open={menuOpen} onOpenChange={setMenuOpen} name={name} />
+            <UserMenu
+              open={menuOpen}
+              onOpenChange={(open) => setMenuAt(open ? pathname : null)}
+              name={name}
+            />
           </>
         }
       >

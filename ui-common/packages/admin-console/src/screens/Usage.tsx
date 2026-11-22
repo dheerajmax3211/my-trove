@@ -164,16 +164,10 @@ function UsageBody({ win }: { win: UsageWindow }) {
       </section>
 
       <BentoGrid>
-        <BentoCard
-          span={12}
-          title="Traffic"
-          icon={<ChartIcon size={18} />}
-          actions={
-            <span className={shared.panelHint}>
-              One point per {unit}, UTC. {data.resolution} resolution.
-            </span>
-          }
-        >
+        <BentoCard span={12} title="Traffic" icon={<ChartIcon size={18} />}>
+          <p className={`${shared.panelHint} ${styles.hint}`}>
+            One point per {unit}, UTC. {data.resolution} resolution.
+          </p>
           {data.totalRequests === 0 ? (
             <EmptyState
               illustration={<Illustration name="empty" />}
@@ -266,7 +260,10 @@ function TopUsers({ win }: { win: UsageWindow }) {
           items={top.data.map((u) => ({
             id: `${u.principalType}:${u.principalId}`,
             value: u.requests,
-            note: u.errors > 0 ? `${formatInt(u.errors)} errors` : undefined,
+            note:
+              u.errors > 0
+                ? `${formatInt(u.errors)} ${u.errors === 1 ? 'error' : 'errors'}`
+                : undefined,
             label:
               u.principalType === 'USER' ? (
                 <Person

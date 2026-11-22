@@ -60,10 +60,17 @@
 }
 
 /* On a short screen the promo is just its title and button, so the navigation keeps its room. */
-@media (max-height: 56rem) {
+@media (max-height: 66rem) {
   .demoNote,
   .promoStack > div > div:first-child,
   .promoStack > div > p:nth-of-type(2) {
+    display: none;
+  }
+}
+
+/* On a laptop screen the navigation needs every row, so the promo steps aside. */
+@media (max-height: 60rem) {
+  .promoStack {
     display: none;
   }
 }

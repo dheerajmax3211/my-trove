@@ -4,7 +4,7 @@
   padding: 0;
   display: grid;
   gap: var(--pp-space-4);
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
 }
 .persona {
   display: flex;
@@ -25,6 +25,7 @@
 }
 .scroll {
   overflow-x: auto;
+  position: relative;
   background: var(--pp-color-surface);
   border: 1px solid var(--pp-color-hairline);
   border-radius: var(--pp-radius-xl);
@@ -84,12 +85,16 @@
   border-top: 1px solid var(--pp-color-hairline);
 }
 .yes {
-  color: var(--pp-color-accent-text);
-  background: var(--pp-color-accent-subtle);
+  color: var(--pp-color-text);
 }
 .no {
   color: var(--pp-color-text-subtle);
 }
 .yes svg {
+  box-sizing: content-box;
+  padding: 5px;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
   vertical-align: middle;
 }

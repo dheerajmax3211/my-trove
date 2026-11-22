@@ -6,6 +6,11 @@
 .row > *:first-child {
   grid-column: 1 / -1;
 }
+@media (max-width: 30rem) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 @media (min-width: 64rem) {
   .row {
     grid-template-columns: repeat(4, minmax(0, 1fr));

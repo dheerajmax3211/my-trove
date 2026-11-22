@@ -53,6 +53,8 @@ export function UserMenu({
     if (open) {
       trigger.setAttribute('aria-controls', panelId)
       const box = trigger.getBoundingClientRect()
+      // Measuring the real chip to place the panel is a legitimate layout-effect write.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPlace({
         left: Math.max(16, Math.min(box.left, window.innerWidth - 336)),
         top: box.bottom + 8,

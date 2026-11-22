@@ -15,3 +15,12 @@
   align-items: center;
   gap: var(--pp-space-2);
 }
+
+.meta a {
+  color: var(--pp-color-text);
+  text-decoration: none;
+  font-weight: 600;
+}
+.meta a:hover {
+  text-decoration: underline;
+}

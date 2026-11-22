@@ -30,3 +30,13 @@ nav.nav {
 nav.nav a {
   min-height: 2.5rem;
 }
+
+/* Laptop-height screens: tighter rows so a long list (a product plus Admin) fits without scrolling. */
+@media (max-height: 60rem) {
+  nav.nav {
+    gap: var(--pp-space-2);
+  }
+  nav.nav a {
+    min-height: 2.125rem;
+  }
+}

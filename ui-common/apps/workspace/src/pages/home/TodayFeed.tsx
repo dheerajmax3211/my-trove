@@ -137,7 +137,7 @@ export function FeedList({ items, now }: { items: readonly FeedItem[]; now: Date
                 <span className={styles.title}>{item.title}</span>
                 <span className={styles.meta}>
                   {item.module.title}
-                  {item.subtitle ? `. ${item.subtitle}` : ''}
+                  {item.subtitle ? ` · ${item.subtitle}` : ''}
                 </span>
               </span>
               <span className={styles.flags}>

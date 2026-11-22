@@ -230,7 +230,11 @@ export function OnboardingWizard() {
                   <Button variant="secondary" onClick={() => setStep(1)}>
                     Back
                   </Button>
-                  <Button size="lg" onClick={() => finish()} rightIcon={<ArrowRightIcon size={18} />}>
+                  <Button
+                    size="lg"
+                    onClick={() => finish()}
+                    rightIcon={<ArrowRightIcon size={18} />}
+                  >
                     Open Today
                   </Button>
                 </div>
@@ -239,7 +243,9 @@ export function OnboardingWizard() {
           </div>
         </main>
         <Reveal className={styles.foot} delay={0.4} direction="none">
-          <p>Step {step + 1} of {STEPS.length}. You can change all of this later from Account.</p>
+          <p>
+            Step {step + 1} of {STEPS.length}. You can change all of this later from Account.
+          </p>
         </Reveal>
       </div>
     </div>
