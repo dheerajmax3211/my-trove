@@ -2,7 +2,8 @@ package com.personalplatform.shared;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.personalplatform.shared.reminder.LoggingNotificationSender;
+import com.personalplatform.notify.LoggingNotificationSender;
+import com.personalplatform.notify.ContactDirectory;
 import com.personalplatform.shared.reminder.ReminderScheduler;
 import com.personalplatform.shared.reminder.ReminderService;
 import java.time.Duration;
@@ -24,9 +25,11 @@ class DefaultWiringTests {
     @Autowired LoggingNotificationSender loggingSender;
     @Autowired ReminderService reminders;
     @Autowired DSLContext dsl;
+    @Autowired ContactDirectory contacts;
 
     @Test
     void schedulerTickFiresAndRelaysThroughTheLoggingSender() {
+        contacts.remember("wiring-user", "wiring-user@example.test");
         var r = reminders.create("wiring-user", "wired", Instant.now().minus(Duration.ofHours(1)), null, null);
         scheduler.tick();
         assertThat(dsl.fetchValue("select status from shared.notifications where reminder_id = ?", r.id())).isEqualTo("SENT");

@@ -1,6 +1,6 @@
 package com.personalplatform.shared;
 
-import com.personalplatform.shared.reminder.NotificationSender;
+import com.personalplatform.notify.NotificationSender;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;

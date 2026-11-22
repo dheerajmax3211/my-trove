@@ -3,6 +3,7 @@ package com.personalplatform.notify;
 import static com.personalplatform.sql.jooq.shared.shared.Tables.NOTIFICATIONS;
 
 import com.personalplatform.sql.UuidV7;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import org.jooq.DSLContext;
@@ -18,9 +19,11 @@ public class NotificationOutbox {
     private static final int MAX_BODY = 4000;
 
     private final DSLContext dsl;
+    private final Clock clock;
 
-    public NotificationOutbox(DSLContext dsl) {
+    public NotificationOutbox(DSLContext dsl, Clock clock) {
         this.dsl = dsl;
+        this.clock = clock;
     }
 
     /**
@@ -28,7 +31,7 @@ public class NotificationOutbox {
      * already exists. Must run inside the caller's transaction.
      */
     public boolean enqueue(Notification n) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         int inserted = dsl.insertInto(NOTIFICATIONS)
                 .set(NOTIFICATIONS.ID, UuidV7.next())
                 .set(NOTIFICATIONS.RECIPIENT_UID, n.recipientUid())

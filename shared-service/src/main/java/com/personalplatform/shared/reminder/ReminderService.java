@@ -1,7 +1,6 @@
 package com.personalplatform.shared.reminder;
 
 import static com.personalplatform.sql.jooq.shared.shared.Tables.HOUSEHOLD_MEMBERS;
-import static com.personalplatform.sql.jooq.shared.shared.Tables.NOTIFICATIONS;
 import static com.personalplatform.sql.jooq.shared.shared.Tables.REMINDERS;
 
 import com.personalplatform.shared.audit.AuditService;
@@ -34,9 +33,6 @@ public class ReminderService {
 
     public record ReminderView(UUID id, String ownerUid, UUID householdId, String title, Instant dueAt,
             Recurrence recurrence, Status status, Instant lastFiredAt, Instant createdAt) {}
-
-    public record NotificationView(UUID id, UUID reminderId, UUID householdId, String title, Instant occurrenceAt,
-            String status, int attempts, Instant createdAt, Instant sentAt) {}
 
     private final DSLContext dsl;
     private final Clock clock;
@@ -133,20 +129,6 @@ public class ReminderService {
         return get(uid, id);
     }
 
-    /** The caller's own inbox: notifications addressed to them, newest first. */
-    @Transactional(readOnly = true)
-    public List<NotificationView> notifications(String uid, String status) {
-        Condition c = NOTIFICATIONS.RECIPIENT_UID.eq(uid);
-        if (status != null && !status.isBlank()) {
-            c = c.and(NOTIFICATIONS.STATUS.eq(status.toUpperCase()));
-        }
-        return dsl.selectFrom(NOTIFICATIONS).where(c)
-                .orderBy(NOTIFICATIONS.CREATED_AT.desc(), NOTIFICATIONS.ID.desc())
-                .limit(200)
-                .fetch(n -> new NotificationView(n.getId(), n.getReminderId(), n.getHouseholdId(), n.getTitle(),
-                        Times.instant(n.getOccurrenceAt()), n.getStatus(), n.getAttempts(),
-                        Times.instant(n.getCreatedAt()), Times.instant(n.getSentAt())));
-    }
 
     // ---- authorization helpers -----------------------------------------------------------------------------
 

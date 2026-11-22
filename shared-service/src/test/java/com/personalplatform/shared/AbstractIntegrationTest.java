@@ -47,6 +47,8 @@ abstract class AbstractIntegrationTest {
     void cleanDatabase() {
         clock.set(TestBeans.T0);
         sender.reset();
+        dsl.execute("delete from shared.notifications"); // outbox and inbox; email-only rows too
+        dsl.execute("delete from shared.user_contacts");
         dsl.execute("delete from shared.reminders");
         dsl.execute("delete from shared.files");
         dsl.execute("delete from shared.households"); // cascades members + invites
@@ -66,6 +68,10 @@ abstract class AbstractIntegrationTest {
 
     ResultActions getAs(String uid, String path) throws Exception {
         return send(uid, get(path));
+    }
+
+    ResultActions getWithToken(String authorization, String path) throws Exception {
+        return mvc.perform(get(path).header("Authorization", authorization));
     }
 
     ResultActions postAs(String uid, String path, String json) throws Exception {

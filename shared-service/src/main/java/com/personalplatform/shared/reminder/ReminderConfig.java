@@ -1,5 +1,8 @@
 package com.personalplatform.shared.reminder;
 
+import com.personalplatform.notify.ContactDirectory;
+import com.personalplatform.notify.NotificationRelay;
+import com.personalplatform.notify.NotificationSender;
 import java.time.Clock;
 import org.jooq.DSLContext;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -19,8 +22,8 @@ public class ReminderConfig {
 
     @Bean
     NotificationRelay notificationRelay(DSLContext dsl, PlatformTransactionManager tm, Clock clock,
-            NotificationSender sender, SchedulerProperties p) {
-        return new NotificationRelay(dsl, new TransactionTemplate(tm), clock, sender, p.maxAttempts(),
+            NotificationSender sender, ContactDirectory contacts, SchedulerProperties p) {
+        return new NotificationRelay(dsl, new TransactionTemplate(tm), clock, sender, contacts, p.maxAttempts(),
                 p.baseBackoff(), p.maxBackoff());
     }
 }

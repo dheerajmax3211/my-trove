@@ -4,6 +4,7 @@ import static com.personalplatform.sql.jooq.shared.shared.Tables.HOUSEHOLD_MEMBE
 import static com.personalplatform.sql.jooq.shared.shared.Tables.NOTIFICATIONS;
 import static com.personalplatform.sql.jooq.shared.shared.Tables.REMINDERS;
 
+import com.personalplatform.notify.Notification;
 import com.personalplatform.shared.common.Times;
 import com.personalplatform.sql.UuidV7;
 import com.personalplatform.sql.jooq.shared.shared.tables.records.RemindersRecord;
@@ -80,7 +81,12 @@ public class ReminderEngine {
                     .set(NOTIFICATIONS.REMINDER_ID, r.getId())
                     .set(NOTIFICATIONS.HOUSEHOLD_ID, r.getHouseholdId())
                     .set(NOTIFICATIONS.RECIPIENT_UID, recipient)
+                    .set(NOTIFICATIONS.KIND, "REMINDER")
+                    .set(NOTIFICATIONS.SOURCE, "shared")
                     .set(NOTIFICATIONS.TITLE, r.getTitle())
+                    .set(NOTIFICATIONS.IN_APP, true)
+                    .set(NOTIFICATIONS.DEDUPE_KEY, Notification.dedupeKey("reminder", r.getId().toString(),
+                            r.getDueAt().toInstant().toString(), recipient))
                     .set(NOTIFICATIONS.OCCURRENCE_AT, r.getDueAt())
                     .set(NOTIFICATIONS.STATUS, "PENDING")
                     .set(NOTIFICATIONS.NEXT_ATTEMPT_AT, Times.odt(now))

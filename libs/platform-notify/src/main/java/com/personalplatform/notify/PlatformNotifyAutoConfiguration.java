@@ -1,9 +1,11 @@
 package com.personalplatform.notify;
 
+import java.time.Clock;
 import java.util.Optional;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -32,9 +34,10 @@ import jakarta.servlet.http.HttpServletResponse;
 @EnableConfigurationProperties(NotifyProperties.class)
 public class PlatformNotifyAutoConfiguration {
 
+    /** Uses the service's Clock bean when it has one, so that tests driving a controllable clock stay consistent. */
     @Bean
-    NotificationOutbox notificationOutbox(DSLContext dsl) {
-        return new NotificationOutbox(dsl);
+    NotificationOutbox notificationOutbox(DSLContext dsl, ObjectProvider<Clock> clock) {
+        return new NotificationOutbox(dsl, clock.getIfAvailable(Clock::systemUTC));
     }
 
     @Bean
