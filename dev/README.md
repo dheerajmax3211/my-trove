@@ -53,9 +53,21 @@ The services need no code change: `dev/up.sh` sets `FIREBASE_PROJECT_ID=demo-pla
 (signature, issuer, audience, expiry).
 
 In the browser, `VITE_DEV_IDP_URL=http://localhost:9100` switches `@platform/auth-web` to a dev client
-(`createDevIdpAuthClient`). "Continue with Google" signs in as `dev@example.test`; "Email me a link" signs in as
-whatever address you type, immediately. `dev@example.test` is the bootstrap admin (`BOOTSTRAP_ADMIN_EMAILS`).
-Different emails are different users, which is the quickest way to test sharing and approvals.
+(`createDevIdpAuthClient`). Nothing signs in silently:
+
+- "Continue with Google" opens a chooser of the five seeded personas (owner, admin, developer, member, auditor), each
+  with the roles the seed grants. Picking one signs in as that account. The real Google path is used only with a real
+  Firebase configuration.
+- "Email me a sign-in link" sends nothing. The page shows the link (the dev identity provider issues a one-time code
+  bound to that address, valid 15 minutes). Opening it signs in that address; opened on another device it asks for the
+  address first, and a wrong address or a second use is refused.
+
+`dev@example.test` is the bootstrap owner (`BOOTSTRAP_ADMIN_EMAILS`). Different emails are different users, which is the
+quickest way to test sharing and approvals.
+
+Checks for all of this: `dev/e2e-personas.sh` (the persona matrix and role guardrails through the gateway) and
+`dev/e2e-personas-ui.mjs` (the same personas and the sign-in flows in a real browser, with `WORKSPACE_URL` pointing at a
+running workspace; it needs `playwright-core`, via `PLAYWRIGHT_CORE=<path to its index.mjs>` if it is not installed).
 
 The identity provider only answers CORS requests from localhost origins and binds to loopback. It must never be
 reachable from a network, and the services must never be pointed at it outside development.
