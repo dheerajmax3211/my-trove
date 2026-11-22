@@ -1,7 +1,8 @@
-import { Button, Sparkline, Stat, VaultRings, type StatTrend } from '@platform/ui'
+import { AreaChart, BentoCard, BigStat, Button, CoinsIcon } from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
-import { MoneyText } from '../../../components/MoneyText'
-import { formatMinor, formatSigned } from '../../../lib/money'
+import { useMemo } from 'react'
+import type { Slot } from '../../../components/CardState'
+import { formatMinor, formatSigned, minorDigits } from '../../../lib/money'
 import { useStatement } from '../../statement/hooks'
 import { useHousehold } from '../hooks/useHousehold'
 
@@ -27,78 +28,86 @@ export function balanceHistory(
   }
 }
 
-const trendOf = (minor: number): StatTrend => (minor > 0 ? 'up' : minor < 0 ? 'down' : 'flat')
+const trendOf = (minor: number): 'up' | 'down' | 'flat' =>
+  minor > 0 ? 'up' : minor < 0 ? 'down' : 'flat'
 
 /**
- * What the dashboard leads with: the shared pool as one large figure on the vault surface, how it has moved, and
- * the one primary action. A kid sees their own pot here instead (they have no pool).
+ * What the dashboard leads with, and its one black card: the shared pool as a huge counting figure, how it has
+ * moved, the balance drawn as a line, and the one primary action. A kid sees their own pot here instead.
+ *
+ * The figure is display only: money everywhere else in the app stays integer minor units. Here the minor amount is
+ * divided once by the currency's own power of ten so the number can count up, and it lands on the exact amount.
  */
-export function PoolHero() {
+export function PoolHero({ className, style }: Slot) {
   const { household, pool, myPot, isKid, currency } = useHousehold()
   const account = isKid ? myPot : pool
   const statement = useStatement(household.id, account?.id ?? '', { page: 0, size: 500 })
-  const history = balanceHistory(statement.data?.rows ?? [])
+  const history = useMemo(() => balanceHistory(statement.data?.rows ?? []), [statement.data])
   const threshold = household.approvalThresholdMinor
   const label = isKid ? 'My pot' : 'Shared pool'
+  const scale = 10 ** minorDigits(currency)
+  const points = history.series.map((value, i) => ({ label: `Entry ${i + 1}`, value }))
 
   return (
-    <section
-      className="ft-hero pp-grain"
-      data-surface="vault"
-      aria-label={isKid ? 'My pot' : `${household.name}: the shared pool`}
-    >
-      <VaultRings className="ft-hero-rings" />
-      <div className="ft-hero-body">
-        <Stat
-          className="ft-hero-stat"
-          label={label}
-          value={
-            account ? (
-              <MoneyText minor={account.balanceMinor} currency={currency} />
-            ) : (
-              'Not available'
-            )
-          }
-          {...(history.count > 0
-            ? {
-                delta: formatSigned(history.changeMinor, currency),
-                trend: trendOf(history.changeMinor),
-                hint: `over the last ${history.count} ${history.count === 1 ? 'entry' : 'entries'}`,
-              }
-            : { hint: 'Nothing recorded yet' })}
-        />
-        {history.series.length > 1 ? (
-          <Sparkline
-            className="ft-hero-line"
-            data={history.series}
-            width={320}
-            height={64}
-            animate
-            label={`${label} balance after each of the last ${history.count} entries`}
-          />
-        ) : null}
-        <p className="ft-hero-note">
-          {isKid
-            ? 'This is your own pot. Spend from it, or ask for something bigger to be approved.'
-            : threshold === null
-              ? 'No approval limit: every spend is recorded straight away.'
-              : `Spends above ${formatMinor(threshold, currency)} need a second person to approve.`}
-        </p>
-      </div>
-      <div className="ft-hero-actions">
-        <Button asChild size="lg">
+    <BentoCard
+      tone="dark"
+      span={7}
+      title={label}
+      icon={<CoinsIcon size={18} />}
+      className={className}
+      {...(style ? { style } : {})}
+      actions={
+        <Button asChild size="sm" variant="primary">
           <ModuleLink to={`/h/${household.id}/move`}>
             {isKid ? 'Spend from my pot' : 'Move money'}
           </ModuleLink>
         </Button>
-        {isKid ? null : (
-          <div className="ft-quick">
-            <ModuleLink to={`/h/${household.id}/move?tab=deposit`}>Deposit</ModuleLink>
-            <ModuleLink to={`/h/${household.id}/move?tab=spend`}>Spend</ModuleLink>
-            <ModuleLink to={`/h/${household.id}/move?tab=transfer`}>Transfer</ModuleLink>
-          </div>
+      }
+    >
+      <div role="group" aria-label={label}>
+        {account ? (
+          <BigStat
+            value={account.balanceMinor / scale}
+            locale="en-US"
+            format={{ style: 'currency', currency }}
+            {...(history.count > 0
+              ? {
+                  delta: formatSigned(history.changeMinor, currency),
+                  trend: trendOf(history.changeMinor),
+                  caption: `over the last ${history.count} ${history.count === 1 ? 'entry' : 'entries'}`,
+                }
+              : { caption: 'Nothing recorded yet' })}
+          />
+        ) : (
+          <p className="ft-muted">Not available</p>
         )}
       </div>
-    </section>
+      {points.length > 1 ? (
+        <AreaChart
+          className="ft-hero-chart"
+          label={`${label} balance after each of the last ${history.count} entries`}
+          data={points}
+          height={150}
+          tone="lime"
+          showAxis={false}
+          gridLines={2}
+          format={(v) => formatMinor(Math.round(v), currency)}
+        />
+      ) : null}
+      <p className="ft-hero-note">
+        {isKid
+          ? 'This is your own pot. Spend from it, or ask for something bigger to be approved.'
+          : threshold === null
+            ? 'No approval limit: every spend is recorded straight away.'
+            : `Spends above ${formatMinor(threshold, currency)} need a second person to approve.`}
+      </p>
+      {isKid ? null : (
+        <div className="ft-quick">
+          <ModuleLink to={`/h/${household.id}/move?tab=deposit`}>Deposit</ModuleLink>
+          <ModuleLink to={`/h/${household.id}/move?tab=spend`}>Spend</ModuleLink>
+          <ModuleLink to={`/h/${household.id}/move?tab=transfer`}>Transfer</ModuleLink>
+        </div>
+      )}
+    </BentoCard>
   )
 }
