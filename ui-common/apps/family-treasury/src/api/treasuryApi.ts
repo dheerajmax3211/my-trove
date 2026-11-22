@@ -5,10 +5,13 @@ import type {
   AllowanceRun,
   ApprovalView,
   CreateHouseholdRequest,
+  CreateInviteRequest,
   CreateScheduleRequest,
   DepositRequest,
   EntryView,
   HouseholdView,
+  InviteCreated,
+  InviteView,
   MemberView,
   ReconciliationReport,
   Role,
@@ -53,6 +56,14 @@ export function createTreasuryApi(client: ApiClient) {
       client.put<HouseholdView>(`${household(id)}/settings`, body),
     addMember: (id: string, body: AddMemberRequest) =>
       client.post<MemberView>(`${household(id)}/members`, body),
+    createInvite: (id: string, body: CreateInviteRequest) =>
+      client.post<InviteCreated>(`${household(id)}/invites`, body),
+    listInvites: (id: string) => client.get<InviteView[]>(`${household(id)}/invites`),
+    revokeInvite: (id: string, inviteId: string) =>
+      client.delete<void>(`${household(id)}/invites/${inviteId}`),
+    /** Joins the household the code belongs to; the caller's own account gets the role and a pot. */
+    acceptInvite: (code: string) =>
+      client.post<HouseholdView>('/v1/households/invites/accept', { code }),
     changeRole: (id: string, uid: string, role: Role) =>
       client.put<MemberView>(`${household(id)}/members/${encodeURIComponent(uid)}/role`, { role }),
     listAccounts: (id: string) => client.get<AccountView[]>(`${household(id)}/accounts`),

@@ -174,6 +174,28 @@ export interface AddMemberRequest {
   displayName: string | null
 }
 
+/** Owner creates a single-use invite code. */
+export interface CreateInviteRequest {
+  role: Role
+  ttlHours?: number
+}
+
+/** Returned once, at creation: the code is shown to the owner and never again. */
+export interface InviteCreated {
+  id: string
+  code: string
+  role: Role
+  expiresAt: string
+}
+
+export interface InviteView {
+  id: string
+  role: Role
+  createdByUid: string
+  createdAt: string
+  expiresAt: string
+}
+
 export interface DepositRequest {
   toAccountId: string
   incomeAccountId: string | null

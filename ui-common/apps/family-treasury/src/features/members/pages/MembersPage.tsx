@@ -1,27 +1,12 @@
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  DataTable,
-  PageHeader,
-  PlusIcon,
-  Select,
-  useToast,
-  type DataTableColumn,
-} from '@platform/ui'
-import { useState } from 'react'
+import { DataTable, PageHeader, Select, useToast, type DataTableColumn } from '@platform/ui'
 import { useGuardedMutation } from '../../../api/hooks'
 import { ROLES, type MemberView, type Role } from '../../../api/types'
 import { AccessNotice } from '../../../components/AccessNotice'
 import { ErrorNotice } from '../../../components/ErrorNotice'
 import { MoneyText } from '../../../components/MoneyText'
 import { ROLE_LABEL, RoleBadge } from '../../../components/RoleBadge'
-import { useViewerUid } from '../../../viewer'
 import { useHousehold } from '../../household/hooks/useHousehold'
-import { AddMemberDialog } from '../components/AddMemberDialog'
+import { InvitesCard } from '../components/InvitesCard'
 import { RoleMatrix } from '../components/RoleMatrix'
 import { SettingsCard } from '../components/SettingsCard'
 
@@ -61,8 +46,6 @@ function RoleSelect({ member }: { member: MemberView }) {
 
 export function MembersPage() {
   const h = useHousehold()
-  const uid = useViewerUid()
-  const [adding, setAdding] = useState(false)
   const isOwner = h.role === 'OWNER'
   if (h.isKid) return <AccessNotice what="Members and roles" to={`/h/${h.household.id}`} />
 
@@ -97,14 +80,7 @@ export function MembersPage() {
     <>
       <PageHeader
         title="Members and roles"
-        description="Who is in this household and what each role is allowed to do."
-        actions={
-          isOwner ? (
-            <Button leftIcon={<PlusIcon />} onClick={() => setAdding(true)}>
-              Add member
-            </Button>
-          ) : undefined
-        }
+        description="Who is in this household and what each role is allowed to do. Owners invite people with a code."
       />
       <DataTable
         caption="Household members"
@@ -112,20 +88,9 @@ export function MembersPage() {
         data={h.household.members}
         getRowId={(m) => m.uid}
       />
-      <Card>
-        <CardHeader>
-          <CardTitle as="h2">Your member ID</CardTitle>
-          <CardDescription>
-            Give this to an owner so they can add you to another household.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <code className="ft-mono">{uid}</code>
-        </CardContent>
-      </Card>
+      {isOwner ? <InvitesCard /> : null}
       {isOwner ? <SettingsCard /> : null}
       <RoleMatrix />
-      {adding ? <AddMemberDialog onClose={() => setAdding(false)} /> : null}
     </>
   )
 }

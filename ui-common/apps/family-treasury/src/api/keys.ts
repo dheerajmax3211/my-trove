@@ -13,6 +13,7 @@ export const treasuryKeys = {
     ['treasury', id, 'entries', page, size] as const,
   approvals: (id: string, status: string | null) => ['treasury', id, 'approvals', status] as const,
   reconciliation: (id: string) => ['treasury', id, 'reconciliation'] as const,
+  invites: (id: string) => ['treasury', id, 'invites'] as const,
   schedules: (id: string) => ['treasury', id, 'schedules'] as const,
   runs: (id: string, scheduleId: string) => ['treasury', id, 'runs', scheduleId] as const,
   statement: (id: string, accountId: string, q: StatementQuery) =>
