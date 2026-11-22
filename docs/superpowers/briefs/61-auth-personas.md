@@ -1,0 +1,11 @@
+# Audit: sign-in, sign-out, account switching, personas (branch `audit/auth-personas`)
+Scope: `ui-common/apps/workspace/**`, `ui-common/packages/auth-web/**`, `auth/**`, `platform-service/**` (only if a permission is wrong), `dev/**`.
+Symptoms from the owner: plain `http://localhost:5190/` went to demo; "Continue with Google" always lands on `dev@example.test` with no choice; "Email me a sign-in link" with any address just signs in; personas and login are not working properly.
+Do:
+1. Verify and fix every sign-in path on the workspace: Google (dev identity provider), email link (send, open the link, complete on another device), sign-out from the account menu, sign-out from the command palette, switching to another persona by signing out and in again, the session refresh after a role change, and expired tokens (401 must sign out, not loop).
+2. Dev sign-in UX: in dev-identity-provider mode, "Continue with Google" must not silently pick one account. Show a clear dev account chooser listing the five personas (owner, admin, developer, member, auditor) with their roles, and keep the real-Google path for a real Firebase configuration. Label dev mode honestly on the sign-in page.
+3. Persona matrix, verified live for each of the five real accounts: which nav items appear, which routes open, which show the forbidden page with a clear reason, and what each API call returns (use the gateway, real tokens). Expected per design section 5.2 of `docs/superpowers/specs/2026-11-21-trove-platform-v2-design.md`. Fix any mismatch in the backend permission mapping or the UI gating.
+4. DEVELOPER: right now the developer role has no real screens. Give it a real, honest developer area in the workspace: its own usage (`/v1/usage/me`), its keys/apps area labelled as "Phase 3, not built yet" with what it will do, nothing fake. Ask yourself what a developer actually needs today and keep it small.
+5. Admin persona: the admin console must show what admin can and cannot do, consistent with the backend (ADMIN cannot grant ADMIN/OWNER, per the guardrails).
+6. Write `dev/e2e-personas.sh` that logs in as each persona through the real gateway and asserts the matrix. Commit it and rerun it.
+Make sure the demo still works with `?demo=1`, and that "Try the demo" still works.

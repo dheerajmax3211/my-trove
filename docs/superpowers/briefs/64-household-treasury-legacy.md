@@ -1,0 +1,7 @@
+# Audit: Household, Family Treasury, Digital Legacy (branch `audit/household-treasury-legacy`)
+Scope: `ui-common/apps/hub/**` (the `core` module), `ui-common/apps/family-treasury/**`, `ui-common/apps/digital-legacy/**`, and backends `shared-service/**`, `family-treasury/**`, `digital-legacy/**` (only fixes for these flows).
+Product points:
+- Household: "Share reminders and files with the people you live with." Real flow: create a household, invite a second real account by email or copyable code, the invitee accepts (sign in as member@example.test), both see shared reminders and files. Today adding a member needs a Firebase uid, which is unusable: replace it with invite by email or code.
+- Family Treasury: "Keep the household ledger, approvals and allowances in one place. Bookkeeping only; no real money moves." Real flow: owner deposits, a member spends above the approval limit, an approver (second account) approves or rejects on the dashboard, the ledger and balances update.
+- Digital Legacy: "Plan what the people you trust can open if you are no longer around." Real flow: owner creates an encrypted vault (keys stay in the browser), sets the check-in policy, invites a trustee by link, does a check-in, and sees the state ladder move. The trustee portal is a separate standalone page; verify it opens from the invite link.
+Verify live with real personas (owner = dev@example.test, member = member@example.test, plus developer/admin if useful). Screenshot, read, fix, commit a script under `dev/` proving each flow.
