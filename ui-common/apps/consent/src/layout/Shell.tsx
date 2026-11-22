@@ -1,11 +1,10 @@
 import { useAuth } from '@platform/auth-web'
 import {
-  AppShell,
-  Avatar,
+  AppFrame,
   Badge,
   Button,
   ProductMark,
-  Select,
+  PillSelect,
   SidebarLink,
   SidebarNav,
   SidebarSection,
@@ -45,17 +44,16 @@ function NavItem({
 function ThemeSelect() {
   const { theme, setTheme } = useTheme()
   return (
-    <Select
-      size="sm"
-      aria-label="Theme"
+    <PillSelect
+      label="Theme"
       value={theme}
       onChange={(e) => setTheme(e.target.value as ThemePreference)}
-      style={{ width: 'auto' }}
-    >
-      <option value="system">System theme</option>
-      <option value="light">Light</option>
-      <option value="dark">Dark</option>
-    </Select>
+      options={[
+        { value: 'system', label: 'System' },
+        { value: 'light', label: 'Light' },
+        { value: 'dark', label: 'Dark' },
+      ]}
+    />
   )
 }
 
@@ -122,22 +120,20 @@ export function Shell({ runtime }: { runtime: Runtime }) {
 
   return (
     <div data-product="consent" className="product-root">
-      <AppShell
+      <AppFrame
         brand={
           <span className="brand">
             <ProductMark product="consent" variant="solid" size={28} />
             <span className="brand-name">Consent</span>
           </span>
         }
+        user={{ name: who, ...(user?.email ? { email: user.email } : {}) }}
+        search={false}
         sidebar={<Navigation />}
-        sidebarFooter={runtime.backend ? <DemoTools backend={runtime.backend} /> : undefined}
-        topbar={
+        promo={runtime.backend ? <DemoTools backend={runtime.backend} /> : undefined}
+        headerEnd={
           <>
             <ThemeSelect />
-            <div className="user-chip hide-sm">
-              <Avatar name={who} size="xs" decorative />
-              <span>{user?.email}</span>
-            </div>
             <Button
               size="sm"
               variant="secondary"
@@ -149,7 +145,7 @@ export function Shell({ runtime }: { runtime: Runtime }) {
         }
       >
         <ConsentRoutes />
-      </AppShell>
+      </AppFrame>
     </div>
   )
 }

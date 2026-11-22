@@ -1,9 +1,6 @@
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  BentoCard,
+  FileIcon,
   Skeleton,
   Tabs,
   TabsContent,
@@ -38,12 +35,14 @@ function LetterPanel({ itemId, tone }: { itemId: string; tone: Tone }) {
   return (
     <div className="wo-stack">
       <p className="wo-muted">{TONE_BLURB[tone]}</p>
-      <div>
+      <div className="wo-paper">
         <p className="wo-label">Subject</p>
-        <p data-testid="letter-subject">{subject}</p>
-      </div>
-      <div>
-        <p className="wo-label">Letter</p>
+        <p data-testid="letter-subject" style={{ margin: 0, fontWeight: 600 }}>
+          {subject}
+        </p>
+        <p className="wo-label" style={{ marginTop: 'var(--pp-space-4)' }}>
+          Letter
+        </p>
         <pre className="wo-pre" data-testid="letter-body">
           {body}
         </pre>
@@ -60,29 +59,24 @@ function LetterPanel({ itemId, tone }: { itemId: string; tone: Tone }) {
 export function LetterPreview({ itemId }: { itemId: string }) {
   const [tone, setTone] = useState<Tone>('NUDGE')
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle as="h2">Draft letters</CardTitle>
-        <CardDescription>
-          Preview what each follow-up says as of today. Replace [Your name] before you send.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={tone} onValueChange={(next) => setTone(next as Tone)}>
-          <TabsList aria-label="Letter type">
-            {TONES.map((t) => (
-              <TabsTrigger key={t} value={t}>
-                {TONE_LABEL[t]}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+    <BentoCard span={7} title="Draft letters" icon={<FileIcon size={18} />}>
+      <p className="wo-detail-note" style={{ marginBottom: 'var(--pp-space-5)' }}>
+        Preview what each follow-up says as of today. Replace [Your name] before you send.
+      </p>
+      <Tabs value={tone} onValueChange={(next) => setTone(next as Tone)}>
+        <TabsList aria-label="Letter type">
           {TONES.map((t) => (
-            <TabsContent key={t} value={t}>
-              <LetterPanel itemId={itemId} tone={t} />
-            </TabsContent>
+            <TabsTrigger key={t} value={t}>
+              {TONE_LABEL[t]}
+            </TabsTrigger>
           ))}
-        </Tabs>
-      </CardContent>
-    </Card>
+        </TabsList>
+        {TONES.map((t) => (
+          <TabsContent key={t} value={t}>
+            <LetterPanel itemId={itemId} tone={t} />
+          </TabsContent>
+        ))}
+      </Tabs>
+    </BentoCard>
   )
 }

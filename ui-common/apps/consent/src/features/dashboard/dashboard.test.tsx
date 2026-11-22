@@ -9,7 +9,7 @@ async function openDashboard(options: Parameters<typeof renderApp>[0] = {}) {
   return app
 }
 
-const stat = (name: string) => screen.findByRole('group', { name })
+const stat = (name: string) => screen.findByRole('region', { name })
 
 describe('dashboard', () => {
   it('puts pending requests first, in plain words, with a decision on each', async () => {
@@ -34,7 +34,7 @@ describe('dashboard', () => {
     expect(within(await stat('Waiting for you')).getByText('2')).toBeInTheDocument()
     expect(within(await stat('Apps with access')).getByText('1')).toBeInTheDocument()
     await waitFor(async () =>
-      expect(within(await stat('Attributes in your vault')).queryByText('–')).toBeNull(),
+      expect(within(await stat('Your vault')).getByText('attributes')).toBeInTheDocument(),
     )
   })
 
@@ -44,7 +44,7 @@ describe('dashboard', () => {
     expect(within(grants).getByText('Stride Shoes')).toBeInTheDocument()
     expect(within(grants).getByText('profile.sizes:read')).toBeInTheDocument()
     expect(within(grants).getByText('3 of 100 reads')).toBeInTheDocument()
-    expect(within(grants).getByText(/^Until /)).toBeInTheDocument()
+    expect(within(grants).getByText(/^Expires /)).toBeInTheDocument()
 
     await user.click(within(grants).getByRole('button', { name: 'Revoke access for Stride Shoes' }))
     await user.click(dialog().getByRole('button', { name: 'Revoke access' }))
@@ -60,7 +60,14 @@ describe('dashboard', () => {
     expect(await screen.findByText('Access approved')).toBeInTheDocument()
     expect(callsTo(backend, 'POST', '/approve')).toHaveLength(1)
     await waitFor(() =>
-      expect(screen.queryByRole('group', { name: 'Stride Shoes' })).not.toBeInTheDocument(),
+      expect(screen.queryByRole('list', { name: 'Pending requests' })).toBeInTheDocument(),
+    )
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole('list', { name: 'Pending requests' })).queryByRole('group', {
+          name: 'Stride Shoes',
+        }),
+      ).not.toBeInTheDocument(),
     )
   })
 
@@ -69,7 +76,7 @@ describe('dashboard', () => {
     const recent = await screen.findByRole('list', { name: 'Recent activity' })
     expect(within(recent).getAllByRole('listitem')).toHaveLength(10)
     expect(within(recent).getAllByText('Access requested').length).toBeGreaterThan(0)
-    expect(await screen.findByLabelText('Groups in your vault')).toBeInTheDocument()
+    expect(await screen.findByLabelText('Attributes by sensitivity')).toBeInTheDocument()
     expect(await screen.findByText('Audit log intact')).toBeInTheDocument()
     const before = callsTo(backend, 'GET', '/audit/verify').length
     await user.click(screen.getByRole('button', { name: 'Verify again' }))
@@ -116,7 +123,7 @@ describe('dashboard', () => {
     await openDashboard({ backend })
     expect(await screen.findByRole('heading', { name: 'No app has access' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: /Your data stays in your vault/ })).toBeNull()
-    expect(await screen.findByLabelText('Groups in your vault')).toBeInTheDocument()
+    expect(await screen.findByLabelText('Attributes by sensitivity')).toBeInTheDocument()
   })
 
   it('updates the pending count and nav badge when an app asks for access', async () => {

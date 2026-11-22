@@ -1,5 +1,4 @@
 import {
-  Callout,
   ClockIcon,
   PageHeader,
   PlusIcon,
@@ -54,7 +53,7 @@ export function AddPage() {
         description="Paste a note or drop a file. It stays private to you and becomes searchable once it has been indexed."
       />
       <div className="ayl-add">
-        <div className="ayl-stack">
+        <div className="ayl-card ayl-add-main">
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList aria-label="How to add">
               <TabsTrigger value="note">Paste a note</TabsTrigger>
@@ -67,8 +66,14 @@ export function AddPage() {
               <UploadForm onAdded={onAdded} />
             </TabsContent>
           </Tabs>
+        </div>
+        <aside className="ayl-add-aside" aria-label="About adding content">
           {tracked.length > 0 ? (
-            <section aria-labelledby="recent-heading">
+            <section
+              aria-labelledby="recent-heading"
+              className="ayl-card ayl-card-dark"
+              data-surface="vault"
+            >
               <h2 id="recent-heading" className="ayl-h2">
                 Added this session
               </h2>
@@ -79,15 +84,22 @@ export function AddPage() {
               </ul>
             </section>
           ) : null}
-        </div>
-        <aside className="ayl-add-aside" aria-label="About adding content">
-          <Callout variant="note" title="Private to your account">
-            Nobody else can read or search what you add here.
-          </Callout>
-          <div>
-            <h2 className="ayl-h2">What happens next</h2>
+          <section className="ayl-card" aria-labelledby="next-heading">
+            <h2 id="next-heading" className="ayl-h2">
+              What happens next
+            </h2>
             <Timeline label="What happens after you save" items={AFTER_SAVING} compact />
-          </div>
+          </section>
+          <section className="ayl-card ayl-card-lilac" aria-labelledby="know-heading">
+            <h2 id="know-heading" className="ayl-h2">
+              Good to know
+            </h2>
+            <ul className="ayl-notes">
+              <li>Nobody else can read or search what you add here.</li>
+              <li>Adding identical content twice does not save a second copy.</li>
+              <li>PDFs and other binary files are not supported yet.</li>
+            </ul>
+          </section>
         </aside>
       </div>
     </>

@@ -1,12 +1,19 @@
 import {
+  BarList,
+  BentoCard,
+  BentoGrid,
+  BigStat,
   Button,
   Callout,
   DataTable,
   EmptyState,
+  FileIcon,
   IllustrationEmpty,
   PageHeader,
   PlusIcon,
+  ProgressStat,
   Select,
+  SearchIcon,
   VisuallyHidden,
   type DataTableColumn,
 } from '@platform/ui'
@@ -117,6 +124,37 @@ export function LibraryPage() {
   else
     body = (
       <>
+        {documents.length > 0 ? (
+          <BentoGrid>
+            <BentoCard span={4} title="In this view" icon={<FileIcon size={18} />}>
+              <BigStat
+                value={documents.length}
+                unit={documents.length === 1 ? 'item' : 'items'}
+                trend="flat"
+                caption={sourceType ? SOURCE_LABELS[sourceType] : 'All sources'}
+              />
+            </BentoCard>
+            <BentoCard span={4} title="Searchable" icon={<SearchIcon size={18} />}>
+              <ProgressStat
+                label="Ready to search"
+                value={Math.round(
+                  ((documents.length - indexing - failed) / documents.length) * 100,
+                )}
+                tone="lilac"
+                caption={`${indexing} indexing, ${failed} failed`}
+              />
+            </BentoCard>
+            <BentoCard span={4} tone="dark" title="By source" icon={<FileIcon size={18} />}>
+              <BarList
+                label="Items by source"
+                items={SOURCE_TYPES.map((type) => ({
+                  label: SOURCE_LABELS[type],
+                  value: documents.filter((d) => d.sourceType === type).length,
+                })).filter((item) => item.value > 0)}
+              />
+            </BentoCard>
+          </BentoGrid>
+        ) : null}
         {failed > 0 ? (
           <Callout
             variant="warning"

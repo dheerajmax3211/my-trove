@@ -83,7 +83,7 @@ function PendingList({
       />
     )
   return (
-    <ul className="card-list" aria-label="Pending requests">
+    <ul className="request-grid" aria-label="Pending requests">
       {open.map((request) => (
         <li key={request.id}>
           <RequestCard

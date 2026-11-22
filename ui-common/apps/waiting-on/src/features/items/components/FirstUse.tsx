@@ -1,4 +1,15 @@
-import { Button, Callout, Illustration, PlusIcon, Timeline, type TimelineItem } from '@platform/ui'
+import {
+  BentoCard,
+  BentoGrid,
+  Button,
+  Illustration,
+  PlusIcon,
+  ShieldIcon,
+  Timeline,
+  HourglassIcon,
+  ClockIcon,
+  type TimelineItem,
+} from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
 import { buildSchedule, defaultPlan, type StepKey } from '../logic/schedule'
 
@@ -22,37 +33,43 @@ const EXAMPLE = buildSchedule(defaultPlan('REFUND', 0), new Date(2000, 0, 1)).ma
 /** Shown when the user has never added anything: says what the product does, how follow-ups work, and offers the first step. */
 export function FirstUse() {
   return (
-    <section className="wo-first-use" aria-labelledby="first-use-title">
-      <div className="wo-first-use-intro">
-        <div className="wo-first-use-copy">
-          <h2 id="first-use-title">Tell Waiting On what you are waiting for</h2>
+    <BentoGrid>
+      <BentoCard
+        span={7}
+        tone="dark"
+        padding="lg"
+        title="Tell Waiting On what you are waiting for"
+        icon={<HourglassIcon size={18} />}
+      >
+        <div className="wo-first-copy">
           <p>
             A refund, an insurance claim, an expense reimbursement, an approval or a delivery. Add
             it with the date you expected it. Waiting On keeps a follow-up schedule going for weeks,
             and drafts a letter for each step: a friendly nudge, then a firm escalation letter, then
             a final notice. If nobody ever answers, it closes the item.
           </p>
-          <Button asChild leftIcon={<PlusIcon size={18} />}>
+          <Button asChild variant="glow" leftIcon={<PlusIcon size={18} />}>
             <ModuleLink to="/new">Add your first item</ModuleLink>
           </Button>
         </div>
-        <Illustration name="letter" size={240} className="wo-first-use-art" />
-      </div>
+        <Illustration name="letter" size={200} className="wo-first-art" />
+      </BentoCard>
 
-      <div className="wo-first-use-how">
-        <h3>How the follow-ups work</h3>
-        <p className="wo-muted">
+      <BentoCard span={5} title="How the follow-ups work" icon={<ClockIcon size={18} />}>
+        <p className="wo-muted" style={{ margin: '0 0 var(--pp-space-4)' }}>
           Each category has its own default timing, and you can change it when you add an item. This
           is a refund:
         </p>
         <Timeline items={EXAMPLE} label="Follow-up schedule for a refund" compact />
-      </div>
+      </BentoCard>
 
-      <Callout variant="note" title="You send the letters">
-        Waiting On does not email anyone for you. It prepares each letter on its day and keeps it
-        ready to copy. Each item also gets its own private reply address: forward the answers you
-        get there, and a payment closes the item while a refusal brings the escalation forward.
-      </Callout>
-    </section>
+      <BentoCard span={12} title="You send the letters" icon={<ShieldIcon size={18} />}>
+        <p className="wo-detail-note" style={{ maxWidth: '70ch' }}>
+          Waiting On does not email anyone for you. It prepares each letter on its day and keeps it
+          ready to copy. Each item also gets its own private reply address: forward the answers you
+          get there, and a payment closes the item while a refusal brings the escalation forward.
+        </p>
+      </BentoCard>
+    </BentoGrid>
   )
 }

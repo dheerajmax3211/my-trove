@@ -1,4 +1,4 @@
-import { Button, Input, SearchIcon, Skeleton, VaultRings } from '@platform/ui'
+import { Button, Input, SearchIcon, Skeleton } from '@platform/ui'
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ErrorPanel } from '../../../components/ErrorPanel'
@@ -146,7 +146,6 @@ export function SearchPage() {
         data-compact={submitted}
         aria-labelledby="ayl-title"
       >
-        <VaultRings className="ayl-hero-dial" />
         <div className="ayl-hero-body">
           <h1 id="ayl-title" className="ayl-hero-title">
             Ask your life

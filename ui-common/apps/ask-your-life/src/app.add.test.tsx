@@ -11,7 +11,7 @@ async function pasteNote(
 ) {
   const form = screen.getByRole('form', { name: 'Paste a note' })
   if (title) await user.type(within(form).getByLabelText('Title'), title)
-  await user.type(within(form).getByLabelText(/^Note/), text)
+  await user.type(within(form).getByRole('textbox', { name: /^Note/ }), text)
   if (externalId) {
     await user.click(within(form).getByText('Advanced: update an existing item'))
     await user.type(within(form).getByLabelText('External ID'), externalId)
@@ -92,7 +92,9 @@ describe('add a note', () => {
     await user.click(screen.getByRole('button', { name: 'Save note' }))
     expect(await screen.findByText('Write something to save.')).toBeInTheDocument()
     expect(
-      within(screen.getByRole('form', { name: 'Paste a note' })).getByLabelText(/^Note/),
+      within(screen.getByRole('form', { name: 'Paste a note' })).getByRole('textbox', {
+        name: /^Note/,
+      }),
     ).toBeInvalid()
     expect(runtime.mock?.requests.some((r) => r.startsWith('POST'))).toBe(false)
   })
@@ -176,7 +178,10 @@ describe('upload a file', () => {
         type: 'text/markdown',
       },
     )
-    await user.upload(within(form).getByLabelText(/^File/), file)
+    await user.upload(
+      within(form).getByLabelText(/^File/, { selector: 'input[type="file"]' }),
+      file,
+    )
     await user.click(within(form).getByRole('button', { name: 'Upload file' }))
 
     const heading = await screen.findByRole('heading', { level: 3, name: 'meeting-notes' })
@@ -204,27 +209,28 @@ describe('upload a file', () => {
     expect(runtime.mock?.requests.some((r) => r.startsWith('POST'))).toBe(false)
   })
 
-  it('shows a clear message for a PDF (the service answers 415) and tracks nothing', async () => {
+  it('refuses a PDF in the drop zone, says why, and sends nothing', async () => {
     const { user, runtime } = renderApp({ route: '/add', userOptions: { applyAccept: false } })
     const form = await openUpload(user)
     await user.upload(
-      within(form).getByLabelText(/^File/),
+      within(form).getByLabelText(/^File/, { selector: 'input[type="file"]' }),
       new File(['%PDF-1.7 ...'], 'statement.pdf', { type: 'application/pdf' }),
     )
+    expect(
+      await within(form).findByText(/statement\.pdf is not an accepted file type/),
+    ).toBeVisible()
     await user.click(within(form).getByRole('button', { name: 'Upload file' }))
-    const alert = await within(form).findByRole('alert')
-    expect(alert).toHaveTextContent('This file type is not supported yet')
-    expect(alert).toHaveTextContent(/PDFs and other binary files are not supported/)
-    expect(runtime.mock?.requests).toContain('POST /v1/documents')
+    expect(await within(form).findByText('Choose a file to upload.')).toBeInTheDocument()
+    expect(runtime.mock?.requests.some((r) => r.startsWith('POST'))).toBe(false)
     expect(screen.queryByRole('region', { name: 'Added this session' })).not.toBeInTheDocument()
   })
 
   it('keeps the typed note when you switch tabs', async () => {
     const { user } = renderApp({ route: '/add' })
     await appReady()
-    await user.type(screen.getByLabelText(/^Note/), 'half written')
+    await user.type(screen.getByRole('textbox', { name: /^Note/ }), 'half written')
     await user.click(screen.getByRole('tab', { name: 'Upload a file' }))
     await user.click(screen.getByRole('tab', { name: 'Paste a note' }))
-    expect(screen.getByLabelText(/^Note/)).toHaveValue('half written')
+    expect(screen.getByRole('textbox', { name: /^Note/ })).toHaveValue('half written')
   })
 })

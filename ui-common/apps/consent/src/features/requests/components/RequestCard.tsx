@@ -1,4 +1,4 @@
-import { Button, KeyValueList, type KeyValueItem } from '@platform/ui'
+import { Badge, Button } from '@platform/ui'
 import type { AccessRequest, Attribute } from '../../../shared/api/types'
 import { ScopeList } from '../../../shared/components/ScopeList'
 import { StatusBadge } from '../../../shared/components/StatusBadge'
@@ -25,23 +25,12 @@ function coverageSentence(request: AccessRequest, attributes: readonly Attribute
 }
 
 /**
- * One access request, set out as the trust moment it is: who is asking, in a sentence what they ask for,
- * why, and what it covers in your vault. Works on paper or on the vault surface.
+ * One access request, in its own card: who is asking, in a sentence what they ask for, why, which
+ * slices, for how long, and the two decisions. Nothing is shared until you approve.
  */
 export function RequestCard({ request, attributes, onApprove, onDeny }: RequestCardProps) {
   const headingId = `request-${request.id}`
   const open = request.status === 'PENDING'
-  const facts: KeyValueItem[] = [
-    { id: 'for', label: 'For', value: formatDuration(request.durationSeconds) },
-    {
-      id: 'reads',
-      label: 'Reads',
-      value: request.maxReads === null ? 'No limit' : `Up to ${request.maxReads}`,
-    },
-    ...(request.allowedHours
-      ? [{ id: 'hours', label: 'Only during', value: formatHours(request.allowedHours) }]
-      : []),
-  ]
   return (
     <div role="group" aria-labelledby={headingId} className="request" data-status={request.status}>
       <div className="request-head">
@@ -52,36 +41,55 @@ export function RequestCard({ request, attributes, onApprove, onDeny }: RequestC
           <h3 id={headingId} className="request-name">
             {request.clientName}
           </h3>
-          <p className="request-ask">{describeAsk(request)}</p>
+          <p className="request-time">Asked {formatRelative(request.createdAt)}</p>
         </div>
-        {open ? null : <StatusBadge status={request.status} />}
+        {open ? (
+          <Badge variant="accent" dot>
+            Needs you
+          </Badge>
+        ) : (
+          <StatusBadge status={request.status} />
+        )}
       </div>
 
-      <div className="request-body">
+      <p className="request-ask">{describeAsk(request)}</p>
+
+      <div className="request-purpose">
         <p className="request-why">
           <span className="request-label">Purpose</span>
           {request.purpose}
         </p>
-        <div>
-          <p className="request-label">Wants to read</p>
-          <ScopeList scopes={request.scopes} label={`Scopes requested by ${request.clientName}`} />
-          {attributes ? (
-            <p className="muted request-coverage">{coverageSentence(request, attributes)}</p>
-          ) : null}
-        </div>
-        <KeyValueList
-          items={facts}
-          layout="stacked"
-          dense
-          divided={false}
-          className="request-facts"
-        />
       </div>
+
+      <div>
+        <p className="request-label">Slices it asks for</p>
+        <ScopeList scopes={request.scopes} label={`Scopes requested by ${request.clientName}`} />
+        {attributes ? (
+          <p className="muted request-coverage">{coverageSentence(request, attributes)}</p>
+        ) : null}
+      </div>
+
+      <dl className="request-facts">
+        <div className="request-fact">
+          <dt>For</dt>
+          <dd>{formatDuration(request.durationSeconds)}</dd>
+        </div>
+        <div className="request-fact">
+          <dt>Reads</dt>
+          <dd>{request.maxReads === null ? 'No limit' : `Up to ${request.maxReads}`}</dd>
+        </div>
+        {request.allowedHours ? (
+          <div className="request-fact">
+            <dt>Only during</dt>
+            <dd>{formatHours(request.allowedHours)}</dd>
+          </div>
+        ) : null}
+      </dl>
 
       {open ? (
         <p className="muted request-clock">
-          Asked {formatRelative(request.createdAt)}. If you do nothing it expires{' '}
-          {formatRelative(requestExpiresAt(request))}. Nothing is shared until you approve.
+          If you do nothing it expires {formatRelative(requestExpiresAt(request))}. Nothing is
+          shared until you approve.
         </p>
       ) : null}
       {onApprove || onDeny ? (

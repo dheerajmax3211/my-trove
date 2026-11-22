@@ -1,16 +1,5 @@
 import { useAuth } from '@platform/auth-web'
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Field,
-  Input,
-  ProductMark,
-} from '@platform/ui'
+import { Badge, Button, Field, Input, ProductMark } from '@platform/ui'
 import { useState, type FormEvent } from 'react'
 
 export function SignIn({ demo }: { demo: boolean }) {
@@ -37,19 +26,17 @@ export function SignIn({ demo }: { demo: boolean }) {
 
   return (
     <main className="wo-signin">
-      <Card className="wo-signin-card" variant="elevated">
-        <CardHeader>
-          <div className="wo-signin-mark" aria-hidden="true">
-            <ProductMark product="waiting-on" size={44} variant="solid" />
-          </div>
-          <CardTitle as="h1">Sign in to Waiting On</CardTitle>
-          <CardDescription>
-            Keep track of refunds, claims and approvals you are waiting for. A follow-up schedule
-            drafts the letters, and you send them.{' '}
-            {demo ? <Badge variant="warning">Demo mode: no real account needed</Badge> : null}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="wo-signin-card">
+        <div className="wo-signin-mark" aria-hidden="true">
+          <ProductMark product="waiting-on" size={44} variant="solid" />
+        </div>
+        <h1 className="wo-signin-title">Sign in to Waiting On</h1>
+        <p className="wo-signin-lede">
+          Keep track of refunds, claims and approvals you are waiting for. A follow-up schedule
+          drafts the letters, and you send them.{' '}
+          {demo ? <Badge variant="warning">Demo mode: no real account needed</Badge> : null}
+        </p>
+        <div>
           <div className="wo-stack">
             <Button
               loading={busy === 'google'}
@@ -91,8 +78,8 @@ export function SignIn({ demo }: { demo: boolean }) {
               {sent ? <p role="status">Check your inbox for the sign-in link.</p> : null}
             </form>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </main>
   )
 }

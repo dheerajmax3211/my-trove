@@ -1,13 +1,4 @@
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Timeline,
-  type TimelineItem,
-} from '@platform/ui'
+import { BentoCard, Badge, CalendarIcon, Timeline, type TimelineItem } from '@platform/ui'
 import { addDays, formatDate } from '../../../lib/dates'
 import { isTerminal, type Item } from '../api/types'
 import { buildSchedule, type StepKey } from '../logic/schedule'
@@ -46,19 +37,12 @@ export function PlanCard({ item }: { item: Item }) {
   })
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle as="h2">The follow-up plan</CardTitle>
-        <CardDescription>
-          What happens if nobody replies.
-          {snoozed > 0
-            ? ` Dates include ${snoozed} ${snoozed === 1 ? 'day' : 'days'} snoozed.`
-            : ''}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Timeline items={items} label="Follow-up plan" compact />
-      </CardContent>
-    </Card>
+    <BentoCard span={5} title="The follow-up plan" icon={<CalendarIcon size={18} />}>
+      <p className="wo-detail-note" style={{ marginBottom: 'var(--pp-space-5)' }}>
+        What happens if nobody replies.
+        {snoozed > 0 ? ` Dates include ${snoozed} ${snoozed === 1 ? 'day' : 'days'} snoozed.` : ''}
+      </p>
+      <Timeline items={items} label="Follow-up plan" compact />
+    </BentoCard>
   )
 }

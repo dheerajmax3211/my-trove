@@ -1,7 +1,8 @@
-import { Field, Input, Select } from '@platform/ui'
+import { Field, Input } from '@platform/ui'
 import { SOURCE_TYPES, type SourceType } from '../api/types'
 import { SOURCE_LABELS } from '../lib/labels'
 
+/** What kind of thing this is, as pills. It lets you filter searches by where something came from. */
 export function SourceSelect({
   value,
   onChange,
@@ -12,15 +13,24 @@ export function SourceSelect({
   options?: readonly SourceType[]
 }) {
   return (
-    <Field label="Kind" description="Lets you filter searches by where something came from.">
-      <Select value={value} onChange={(e) => onChange(e.target.value as SourceType)}>
+    <fieldset className="ayl-kind">
+      <legend className="ayl-legend">Kind</legend>
+      <div className="ayl-kind-pills">
         {options.map((type) => (
-          <option key={type} value={type}>
+          <label key={type} className="ayl-kind-pill" data-checked={value === type}>
+            <input
+              type="radio"
+              name="kind"
+              value={type}
+              checked={value === type}
+              onChange={() => onChange(type)}
+            />
             {SOURCE_LABELS[type]}
-          </option>
+          </label>
         ))}
-      </Select>
-    </Field>
+      </div>
+      <p className="ayl-kind-hint">Lets you filter searches by where something came from.</p>
+    </fieldset>
   )
 }
 

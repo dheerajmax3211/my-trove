@@ -1,10 +1,8 @@
 import {
+  BentoCard,
+  BigStat,
   Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  ClockIcon,
   KeyValueList,
   type KeyValueItem,
 } from '@platform/ui'
@@ -50,12 +48,7 @@ export function FollowUpCard({ item, onRetry }: { item: Item; onRetry: () => voi
       {
         id: 'stage',
         label: 'Stage',
-        value: (
-          <span className="wo-stage">
-            <StageGauge item={item} />
-            {STAGE_LABEL[followUp.stage]}
-          </span>
-        ),
+        value: STAGE_LABEL[followUp.stage],
       },
       { id: 'next', label: 'Next action', value: NEXT_ACTION_LABEL[followUp.nextAction] },
       ...(at
@@ -84,16 +77,28 @@ export function FollowUpCard({ item, onRetry }: { item: Item; onRetry: () => voi
           ]
         : []),
     ]
-    body = <KeyValueList items={rows} dense />
+    const days = at ? calendarDaysBetween(clock(), at) : null
+    body = (
+      <div className="wo-detail-status">
+        {days !== null ? (
+          <BigStat
+            size="md"
+            value={days <= 0 ? 'Today' : days}
+            unit={
+              days <= 0 ? undefined : days === 1 ? 'day to the next step' : 'days to the next step'
+            }
+            countUp={days > 0}
+          />
+        ) : null}
+        <StageGauge item={item} size="lg" />
+        <KeyValueList items={rows} dense />
+      </div>
+    )
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle as="h2">Follow-up status</CardTitle>
-        <CardDescription>Read live from the follow-up schedule.</CardDescription>
-      </CardHeader>
-      <CardContent>{body}</CardContent>
-    </Card>
+    <BentoCard span={4} tone="dark" title="Follow-up status" icon={<ClockIcon size={18} />}>
+      {body}
+    </BentoCard>
   )
 }

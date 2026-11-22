@@ -68,7 +68,7 @@ export function ClientsPage() {
     )
   else
     content = (
-      <ul className="card-list" aria-label="Registered apps">
+      <ul className="grant-grid" aria-label="Registered apps">
         {clients.data.map((client) => (
           <li key={client.clientId}>
             <ClientCard client={client} onRotate={setRotating} onDisable={setDisabling} />

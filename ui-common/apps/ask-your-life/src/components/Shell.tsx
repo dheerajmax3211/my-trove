@@ -1,9 +1,9 @@
 import { useAuth } from '@platform/auth-web'
 import {
-  AppShell,
+  AppFrame,
   Button,
+  PillSelect,
   ProductMark,
-  Select,
   SidebarLink,
   SidebarNav,
   SidebarSection,
@@ -17,17 +17,16 @@ import { productModule } from '../module'
 function ThemeSelect() {
   const { theme, setTheme } = useTheme()
   return (
-    <Select
-      size="sm"
-      aria-label="Theme"
+    <PillSelect
+      label="Theme"
       value={theme}
       onChange={(e) => setTheme(e.target.value as ThemePreference)}
-      className="ayl-theme"
-    >
-      <option value="system">System</option>
-      <option value="light">Light</option>
-      <option value="dark">Dark</option>
-    </Select>
+      options={[
+        { value: 'system', label: 'System' },
+        { value: 'light', label: 'Light' },
+        { value: 'dark', label: 'Dark' },
+      ]}
+    />
   )
 }
 
@@ -38,13 +37,18 @@ function ThemeSelect() {
 export function Shell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth()
   return (
-    <AppShell
+    <AppFrame
       brand={
         <ModuleLink to="/" className="ayl-brand">
           <ProductMark product="ask-your-life" size={28} variant="solid" />
           Ask your life
         </ModuleLink>
       }
+      user={{
+        name: user?.displayName ?? user?.email ?? 'Signed in',
+        ...(user?.email ? { email: user.email } : {}),
+      }}
+      search={false}
       sidebar={
         <SidebarNav label="Main">
           <SidebarSection>
@@ -63,10 +67,9 @@ export function Shell({ children }: { children: ReactNode }) {
           </SidebarSection>
         </SidebarNav>
       }
-      topbar={
+      headerEnd={
         <>
           <ThemeSelect />
-          <span className="ayl-user">{user?.email}</span>
           <Button size="sm" variant="secondary" onClick={() => void signOut()}>
             Sign out
           </Button>
@@ -74,6 +77,6 @@ export function Shell({ children }: { children: ReactNode }) {
       }
     >
       {children}
-    </AppShell>
+    </AppFrame>
   )
 }
