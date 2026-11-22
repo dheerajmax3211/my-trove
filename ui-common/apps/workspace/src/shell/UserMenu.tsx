@@ -1,4 +1,3 @@
-import { useAuth } from '@platform/auth-web'
 import {
   Avatar,
   Button,
@@ -14,6 +13,7 @@ import { Link } from 'react-router-dom'
 import { PERSONA_LABELS, PERSONA_SUMMARY, primaryPersona } from '../lib/personas'
 import { useOnboarding } from '../onboarding/OnboardingProvider'
 import { useWorkspace } from '../workspace/context'
+import { useSignOut } from '../workspace/useSignOut'
 import styles from './UserMenu.module.css'
 
 /**
@@ -33,7 +33,7 @@ export function UserMenu({
 }) {
   const { runtime } = useWorkspace()
   const session = useWorkspaceSession()
-  const { signOut } = useAuth()
+  const signOut = useSignOut()
   const onboarding = useOnboarding()
   const [persona, setPersona] = useState<Persona | null>(() => runtime.demo?.persona() ?? null)
   const anchor = useRef<HTMLDivElement>(null)

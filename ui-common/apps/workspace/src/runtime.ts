@@ -79,8 +79,10 @@ export function createRuntime(env: Env = import.meta.env, options: RuntimeOption
   const now = options.now ?? (() => new Date())
   const search = options.search ?? (typeof window === 'undefined' ? '' : window.location.search)
 
-  if (new URLSearchParams(search).get('demo') === '1')
-    writeItem(storage.session, DEMO_FLAG_KEY, '1')
+  const demoParam = new URLSearchParams(search).get('demo')
+  if (demoParam === '1') writeItem(storage.session, DEMO_FLAG_KEY, '1')
+  // `?demo=0` is the escape hatch: it forgets a demo flag left over in this tab.
+  if (demoParam === '0') writeItem(storage.session, DEMO_FLAG_KEY, null)
   const explicit = readItem(storage.session, DEMO_FLAG_KEY) === '1'
   const demo = explicit || !isFirebaseConfigured(env)
 

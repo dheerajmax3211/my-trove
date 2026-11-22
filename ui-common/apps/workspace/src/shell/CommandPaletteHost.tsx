@@ -1,4 +1,3 @@
-import { useAuth } from '@platform/auth-web'
 import {
   CommandPalette,
   HomeIcon,
@@ -19,6 +18,7 @@ import { readJson, writeItem } from '../lib/storage'
 import { canOpen, moduleBase, visibleNav } from '../modules/registry'
 import { useOnboarding } from '../onboarding/OnboardingProvider'
 import { useWorkspace } from '../workspace/context'
+import { useSignOut } from '../workspace/useSignOut'
 
 const MAX_RECENT = 5
 export const recentKey = (uid: string) => `pp.workspace.recent.v1.${uid}`
@@ -46,7 +46,7 @@ export function CommandPaletteHost({
   const { modules, runtime } = useWorkspace()
   const session = useWorkspaceSession()
   const navigate = useNavigate()
-  const { signOut } = useAuth()
+  const signOut = useSignOut()
   const onboarding = useOnboarding()
   const { resolvedTheme, setTheme } = useTheme()
   const key = recentKey(session.uid)

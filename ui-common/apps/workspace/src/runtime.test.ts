@@ -13,6 +13,24 @@ describe('createRuntime mode', () => {
     expect(runtime.siteUrl).toBe(DEFAULT_SITE_URL)
   })
 
+  it('?demo=0 forgets a demo flag left in the tab, so a configured identity provider is live again', () => {
+    const storage = memoryStorages()
+    const env = { VITE_DEV_IDP_URL: 'http://idp.test' }
+    createRuntime(env, { search: '?demo=1', storage })
+    expect(createRuntime(env, { search: '', storage }).mode).toBe('demo')
+    const escaped = createRuntime(env, { search: '?demo=0', storage })
+    expect(escaped.mode).toBe('live')
+    expect(storage.session?.getItem(DEMO_FLAG_KEY)).toBeNull()
+  })
+
+  it('leaveDemo forgets the flag so the next load is live', () => {
+    const storage = memoryStorages()
+    const env = { VITE_DEV_IDP_URL: 'http://idp.test' }
+    const demo = createRuntime(env, { search: '?demo=1', storage })
+    demo.leaveDemo()
+    expect(createRuntime(env, { search: '', storage }).mode).toBe('live')
+  })
+
   it('is demo with ?demo=1 even when an identity provider is configured, and remembers it for the tab', () => {
     const storage = memoryStorages()
     const env = { VITE_DEV_IDP_URL: 'http://idp.test' }

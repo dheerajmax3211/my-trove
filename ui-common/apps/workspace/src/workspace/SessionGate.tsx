@@ -5,6 +5,7 @@ import { createSession, WorkspaceSessionProvider } from '@platform/workspace-kit
 import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { ScreenMessage } from '../components/ScreenMessage'
 import { useWorkspace } from './context'
+import { useSignOut } from './useSignOut'
 
 /** The gateway caches token exchanges for 60 s, so a role change reaches a signed-in user within about a minute. */
 export const SESSION_REFRESH_MS = 60_000
@@ -23,7 +24,8 @@ const ME_PATH = '/auth/v1/me'
 
 function SessionLoader({ children }: { children: ReactNode }) {
   const { runtime, store } = useWorkspace()
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
+  const signOut = useSignOut()
   const me = useApiQuery<MeResponse>(ME_PATH, {
     staleTime: 0,
     refetchOnWindowFocus: false, // the focus and interval handlers below own refreshing
