@@ -5,6 +5,7 @@ import {
   fakeModule,
   mountApp,
   createLiveRuntime,
+  json,
   renderDemo,
   renderLive,
 } from './testing/harness'
@@ -15,8 +16,13 @@ import { memoryStorages } from './testing/harness'
 const modules = () => [fakeModule('alpha'), fakeModule('beta')]
 
 describe('account page', () => {
-  it('shows profile, role, grouped permissions, plan and a labelled placeholder for connected apps', async () => {
-    renderLive({ persona: 'ADMIN', modules: modules(), path: '/account' })
+  it('shows profile, role, grouped permissions, plan and the connected apps of the account', async () => {
+    renderLive({
+      persona: 'ADMIN',
+      modules: modules(),
+      path: '/account',
+      handler: (url) => (url.pathname.endsWith('/consent/v1/owner/grants') ? json([]) : undefined),
+    })
     expect(await screen.findByRole('heading', { level: 1, name: 'Account' })).toBeInTheDocument()
 
     const profile = screen.getByRole('region', { name: 'Profile' })
@@ -35,7 +41,9 @@ describe('account page', () => {
     expect(within(plan).getByText(/600 requests a minute and 200,000 a month/)).toBeInTheDocument()
 
     const apps = screen.getByRole('region', { name: 'Connected apps' })
-    expect(within(apps).getByText('Coming with the developer portal')).toBeInTheDocument()
+    expect(
+      await within(apps).findByText('Nothing is connected to your account.'),
+    ).toBeInTheDocument()
   })
 
   it('switches the theme', async () => {

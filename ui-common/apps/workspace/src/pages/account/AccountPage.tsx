@@ -6,7 +6,6 @@ import {
   BentoGrid,
   BigStat,
   Button,
-  Callout,
   CoinsIcon,
   KeyValueList,
   LinkIcon,
@@ -31,6 +30,7 @@ import {
 } from '../../lib/personas'
 import { useOnboarding } from '../../onboarding/OnboardingProvider'
 import styles from './AccountPage.module.css'
+import { ConnectedApps } from './ConnectedApps'
 
 const THEMES: { value: ThemePreference; label: string }[] = [
   { value: 'system', label: 'System' },
@@ -173,10 +173,7 @@ export function AccountPage() {
         </BentoCard>
 
         <BentoCard span={6} title="Connected apps" icon={<LinkIcon size={18} />}>
-          <Callout variant="note" title="Coming with the developer portal">
-            Apps that other developers build will be listed here, with what each can read and a
-            button to disconnect it. Nothing is connected to your account today.
-          </Callout>
+          <ConnectedApps />
         </BentoCard>
       </BentoGrid>
 
