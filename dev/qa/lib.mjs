@@ -108,11 +108,15 @@ export async function signInAs(page, base, persona, mode = "chooser") {
   }
   await page.waitForLoadState("networkidle");
   // A first sign-in can show the welcome wizard; skip it so the pages under test are what render.
+  // The wizard appears once the account has loaded, so wait briefly for it. An account that already skipped or
+  // finished has no wizard and this times out quietly.
   const skip = page.getByRole("button", { name: "Skip for now" });
-  if (await skip.count()) {
-    await skip.first().click();
-    await page.waitForTimeout(200);
-  }
+  await skip
+    .first()
+    .waitFor({ state: "visible", timeout: 6_000 })
+    .then(() => skip.first().click())
+    .catch(() => {});
+  await page.waitForTimeout(300);
   await page.waitForFunction(
     () => !document.body.innerText.includes("Continue with Google"),
     null,

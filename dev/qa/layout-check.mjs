@@ -33,6 +33,22 @@ const TARGETS = [
     routes: ["/", "/account"],
   },
   {
+    // The admin console as the ADMIN persona (admin@example.test): the module lives at /app/admin in the workspace.
+    name: "admin-console",
+    base: process.env.QA_BASE_WORKSPACE || "http://localhost:5391",
+    signin: "chooser",
+    persona: "admin",
+    routes: [
+      "/app/admin",
+      "/app/admin/users",
+      "/app/admin/roles",
+      "/app/admin/usage",
+      "/app/admin/audit",
+      "/app/admin/flags",
+      "/app/admin/plans",
+    ],
+  },
+  {
     name: "waiting-on",
     base: process.env.QA_BASE_WAITING_ON || "http://localhost:5382",
     signin: "session",
