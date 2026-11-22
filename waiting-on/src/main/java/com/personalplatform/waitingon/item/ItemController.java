@@ -3,6 +3,7 @@ package com.personalplatform.waitingon.item;
 import com.personalplatform.waitingon.escalation.EscalationPlan;
 import com.personalplatform.waitingon.escalation.Letter;
 import com.personalplatform.waitingon.escalation.Tone;
+import com.personalplatform.waitingon.inbound.InboundEmailService;
 import com.personalplatform.waitingon.item.ItemService.ItemDetail;
 import com.personalplatform.waitingon.item.ItemService.NewItem;
 import com.personalplatform.waitingon.workflow.FollowUpState;
@@ -60,6 +61,11 @@ public class ItemController {
     public record ResolveRequest(@Size(max = 1000) String outcome) {
     }
 
+    /** A reply the owner received elsewhere (letter, phone note, forwarded mail) and pastes in. */
+    public record ReplyRequest(@Size(max = 320) String from, @Size(max = 500) String subject,
+            @NotBlank @Size(max = 20_000) String text) {
+    }
+
     public record SnoozeRequest(@Min(1) @Max(90) int days) {
     }
 
@@ -95,10 +101,12 @@ public class ItemController {
 
     private final ItemService service;
     private final ItemLetters letters;
+    private final InboundEmailService replies;
 
-    public ItemController(ItemService service, ItemLetters letters) {
+    public ItemController(ItemService service, ItemLetters letters, InboundEmailService replies) {
         this.service = service;
         this.letters = letters;
+        this.replies = replies;
     }
 
     @PostMapping
@@ -137,6 +145,18 @@ public class ItemController {
     public ItemResponse snooze(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,
             @Valid @RequestBody SnoozeRequest r) {
         return detail(service.snooze(jwt.getSubject(), id, r.days()));
+    }
+
+    /**
+     * Records the counterparty's reply on the item. The response says how it was classified and whether it was applied;
+     * the follow-up stage moves through the workflow, so read the item again to see the new stage.
+     */
+    @PostMapping("/{id}/replies")
+    public InboundEmailService.Result reply(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,
+            @Valid @RequestBody ReplyRequest r) {
+        WaitingItem item = service.get(jwt.getSubject(), id).item();
+        String from = r.from() == null || r.from().isBlank() ? item.counterparty() : r.from().trim();
+        return replies.recordPastedReply(item, from, r.subject(), r.text());
     }
 
     @PostMapping("/{id}/cancel")

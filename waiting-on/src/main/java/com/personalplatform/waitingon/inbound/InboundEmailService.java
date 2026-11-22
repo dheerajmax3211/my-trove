@@ -64,7 +64,19 @@ public class InboundEmailService {
             LOG.info("Inbound email did not match any item");
             return new Result(false, false, null, null);
         }
-        WaitingItem item = found.get();
+        return record(found.get(), mail);
+    }
+
+    /**
+     * The owner pastes in a reply they received outside the mailbox. Same rules as an inbound email: it is kept on the
+     * timeline, classified, and the workflow decides what it changes. A closed item keeps the reply, applies nothing.
+     */
+    @Transactional
+    public Result recordPastedReply(WaitingItem item, String from, String subject, String text) {
+        return record(item, new InboundEmail(from, null, subject, text, null));
+    }
+
+    private Result record(WaitingItem item, InboundEmail mail) {
         String body = mail.text() == null ? "" : mail.text().substring(0, Math.min(mail.text().length(), MAX_BODY_CHARS));
         ReplyOutcome outcome = classifier.classify(mail.subject(), body);
 

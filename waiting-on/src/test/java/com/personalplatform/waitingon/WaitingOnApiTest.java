@@ -442,6 +442,78 @@ class WaitingOnApiTest {
         getItem(uid, id).andExpect(jsonPath("$.status").value("CANCELLED"));
     }
 
+    // ------------------------------------------------------------------ owner pastes a reply (no inbound mail yet)
+
+    private ResultActions pasteReply(String uid, String id, String text) throws Exception {
+        return mvc.perform(post("/v1/items/" + id + "/replies").header("Authorization", bearer(uid))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"from\":\"Shop Ltd support\",\"subject\":\"Re: your refund\",\"text\":\"" + text + "\"}"));
+    }
+
+    @Test
+    void pastedPaidReplyResolvesTheItemThroughTheWorkflow() throws Exception {
+        String uid = "uid-paste-paid";
+        String id = create(uid, itemJson("Pasted refund", "REFUND", FAST_PLAN));
+        temporal.sleep(Duration.ofDays(3));
+        awaitStatus(uid, id, "NUDGED");
+
+        pasteReply(uid, id, "Your refund has been processed and will arrive in 3 days.")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.matched").value(true))
+                .andExpect(jsonPath("$.applied").value(true))
+                .andExpect(jsonPath("$.classification").value("PAID"));
+
+        awaitStatus(uid, id, "RESOLVED");
+        assertThat(timelineTypes(uid, id)).containsExactly("CREATED", "NUDGE_SENT", "REPLY_RECEIVED", "RESOLVED");
+        mvc.perform(get("/v1/items/" + id + "/timeline").header("Authorization", bearer(uid)))
+                .andExpect(jsonPath("$[2].summary", containsString("Reply from Shop Ltd support")))
+                .andExpect(jsonPath("$[2].detail", containsString("Your refund has been processed")));
+    }
+
+    @Test
+    void pastedRefusalEscalatesAndPastedRequestForDocumentsHoldsTheSchedule() throws Exception {
+        String refused = create("uid-paste-no", itemJson("Refused", "REFUND", FAST_PLAN));
+        pasteReply("uid-paste-no", refused, "We regret to inform you that your request was declined.")
+                .andExpect(jsonPath("$.classification").value("REJECTED"));
+        awaitStatus("uid-paste-no", refused, "ESCALATED");
+
+        String info = create("uid-paste-info", itemJson("Needs papers", "CLAIM", FAST_PLAN));
+        pasteReply("uid-paste-info", info, "Please send a copy of the invoice.")
+                .andExpect(jsonPath("$.classification").value("NEEDS_INFO"));
+        eventually(() -> {
+            try {
+                return "7".equals(field("uid-paste-info", info, "$.followUp.snoozedDays"));
+            } catch (Exception e) {
+                return false;
+            }
+        }, "7 day hold after a request for documents");
+    }
+
+    @Test
+    void pastedReplyToAClosedItemIsKeptButNotApplied() throws Exception {
+        String uid = "uid-paste-closed";
+        String id = create(uid, itemJson("Closed", "OTHER", FAST_PLAN));
+        mvc.perform(post("/v1/items/" + id + "/cancel").header("Authorization", bearer(uid))).andExpect(status().isOk());
+        pasteReply(uid, id, "refund has been processed")
+                .andExpect(jsonPath("$.applied").value(false))
+                .andExpect(jsonPath("$.classification").value("PAID"));
+        assertThat(timelineTypes(uid, id)).containsExactly("CREATED", "CANCELLED", "REPLY_RECEIVED");
+    }
+
+    @Test
+    void pastedReplyIsOnlyForTheOwnerOfTheItem() throws Exception {
+        String id = create("uid-paste-owner", itemJson("Private", "OTHER", FAST_PLAN));
+        pasteReply("uid-paste-stranger", id, "refund has been processed").andExpect(status().isNotFound());
+        assertThat(timelineTypes("uid-paste-owner", id)).containsExactly("CREATED");
+    }
+
+    @Test
+    void pastedReplyNeedsText() throws Exception {
+        String id = create("uid-paste-blank", itemJson("Blank", "OTHER", FAST_PLAN));
+        pasteReply("uid-paste-blank", id, "   ").andExpect(status().isBadRequest());
+        assertThat(timelineTypes("uid-paste-blank", id)).containsExactly("CREATED");
+    }
+
     @Test
     void createdItemsGetDistinctUnguessableReplyAddresses() throws Exception {
         String a = replyAddress("uid-tok", create("uid-tok", itemJson("a", "OTHER", null)));
