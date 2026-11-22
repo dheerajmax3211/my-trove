@@ -60,6 +60,10 @@ const TEXT_PAIRS: Pair[] = [
   ['brassText', 'canvas'],
   ['brassText', 'surface'],
   ['brassText', 'brassSubtle'],
+  ['signalText', 'canvas'],
+  ['signalText', 'surface'],
+  ['signalText', 'signalSubtle'],
+  ['onSignal', 'signal'],
   // vault: the dark surface that stays dark in both themes
   ['onVault', 'vault'],
   ['onVault', 'vaultRaised'],
@@ -103,6 +107,8 @@ const UI_PAIRS: Pair[] = [
   ['accent', 'surface'],
   ['brass', 'canvas'],
   ['brass', 'surface'],
+  ['signal', 'canvas'],
+  ['signal', 'surface'],
   ['vaultBorderStrong', 'vault'],
   ['danger', 'surface'],
   ['success', 'surface'],
@@ -244,8 +250,17 @@ describe('css generation', () => {
 
   it('collapses every duration under prefers-reduced-motion', () => {
     const reduced = css.slice(css.lastIndexOf('@media (prefers-reduced-motion: reduce)'))
-    for (const name of ['instant', 'fast', 'normal', 'slow', 'slower'])
+    for (const name of ['instant', 'fast', 'normal', 'slow', 'slower', 'cinematic'])
       expect(reduced).toContain(`--pp-duration-${name}: 0.01ms;`)
+  })
+
+  it('emits gradients, blur, glow shadows and the spring easing', () => {
+    expect(css).toContain('--pp-gradient-brand: linear-gradient(135deg')
+    expect(css).toContain('--pp-blur-md: 16px;')
+    expect(css).toMatch(/--pp-shadow-glow: /)
+    expect(css).toMatch(/--pp-ease-spring: linear\(/)
+    expect(css).toContain('--pp-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);')
+    expect(vars.gradient.brand).toBe('var(--pp-gradient-brand)')
   })
 
   it('committed tokens.css is up to date with the TS source', () => {

@@ -1,10 +1,12 @@
 import { darkColors, lightColors, type ThemeColors } from './colors'
 import {
+  blur,
   breakpoints,
   controlSize,
   darkShadows,
   fontFamily,
   fontWeight,
+  gradients,
   layout,
   lightShadows,
   motion,
@@ -114,6 +116,11 @@ export function staticCssVars(): Entry[] {
     out.push([cssVarName('duration', k), `${v}ms`])
   for (const [k, v] of Object.entries(motion.easing))
     out.push([cssVarName('ease', k), `cubic-bezier(${v.join(', ')})`])
+  out.push([
+    cssVarName('ease', 'spring'),
+    'linear(0, 0.009, 0.035 2.1%, 0.141, 0.281 6.7%, 0.723 12.9%, 0.938 16.7%, 1.017, 1.077, 1.121 24.2%, 1.131 25.8%, 1.108 29.5%, 1.036 34.8%, 0.993 40.3%, 0.985 44.4%, 0.997 54.5%, 1.003 63%, 1)',
+  ])
+  for (const [k, v] of Object.entries(blur)) out.push([cssVarName('blur', k), px(v)])
   for (const [k, v] of Object.entries(zIndex)) out.push([cssVarName('z', k), String(v)])
   for (const [k, v] of Object.entries(controlSize)) out.push([cssVarName('control', k), rem(v)])
   return out
@@ -125,6 +132,7 @@ export function themeCssVars(theme: Theme): Entry[] {
   for (const [k, v] of Object.entries(theme.colors)) out.push([cssVarName('color', k), v])
   for (const [k, v] of Object.entries(theme.shadows))
     out.push([cssVarName('shadow', k), shadowToCss(v)])
+  for (const [k, v] of Object.entries(gradients)) out.push([cssVarName('gradient', k), v])
   return out
 }
 
@@ -234,6 +242,8 @@ const mapVars = <T extends object>(group: string, source: T): VarTree<T> =>
 export const vars = {
   color: mapVars('color', lightColors),
   shadow: mapVars('shadow', lightShadows),
+  gradient: mapVars('gradient', gradients),
+  blur: mapVars('blur', blur),
   space: mapVars('space', spacing),
   radius: mapVars('radius', radius),
   font: mapVars('font', fontFamily),

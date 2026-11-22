@@ -18,11 +18,13 @@ export {
   type ProductKey,
 } from './products'
 export {
+  blur,
   breakpoints,
   controlSize,
   darkShadows,
   fontFamily,
   fontWeight,
+  gradients,
   layout,
   lightShadows,
   motion,

@@ -80,6 +80,14 @@ export interface TextStyle {
  * The text face (Instrument Sans) carries labels, UI and body.
  */
 export const textStyles = {
+  displayXl: {
+    family: 'display',
+    size: 104,
+    minSize: 48,
+    lineHeight: 104,
+    weight: 400,
+    tracking: -0.034,
+  },
   hero: { family: 'display', size: 76, minSize: 42, lineHeight: 80, weight: 400, tracking: -0.028 },
   displayLg: {
     family: 'display',
@@ -124,7 +132,19 @@ export interface ShadowLayer {
   inset?: boolean
 }
 
-export type ShadowName = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'inset'
+export type ShadowName =
+  | 'xs'
+  | 'sm'
+  | 'md'
+  | 'lg'
+  | 'xl'
+  | 'inset'
+  /** Accent halo: primary buttons, active tabs, focused fields. */
+  | 'glow'
+  /** Brass halo: seals, owner marks. */
+  | 'glowBrass'
+  /** Three-pixel focus glow (a ring of accent at low alpha). */
+  | 'focus'
 export type ThemeShadows = Record<ShadowName, readonly ShadowLayer[]>
 
 const INK = '#14211C'
@@ -159,6 +179,15 @@ export const lightShadows: ThemeShadows = {
     { x: 0, y: 1, blur: 2, spread: 0, color: INK, opacity: 0.1, inset: true },
     { x: 0, y: 0, blur: 0, spread: 1, color: INK, opacity: 0.02, inset: true },
   ],
+  glow: [
+    { x: 0, y: 1, blur: 2, spread: 0, color: '#0B6A5C', opacity: 0.3 },
+    { x: 0, y: 8, blur: 24, spread: -6, color: '#0B6A5C', opacity: 0.45 },
+  ],
+  glowBrass: [
+    { x: 0, y: 1, blur: 2, spread: 0, color: '#A97C1F', opacity: 0.3 },
+    { x: 0, y: 8, blur: 24, spread: -6, color: '#A97C1F', opacity: 0.4 },
+  ],
+  focus: [{ x: 0, y: 0, blur: 0, spread: 4, color: '#C2570C', opacity: 0.22 }],
 }
 
 export const darkShadows: ThemeShadows = {
@@ -186,6 +215,17 @@ export const darkShadows: ThemeShadows = {
     { x: 0, y: 1, blur: 3, spread: 0, color: '#000000', opacity: 0.5, inset: true },
     { x: 0, y: 0, blur: 0, spread: 1, color: '#000000', opacity: 0.2, inset: true },
   ],
+  glow: [
+    { x: 0, y: 0, blur: 0, spread: 1, color: '#34D3B0', opacity: 0.35 },
+    { x: 0, y: 0, blur: 22, spread: 0, color: '#34D3B0', opacity: 0.38 },
+    { x: 0, y: 12, blur: 40, spread: -10, color: '#34D3B0', opacity: 0.4 },
+  ],
+  glowBrass: [
+    { x: 0, y: 0, blur: 0, spread: 1, color: '#E2BC6A', opacity: 0.35 },
+    { x: 0, y: 0, blur: 22, spread: 0, color: '#E2BC6A', opacity: 0.3 },
+    { x: 0, y: 12, blur: 40, spread: -10, color: '#E2BC6A', opacity: 0.32 },
+  ],
+  focus: [{ x: 0, y: 0, blur: 0, spread: 4, color: '#F5A862', opacity: 0.28 }],
 }
 
 /**
@@ -194,15 +234,34 @@ export const darkShadows: ThemeShadows = {
  */
 export const motion = {
   /** ms */
-  duration: { instant: 0, fast: 120, normal: 200, slow: 360, slower: 560 },
+  duration: { instant: 0, fast: 120, normal: 200, slow: 360, slower: 560, cinematic: 900 },
   /** cubic-bezier control points [x1, y1, x2, y2] (also valid for Reanimated `Easing.bezier`). */
   easing: {
     standard: [0.2, 0, 0, 1],
     enter: [0, 0, 0.2, 1],
     exit: [0.4, 0, 1, 1],
     settle: [0.34, 1.32, 0.64, 1],
+    /** Expo-out: the long, soft landing used by reveals and page entrances. */
+    emphasized: [0.16, 1, 0.3, 1],
+    /** Symmetric, for loops and shimmer. */
+    inOut: [0.65, 0, 0.35, 1],
   },
+  /**
+   * Spring presets for `motion` (stiffness / damping / mass). `snappy` for controls, `smooth` for
+   * layout and shared-element moves, `gentle` for large surfaces, `bouncy` only for confirmations.
+   */
+  spring: {
+    snappy: { stiffness: 520, damping: 38, mass: 1 },
+    smooth: { stiffness: 260, damping: 30, mass: 1 },
+    gentle: { stiffness: 140, damping: 24, mass: 1 },
+    bouncy: { stiffness: 380, damping: 18, mass: 1 },
+  },
+  /** Scroll-reveal defaults: distance in px, stagger in seconds. */
+  reveal: { distance: 24, stagger: 0.06, viewportMargin: '-8% 0px -8% 0px' },
 } as const
+
+/** Backdrop-blur radii (px) for glass surfaces. Keep them modest: blur is the costliest effect we use. */
+export const blur = { sm: 8, md: 16, lg: 28, xl: 48 } as const
 
 export const zIndex = {
   base: 0,
@@ -234,4 +293,30 @@ export const textures = {
   ledger: svgUrl(
     "<svg xmlns='http://www.w3.org/2000/svg' width='8' height='28'><rect y='27' width='8' height='1' fill='#14211C' fill-opacity='.07'/></svg>",
   ),
+} as const
+
+/**
+ * Gradients as CSS values that reference the color roles, so one definition serves both themes
+ * (and any `data-product` / `data-surface` scope that re-points the roles). CSS-only: React Native
+ * would build its own from the aurora colors.
+ */
+export const gradients = {
+  /** Patina into emerald: the brand wash. */
+  brand: 'linear-gradient(135deg, var(--pp-color-aurora-teal), var(--pp-color-aurora-emerald))',
+  /** Brass, the lent-and-sealed metal. */
+  brass: 'linear-gradient(135deg, var(--pp-color-aurora-brass), var(--pp-color-brass))',
+  /** The electric spark: signal blue bleeding into patina. */
+  signal: 'linear-gradient(135deg, var(--pp-color-aurora-signal), var(--pp-color-aurora-teal))',
+  /** Headline accent: ink, patina, brass. Large display type only. */
+  text: 'linear-gradient(100deg, var(--pp-color-text) 8%, var(--pp-color-accent-text) 58%, var(--pp-color-brass-text) 100%)',
+  /** Primary button fill: a lit top edge sliding into the accent. */
+  accentFill:
+    'linear-gradient(180deg, color-mix(in srgb, var(--pp-color-accent) 86%, #fff), var(--pp-color-accent))',
+  /** Raised card fill. */
+  card: 'linear-gradient(180deg, var(--pp-color-surface-raised), var(--pp-color-surface))',
+  /** Light catching the top of a surface. */
+  sheen: 'linear-gradient(180deg, rgb(255 255 255 / 0.06), transparent 44%)',
+  /** Hairline gradient used as a 1px border (see `.pp-gradient-border`). */
+  border:
+    'linear-gradient(140deg, color-mix(in srgb, var(--pp-color-accent) 60%, transparent), color-mix(in srgb, var(--pp-color-border) 80%, transparent) 36%, color-mix(in srgb, var(--pp-color-brass) 50%, transparent))',
 } as const

@@ -25,6 +25,20 @@ export interface BaseThemeColors {
   skeleton: string
   /** Top-edge light on raised surfaces (8-digit hex, includes alpha). */
   highlight: string
+  /** Top of a raised card gradient: a half-step lighter than `surface`. */
+  surfaceRaised: string
+  /** Frosted-glass fill (8-digit hex). Always used over a backdrop blur. */
+  glass: string
+  /** A denser glass fill for panels that carry text over busy backgrounds (8-digit hex). */
+  glassStrong: string
+  /** Hairline border of a glass surface (8-digit hex). */
+  glassBorder: string
+  /** Cursor-following spotlight tint on cards (8-digit hex). */
+  spotlight: string
+  /** Accent halo for glow shadows and focus glow (8-digit hex). */
+  glowAccent: string
+  /** Brass halo (8-digit hex). */
+  glowBrass: string
 
   text: string
   textMuted: string
@@ -52,6 +66,20 @@ export interface BaseThemeColors {
   brassSubtle: string
   /** Brass as text/icon on canvas, surface and brassSubtle. */
   brassText: string
+
+  /** The one electric accent: a cool ultramarine, one spark per screen. */
+  signal: string
+  signalSubtle: string
+  /** Signal as text/icon on canvas, surface and signalSubtle. */
+  signalText: string
+  /** Text/icon on a solid signal background. */
+  onSignal: string
+
+  /** Aurora stops: decorative only (backgrounds, glows, gradient text). Never carry text on them alone. */
+  auroraTeal: string
+  auroraEmerald: string
+  auroraBrass: string
+  auroraSignal: string
 
   danger: string
   dangerHover: string
@@ -153,33 +181,50 @@ const darkProducts = productColors(
 )
 
 export const lightColors: ThemeColors = {
-  canvas: '#F0EFE7',
-  surface: '#FBFAF6',
-  surfaceSunken: '#E6E5DA',
+  canvas: '#F2F3EC',
+  surface: '#FCFCF8',
+  surfaceSunken: '#E6E8DE',
   surfaceOverlay: '#FFFFFF',
   scrim: '#0F1F1B73',
-  skeleton: '#E0DFD2',
+  skeleton: '#DFE2D6',
   highlight: '#FFFFFFCC',
+  surfaceRaised: '#FFFFFF',
+  glass: '#FFFFFFA6',
+  glassStrong: '#FFFFFFD9',
+  glassBorder: '#FFFFFFE6',
+  spotlight: '#0B6A5C1A',
+  glowAccent: '#0B6A5C33',
+  glowBrass: '#A97C1F33',
 
-  text: '#15201C',
-  textMuted: '#3E4944',
-  textSubtle: '#55615B',
+  text: '#0F1A16',
+  textMuted: '#3A4741',
+  textSubtle: '#4F5D56',
   textInverse: '#F0EFE7',
 
-  hairline: '#E3E2D6',
-  border: '#D8D7C9',
+  hairline: '#E1E4D8',
+  border: '#D3D7C9',
   borderStrong: '#737D77',
 
-  accent: '#0E5C52',
-  accentHover: '#0A4A42',
-  accentActive: '#073A34',
-  accentSubtle: '#D8EAE3',
-  accentText: '#0E5C52',
+  accent: '#0B6A5C',
+  accentHover: '#085448',
+  accentActive: '#063F36',
+  accentSubtle: '#D3ECE3',
+  accentText: '#0B6A5C',
   onAccent: '#FBFAF6',
 
   brass: '#A97C1F',
   brassSubtle: '#F1E6C9',
   brassText: '#6F4F0C',
+
+  signal: '#3F4FD6',
+  signalSubtle: '#E1E5FB',
+  signalText: '#3340C0',
+  onSignal: '#F8F9FF',
+
+  auroraTeal: '#2BB5A0',
+  auroraEmerald: '#5FCB8A',
+  auroraBrass: '#E5C174',
+  auroraSignal: '#8F9BFF',
 
   danger: '#A8322A',
   dangerHover: '#8C2620',
@@ -219,33 +264,50 @@ export const lightColors: ThemeColors = {
 }
 
 export const darkColors: ThemeColors = {
-  canvas: '#101412',
-  surface: '#181E1B',
-  surfaceSunken: '#0B0E0D',
-  surfaceOverlay: '#202825',
+  canvas: '#070C0A',
+  surface: '#0E1613',
+  surfaceSunken: '#040807',
+  surfaceOverlay: '#141F1B',
   scrim: '#000000B3',
-  skeleton: '#26302C',
-  highlight: '#FFFFFF12',
+  skeleton: '#1A2622',
+  highlight: '#FFFFFF14',
+  surfaceRaised: '#15201C',
+  glass: '#FFFFFF0D',
+  glassStrong: '#0E1613CC',
+  glassBorder: '#FFFFFF1A',
+  spotlight: '#34D3B029',
+  glowAccent: '#34D3B040',
+  glowBrass: '#E2BC6A40',
 
-  text: '#ECE7DC',
-  textMuted: '#BCC4BE',
-  textSubtle: '#9AA59F',
+  text: '#EEF1EA',
+  textMuted: '#B7C3BC',
+  textSubtle: '#8F9D96',
   textInverse: '#101412',
 
-  hairline: '#232B28',
-  border: '#2B3430',
-  borderStrong: '#7F8A84',
+  hairline: '#18221E',
+  border: '#222E29',
+  borderStrong: '#6C7C74',
 
-  accent: '#5FC9B5',
-  accentHover: '#7AD6C5',
-  accentActive: '#96E0D2',
-  accentSubtle: '#17332E',
-  accentText: '#7ED3C2',
-  onAccent: '#07211C',
+  accent: '#34D3B0',
+  accentHover: '#5BE0C3',
+  accentActive: '#7DE9D1',
+  accentSubtle: '#0E2E28',
+  accentText: '#6EE7CC',
+  onAccent: '#03201A',
 
-  brass: '#D9B45F',
-  brassSubtle: '#35290F',
-  brassText: '#E6C985',
+  brass: '#E2BC6A',
+  brassSubtle: '#2C2310',
+  brassText: '#EBCB8A',
+
+  signal: '#8C9BFF',
+  signalSubtle: '#181D4A',
+  signalText: '#B4BEFF',
+  onSignal: '#0A0F33',
+
+  auroraTeal: '#12B8A0',
+  auroraEmerald: '#1F9D6B',
+  auroraBrass: '#C99A3A',
+  auroraSignal: '#5B6CFF',
 
   danger: '#F0857B',
   dangerHover: '#F5A099',
