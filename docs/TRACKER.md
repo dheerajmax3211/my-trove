@@ -69,6 +69,10 @@ Owner verdict: UI looks 10-15 years old, static, no animation, basic colours, Wa
 - [ ] M4 Home Pulse, Family Treasury, Household, Digital Legacy polished to the same bar
 - [ ] M5 Owner review in real browser, fixes, push
 
+## Phase 2.7: Audit against the owner's complaints (2026-11-22, in progress)
+Owner: plain `localhost:5190` went to demo; Google always signed in as dev; persona login not working; Home Pulse energy data source unexplained; products lack a clear working purpose. FIXED so far (commits 768b294 and earlier): plain front-door visit leaves demo; sign-out leaves demo; `?demo=0` escape; `dev/seed-personas.sh` creates real owner, admin, developer, member and auditor accounts.
+Four audit agents, each on its own branch from main, briefs in `docs/superpowers/briefs/60-64`: `audit/auth-personas`, `audit/waiting-consent-ask`, `audit/home-pulse`, `audit/household-treasury-legacy`. Their reports arrive as notifications; verify each in the real repo, merge, and rerun the flows live before reporting to the owner.
+
 ## Phase 2.6: Make it real (owner audit of pointless things, 2026-11-22)
 Status of the Phase 2.5 agents: the earlier session's agents died on a restart; partial work is on `phase-2.5/site|workspace|products-a|products-b`; fresh agents continue from those branches using `docs/superpowers/briefs/*.md` (also dispatched: H = Home Pulse simulator backend on `phase-2.5/home-pulse-sim`). Agents cannot be resumed across a session restart: always keep briefs in files and commit WIP.
 Audit, things that exist but do nothing useful for a real user (fix order):
