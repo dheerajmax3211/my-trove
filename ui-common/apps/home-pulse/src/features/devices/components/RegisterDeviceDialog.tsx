@@ -76,6 +76,12 @@ export function RegisterDeviceDialog({
     >
       <form id="register-device-form" className="hp-stack-4" onSubmit={submit} noValidate>
         <ConnectSteps at={applianceId ? 'name' : 'appliance'} />
+        <p className="hp-small hp-muted">
+          The plug or meter measures the appliance and reports its watts to this service, using the
+          token you get next. Reminders come from the dates you enter on the appliance, and alerts
+          from the pattern learned over about a week of readings. No hardware? Close this and
+          simulate a plug on the appliance instead.
+        </p>
         {register.error && !serverLabelError ? (
           <p role="alert" className="hp-form-error">
             {errorMessage(register.error)}

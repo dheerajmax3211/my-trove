@@ -773,3 +773,53 @@ ul.hp-plain-list:not(.hp-stack-3) > li + li {
   border-radius: var(--pp-radius-xl);
   overflow: hidden;
 }
+
+/* Where the data comes from, and connecting a device */
+.hp-explainer-list {
+  display: grid;
+  gap: var(--pp-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+.hp-explainer-item {
+  display: flex;
+  gap: var(--pp-space-3);
+  align-items: flex-start;
+}
+.hp-explainer-item p {
+  margin: var(--pp-space-1) 0 0;
+}
+.hp-explainer-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: var(--pp-color-surface-sunken);
+}
+.hp-explainer {
+  display: grid;
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-5);
+  border-radius: var(--pp-radius-lg);
+  border: 1px solid var(--pp-color-border);
+}
+.hp-explainer-title {
+  margin: 0;
+  font-size: 1.125rem;
+}
+.hp-steps-list {
+  margin: 0;
+  padding-left: var(--pp-space-5);
+  display: grid;
+  gap: var(--pp-space-2);
+}
+.hp-address {
+  display: block;
+  padding: var(--pp-space-3);
+  overflow-x: auto;
+  border-radius: var(--pp-radius-md);
+  background: var(--pp-color-surface-sunken);
+  border: 1px solid var(--pp-color-border);
+  white-space: nowrap;
+}

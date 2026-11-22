@@ -9,6 +9,8 @@ export interface DeviceDto {
   lastSeenAt: string | null
   revokedAt: string | null
   active: boolean
+  /** The built-in simulator, not a real plug. Anything it produces is labelled "Simulated". */
+  simulated: boolean
 }
 
 export interface RegisteredDevice {

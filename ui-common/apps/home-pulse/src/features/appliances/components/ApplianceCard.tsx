@@ -25,6 +25,7 @@ import type { AlertDto } from '../../alerts/types'
 import { useCurrentDraw, useTrend } from '../../readings/hooks'
 import { useHealth } from '../hooks'
 import { TYPE_LABELS, type Appliance, type ApplianceHealth } from '../types'
+import { SimulatedBadge } from '../../simulation/SimulationControls'
 import { HealthStatusBadge } from './HealthStatusBadge'
 import type { Slot } from './slot'
 
@@ -166,7 +167,14 @@ export function ApplianceCard({
           {appliance.name}
         </ModuleLink>
       }
-      actions={health.data ? <HealthStatusBadge status={health.data.status} /> : null}
+      actions={
+        health.data ? (
+          <span className="hp-inline-meta">
+            {health.data.simulated ? <SimulatedBadge /> : null}
+            <HealthStatusBadge status={health.data.status} />
+          </span>
+        ) : null
+      }
     >
       <p className="hp-muted hp-small hp-card-sub">
         {TYPE_LABELS[appliance.type]}

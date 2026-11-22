@@ -4,6 +4,7 @@ import { ErrorState } from '../../../components/ErrorState'
 import { useReadings } from '../hooks'
 import type { RangeKey } from '../types'
 import type { Slot } from '../../appliances/components/slot'
+import { SimulatedBadge } from '../../simulation/SimulationControls'
 import { PowerChart } from './PowerChart'
 import { RangeSelector } from './RangeSelector'
 
@@ -96,7 +97,14 @@ export function PowerChartSection({
       {...(className ? { className } : {})}
       {...(style ? { style } : {})}
     >
-      <p className="hp-muted hp-small">Watts reported by the plug, {RANGE_LABELS[range]}.</p>
+      <p className="hp-muted hp-small hp-inline-meta">
+        <span>
+          {readings.data?.simulated
+            ? `Watts from the simulated plug, ${RANGE_LABELS[range]}.`
+            : `Watts reported by the plug, ${RANGE_LABELS[range]}.`}
+        </span>
+        {readings.data?.simulated ? <SimulatedBadge /> : null}
+      </p>
       {body}
     </BentoCard>
   )

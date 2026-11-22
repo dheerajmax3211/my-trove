@@ -19,6 +19,12 @@ import { useClock } from '../../../lib/clock'
 import { errorMessage } from '../../../lib/errors'
 import { formatRelative, pluralize } from '../../../lib/format'
 import { useDocumentTitle } from '../../../lib/useDocumentTitle'
+import { DataSourceCard } from '../../devices/components/DataSourceExplainer'
+import {
+  SimulatePlugButton,
+  SimulatedBadge,
+  SimulationCard,
+} from '../../simulation/SimulationControls'
 import { AlertCard } from '../../alerts/components/AlertCard'
 import { useReminders } from '../../reminders/hooks'
 import { sortReminders } from '../../reminders/sort'
@@ -94,6 +100,7 @@ export function ApplianceDetailPage() {
           health.data ? (
             <span className="hp-inline-meta">
               <HealthStatusBadge status={health.data.status} />
+              {health.data.simulated ? <SimulatedBadge /> : null}
               <span>
                 {hasDevice
                   ? `Last reading ${formatRelative(health.data.lastReadingAt, clock()).toLowerCase()}`
@@ -122,9 +129,12 @@ export function ApplianceDetailPage() {
           normalWatts={health.data?.baseline?.switching ? health.data.baseline.onLevelMedian : null}
           noDeviceAction={
             health.data ? (
-              <Button asChild>
-                <ModuleLink to={`/devices?appliance=${id}`}>Connect a device</ModuleLink>
-              </Button>
+              <div className="hp-button-row">
+                <Button asChild>
+                  <ModuleLink to={`/devices?appliance=${id}`}>Connect a device</ModuleLink>
+                </Button>
+                <SimulatePlugButton applianceId={id} />
+              </div>
             ) : undefined
           }
         />
@@ -139,6 +149,11 @@ export function ApplianceDetailPage() {
         )}
         {health.data ? <BaselineCard health={health.data} /> : null}
         <ServicePanel appliance={a} service={health.data?.service ?? null} reminders={mine} />
+        {health.data?.simulated ? <SimulationCard applianceId={id} /> : null}
+        {health.data &&
+        (!hasDevice || health.data.simulated || health.data.status === 'LEARNING') ? (
+          <DataSourceCard />
+        ) : null}
         <BentoCard span={12} title="Alerts for this appliance" icon={<BellIcon size={18} />}>
           {health.isError ? (
             <ErrorState

@@ -26,6 +26,8 @@ import { formatDateTime, formatRelative } from '../../../lib/format'
 import { useDocumentTitle } from '../../../lib/useDocumentTitle'
 import { useAppliances } from '../../appliances/hooks'
 import { PlugIcon } from '../../../lib/icons'
+import { SimulatePlugButton, SimulatedBadge } from '../../simulation/SimulationControls'
+import { DataSourceExplainer } from '../components/DataSourceExplainer'
 import { RegisterDeviceDialog } from '../components/RegisterDeviceDialog'
 import { TokenDialog } from '../components/TokenDialog'
 import { useDevicesFor, useRevokeDevice } from '../hooks'
@@ -55,7 +57,8 @@ export function DevicesPage() {
     (deviceQueries[i]?.data ?? []).map((device) => ({ ...device, applianceName: appliance.name })),
   )
   const occupied = new Set(rows.filter((d) => d.active).map((d) => d.applianceId))
-  const waiting = rows.filter((d) => d.active && d.lastSeenAt === null)
+  const waiting = rows.filter((d) => d.active && !d.simulated && d.lastSeenAt === null)
+  const bare = applianceList.filter((a) => !occupied.has(a.id))
   const devicesLoading = deviceQueries.some((q) => q.isPending)
   const devicesError = deviceQueries.find((q) => q.isError)
 
@@ -64,7 +67,12 @@ export function DevicesPage() {
       id: 'label',
       header: 'Device',
       sortValue: (d) => d.label,
-      cell: (d) => <strong>{d.label}</strong>,
+      cell: (d) => (
+        <span className="hp-inline-meta">
+          <strong>{d.label}</strong>
+          {d.simulated ? <SimulatedBadge /> : null}
+        </span>
+      ),
     },
     {
       id: 'appliance',
@@ -199,6 +207,28 @@ export function DevicesPage() {
             ))}
           </div>
         ) : null}
+        {bare.length > 0 ? (
+          <BentoCard span={12} title="No hardware? Simulate a plug" icon={<BoltIcon size={18} />}>
+            <div className="hp-stack-3">
+              <p className="hp-small">
+                Home Pulse needs a real smart plug to measure an appliance. To see how it works
+                without one, a built-in simulated plug fills in a week of readings. Everything it
+                makes is labelled Simulated, and you can remove it any time.
+              </p>
+              <ul className="hp-plain-list hp-stack-2" aria-label="Appliances without a device">
+                {bare.map((a) => (
+                  <li key={a.id} className="hp-inline-meta">
+                    <strong>{a.name}</strong>
+                    <SimulatePlugButton applianceId={a.id} size="sm" />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </BentoCard>
+        ) : null}
+        <div className="hp-span-12">
+          <DataSourceExplainer />
+        </div>
         <section className="hp-span-12 hp-table-card" aria-label="All devices">
           {/* Scrollable region: keyboard focusable so the wide table can be reached on a phone (WCAG 2.1.1). */}
           {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}

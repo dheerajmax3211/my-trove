@@ -18,6 +18,8 @@ export interface ReadingSeries {
   to: string
   resolution: Resolution
   points: ReadingPoint[]
+  /** The readings come from the built-in simulator. */
+  simulated?: boolean
 }
 
 export const RANGES = ['hour', 'day', 'week', 'month'] as const
