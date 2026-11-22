@@ -1,11 +1,4 @@
-import {
-  BentoCard,
-  Button,
-  CheckCircleIcon,
-  ShieldIcon,
-  Skeleton,
-  XCircleIcon,
-} from '@platform/ui'
+import { BentoCard, Button, CheckCircleIcon, ShieldIcon, Skeleton, XCircleIcon } from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
 import { describeBreak } from '../../../shared/lib/audit'
 import { formatDateTime } from '../../../shared/lib/format'

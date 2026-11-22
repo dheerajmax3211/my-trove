@@ -36,6 +36,12 @@
   letter-spacing: -0.035em;
 }
 
+.section-heading {
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+}
+
 .section-count {
   display: inline-grid;
   min-width: 2rem;
@@ -363,7 +369,7 @@
 
 .grant-facts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   gap: var(--pp-space-3);
   margin: 0;
 }
@@ -371,6 +377,10 @@
 .grant-facts dt {
   color: var(--pp-color-text-subtle);
   font-size: var(--pp-text-caption-size);
+}
+
+.grant-facts .wide {
+  grid-column: 1 / -1;
 }
 
 .grant-facts dd {
@@ -507,6 +517,50 @@
   color: var(--pp-color-text-muted);
   font-size: var(--pp-text-body-small-size);
   line-height: var(--pp-text-body-small-line);
+}
+
+/* A short list inside a stat card: who is asking, who holds a key */
+.mini-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-2);
+  margin: var(--pp-space-5) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mini-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-2) var(--pp-space-3);
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-surface-sunken);
+}
+
+.mini-list .request-seal {
+  width: 2rem;
+  height: 2rem;
+  font-size: var(--pp-text-body-small-size);
+}
+
+.mini-main {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.section-action {
+  margin-inline-start: auto;
+}
+
+.empty-card {
+  padding: var(--pp-space-6);
+  background: var(--pp-color-surface);
+  border-radius: var(--pp-radius-xl);
 }
 
 @media (max-width: 640px) {

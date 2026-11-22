@@ -1,10 +1,17 @@
 import {
+  BentoCard,
+  BentoGrid,
+  BigStat,
+  BarList,
   Button,
+  Donut,
   EmptyState,
+  FolderIcon,
   Field,
   Input,
   Illustration,
   PageHeader,
+  LockIcon,
   PlusIcon,
   Tabs,
   TabsContent,
@@ -18,12 +25,64 @@ import type { Attribute } from '../../../shared/api/types'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
 import { ErrorState } from '../../../shared/components/ErrorState'
 import { LoadingBlock } from '../../../shared/components/LoadingBlock'
+import { sensitivityCounts, vaultGroups } from '../../dashboard/summary'
+import { formatRelative } from '../../../shared/lib/format'
 import { filterAttributes } from '../api/tree'
 import { AttributeDialog } from '../components/AttributeDialog'
 import { AttributeTable, AttributeTree } from '../components/AttributeViews'
 import { useAttributes, useDeleteAttribute } from '../hooks/useVault'
 
 type Editing = { mode: 'closed' } | { mode: 'add' } | { mode: 'edit'; attribute: Attribute }
+
+const SENSITIVITY_TONES = ['lilac', 'lime', 'brass', 'danger'] as const
+
+/** What the vault holds, at a glance: how many facts, how sensitive, in which groups. */
+function VaultSummary({ attributes }: { attributes: readonly Attribute[] }) {
+  const counts = sensitivityCounts(attributes)
+  const groups = vaultGroups(attributes)
+  const guarded = attributes.filter(
+    (a) => a.sensitivity === 'SENSITIVE' || a.sensitivity === 'RESTRICTED',
+  ).length
+  const lastChanged =
+    attributes
+      .map((a) => a.updatedAt)
+      .sort()
+      .at(-1) ?? ''
+  return (
+    <BentoGrid>
+      <BentoCard span={4} title="In your vault" icon={<LockIcon size={18} />}>
+        <BigStat
+          value={attributes.length}
+          unit={attributes.length === 1 ? 'attribute' : 'attributes'}
+          trend="flat"
+          caption={`In ${groups.length} ${groups.length === 1 ? 'group' : 'groups'}`}
+          secondary={[
+            { label: 'Sensitive or restricted', value: guarded },
+            { label: 'Last changed', value: formatRelative(lastChanged) },
+          ]}
+        />
+      </BentoCard>
+      <BentoCard span={4} title="How sensitive" icon={<LockIcon size={18} />}>
+        <Donut
+          label="Attributes by sensitivity"
+          size={132}
+          thickness={14}
+          segments={counts.map(({ level, count }, i) => ({
+            label: level.toLowerCase(),
+            value: count,
+            tone: SENSITIVITY_TONES[i % 4]!,
+          }))}
+        />
+      </BentoCard>
+      <BentoCard span={4} tone="lilac" title="Groups" icon={<FolderIcon size={18} />}>
+        <BarList
+          label="Attributes per group"
+          items={groups.map((g) => ({ label: g.name, value: g.count }))}
+        />
+      </BentoCard>
+    </BentoGrid>
+  )
+}
 
 export function VaultPage() {
   const { toast } = useToast()
@@ -110,6 +169,9 @@ export function VaultPage() {
         }
       />
       <div className="page-stack">
+        {attributes.data && attributes.data.length > 0 ? (
+          <VaultSummary attributes={attributes.data} />
+        ) : null}
         {attributes.data && attributes.data.length > 0 ? (
           <div className="toolbar">
             <Field label="Filter by key path" className="toolbar-grow">

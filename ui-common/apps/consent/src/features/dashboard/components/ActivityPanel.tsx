@@ -51,7 +51,7 @@ export interface ActivityPanelProps {
 export function ActivityPanel({ entries, nameOf }: ActivityPanelProps) {
   return (
     <BentoCard
-      span={5}
+      span={7}
       title="Recent activity"
       icon={<ActivityIcon size={18} />}
       actions={

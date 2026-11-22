@@ -1,15 +1,13 @@
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  PageHeader,
-} from '@platform/ui'
+import { BentoCard, BentoGrid, Button, FileIcon, PageHeader, ShieldIcon } from '@platform/ui'
 import { ErrorState } from '../../../shared/components/ErrorState'
 import { ChainResult } from '../components/ChainResult'
 import { useChainVerification } from '../hooks/useChain'
+
+const HOW = [
+  'Every read, refusal and change is written to the log as one entry.',
+  'Each entry stores a fingerprint of the entry before it.',
+  'Edit or delete any entry and every fingerprint after it stops matching.',
+]
 
 export function AuditPage() {
   const chain = useChainVerification({ autoRun: false })
@@ -21,16 +19,13 @@ export function AuditPage() {
         title="Audit"
         description="Every access is written to a log where each entry contains a fingerprint of the one before it. If anyone edits or deletes an entry, the chain stops adding up."
       />
-      <Card>
-        <CardHeader>
-          <CardTitle as="h2">Verify the chain</CardTitle>
-          <CardDescription>
+      <BentoGrid>
+        <BentoCard span={8} title="Verify the chain" icon={<ShieldIcon size={18} />}>
+          <p className="muted">
             This re-computes every fingerprint from the first entry onwards and reports the first
             entry that does not match.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="stack">
+          </p>
+          <div className="stack" style={{ marginTop: 'var(--pp-space-5)' }}>
             <div>
               <Button loading={running} onClick={() => void chain.refetch()}>
                 {chain.data ? 'Verify again' : 'Verify chain'}
@@ -44,8 +39,17 @@ export function AuditPage() {
               <p className="muted">Not checked yet. Press the button to run the check.</p>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </BentoCard>
+        <BentoCard span={4} tone="dark" title="How the chain works" icon={<FileIcon size={18} />}>
+          <ol className="firstrun-steps">
+            {HOW.map((line) => (
+              <li key={line}>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ol>
+        </BentoCard>
+      </BentoGrid>
     </>
   )
 }

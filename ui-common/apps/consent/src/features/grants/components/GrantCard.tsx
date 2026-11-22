@@ -26,12 +26,7 @@ export function GrantCard({ grant, onRevoke }: GrantCardProps) {
   const ended = grant.status === 'REVOKED' ? grant.revokedAt : grant.expiresAt
   const elapsed = leaseElapsed(grant, now)
   return (
-    <div
-      role="group"
-      aria-labelledby={headingId}
-      className="grant-card"
-      data-status={grant.status}
-    >
+    <div role="group" aria-labelledby={headingId} className="grant-card" data-status={grant.status}>
       <div className="grant-head">
         <span className="request-seal" aria-hidden="true">
           {Array.from(grant.clientName)[0]?.toUpperCase() ?? '?'}

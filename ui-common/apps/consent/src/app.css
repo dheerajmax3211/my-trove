@@ -153,8 +153,25 @@
   padding: 0 0 0 var(--pp-space-5);
 }
 
+/* Each top-level group of the vault is its own white card. */
 .tree-root {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr));
+  gap: var(--pp-space-4);
+  align-items: start;
   padding-left: 0;
+}
+
+.tree-root > .tree-item {
+  min-width: 0;
+  padding: var(--pp-space-5) var(--pp-space-6);
+  background: var(--pp-color-surface);
+  border-radius: var(--pp-radius-xl);
+}
+
+.tree-root > .tree-item > .tree-row .tree-toggle {
+  font-weight: 650;
+  font-size: var(--pp-text-body-size);
 }
 
 .tree-row {
@@ -162,8 +179,12 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--pp-space-3);
-  padding: var(--pp-space-2) 0;
-  border-bottom: 1px solid var(--pp-color-border);
+  padding: var(--pp-space-3) 0;
+  border-bottom: 1px solid var(--pp-color-hairline);
+}
+
+.tree-root > .tree-item > .tree-list > .tree-item:last-child > .tree-row:last-child {
+  border-bottom: 0;
 }
 
 .tree-toggle {
@@ -195,6 +216,17 @@
 .tree-leaf {
   padding: var(--pp-space-1) var(--pp-space-2) var(--pp-space-1)
     calc(var(--pp-space-2) + 16px + var(--pp-space-2));
+}
+
+.tree-row .value-preview {
+  order: 3;
+  flex: 1 1 100%;
+  padding-inline-start: var(--pp-space-2);
+}
+
+.tree-row .row-actions {
+  order: 2;
+  margin-inline-start: auto;
 }
 
 .value-preview {

@@ -1,50 +1,34 @@
-import {
-  BentoCard,
-  BigStat,
-  Button,
-  Donut,
-  FolderIcon,
-  KeyValueList,
-  PlusIcon,
-  Skeleton,
-  type KeyValueItem,
-} from '@platform/ui'
+import { BentoCard, BigStat, Button, Donut, FolderIcon, PlusIcon, Skeleton } from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
 import type { Attribute } from '../../../shared/api/types'
 import { ErrorState } from '../../../shared/components/ErrorState'
-import { sensitivityCounts, vaultGroups } from '../summary'
+import { sensitivityCounts } from '../summary'
 import { useAttributes } from '../../vault/hooks/useVault'
 
-const MAX_GROUPS = 4
-
 function VaultContents({ attributes }: { attributes: readonly Attribute[] }) {
-  const groups = vaultGroups(attributes)
-  const shown = groups.slice(0, MAX_GROUPS)
-  const items: KeyValueItem[] = shown.map((g) => ({
-    id: g.name,
-    label: g.name,
-    value: (
-      <span className="nowrap">{g.count === 1 ? '1 attribute' : `${g.count} attributes`}</span>
-    ),
-  }))
-  const hidden = groups.length - shown.length
   const counts = sensitivityCounts(attributes)
   return (
     <>
+      <BigStat
+        size="md"
+        value={attributes.length}
+        unit={attributes.length === 1 ? 'attribute' : 'attributes'}
+        trend="flat"
+        caption="Facts you could lend"
+      />
       <div className="vault-viz">
         <Donut
           label="Attributes by sensitivity"
-          size={132}
-          thickness={14}
+          size={104}
+          thickness={12}
           legend={false}
-          center={<strong>{attributes.length}</strong>}
           segments={counts.map(({ level, count }, i) => ({
             label: level.toLowerCase(),
             value: count,
             tone: (['lilac', 'lime', 'brass', 'danger'] as const)[i % 4]!,
           }))}
         />
-        <ul className="chips" aria-label="Attributes by sensitivity" style={{ flex: '1 1 8rem' }}>
+        <ul className="chips" aria-label="Counts by sensitivity" style={{ flex: '1 1 6rem' }}>
           {counts.map(({ level, count }) => (
             <li key={level}>
               <span className="chip">
@@ -53,14 +37,6 @@ function VaultContents({ attributes }: { attributes: readonly Attribute[] }) {
             </li>
           ))}
         </ul>
-      </div>
-      <div className="vault-groups" style={{ marginTop: 'var(--pp-space-4)' }}>
-        <KeyValueList items={items} layout="inline" dense aria-label="Groups in your vault" />
-        {hidden > 0 ? (
-          <p className="muted" style={{ marginTop: 'var(--pp-space-2)' }}>
-            and {hidden} more {hidden === 1 ? 'group' : 'groups'}
-          </p>
-        ) : null}
       </div>
     </>
   )
@@ -78,7 +54,9 @@ export function VaultPanel() {
       ) : attributes.data.length === 0 ? (
         <>
           <BigStat size="md" value={0} unit="attributes" countUp={false} />
-          <p className="stat-note">Nothing stored yet. Add the first fact you might want to lend.</p>
+          <p className="stat-note">
+            Nothing stored yet. Add the first fact you might want to lend.
+          </p>
         </>
       ) : (
         <VaultContents attributes={attributes.data} />

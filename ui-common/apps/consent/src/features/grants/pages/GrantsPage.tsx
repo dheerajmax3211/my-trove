@@ -35,7 +35,7 @@ function GrantList({
       />
     )
   return (
-    <ul className="card-list" aria-label={includeInactive ? 'All grants' : 'Active grants'}>
+    <ul className="grant-grid" aria-label={includeInactive ? 'All grants' : 'Active grants'}>
       {grants.data.map((grant) => (
         <li key={grant.id}>
           <GrantCard grant={grant} onRevoke={onRevoke} />
