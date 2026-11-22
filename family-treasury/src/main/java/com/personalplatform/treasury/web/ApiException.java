@@ -41,4 +41,9 @@ public class ApiException extends RuntimeException {
     public static ApiException unprocessable(String code, String message) {
         return new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, code, message);
     }
+
+    /** A feature that is not wired in this deployment yet. Nothing was changed. */
+    public static ApiException notImplemented(String code, String message) {
+        return new ApiException(HttpStatus.NOT_IMPLEMENTED, code, message);
+    }
 }

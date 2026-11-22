@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.UUID;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -57,11 +58,14 @@ public class HouseholdService {
     private final DSLContext dsl;
     private final Clock clock;
     private final IdempotencyService idempotency;
+    private final ObjectProvider<InvitationNotifier> invitationNotifier;
 
-    public HouseholdService(DSLContext dsl, Clock clock, IdempotencyService idempotency) {
+    public HouseholdService(DSLContext dsl, Clock clock, IdempotencyService idempotency,
+                            ObjectProvider<InvitationNotifier> invitationNotifier) {
         this.dsl = dsl;
         this.clock = clock;
         this.idempotency = idempotency;
+        this.invitationNotifier = invitationNotifier;
     }
 
     private OffsetDateTime now() {
@@ -304,11 +308,17 @@ public class HouseholdService {
      * Joining with it gives the invitee the role and a pot of their own, so no one needs another person's member ID.
      */
     @Transactional
-    public InviteCreated createInvite(UUID householdId, String uid, Role role, Integer ttlHours) {
+    public InviteCreated createInvite(UUID householdId, String uid, Role role, Integer ttlHours, String email) {
         requireRole(householdId, uid, Role.OWNER);
         int hours = ttlHours == null ? DEFAULT_INVITE_HOURS : ttlHours;
         if (hours < 1 || hours > MAX_INVITE_HOURS) {
             throw ApiException.badRequest("INVITE_TTL", "invite lifetime must be 1 to " + MAX_INVITE_HOURS + " hours");
+        }
+        // refuse an email invite before anything is stored when no delivery is wired
+        InvitationNotifier notifier = email == null ? null : invitationNotifier.getIfAvailable();
+        if (email != null && notifier == null) {
+            throw ApiException.notImplemented("EMAIL_INVITES_UNAVAILABLE",
+                    "email invites are not available yet; share the code instead");
         }
         byte[] raw = new byte[18];
         RANDOM.nextBytes(raw);
@@ -321,6 +331,10 @@ public class HouseholdService {
                 .set(HOUSEHOLD_INVITES.CODE_HASH, sha256Hex(code)).set(HOUSEHOLD_INVITES.ROLE, role.name())
                 .set(HOUSEHOLD_INVITES.CREATED_BY_UID, uid).set(HOUSEHOLD_INVITES.CREATED_AT, now)
                 .set(HOUSEHOLD_INVITES.EXPIRES_AT, expires).execute();
+        if (notifier != null) {
+            notifier.invitationCreated(new InvitationNotifier.EmailInvitation(
+                    householdId, id, role, email, code, expires.toInstant()));
+        }
         return new InviteCreated(id, code, role, expires.toInstant());
     }
 

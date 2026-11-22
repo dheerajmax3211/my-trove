@@ -1,5 +1,6 @@
 package com.personalplatform.treasury.household;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -34,7 +35,11 @@ public final class Dtos {
 
     public record ChangeRoleRequest(@NotNull Role role) {}
 
-    public record CreateInviteRequest(@NotNull Role role, @Min(1) @Max(720) Integer ttlHours) {}
+    /** {@code email} is optional: with it the code is also handed to the {@link InvitationNotifier}. */
+    public record CreateInviteRequest(
+            @NotNull Role role,
+            @Min(1) @Max(720) Integer ttlHours,
+            @Email @Size(max = 254) String email) {}
 
     public record AcceptInviteRequest(@NotBlank @Size(max = 200) String code) {}
 
