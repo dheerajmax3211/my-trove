@@ -92,7 +92,7 @@ describe('home states', () => {
     ).toBeInTheDocument()
     expect(within(panel).getByText(/One other alert is open/)).toBeInTheDocument()
     // the cards needing a look come first
-    const names = (await screen.findAllByRole('heading', { level: 2 })).map((h) => h.textContent)
+    const names = (await screen.findAllByRole('heading', { level: 3 })).map((h) => h.textContent)
     expect(names.indexOf('Washing machine')).toBeGreaterThan(names.indexOf('Kitchen fridge'))
     // alert history reads as a timeline
     const timeline = await screen.findByRole('list', { name: 'Recent alerts' })
@@ -104,7 +104,7 @@ describe('home states', () => {
     const ac = await applianceCard('Living room AC')
     expect(await within(ac).findByText('Running normally.')).toBeInTheDocument()
     expect(
-      await within(ac).findByRole('img', { name: 'Average draw per hour, last 24 hours' }),
+      await within(ac).findByRole('img', { name: /^Average draw per hour, last 24 hours/ }),
     ).toBeInTheDocument()
     const washer = await applianceCard('Washing machine')
     expect(await within(washer).findByText(/No device yet/)).toBeInTheDocument()

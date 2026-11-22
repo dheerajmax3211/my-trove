@@ -1,4 +1,12 @@
-import { Button, PageHeader, PlusIcon, Skeleton } from '@platform/ui'
+import {
+  BellIcon,
+  BentoCard,
+  BentoGrid,
+  Button,
+  PageHeader,
+  PlusIcon,
+  Skeleton,
+} from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
 import { useMemo } from 'react'
 import { ErrorState } from '../../../components/ErrorState'
@@ -8,7 +16,19 @@ import { useAlerts } from '../../alerts/hooks'
 import { ApplianceCard } from '../components/ApplianceCard'
 import { FirstRun } from '../components/FirstRun'
 import { HomeVerdict } from '../components/HomeVerdict'
+import { EnergyCard, HealthMixCard } from '../components/HomeSummaryCards'
 import { useAppliances } from '../hooks'
+
+/** Column spans that fill every row: threes where possible, then twos, so no card is left alone on its row. */
+export function fillRows(n: number): number[] {
+  if (n <= 0) return []
+  if (n === 1) return [12]
+  if (n === 2) return [6, 6]
+  const rest = n % 3
+  const threes = rest === 0 ? n : rest === 1 ? n - 4 : n - 2
+  const twos = n - threes
+  return [...Array<number>(threes).fill(4), ...Array<number>(twos).fill(6)]
+}
 
 export function OverviewPage() {
   useDocumentTitle('Home')
@@ -25,6 +45,7 @@ export function OverviewPage() {
     )
   }, [appliances.data, alerts.data])
 
+  const spans = fillRows(sorted.length)
   const firstRun = appliances.isSuccess && appliances.data.length === 0
 
   return (
@@ -46,14 +67,14 @@ export function OverviewPage() {
       />
       {appliances.isPending ? (
         <div
-          className="hp-card-grid"
+          className="hp-skeleton-grid"
           role="status"
           aria-busy="true"
           aria-label="Loading appliances"
         >
-          {[0, 1, 2].map((i) => (
-            <Skeleton key={i} height="16rem" />
-          ))}
+          <Skeleton height="16rem" />
+          <Skeleton height="16rem" />
+          <Skeleton height="16rem" />
         </div>
       ) : appliances.isError ? (
         <ErrorState
@@ -64,7 +85,7 @@ export function OverviewPage() {
       ) : appliances.data.length === 0 ? (
         <FirstRun />
       ) : (
-        <div className="hp-home">
+        <BentoGrid>
           <HomeVerdict
             alerts={alerts.data}
             loading={alerts.isPending}
@@ -72,32 +93,26 @@ export function OverviewPage() {
             applianceCount={appliances.data.length}
             onRetry={() => void alerts.refetch()}
           />
-          <section aria-labelledby="hp-appliances-title" className="hp-section">
-            <h2 id="hp-appliances-title" className="hp-section-title">
-              Your appliances
-            </h2>
-            <ul className="hp-card-grid" aria-label="Appliances">
-              {sorted.map((appliance) => (
-                <li key={appliance.id}>
-                  <ApplianceCard appliance={appliance} />
-                </li>
-              ))}
-            </ul>
-          </section>
+          <HealthMixCard appliances={appliances.data} />
+          <EnergyCard appliances={appliances.data} />
           {alerts.data && alerts.data.length > 0 ? (
-            <section aria-labelledby="hp-activity-title" className="hp-section hp-activity">
-              <div className="hp-home-head">
-                <h2 id="hp-activity-title" className="hp-section-title">
-                  Recent activity
-                </h2>
+            <BentoCard
+              span={7}
+              title="Recent activity"
+              icon={<BellIcon size={18} />}
+              actions={
                 <ModuleLink to="/alerts?status=ALL" className="hp-small">
                   All alerts and history
                 </ModuleLink>
-              </div>
+              }
+            >
               <AlertTimeline alerts={alerts.data} label="Recent alerts" />
-            </section>
+            </BentoCard>
           ) : null}
-        </div>
+          {sorted.map((appliance, i) => (
+            <ApplianceCard key={appliance.id} appliance={appliance} span={spans[i] ?? 4} />
+          ))}
+        </BentoGrid>
       )}
     </>
   )

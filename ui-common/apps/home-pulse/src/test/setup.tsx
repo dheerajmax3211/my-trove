@@ -74,7 +74,7 @@ export async function renderApp({
 
 /** The card of one appliance on the overview, found by its heading. */
 export async function applianceCard(name: string): Promise<HTMLElement> {
-  const heading = await screen.findByRole('heading', { level: 2, name })
+  const heading = await screen.findByRole('heading', { level: 3, name })
   const card = heading.closest<HTMLElement>('.hp-appliance-card')
   if (!card) throw new Error(`No card for ${name}`)
   return card

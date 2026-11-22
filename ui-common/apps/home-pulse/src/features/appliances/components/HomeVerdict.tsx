@@ -1,10 +1,20 @@
-import { Button, CheckCircleIcon, XCircleIcon, AlertIcon, Skeleton } from '@platform/ui'
+import {
+  AlertIcon,
+  BentoCard,
+  BigStat,
+  Button,
+  CheckCircleIcon,
+  cx,
+  Skeleton,
+  XCircleIcon,
+} from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
 import type { ReactNode } from 'react'
 import { ErrorState } from '../../../components/ErrorState'
 import { pluralize } from '../../../lib/format'
 import { describeAlert } from '../../alerts/evidence'
 import type { AlertDto } from '../../alerts/types'
+import type { Slot } from './slot'
 
 export type VerdictState = 'well' | 'attention' | 'critical'
 
@@ -39,8 +49,8 @@ export function deriveVerdict(alerts: readonly AlertDto[]): Verdict {
 }
 
 /**
- * A pulse trace across the bottom of the panel. Calm: a steady, even beat. Attention: the same beat with one spike.
- * Decorative; the headline carries the meaning.
+ * A pulse trace across the foot of the card. Calm: a steady, even beat. Attention: the same beat with one spike.
+ * It draws itself in once. Decorative; the headline carries the meaning.
  */
 function PulseLine({ spike }: { spike: boolean }) {
   const beat = (x: number) => `L${x} 24 L${x + 6} 24 L${x + 10} 20 L${x + 14} 24`
@@ -61,7 +71,7 @@ function PulseLine({ spike }: { spike: boolean }) {
   )
 }
 
-export interface HomeVerdictProps {
+export interface HomeVerdictProps extends Slot {
   alerts: readonly AlertDto[] | undefined
   loading: boolean
   error: unknown
@@ -69,17 +79,35 @@ export interface HomeVerdictProps {
   onRetry: () => void
 }
 
-/** The first thing on the home: either a calm "all well" or a clear "this needs attention", from the alerts. */
-export function HomeVerdict({ alerts, loading, error, applianceCount, onRetry }: HomeVerdictProps) {
+/** The first thing on the home, and its one black card: a calm "all well" or a clear "this needs attention". */
+export function HomeVerdict({
+  alerts,
+  loading,
+  error,
+  applianceCount,
+  onRetry,
+  className,
+  style,
+}: HomeVerdictProps) {
   if (loading) {
     return (
-      <div role="status" aria-busy="true" aria-label="Checking for alerts">
-        <Skeleton height="8.5rem" />
+      <div
+        role="status"
+        aria-busy="true"
+        aria-label="Checking for alerts"
+        className={cx('hp-span-7', className)}
+        {...(style ? { style } : {})}
+      >
+        <Skeleton height="20rem" />
       </div>
     )
   }
   if (error || !alerts) {
-    return <ErrorState title="Could not check your alerts" error={error} onRetry={onRetry} />
+    return (
+      <div className={cx('hp-span-7', className)} {...(style ? { style } : {})}>
+        <ErrorState title="Could not check your alerts" error={error} onRetry={onRetry} />
+      </div>
+    )
   }
 
   const verdict = deriveVerdict(alerts)
@@ -89,11 +117,13 @@ export function HomeVerdict({ alerts, loading, error, applianceCount, onRetry }:
   let icon: ReactNode
   let title: string
   let body: ReactNode
+  let delta: string
   let actions: ReactNode = null
 
   if (state === 'well' || !lead) {
-    icon = <CheckCircleIcon size={28} />
+    icon = <CheckCircleIcon size={20} />
     title = 'Everything is running normally'
+    delta = 'All clear'
     body =
       acknowledged > 0
         ? `No new alerts across your ${appliances}. ${pluralize(acknowledged, 'acknowledged alert')} still on watch, and it clears by itself once things are back to normal.`
@@ -106,7 +136,8 @@ export function HomeVerdict({ alerts, loading, error, applianceCount, onRetry }:
       )
   } else {
     const critical = state === 'critical'
-    icon = critical ? <XCircleIcon size={28} /> : <AlertIcon size={28} />
+    icon = critical ? <XCircleIcon size={20} /> : <AlertIcon size={20} />
+    delta = critical ? 'Needs you now' : 'Worth a look'
     title =
       open.length === 1
         ? `${lead.applianceName} needs attention`
@@ -132,23 +163,25 @@ export function HomeVerdict({ alerts, loading, error, applianceCount, onRetry }:
   }
 
   return (
-    <section
-      className="hp-verdict"
+    <BentoCard
+      tone="dark"
+      span={7}
+      title={title}
+      icon={icon}
       data-state={state}
-      aria-labelledby="hp-verdict-title"
       aria-live="polite"
+      className={cx('hp-verdict-card', className)}
+      {...(style ? { style } : {})}
     >
-      <span className="hp-verdict-icon" aria-hidden="true">
-        {icon}
-      </span>
-      <div className="hp-verdict-body">
-        <h2 id="hp-verdict-title" className="hp-verdict-title">
-          {title}
-        </h2>
-        <p className="hp-verdict-text">{body}</p>
-        {actions ? <div className="hp-button-row">{actions}</div> : null}
-      </div>
+      <BigStat
+        value={open.length}
+        unit={open.length === 1 ? 'open alert' : 'open alerts'}
+        delta={delta}
+        trend={state === 'well' ? 'up' : 'down'}
+        caption={body}
+      />
+      {actions ? <div className="hp-button-row hp-verdict-actions">{actions}</div> : null}
       <PulseLine spike={state !== 'well'} />
-    </section>
+    </BentoCard>
   )
 }

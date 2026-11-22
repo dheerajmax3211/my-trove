@@ -17,7 +17,7 @@ describe('appliance detail', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('Learned normal, 120 W')).toBeInTheDocument()
 
-    const health = (await screen.findByRole('heading', { level: 2, name: 'Health' })).closest(
+    const health = (await screen.findByRole('heading', { level: 3, name: 'Health' })).closest(
       'div.flex, div',
     ) as HTMLElement
     const table = await screen.findByRole('table', {
@@ -43,7 +43,7 @@ describe('appliance detail', () => {
     )
 
     expect(
-      screen.getByRole('heading', { level: 2, name: 'Warranty and service' }),
+      screen.getByRole('heading', { level: 3, name: 'Warranty and service' }),
     ).toBeInTheDocument()
     expect(screen.getByText('Under warranty')).toBeInTheDocument()
     expect(screen.getAllByText(/85 days/).length).toBeGreaterThan(0)
@@ -55,12 +55,12 @@ describe('appliance detail', () => {
     expect(reminders.getByText('Service due')).toBeInTheDocument()
   })
 
-  it('has a one-h1, h2, h3 heading outline', async () => {
+  it('has a one-h1 heading outline, then card titles', async () => {
     await renderApp({ path: `/appliances/${FRIDGE}` })
     await screen.findByRole('list', { name: 'Active alerts' })
     const levels = screen.getAllByRole('heading').map((h) => h.tagName)
     expect(levels.filter((t) => t === 'H1')).toHaveLength(1)
-    expect(levels.indexOf('H1')).toBeLessThan(levels.indexOf('H2'))
+    expect(levels.indexOf('H1')).toBeLessThan(levels.indexOf('H3'))
   })
 
   it('acknowledges an alert from the appliance page and refreshes the card counts', async () => {

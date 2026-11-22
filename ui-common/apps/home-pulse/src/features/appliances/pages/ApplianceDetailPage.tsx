@@ -1,11 +1,11 @@
 import {
+  BellIcon,
+  BentoCard,
+  BentoGrid,
   Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
   EmptyState,
   PageHeader,
+  Skeleton,
   useToast,
 } from '@platform/ui'
 import { isApiError } from '@platform/api-client'
@@ -24,7 +24,7 @@ import { useReminders } from '../../reminders/hooks'
 import { sortReminders } from '../../reminders/sort'
 import { PowerChartSection } from '../../readings/components/PowerChartSection'
 import { HealthStatusBadge } from '../components/HealthStatusBadge'
-import { HealthSummary } from '../components/HealthSummary'
+import { BaselineCard, HealthSummary } from '../components/HealthSummary'
 import { ServicePanel } from '../components/ServicePanel'
 import { useAppliance, useDeleteAppliance, useHealth, useRelearnBaseline } from '../hooks'
 import { TYPE_LABELS } from '../types'
@@ -114,63 +114,57 @@ export function ApplianceDetailPage() {
         }
       />
 
-      <div className="hp-detail-grid">
-        <div className="hp-stack-4 hp-detail-main">
-          <PowerChartSection
-            applianceId={id}
-            hasDevice={hasDevice}
-            loading={health.isPending}
-            normalWatts={
-              health.data?.baseline?.switching ? health.data.baseline.onLevelMedian : null
-            }
-            noDeviceAction={
-              health.data ? (
-                <Button asChild>
-                  <ModuleLink to={`/devices?appliance=${id}`}>Connect a device</ModuleLink>
-                </Button>
-              ) : undefined
-            }
-          />
-          <Card>
-            <CardHeader>
-              <CardTitle as="h2">Alerts for this appliance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {health.isError ? (
-                <ErrorState
-                  headingAs="h3"
-                  title="Could not load alerts"
-                  error={health.error}
-                  onRetry={() => void health.refetch()}
-                />
-              ) : alertList.length === 0 ? (
-                <p className="hp-muted">No active alerts. We will list anything unusual here.</p>
-              ) : (
-                <div className="hp-stack-3">
-                  <ul className="hp-stack-3 hp-plain-list" aria-label="Active alerts">
-                    {alertList.map((alert) => (
-                      <li key={alert.id}>
-                        <AlertCard alert={alert} showAppliance={false} headingAs="h3" />
-                      </li>
-                    ))}
-                  </ul>
-                  <ModuleLink to={`/alerts?appliance=${id}&status=ALL`}>
-                    See all {pluralize(alertList.length, 'alert')} and history
-                  </ModuleLink>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-        <div className="hp-stack-4 hp-detail-side">
-          {health.isPending ? (
-            <PageSkeleton label="Loading health" />
-          ) : health.isError ? null : (
-            <HealthSummary health={health.data} onRelearn={() => setConfirmRelearn(true)} />
+      <BentoGrid>
+        <PowerChartSection
+          applianceId={id}
+          hasDevice={hasDevice}
+          loading={health.isPending}
+          normalWatts={health.data?.baseline?.switching ? health.data.baseline.onLevelMedian : null}
+          noDeviceAction={
+            health.data ? (
+              <Button asChild>
+                <ModuleLink to={`/devices?appliance=${id}`}>Connect a device</ModuleLink>
+              </Button>
+            ) : undefined
+          }
+        />
+        {health.isPending ? (
+          <div className="hp-span-4" role="status" aria-busy="true" aria-label="Loading health">
+            <Skeleton height="22rem" />
+          </div>
+        ) : health.isError ? (
+          <div className="hp-span-4" />
+        ) : (
+          <HealthSummary health={health.data} onRelearn={() => setConfirmRelearn(true)} />
+        )}
+        {health.data ? <BaselineCard health={health.data} /> : null}
+        <ServicePanel appliance={a} service={health.data?.service ?? null} reminders={mine} />
+        <BentoCard span={12} title="Alerts for this appliance" icon={<BellIcon size={18} />}>
+          {health.isError ? (
+            <ErrorState
+              headingAs="h3"
+              title="Could not load alerts"
+              error={health.error}
+              onRetry={() => void health.refetch()}
+            />
+          ) : alertList.length === 0 ? (
+            <p className="hp-muted">No active alerts. We will list anything unusual here.</p>
+          ) : (
+            <div className="hp-stack-3">
+              <ul className="hp-alert-grid hp-plain-list" aria-label="Active alerts">
+                {alertList.map((alert) => (
+                  <li key={alert.id}>
+                    <AlertCard alert={alert} showAppliance={false} headingAs="h3" />
+                  </li>
+                ))}
+              </ul>
+              <ModuleLink to={`/alerts?appliance=${id}&status=ALL`}>
+                See all {pluralize(alertList.length, 'alert')} and history
+              </ModuleLink>
+            </div>
           )}
-          <ServicePanel appliance={a} service={health.data?.service ?? null} reminders={mine} />
-        </div>
-      </div>
+        </BentoCard>
+      </BentoGrid>
 
       <ConfirmDialog
         open={confirmDelete}

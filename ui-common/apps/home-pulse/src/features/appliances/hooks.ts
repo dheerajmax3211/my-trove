@@ -1,5 +1,5 @@
 import type { ApiError } from '@platform/api-client'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { keys } from '../../lib/queryKeys'
 import { useApi } from '../../lib/useApi'
 import { appliancesApi } from './api'
@@ -23,6 +23,18 @@ export function useHealth(id: string) {
     queryKey: keys.health(id),
     queryFn: ({ signal }) => api.health(id, signal),
     refetchInterval: REFRESH_INTERVAL_MS,
+  })
+}
+
+/** Health for several appliances at once, sharing the cache with `useHealth` so the home never fetches twice. */
+export function useAllHealth(ids: readonly string[]) {
+  const api = useApi(appliancesApi)
+  return useQueries({
+    queries: ids.map((id) => ({
+      queryKey: keys.health(id),
+      queryFn: ({ signal }: { signal: AbortSignal }) => api.health(id, signal),
+      refetchInterval: REFRESH_INTERVAL_MS,
+    })),
   })
 }
 
