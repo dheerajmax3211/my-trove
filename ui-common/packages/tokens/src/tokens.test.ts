@@ -60,10 +60,17 @@ const TEXT_PAIRS: Pair[] = [
   ['brassText', 'canvas'],
   ['brassText', 'surface'],
   ['brassText', 'brassSubtle'],
-  ['signalText', 'canvas'],
-  ['signalText', 'surface'],
-  ['signalText', 'signalSubtle'],
-  ['onSignal', 'signal'],
+  ['onAction', 'action'],
+  ['onAction', 'actionHover'],
+  ['onAction', 'actionActive'],
+  ['limeText', 'canvas'],
+  ['limeText', 'surface'],
+  ['limeText', 'limeSubtle'],
+  ['onLime', 'lime'],
+  ['lilacText', 'canvas'],
+  ['lilacText', 'surface'],
+  ['lilacText', 'lilacSubtle'],
+  ['onLilac', 'lilac'],
   // vault: the dark surface that stays dark in both themes
   ['onVault', 'vault'],
   ['onVault', 'vaultRaised'],
@@ -107,8 +114,8 @@ const UI_PAIRS: Pair[] = [
   ['accent', 'surface'],
   ['brass', 'canvas'],
   ['brass', 'surface'],
-  ['signal', 'canvas'],
-  ['signal', 'surface'],
+  ['action', 'canvas'],
+  ['action', 'surface'],
   ['vaultBorderStrong', 'vault'],
   ['danger', 'surface'],
   ['success', 'surface'],
@@ -237,14 +244,14 @@ describe('css generation', () => {
   })
 
   it('converts shadow layers to CSS', () => {
-    expect(css).toMatch(/--pp-shadow-xs: 0 1px 1px 0 rgb\(20 33 28 \/ 0\.05\);/)
-    expect(css).toMatch(/--pp-shadow-inset: inset 0 1px 2px 0 rgb\(20 33 28 \/ 0\.1\)/)
+    expect(css).toMatch(/--pp-shadow-xs: 0 1px 1px 0 rgb\(17 17 17 \/ 0\.05\);/)
+    expect(css).toMatch(/--pp-shadow-inset: inset 0 1px 2px 0 rgb\(17 17 17 \/ 0\.1\)/)
   })
 
   it('makes display sizes fluid and body sizes fixed', () => {
-    expect(css).toMatch(/--pp-text-hero-size: clamp\(2\.625rem, calc\(/)
-    expect(css).toMatch(/--pp-text-hero-line: 1\.0\d+;/)
-    expect(css).toContain('--pp-text-body-size: 1rem;')
+    expect(css).toMatch(/--pp-text-hero-size: clamp\(2\.75rem, calc\(/)
+    expect(css).toMatch(/--pp-text-hero-line: 0\.9\d+;/)
+    expect(css).toContain('--pp-text-body-size: 0.9375rem;')
     expect(css).toContain('--pp-text-body-line: 1.5rem;')
   })
 

@@ -1,32 +1,28 @@
-/* A card is paper on paper: a hairline edge, a top-edge catch of light, a soft contact shadow. */
+/* A card is a white sheet with generous radius: no heavy border, almost no shadow. */
 .card {
+  position: relative;
   background: var(--pp-color-surface);
   color: var(--pp-color-text);
-  border: 1px solid var(--pp-color-border);
-  border-radius: var(--pp-radius-lg);
-  box-shadow:
-    inset 0 1px 0 var(--pp-color-highlight),
-    var(--pp-shadow-xs);
+  border: 1px solid var(--pp-color-hairline);
+  border-radius: var(--pp-radius-xl);
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 .elevated {
-  border-color: var(--pp-color-hairline);
-  box-shadow:
-    inset 0 1px 0 var(--pp-color-highlight),
-    var(--pp-shadow-md);
+  border-color: transparent;
+  box-shadow: var(--pp-shadow-md);
 }
 .interactive {
   transition:
-    box-shadow var(--pp-duration-normal) var(--pp-ease-standard),
+    transform var(--pp-duration-slow) var(--pp-ease-emphasized),
+    box-shadow var(--pp-duration-slow) var(--pp-ease-standard),
     border-color var(--pp-duration-normal) var(--pp-ease-standard);
 }
 .interactive:hover {
-  border-color: var(--pp-color-border-strong);
-  box-shadow:
-    inset 0 1px 0 var(--pp-color-highlight),
-    var(--pp-shadow-md);
+  transform: translateY(-3px);
+  border-color: var(--pp-color-border);
+  box-shadow: var(--pp-shadow-lg);
 }
 .header {
   display: flex;
@@ -35,10 +31,10 @@
   padding: var(--pp-space-6) var(--pp-space-6) 0;
 }
 .title {
-  font-size: var(--pp-text-h4-size);
-  line-height: var(--pp-text-h4-line);
-  font-weight: var(--pp-text-h4-weight);
-  letter-spacing: var(--pp-text-h4-tracking);
+  font-size: var(--pp-text-h3-size);
+  line-height: var(--pp-text-h3-line);
+  font-weight: var(--pp-text-h3-weight);
+  letter-spacing: var(--pp-text-h3-tracking);
 }
 .description {
   color: var(--pp-color-text-muted);
@@ -66,5 +62,11 @@
   }
   .footer {
     padding-inline: var(--pp-space-5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interactive:hover {
+    transform: none;
   }
 }

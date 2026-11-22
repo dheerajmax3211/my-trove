@@ -18,6 +18,7 @@
 }
 .value {
   font-family: var(--pp-font-display);
+  font-weight: var(--pp-text-stat-weight);
   font-size: var(--pp-text-stat-size);
   line-height: var(--pp-text-stat-line);
   letter-spacing: var(--pp-text-stat-tracking);

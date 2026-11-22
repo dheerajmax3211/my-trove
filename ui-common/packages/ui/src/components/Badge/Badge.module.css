@@ -2,16 +2,15 @@
   display: inline-flex;
   align-items: center;
   gap: var(--pp-space-1);
-  padding: 2px var(--pp-space-2);
+  padding: 3px var(--pp-space-3);
   border-radius: var(--pp-radius-full);
   font-size: var(--pp-text-caption-size);
   line-height: var(--pp-text-caption-line);
-  font-weight: var(--pp-weight-semibold);
-  letter-spacing: var(--pp-text-caption-tracking);
+  font-weight: 650;
+  letter-spacing: 0;
   white-space: nowrap;
   border: 1px solid transparent;
-  /* A hairline in the badge's own ink gives it an edge without a second color. */
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 16%, transparent);
+  font-variant-numeric: tabular-nums;
 }
 .dot {
   width: 6px;
@@ -23,9 +22,9 @@
 .neutral {
   background: var(--pp-color-surface-sunken);
   color: var(--pp-color-text-muted);
-  border-color: var(--pp-color-border);
-  box-shadow: none;
+  border-color: var(--pp-color-hairline);
 }
+/* The lime pill: deltas, counts, "new". */
 .accent {
   background: var(--pp-color-accent-subtle);
   color: var(--pp-color-accent-text);

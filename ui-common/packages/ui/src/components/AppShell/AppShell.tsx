@@ -7,6 +7,7 @@ import {
   useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
   type AnchorHTMLAttributes,
   type HTMLAttributes,
@@ -14,6 +15,8 @@ import {
   type ReactNode,
 } from 'react'
 import { cx } from '../../internal/cx'
+import { mergeRefs } from '../../internal/merge-refs'
+import { useSlidingIndicator } from '../../internal/use-sliding-indicator'
 import { CloseIcon, MenuIcon } from '../../internal/icons'
 import { usePortalContainer } from '../../internal/portal'
 import { IconButton } from '../IconButton/IconButton'
@@ -104,48 +107,49 @@ export function AppShell({
         <a className={styles.skip} href={`#${mainId}`}>
           {skipLinkLabel}
         </a>
+        <div className={styles.frame}>
+          <aside className={styles.sidebar} data-surface="vault">
+            <div className={styles.brand}>{brand}</div>
+            <div className={styles.sidebarBody}>{sidebar}</div>
+            {sidebarFooter ? <div className={styles.sidebarFooter}>{sidebarFooter}</div> : null}
+          </aside>
 
-        <aside className={cx(styles.sidebar, 'pp-grain')} data-surface="vault">
-          <div className={styles.brand}>{brand}</div>
-          <div className={styles.sidebarBody}>{sidebar}</div>
-          {sidebarFooter ? <div className={styles.sidebarFooter}>{sidebarFooter}</div> : null}
-        </aside>
-
-        <div className={styles.column}>
-          <header className={styles.topbar}>
-            <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
-              <DialogPrimitive.Trigger asChild>
-                <IconButton className={styles.menuButton} label={menuLabel} icon={<MenuIcon />} />
-              </DialogPrimitive.Trigger>
-              <DialogPrimitive.Portal container={container}>
-                <DialogPrimitive.Overlay className={styles.drawerOverlay} />
-                <DialogPrimitive.Content
-                  className={styles.drawer}
-                  data-surface="vault"
-                  aria-describedby={undefined}
-                >
-                  <VisuallyHidden asChild>
-                    <DialogPrimitive.Title>{drawerLabel}</DialogPrimitive.Title>
-                  </VisuallyHidden>
-                  <div className={styles.drawerHeader}>
-                    <div className={styles.brand}>{brand}</div>
-                    <DialogPrimitive.Close asChild>
-                      <IconButton label={closeMenuLabel} icon={<CloseIcon />} />
-                    </DialogPrimitive.Close>
-                  </div>
-                  {sidebar}
-                  {sidebarFooter ? (
-                    <div className={styles.sidebarFooter}>{sidebarFooter}</div>
-                  ) : null}
-                </DialogPrimitive.Content>
-              </DialogPrimitive.Portal>
-            </DialogPrimitive.Root>
-            <div className={styles.mobileBrand}>{brand}</div>
-            <div className={styles.topbarContent}>{topbar}</div>
-          </header>
-          <main id={mainId} className={styles.main} tabIndex={-1}>
-            <div className={styles.mainInner}>{children}</div>
-          </main>
+          <div className={styles.column}>
+            <header className={styles.topbar}>
+              <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
+                <DialogPrimitive.Trigger asChild>
+                  <IconButton className={styles.menuButton} label={menuLabel} icon={<MenuIcon />} />
+                </DialogPrimitive.Trigger>
+                <DialogPrimitive.Portal container={container}>
+                  <DialogPrimitive.Overlay className={styles.drawerOverlay} />
+                  <DialogPrimitive.Content
+                    className={styles.drawer}
+                    data-surface="vault"
+                    aria-describedby={undefined}
+                  >
+                    <VisuallyHidden asChild>
+                      <DialogPrimitive.Title>{drawerLabel}</DialogPrimitive.Title>
+                    </VisuallyHidden>
+                    <div className={styles.drawerHeader}>
+                      <div className={styles.brand}>{brand}</div>
+                      <DialogPrimitive.Close asChild>
+                        <IconButton label={closeMenuLabel} icon={<CloseIcon />} />
+                      </DialogPrimitive.Close>
+                    </div>
+                    {sidebar}
+                    {sidebarFooter ? (
+                      <div className={styles.sidebarFooter}>{sidebarFooter}</div>
+                    ) : null}
+                  </DialogPrimitive.Content>
+                </DialogPrimitive.Portal>
+              </DialogPrimitive.Root>
+              <div className={styles.mobileBrand}>{brand}</div>
+              <div className={styles.topbarContent}>{topbar}</div>
+            </header>
+            <main id={mainId} className={styles.main} tabIndex={-1}>
+              <div className={styles.mainInner}>{children}</div>
+            </main>
+          </div>
         </div>
       </div>
     </AppShellContext>
@@ -157,12 +161,33 @@ export interface SidebarNavProps extends HTMLAttributes<HTMLElement> {
   label?: string
 }
 
+/**
+ * The sidebar navigation landmark. A white pill glides to the current page (the link marked
+ * `aria-current="page"`), measured and moved with a single transform transition.
+ */
 export const SidebarNav = forwardRef<HTMLElement, SidebarNavProps>(function SidebarNav(
-  { label = 'Primary', className, ...rest },
+  { label = 'Primary', className, children, ...rest },
   ref,
 ) {
-  return <nav ref={ref} aria-label={label} className={cx(styles.nav, className)} {...rest} />
+  const own = useRef<HTMLElement>(null)
+  useSlidingIndicator(own, '[aria-current="page"]')
+  return (
+    <nav
+      ref={mergeRefs<HTMLElement>(own, ref)}
+      aria-label={label}
+      className={cx(styles.nav, className)}
+      {...rest}
+    >
+      <span className={styles.navIndicator} aria-hidden="true" />
+      {children}
+    </nav>
+  )
 })
+
+/** A small lime count pill for the end of a sidebar link ("3 new"). */
+export function SidebarCount({ children }: { children: ReactNode }) {
+  return <span className={styles.count}>{children}</span>
+}
 
 export interface SidebarSectionProps extends HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -188,12 +213,14 @@ export interface SidebarLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement
   icon?: ReactNode
   /** Marks the current page (aria-current="page"). */
   active?: boolean
+  /** A count shown as a lime pill at the end of the link. With `asChild`, render <SidebarCount> inside your link instead. */
+  count?: ReactNode
   /** Render a router link instead: <SidebarLink asChild><Link to="/x">X</Link></SidebarLink>. `icon` is then ignored; put it inside your link. */
   asChild?: boolean
 }
 
 export const SidebarLink = forwardRef<HTMLAnchorElement, SidebarLinkProps>(function SidebarLink(
-  { icon, active, asChild, className, children, onClick, ...rest },
+  { icon, active, count, asChild, className, children, onClick, ...rest },
   ref,
 ) {
   const { closeDrawer } = useContext(AppShellContext)
@@ -220,6 +247,7 @@ export const SidebarLink = forwardRef<HTMLAnchorElement, SidebarLinkProps>(funct
             </span>
           ) : null}
           {children}
+          {count !== undefined && count !== null ? <SidebarCount>{count}</SidebarCount> : null}
         </a>
       )}
     </li>

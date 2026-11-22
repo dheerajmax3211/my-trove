@@ -1,7 +1,13 @@
+/*
+ * Pills. Primary is the action colour (black on paper, lime on dark); `glow` is the lime
+ * highlight pill. Hover lifts 1px, press settles, focus draws a lilac ring. Only transform,
+ * opacity, shadow and colour animate.
+ */
 .button {
   --_h: var(--pp-control-md);
-  --_px: var(--pp-space-4);
+  --_px: var(--pp-space-5);
   position: relative;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -9,7 +15,7 @@
   min-height: var(--_h);
   padding: 0 var(--_px);
   border: 1px solid transparent;
-  border-radius: var(--pp-radius-md);
+  border-radius: var(--pp-radius-full);
   font: inherit;
   font-size: var(--pp-text-label-size);
   font-weight: var(--pp-text-label-weight);
@@ -19,40 +25,51 @@
   text-decoration: none;
   cursor: pointer;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
   transition:
-    background-color var(--pp-duration-fast) var(--pp-ease-standard),
-    border-color var(--pp-duration-fast) var(--pp-ease-standard),
-    box-shadow var(--pp-duration-fast) var(--pp-ease-standard),
+    background-color var(--pp-duration-normal) var(--pp-ease-standard),
+    border-color var(--pp-duration-normal) var(--pp-ease-standard),
+    box-shadow var(--pp-duration-normal) var(--pp-ease-standard),
+    color var(--pp-duration-normal) var(--pp-ease-standard),
     transform var(--pp-duration-fast) var(--pp-ease-standard);
 }
 
-/* Pressed: the key sits into the lock. A hair of travel, the shadow tightens. */
+.button:hover:not(:disabled):not([aria-disabled='true']) {
+  transform: translateY(-1px);
+}
+
 .button:active:not([aria-disabled='true']):not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.985);
+  transition-duration: 60ms;
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--pp-color-canvas),
+    0 0 0 4px var(--pp-color-focus-ring);
 }
 
 .button:disabled,
 .button[aria-disabled='true'] {
   cursor: not-allowed;
 }
-
 .button:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
 }
-
 .button[aria-disabled='true']:not(:disabled) {
   cursor: progress;
 }
 
 .sm {
   --_h: var(--pp-control-sm);
-  --_px: var(--pp-space-3);
+  --_px: var(--pp-space-4);
   font-size: var(--pp-text-caption-size);
 }
 
 .lg {
   --_h: var(--pp-control-lg);
-  --_px: var(--pp-space-6);
+  --_px: var(--pp-space-8);
   font-size: var(--pp-text-body-size);
 }
 
@@ -61,62 +78,125 @@
   width: 100%;
 }
 
+/* ---- primary: the action colour ---- */
 .primary {
-  background: var(--pp-color-accent);
-  color: var(--pp-color-on-accent);
-  border-color: color-mix(in srgb, var(--pp-color-accent) 78%, #000);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.18),
-    var(--pp-shadow-sm);
+  background: var(--pp-color-action);
+  color: var(--pp-color-on-action);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.16);
 }
 .primary:hover:not(:disabled):not([aria-disabled='true']) {
-  background: var(--pp-color-accent-hover);
+  background: var(--pp-color-action-hover);
+  box-shadow: 0 8px 20px -8px rgb(0 0 0 / 0.45);
 }
 .primary:active:not(:disabled):not([aria-disabled='true']) {
-  background: var(--pp-color-accent-active);
-  box-shadow:
-    inset 0 1px 2px rgb(0 0 0 / 0.28),
-    0 0 0 transparent;
+  background: var(--pp-color-action-active);
+  box-shadow: none;
 }
 
-.secondary {
-  background: var(--pp-color-surface);
-  color: var(--pp-color-text);
-  border-color: var(--pp-color-border-strong);
+/* ---- glow: the lime highlight pill ---- */
+.glow {
+  color: var(--pp-color-on-lime);
+  background: var(--pp-color-lime);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+  overflow: hidden;
+}
+.glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.55) 48%,
+    transparent 66%
+  );
+  transform: translate3d(-120%, 0, 0);
+  transition: transform 0.9s var(--pp-ease-emphasized);
+  pointer-events: none;
+}
+.glow:hover:not(:disabled):not([aria-disabled='true']) {
+  box-shadow: var(--pp-shadow-glow);
+}
+.glow:hover:not(:disabled):not([aria-disabled='true'])::after {
+  transform: translate3d(120%, 0, 0);
+}
+.glow:active:not(:disabled):not([aria-disabled='true']) {
+  box-shadow: none;
+  filter: brightness(0.96);
+}
+
+/* ---- brass: for what is lent or sealed ---- */
+.brass {
+  color: #1b1405;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--pp-color-brass) 80%, #fff),
+    var(--pp-color-brass)
+  );
   box-shadow:
-    inset 0 1px 0 var(--pp-color-highlight),
-    var(--pp-shadow-xs);
+    inset 0 1px 0 rgb(255 255 255 / 0.4),
+    var(--pp-shadow-glow-brass);
+}
+.brass:hover:not(:disabled):not([aria-disabled='true']) {
+  filter: brightness(1.07);
+}
+
+/* ---- secondary: white pill, hairline edge ---- */
+.secondary {
+  background: var(--pp-color-surface-raised);
+  color: var(--pp-color-text);
+  border-color: var(--pp-color-border);
 }
 .secondary:hover:not(:disabled):not([aria-disabled='true']) {
-  background: var(--pp-color-surface-sunken);
+  border-color: var(--pp-color-text);
+  box-shadow: var(--pp-shadow-sm);
 }
 .secondary:active:not(:disabled):not([aria-disabled='true']) {
-  box-shadow: var(--pp-shadow-inset);
+  background: var(--pp-color-surface-sunken);
+  box-shadow: none;
 }
 
 .ghost {
   background: transparent;
-  color: var(--pp-color-accent-text);
+  color: var(--pp-color-text);
 }
 .ghost:hover:not(:disabled):not([aria-disabled='true']) {
-  background: var(--pp-color-accent-subtle);
+  background: color-mix(in srgb, var(--pp-color-text) 8%, transparent);
+}
+.ghost:active:not(:disabled):not([aria-disabled='true']) {
+  background: color-mix(in srgb, var(--pp-color-text) 14%, transparent);
 }
 
 .danger {
   background: var(--pp-color-danger);
   color: var(--pp-color-on-danger);
-  border-color: color-mix(in srgb, var(--pp-color-danger) 78%, #000);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.16),
-    var(--pp-shadow-sm);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.16);
 }
 .danger:hover:not(:disabled):not([aria-disabled='true']) {
   background: var(--pp-color-danger-hover);
+  box-shadow: 0 8px 20px -8px var(--pp-color-danger);
 }
 
 .icon {
   display: inline-flex;
   flex: none;
+}
+
+@media (hover: none) {
+  .button:hover:not(:disabled):not([aria-disabled='true']) {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button:hover:not(:disabled):not([aria-disabled='true']),
+  .button:active:not([aria-disabled='true']):not(:disabled) {
+    transform: none;
+  }
+  .glow::after {
+    display: none;
+  }
 }
 
 @media (forced-colors: active) {

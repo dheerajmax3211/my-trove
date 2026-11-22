@@ -11,11 +11,16 @@
 .chevron {
   position: absolute;
   inset-block: 0;
-  inset-inline-end: var(--pp-space-3);
+  inset-inline-end: var(--pp-space-4);
   display: flex;
   align-items: center;
   pointer-events: none;
   color: var(--pp-color-text-muted);
+  transition: transform var(--pp-duration-normal) var(--pp-ease-standard);
+}
+.select:focus-visible ~ .chevron {
+  color: var(--pp-color-text);
+  transform: translateY(1px);
 }
 .select:disabled ~ .chevron {
   color: var(--pp-color-text-subtle);

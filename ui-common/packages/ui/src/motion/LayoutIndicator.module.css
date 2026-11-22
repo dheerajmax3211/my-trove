@@ -1,0 +1,31 @@
+.indicator {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.pill {
+  inset: 0;
+  border-radius: inherit;
+  background: var(--pp-color-accent-subtle);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--pp-color-accent) 28%, transparent),
+    inset 0 1px 0 var(--pp-color-highlight);
+}
+
+.underline {
+  inset: auto 0 -1px 0;
+  height: 2px;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-gradient-brand);
+  box-shadow: 0 0 10px var(--pp-color-glow-accent);
+}
+
+.bar {
+  inset-block: 18% 18%;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-gradient-brand);
+  box-shadow: 0 0 10px var(--pp-color-glow-accent);
+}

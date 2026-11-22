@@ -1,0 +1,42 @@
+.split {
+  display: inline-block;
+}
+.line {
+  display: block;
+}
+
+/* The mask hides the unit until it rises. The padding gives descenders and italics room. */
+.mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-block: 0.08em 0.16em;
+  margin-block: -0.08em -0.16em;
+}
+
+.inner {
+  display: inline-block;
+  transform: translate3d(0, 108%, 0) rotate(2deg);
+  transform-origin: 0 100%;
+  transition: transform var(--pp-duration-cinematic) var(--pp-ease-emphasized)
+    var(--pp-split-delay, 0s);
+  will-change: transform;
+}
+
+[data-revealed='true'] .inner {
+  transform: none;
+  will-change: auto;
+}
+
+@media (scripting: none), print {
+  .inner {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inner {
+    transform: none;
+    transition: none;
+  }
+}

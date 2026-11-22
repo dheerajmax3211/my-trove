@@ -3,7 +3,8 @@
   inset: 0;
   z-index: var(--pp-z-overlay);
   background: var(--pp-color-scrim);
-  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(var(--pp-blur-sm));
+  backdrop-filter: blur(var(--pp-blur-sm));
   animation: fade var(--pp-duration-normal) var(--pp-ease-enter);
 }
 .content {
@@ -18,12 +19,10 @@
   max-height: calc(100dvh - var(--pp-space-8));
   background: var(--pp-color-surface-overlay);
   color: var(--pp-color-text);
-  border: 1px solid var(--pp-color-border);
+  border: 1px solid var(--pp-color-hairline);
   border-radius: var(--pp-radius-xl);
-  box-shadow:
-    inset 0 1px 0 var(--pp-color-highlight),
-    var(--pp-shadow-xl);
-  animation: pop var(--pp-duration-slow) var(--pp-ease-settle);
+  box-shadow: var(--pp-shadow-xl);
+  animation: pop var(--pp-duration-slower) var(--pp-ease-emphasized);
 }
 .sm {
   --_w: 24rem;
@@ -60,7 +59,6 @@
   gap: var(--pp-space-2);
   padding: var(--pp-space-4) var(--pp-space-6);
   border-top: 1px solid var(--pp-color-hairline);
-  background: color-mix(in srgb, var(--pp-color-surface-sunken) 55%, transparent);
   border-radius: 0 0 var(--pp-radius-xl) var(--pp-radius-xl);
 }
 .close {
@@ -77,6 +75,6 @@
 @keyframes pop {
   from {
     opacity: 0;
-    transform: translate(-50%, -47%) scale(0.97);
+    transform: translate(-50%, -46%) scale(0.96);
   }
 }

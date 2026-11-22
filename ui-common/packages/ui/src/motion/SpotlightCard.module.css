@@ -1,0 +1,99 @@
+.card {
+  --_light: var(--pp-color-spotlight);
+  --pp-mx: 50%;
+  --pp-my: 0%;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--pp-color-text);
+  background: var(--pp-gradient-card);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-xl);
+  box-shadow:
+    inset 0 1px 0 var(--pp-color-highlight),
+    var(--pp-shadow-md);
+  transition:
+    border-color var(--pp-duration-slow) var(--pp-ease-standard),
+    box-shadow var(--pp-duration-slow) var(--pp-ease-standard);
+}
+
+.brass {
+  --_light: var(--pp-color-glow-brass);
+}
+.lilac {
+  --_light: color-mix(in srgb, var(--pp-color-lilac) 24%, transparent);
+}
+
+/* The light: a radial gradient centred on the pointer. Opacity only changes on hover. */
+.light {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    var(--pp-spot-radius, 320px) circle at var(--pp-mx) var(--pp-my),
+    var(--_light),
+    transparent 70%
+  );
+  transition: opacity var(--pp-duration-slow) var(--pp-ease-standard);
+}
+
+/* A second, sharper ring of light on the border itself. */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    calc(var(--pp-spot-radius, 320px) * 0.75) circle at var(--pp-mx) var(--pp-my),
+    color-mix(in srgb, var(--pp-color-accent) 70%, transparent),
+    transparent 70%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  opacity: 0;
+  transition: opacity var(--pp-duration-slow) var(--pp-ease-standard);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+@media (hover: hover) {
+  .card:hover .light,
+  .card:hover::after {
+    opacity: 1;
+  }
+  .card:hover {
+    border-color: var(--pp-color-border-strong);
+  }
+}
+
+.card:focus-within .light {
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .light,
+  .card::after {
+    transition: none;
+  }
+}

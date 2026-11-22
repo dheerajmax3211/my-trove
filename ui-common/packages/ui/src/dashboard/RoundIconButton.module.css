@@ -1,0 +1,100 @@
+.button {
+  --_s: 44px;
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: var(--_s);
+  height: var(--_s);
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--pp-radius-full);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--pp-duration-normal) var(--pp-ease-standard),
+    color var(--pp-duration-normal) var(--pp-ease-standard),
+    transform var(--pp-duration-fast) var(--pp-ease-standard),
+    box-shadow var(--pp-duration-normal) var(--pp-ease-standard);
+}
+.sm {
+  --_s: 36px;
+}
+.lg {
+  --_s: 52px;
+}
+.icon {
+  display: inline-flex;
+}
+
+.light {
+  background: var(--pp-color-surface);
+  color: var(--pp-color-text);
+  border-color: var(--pp-color-hairline);
+}
+.dark {
+  background: var(--pp-color-text);
+  color: var(--pp-color-surface);
+}
+.lime {
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
+}
+.plain {
+  background: transparent;
+  color: var(--pp-color-text-muted);
+}
+
+.button:hover {
+  transform: translateY(-1px);
+}
+.light:hover {
+  box-shadow: var(--pp-shadow-sm);
+  border-color: var(--pp-color-border);
+}
+.plain:hover {
+  background: color-mix(in srgb, var(--pp-color-text) 8%, transparent);
+  color: var(--pp-color-text);
+}
+.button:active {
+  transform: scale(0.94);
+  transition-duration: 60ms;
+}
+.button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--pp-color-canvas),
+    0 0 0 4px var(--pp-color-focus-ring);
+}
+
+.badge {
+  position: absolute;
+  top: -3px;
+  inset-inline-end: -3px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--pp-color-canvas);
+}
+.dot {
+  min-width: 10px;
+  width: 10px;
+  height: 10px;
+  padding: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button:hover,
+  .button:active {
+    transform: none;
+  }
+}

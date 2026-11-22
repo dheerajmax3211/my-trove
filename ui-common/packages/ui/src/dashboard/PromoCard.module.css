@@ -1,0 +1,61 @@
+.promo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--pp-space-2);
+  padding: var(--pp-space-5);
+  overflow: hidden;
+  border-radius: var(--pp-radius-xl);
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
+  /* Fixed ink, whatever surface this sits on. */
+  --pp-color-text: var(--pp-color-on-lime);
+  --pp-color-focus-ring: #111;
+  --pp-color-action: #111;
+  --pp-color-action-hover: #2c2c2c;
+  --pp-color-action-active: #000;
+  --pp-color-on-action: #fff;
+}
+.art {
+  position: absolute;
+  inset-block-start: var(--pp-space-3);
+  inset-inline-end: var(--pp-space-3);
+  width: 84px;
+  pointer-events: none;
+}
+.orb {
+  display: block;
+  width: 100%;
+  animation: float 6s ease-in-out infinite;
+}
+.title {
+  margin: 0;
+  max-width: 9ch;
+  font-size: var(--pp-text-h3-size);
+  line-height: 1.1;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+.description {
+  margin: 0;
+  max-width: 24ch;
+  font-size: var(--pp-text-body-small-size);
+  line-height: 1.35;
+  opacity: 0.78;
+}
+.action {
+  margin-top: var(--pp-space-3);
+}
+
+@keyframes float {
+  50% {
+    transform: translateY(-5px) rotate(2deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb {
+    animation: none;
+  }
+}

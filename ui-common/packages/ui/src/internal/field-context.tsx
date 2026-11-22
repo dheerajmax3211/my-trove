@@ -7,6 +7,10 @@ export interface FieldContextValue {
   invalid: boolean
   required: boolean
   disabled: boolean
+  /** The label floats inside the control (controls then carry a single-space placeholder). */
+  floating: boolean
+  /** The field validated successfully (shows a check). */
+  valid: boolean
 }
 
 export const FieldContext = createContext<FieldContextValue | null>(null)
@@ -49,5 +53,7 @@ export function useFieldControl(own: ControlOwnProps) {
     disabled: own.disabled ?? field?.disabled ?? false,
     invalid,
     required,
+    floating: field?.floating ?? false,
+    valid: field?.valid ?? false,
   }
 }

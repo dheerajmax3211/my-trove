@@ -1,0 +1,75 @@
+.chart {
+  position: relative;
+  width: 100%;
+  container-type: inline-size;
+}
+
+.bubble {
+  position: absolute;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 50%;
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    transform 0.9s var(--pp-ease-spring) var(--_delay, 0s),
+    opacity 0.3s var(--pp-ease-enter) var(--_delay, 0s);
+}
+[data-revealed='true'] .bubble {
+  opacity: 1;
+  transform: none;
+}
+
+.lilac {
+  background: var(--pp-color-lilac);
+  color: var(--pp-color-on-lilac);
+}
+.lime {
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
+}
+.ink {
+  background: var(--pp-color-text);
+  color: var(--pp-color-surface);
+}
+.brass {
+  background: var(--pp-color-brass);
+  color: #1b1405;
+}
+
+.figure {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  font-family: var(--pp-font-display);
+  font-size: clamp(1.25rem, 9cqw, 2.25rem);
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.unit {
+  font-family: var(--pp-font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  opacity: 0.75;
+}
+.name {
+  font-size: 0.75rem;
+  font-weight: 550;
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

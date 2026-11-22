@@ -30,7 +30,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   })
   const hasValue = rest.value !== undefined || rest.defaultValue !== undefined
   return (
-    <span className={styles.wrapper}>
+    <span className={styles.wrapper} data-floating={control.floating || undefined}>
       <select
         ref={ref}
         className={cx(

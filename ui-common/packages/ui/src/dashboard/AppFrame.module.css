@@ -1,0 +1,125 @@
+.header {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--pp-space-3);
+  min-width: 0;
+}
+.headerUser {
+  margin-inline-end: auto;
+}
+.headerSearch {
+  flex: 0 1 26rem;
+}
+.grow {
+  flex: 1;
+}
+
+.user {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+  min-width: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--pp-color-text);
+  font: inherit;
+  text-align: start;
+}
+.userButton {
+  padding: var(--pp-space-1) var(--pp-space-3) var(--pp-space-1) var(--pp-space-1);
+  border-radius: var(--pp-radius-full);
+  cursor: pointer;
+  transition: background-color var(--pp-duration-normal) var(--pp-ease-standard);
+}
+.userButton:hover {
+  background: color-mix(in srgb, var(--pp-color-text) 6%, transparent);
+}
+.userText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.userName {
+  font-size: var(--pp-text-label-size);
+  font-weight: 650;
+  white-space: nowrap;
+}
+.userEmail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-caption-size);
+}
+.userChevron {
+  color: var(--pp-color-text-muted);
+}
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+  min-height: 48px;
+  padding: 0 var(--pp-space-5);
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-hairline);
+  transition:
+    box-shadow var(--pp-duration-normal) var(--pp-ease-standard),
+    border-color var(--pp-duration-normal) var(--pp-ease-standard);
+}
+.search:hover {
+  border-color: var(--pp-color-border);
+}
+.search:focus-within {
+  border-color: var(--pp-color-focus-ring);
+  box-shadow: var(--pp-shadow-focus);
+}
+.searchIcon {
+  flex: none;
+  color: var(--pp-color-text-subtle);
+}
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--pp-color-text);
+  font: inherit;
+  font-size: var(--pp-text-body-size);
+}
+.searchInput::placeholder {
+  color: var(--pp-color-text-subtle);
+}
+.searchInput:focus-visible {
+  outline: none;
+}
+.searchInput::-webkit-search-cancel-button {
+  display: none;
+}
+.shortcut {
+  flex: none;
+}
+
+@media (max-width: 900px) {
+  .userText {
+    display: none;
+  }
+  .headerUser {
+    margin-inline-end: 0;
+  }
+  .headerSearch {
+    flex: 1 1 auto;
+  }
+}
+@media (max-width: 767.98px) {
+  .search {
+    min-height: 40px;
+    padding-inline: var(--pp-space-4);
+  }
+}

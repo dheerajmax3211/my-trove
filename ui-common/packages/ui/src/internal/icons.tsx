@@ -264,3 +264,32 @@ export const ChatSparkIcon = createIcon(
     <path d="M12 8.2l.9 2.2 2.2.9-2.2.9-.9 2.2-.9-2.2-2.2-.9 2.2-.9.9-2.2z" />
   </>,
 )
+
+export const MoreIcon = createIcon(
+  'MoreIcon',
+  <>
+    <circle cx="5" cy="12" r="1.2" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+    <circle cx="19" cy="12" r="1.2" fill="currentColor" />
+  </>,
+)
+export const CalendarIcon = createIcon(
+  'CalendarIcon',
+  <>
+    <rect x="4" y="5.5" width="16" height="14" rx="3" />
+    <path d="M8 3.5v4M16 3.5v4M4 10h16" />
+  </>,
+)
+export const UploadIcon = createIcon(
+  'UploadIcon',
+  <path d="M12 16V4M7 9l5-5 5 5M5 15v3a2 2 0 002 2h10a2 2 0 002-2v-3" />,
+)
+export const ArrowUpRightIcon = createIcon('ArrowUpRightIcon', <path d="M7 17L17 7M8 7h9v9" />)
+export const HeartIcon = createIcon(
+  'HeartIcon',
+  <path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z" />,
+)
+export const BoltIcon = createIcon('BoltIcon', <path d="M13 3L5 13.5h6L10 21l8-10.5h-6L13 3z" />)
+export const ActivityIcon = createIcon('ActivityIcon', <path d="M3 12h4l3-8 4 16 3-8h4" />)
+export const PlayIcon = createIcon('PlayIcon', <path d="M8 5.5v13l11-6.5-11-6.5z" />)
+export const PauseIcon = createIcon('PauseIcon', <path d="M8 5v14M16 5v14" />)

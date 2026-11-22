@@ -1,0 +1,54 @@
+/*
+ * Scroll reveals animate opacity and transform only. `will-change` is dropped once the element
+ * has arrived so we never hold dozens of compositor layers.
+ */
+.reveal,
+.item {
+  opacity: 0;
+  transform: translate3d(var(--pp-reveal-x, 0), var(--pp-reveal-y, 24px), 0)
+    scale(var(--pp-reveal-scale, 1));
+  transition:
+    opacity calc(var(--pp-reveal-duration, 0.7s) * 0.8) var(--pp-ease-enter)
+      var(--pp-reveal-delay, 0s),
+    transform var(--pp-reveal-duration, 0.7s) var(--pp-ease-emphasized) var(--pp-reveal-delay, 0s);
+  will-change: opacity, transform;
+}
+
+.reveal[data-revealed='true'],
+[data-revealed='true'] > .item {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+.stagger {
+  /* Children inherit the direction vars; each child carries its own delay. */
+  min-width: 0;
+}
+
+/* If scripting is off, never hide content. */
+@media (scripting: none) {
+  .reveal,
+  .item {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media print {
+  .reveal,
+  .item {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .item {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    will-change: auto;
+  }
+}

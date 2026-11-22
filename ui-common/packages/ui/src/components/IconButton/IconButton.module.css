@@ -2,7 +2,7 @@
   padding: 0;
   width: var(--_h);
   min-width: var(--_h);
-  border-radius: var(--pp-radius-md);
+  border-radius: var(--pp-radius-full);
 }
 .round {
   border-radius: var(--pp-radius-full);

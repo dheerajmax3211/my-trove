@@ -1,3 +1,4 @@
+/* The page title is the loudest thing on the screen: big, tight, medium weight. */
 .header {
   position: relative;
   display: flex;
@@ -5,24 +6,12 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--pp-space-5) var(--pp-space-6);
-  padding-bottom: var(--pp-space-6);
   margin-bottom: var(--pp-space-8);
-  border-bottom: 1px solid var(--pp-color-border);
-}
-/* A short brass tab on the rule: the one recurring mark that says "this is a My-Trove page". */
-.header::after {
-  content: '';
-  position: absolute;
-  inset-inline-start: 0;
-  bottom: -1px;
-  width: 3.5rem;
-  height: 2px;
-  background: var(--pp-color-brass);
 }
 .text {
   display: flex;
   flex-direction: column;
-  gap: var(--pp-space-2);
+  gap: var(--pp-space-3);
   min-width: 0;
   flex: 1 1 18rem;
 }
@@ -33,17 +22,16 @@
   font-size: var(--pp-text-body-small-size);
   line-height: var(--pp-text-caption-line);
   font-weight: var(--pp-weight-semibold);
-  letter-spacing: 0.005em;
-  color: var(--pp-color-accent-text);
+  color: var(--pp-color-text-muted);
 }
-/* A key-bit notch, the same shape as the logo's. */
 .eyebrow::before {
   content: '';
   flex: none;
-  width: 0.5rem;
-  height: 0.75rem;
-  background: currentColor;
-  clip-path: polygon(0 0, 100% 0, 100% 45%, 55% 45%, 55% 70%, 100% 70%, 100% 100%, 0 100%);
+  width: 8px;
+  height: 8px;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-lime);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pp-color-lime) 35%, transparent);
 }
 .title {
   font-family: var(--pp-font-display);
@@ -61,6 +49,7 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--pp-space-2);
 }
 @media (max-width: 480px) {

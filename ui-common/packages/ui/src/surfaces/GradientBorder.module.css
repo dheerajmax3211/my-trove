@@ -1,0 +1,66 @@
+@property --pp-border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.frame {
+  position: relative;
+  border-radius: var(--pp-radius-xl);
+  background: var(--pp-color-surface);
+  --_stop1: color-mix(in srgb, var(--pp-color-accent) 70%, transparent);
+  --_stop2: color-mix(in srgb, var(--pp-color-brass) 55%, transparent);
+}
+
+.lilac {
+  --_stop1: color-mix(in srgb, var(--pp-color-lilac) 75%, transparent);
+  --_stop2: color-mix(in srgb, var(--pp-color-accent) 55%, transparent);
+}
+
+.frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    140deg,
+    var(--_stop1),
+    color-mix(in srgb, var(--pp-color-border) 70%, transparent) 38%,
+    var(--_stop2)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+}
+
+.animated::before {
+  background: conic-gradient(
+    from var(--pp-border-angle),
+    color-mix(in srgb, var(--pp-color-border) 70%, transparent) 0%,
+    var(--_stop1) 14%,
+    color-mix(in srgb, var(--pp-color-border) 70%, transparent) 30%,
+    color-mix(in srgb, var(--pp-color-border) 70%, transparent) 62%,
+    var(--_stop2) 78%,
+    color-mix(in srgb, var(--pp-color-border) 70%, transparent) 100%
+  );
+  animation: sweep 9s linear infinite;
+}
+
+@keyframes sweep {
+  to {
+    --pp-border-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated::before {
+    animation: none;
+  }
+}

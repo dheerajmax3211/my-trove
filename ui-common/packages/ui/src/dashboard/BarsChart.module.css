@@ -1,0 +1,102 @@
+.chart {
+  width: 100%;
+}
+.plot {
+  display: grid;
+  grid-template-columns: repeat(var(--_n), minmax(0, 1fr));
+  align-items: end;
+  gap: var(--pp-space-3);
+  height: calc(var(--_h) + 40px);
+}
+.group {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--pp-space-2);
+  height: 100%;
+}
+.pair {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  height: var(--_h);
+}
+.bar {
+  flex: 1;
+  max-width: 22px;
+  height: calc(var(--_v) * 100%);
+  border-radius: var(--pp-radius-full) var(--pp-radius-full) 6px 6px;
+  /* Quiet bars: diagonal hatching in the surface's own ink. */
+  background:
+    repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--pp-color-text) 34%, transparent) 0 1.5px,
+      transparent 1.5px 5px
+    ),
+    color-mix(in srgb, var(--pp-color-text) 8%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pp-color-text) 14%, transparent);
+  transform: scaleY(0);
+  transform-origin: 50% 100%;
+  transition: transform 0.9s var(--pp-ease-emphasized) var(--_delay, 0s);
+}
+[data-revealed='true'] .bar {
+  transform: scaleY(1);
+}
+.lime {
+  background: var(--pp-color-lime);
+  box-shadow: none;
+}
+.lilac {
+  background: var(--pp-color-lilac);
+  box-shadow: none;
+}
+
+.callout {
+  position: absolute;
+  top: calc(100% - var(--_h) - 34px);
+  padding: 2px 10px;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
+  font-size: var(--pp-text-caption-size);
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.4s var(--pp-ease-enter) 0.9s,
+    transform 0.6s var(--pp-ease-spring) 0.9s;
+}
+[data-revealed='true'] .callout {
+  opacity: 1;
+  transform: none;
+}
+
+.axis {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 24px;
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-caption-size);
+  font-weight: 550;
+}
+.active .axis {
+  color: var(--pp-color-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    transform: none;
+    transition: none;
+  }
+  .callout {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

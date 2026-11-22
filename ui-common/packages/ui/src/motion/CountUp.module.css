@@ -1,0 +1,7 @@
+.countUp {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings:
+    'tnum' 1,
+    'lnum' 1;
+  white-space: nowrap;
+}

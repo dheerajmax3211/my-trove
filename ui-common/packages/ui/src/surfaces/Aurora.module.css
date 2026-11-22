@@ -1,0 +1,130 @@
+.aurora {
+  --_o: 0.55;
+  --_c1: var(--pp-color-aurora-lilac);
+  --_c2: var(--pp-color-aurora-lime);
+  --_c3: var(--pp-color-aurora-brass);
+  --_c4: var(--pp-color-aurora-patina);
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.warm {
+  --_c1: var(--pp-color-aurora-brass);
+  --_c2: var(--pp-color-aurora-lilac);
+  --_c3: var(--pp-color-aurora-lime);
+  --_c4: var(--pp-color-aurora-brass);
+}
+.cool {
+  --_c1: var(--pp-color-aurora-patina);
+  --_c2: var(--pp-color-aurora-lilac);
+  --_c3: var(--pp-color-aurora-patina);
+  --_c4: var(--pp-color-aurora-lime);
+}
+
+.subtle {
+  --_o: 0.28;
+}
+.medium {
+  --_o: 0.5;
+}
+.vivid {
+  --_o: 0.8;
+}
+
+[data-theme='light'] .aurora,
+:root:not([data-theme]) .aurora {
+  --_scale: 0.62;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .aurora {
+    --_scale: 1;
+  }
+}
+[data-theme='dark'] .aurora {
+  --_scale: 1;
+}
+
+.fadeBottom {
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+}
+
+/* Each blob is one radial gradient. Falloff does the work a blur filter would, for free. */
+.blob {
+  position: absolute;
+  width: 62%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: calc(var(--_o) * var(--_scale, 1));
+  background: radial-gradient(circle at 50% 50%, var(--_blob), transparent 68%);
+  will-change: transform;
+}
+
+.b1 {
+  --_blob: var(--_c1);
+  top: -34%;
+  left: -12%;
+  animation: drift1 26s ease-in-out infinite alternate;
+}
+.b2 {
+  --_blob: var(--_c2);
+  top: -26%;
+  right: -16%;
+  width: 56%;
+  animation: drift2 32s ease-in-out infinite alternate;
+}
+.b3 {
+  --_blob: var(--_c3);
+  top: 8%;
+  left: 28%;
+  width: 40%;
+  opacity: calc(var(--_o) * 0.7 * var(--_scale, 1));
+  animation: drift3 38s ease-in-out infinite alternate;
+}
+.b4 {
+  --_blob: var(--_c4);
+  top: -10%;
+  right: 12%;
+  width: 34%;
+  opacity: calc(var(--_o) * 0.55 * var(--_scale, 1));
+  animation: drift2 44s ease-in-out infinite alternate-reverse;
+}
+
+.aurora[data-running='false'] .blob {
+  animation-play-state: paused;
+}
+
+@keyframes drift1 {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(14%, 10%, 0) scale(1.18);
+  }
+}
+@keyframes drift2 {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+  to {
+    transform: translate3d(-16%, 12%, 0) scale(0.9);
+  }
+}
+@keyframes drift3 {
+  from {
+    transform: translate3d(-8%, 0, 0) scale(0.9);
+  }
+  to {
+    transform: translate3d(10%, -6%, 0) scale(1.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob {
+    animation: none;
+  }
+}

@@ -9,7 +9,7 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
-  { invalid, className, id, required, disabled, rows = 4, ...rest },
+  { invalid, className, id, required, disabled, rows = 4, placeholder, ...rest },
   ref,
 ) {
   const control = useFieldControl({
@@ -26,6 +26,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
       rows={rows}
       className={cx(inputStyles.input, styles.textarea, className)}
       {...rest}
+      placeholder={control.floating ? (placeholder ?? ' ') : placeholder}
       id={control.id}
       aria-describedby={control['aria-describedby']}
       aria-invalid={control['aria-invalid']}

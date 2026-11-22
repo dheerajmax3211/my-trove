@@ -7,7 +7,7 @@ import {
 } from 'react'
 import { cx } from '../../internal/cx'
 import { FieldContext } from '../../internal/field-context'
-import { AlertIcon } from '../../internal/icons'
+import { AlertIcon, CheckIcon } from '../../internal/icons'
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden'
 import styles from './Field.module.css'
 
@@ -54,9 +54,19 @@ export interface FieldProps extends Omit<HTMLAttributes<HTMLDivElement>, 'childr
   label: ReactNode
   /** Visually hide the label but keep it for assistive tech. */
   hideLabel?: boolean
+  /**
+   * `stacked` (default): the label sits above the control. `floating`: the label sits inside the
+   * control and lifts when it has focus or a value. Floating suits short single-line fields;
+   * use stacked for textareas, long labels and anything with a helper paragraph.
+   */
+  variant?: 'stacked' | 'floating'
   description?: ReactNode
   /** When set, the control is marked aria-invalid and the message is announced. */
   error?: ReactNode
+  /** Shows a check on the control and, if text, a confirming line ("Looks good"). */
+  success?: ReactNode | boolean
+  /** Right-aligned note on the label row: "Optional", "0 / 200". */
+  hint?: ReactNode
   required?: boolean
   disabled?: boolean
   /** Override the generated control id. */
@@ -67,14 +77,18 @@ export interface FieldProps extends Omit<HTMLAttributes<HTMLDivElement>, 'childr
 
 /**
  * Wires a label, description and error message to the control inside it by id, so the control
- * is named by the label and described by the hint and error text.
+ * is named by the label and described by the hint and error text. Validation states animate: the
+ * error eases in under the control, the control shakes once, and success draws a check.
  */
 export const Field = forwardRef<HTMLDivElement, FieldProps>(function Field(
   {
     label,
     hideLabel,
+    variant = 'stacked',
     description,
     error,
+    success,
+    hint,
     required = false,
     disabled = false,
     controlId,
@@ -89,26 +103,64 @@ export const Field = forwardRef<HTMLDivElement, FieldProps>(function Field(
   const descriptionId = description ? `${generated}-description` : undefined
   const invalid = Boolean(error)
   const errorId = invalid ? `${generated}-error` : undefined
+  const floating = variant === 'floating' && !hideLabel
+  const valid = Boolean(success) && !invalid
+  const labelNode = hideLabel ? (
+    <VisuallyHidden asChild>
+      <Label htmlFor={id}>{label}</Label>
+    </VisuallyHidden>
+  ) : (
+    <Label htmlFor={id} required={required} className={floating ? styles.floatLabel : undefined}>
+      {label}
+    </Label>
+  )
 
   return (
-    <FieldContext value={{ id, descriptionId, errorId, invalid, required, disabled }}>
-      <div ref={ref} className={cx(styles.field, disabled && styles.disabled, className)} {...rest}>
-        {hideLabel ? (
-          <VisuallyHidden asChild>
-            <Label htmlFor={id}>{label}</Label>
-          </VisuallyHidden>
-        ) : (
-          <Label htmlFor={id} required={required}>
-            {label}
-          </Label>
+    <FieldContext
+      value={{ id, descriptionId, errorId, invalid, required, disabled, floating, valid }}
+    >
+      <div
+        ref={ref}
+        className={cx(
+          styles.field,
+          floating && styles.floating,
+          disabled && styles.disabled,
+          className,
         )}
-        {children}
+        data-invalid={invalid || undefined}
+        data-valid={valid || undefined}
+        {...rest}
+      >
+        {!floating ? (
+          <div className={styles.labelRow}>
+            {labelNode}
+            {hint ? <span className={styles.hint}>{hint}</span> : null}
+          </div>
+        ) : null}
+        <div className={styles.control}>
+          {children}
+          {floating ? labelNode : null}
+          {valid ? (
+            <span className={styles.validMark} aria-hidden="true">
+              <CheckIcon size={14} />
+            </span>
+          ) : null}
+        </div>
         {description ? (
           <div id={descriptionId} className={styles.description}>
             {description}
           </div>
         ) : null}
-        {invalid ? <FieldError id={errorId}>{error}</FieldError> : null}
+        {invalid ? (
+          <div className={styles.reveal}>
+            <FieldError id={errorId}>{error}</FieldError>
+          </div>
+        ) : null}
+        {valid && typeof success !== 'boolean' ? (
+          <div className={styles.reveal}>
+            <div className={styles.success}>{success}</div>
+          </div>
+        ) : null}
       </div>
     </FieldContext>
   )

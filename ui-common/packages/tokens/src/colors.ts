@@ -13,6 +13,8 @@ import { productKeys, type ProductKey } from './products'
 export interface BaseThemeColors {
   /** Page background. */
   canvas: string
+  /** The soft lime-tinted ground behind the floating app frame. */
+  backdrop: string
   /** Cards, panels, inputs. */
   surface: string
   /** Wells, table headers, code blocks. */
@@ -67,19 +69,32 @@ export interface BaseThemeColors {
   /** Brass as text/icon on canvas, surface and brassSubtle. */
   brassText: string
 
-  /** The one electric accent: a cool ultramarine, one spark per screen. */
-  signal: string
-  signalSubtle: string
-  /** Signal as text/icon on canvas, surface and signalSubtle. */
-  signalText: string
-  /** Text/icon on a solid signal background. */
-  onSignal: string
+  /** The primary action fill: a black pill on paper, a lime pill on dark. Not re-pointed by `data-product`. */
+  action: string
+  actionHover: string
+  actionActive: string
+  /** Text/icon on a solid action background. */
+  onAction: string
+
+  /** Lime: the signature highlight (deltas, counts, promo cards). Same hue in both themes. */
+  lime: string
+  limeSubtle: string
+  /** Lime-family text on canvas, surface and limeSubtle (an olive on paper, lime itself on dark). */
+  limeText: string
+  /** Text/icon on a solid lime background. */
+  onLime: string
+
+  /** Lilac: the second chart hue and the quiet highlight. */
+  lilac: string
+  lilacSubtle: string
+  lilacText: string
+  onLilac: string
 
   /** Aurora stops: decorative only (backgrounds, glows, gradient text). Never carry text on them alone. */
-  auroraTeal: string
-  auroraEmerald: string
+  auroraLilac: string
+  auroraLime: string
   auroraBrass: string
-  auroraSignal: string
+  auroraPatina: string
 
   danger: string
   dangerHover: string
@@ -181,50 +196,61 @@ const darkProducts = productColors(
 )
 
 export const lightColors: ThemeColors = {
-  canvas: '#F2F3EC',
-  surface: '#FCFCF8',
-  surfaceSunken: '#E6E8DE',
+  canvas: '#E4E4E1',
+  backdrop: '#DCE5B5',
+  surface: '#FFFFFF',
+  surfaceSunken: '#EFEFEB',
   surfaceOverlay: '#FFFFFF',
-  scrim: '#0F1F1B73',
-  skeleton: '#DFE2D6',
-  highlight: '#FFFFFFCC',
+  scrim: '#11111173',
+  skeleton: '#E3E3DE',
+  highlight: '#FFFFFFE6',
   surfaceRaised: '#FFFFFF',
-  glass: '#FFFFFFA6',
-  glassStrong: '#FFFFFFD9',
-  glassBorder: '#FFFFFFE6',
-  spotlight: '#0B6A5C1A',
-  glowAccent: '#0B6A5C33',
+  glass: '#FFFFFFB3',
+  glassStrong: '#FFFFFFE6',
+  glassBorder: '#FFFFFFF2',
+  spotlight: '#D9F26B59',
+  glowAccent: '#A8C92A59',
   glowBrass: '#A97C1F33',
 
-  text: '#0F1A16',
-  textMuted: '#3A4741',
-  textSubtle: '#4F5D56',
-  textInverse: '#F0EFE7',
+  text: '#111111',
+  textMuted: '#43433F',
+  textSubtle: '#5F5F5A',
+  textInverse: '#F4F4F0',
 
-  hairline: '#E1E4D8',
-  border: '#D3D7C9',
-  borderStrong: '#737D77',
+  hairline: '#EDEDE9',
+  border: '#DCDCD6',
+  borderStrong: '#7A7A74',
 
-  accent: '#0B6A5C',
-  accentHover: '#085448',
-  accentActive: '#063F36',
-  accentSubtle: '#D3ECE3',
-  accentText: '#0B6A5C',
-  onAccent: '#FBFAF6',
+  accent: '#111111',
+  accentHover: '#2C2C2C',
+  accentActive: '#000000',
+  accentSubtle: '#E7F5A6',
+  accentText: '#111111',
+  onAccent: '#FFFFFF',
 
-  brass: '#A97C1F',
+  brass: '#9A6F14',
   brassSubtle: '#F1E6C9',
   brassText: '#6F4F0C',
 
-  signal: '#3F4FD6',
-  signalSubtle: '#E1E5FB',
-  signalText: '#3340C0',
-  onSignal: '#F8F9FF',
+  action: '#111111',
+  actionHover: '#2C2C2C',
+  actionActive: '#000000',
+  onAction: '#FFFFFF',
 
-  auroraTeal: '#2BB5A0',
-  auroraEmerald: '#5FCB8A',
-  auroraBrass: '#E5C174',
-  auroraSignal: '#8F9BFF',
+  lime: '#D9F26B',
+  limeSubtle: '#EEF8C2',
+  limeText: '#4A5A00',
+  onLime: '#1A2000',
+
+  lilac: '#BDB4F4',
+  lilacSubtle: '#E9E6FB',
+  lilacText: '#4B3FB0',
+  onLilac: '#1B1740',
+
+  auroraLilac: '#8E7FF0',
+  auroraLime: '#C6EA4F',
+  auroraBrass: '#E0B65A',
+  auroraPatina: '#2FD3B5',
 
   danger: '#A8322A',
   dangerHover: '#8C2620',
@@ -244,70 +270,81 @@ export const lightColors: ThemeColors = {
   infoSubtle: '#DEE4F5',
   infoText: '#2A4390',
 
-  focusRing: '#C2570C',
+  focusRing: '#5B49D6',
 
-  vault: '#0F1F1B',
-  vaultRaised: '#172E28',
-  vaultSunken: '#0A1613',
-  vaultBorder: '#2B453E',
-  vaultBorderStrong: '#7E9A90',
-  onVault: '#EEEBDD',
-  onVaultMuted: '#B3C4BC',
-  onVaultSubtle: '#93A89F',
-  vaultAccent: '#6FD6C2',
-  vaultAccentSubtle: '#1D3D36',
-  onVaultAccent: '#06201B',
-  vaultBrass: '#DDB968',
-  vaultBrassSubtle: '#3A2F14',
+  vault: '#1D1D1D',
+  vaultRaised: '#2A2A2A',
+  vaultSunken: '#141414',
+  vaultBorder: '#3A3A3A',
+  vaultBorderStrong: '#8A8A84',
+  onVault: '#F4F4F0',
+  onVaultMuted: '#BDBDB6',
+  onVaultSubtle: '#9A9A93',
+  vaultAccent: '#D9F26B',
+  vaultAccentSubtle: '#3A4214',
+  onVaultAccent: '#1A2000',
+  vaultBrass: '#E3C77A',
+  vaultBrassSubtle: '#34290F',
 
   ...lightProducts,
 }
 
 export const darkColors: ThemeColors = {
-  canvas: '#070C0A',
-  surface: '#0E1613',
-  surfaceSunken: '#040807',
-  surfaceOverlay: '#141F1B',
+  canvas: '#0D0D0D',
+  backdrop: '#050505',
+  surface: '#181818',
+  surfaceSunken: '#090909',
+  surfaceOverlay: '#202020',
   scrim: '#000000B3',
-  skeleton: '#1A2622',
-  highlight: '#FFFFFF14',
-  surfaceRaised: '#15201C',
-  glass: '#FFFFFF0D',
-  glassStrong: '#0E1613CC',
+  skeleton: '#232323',
+  highlight: '#FFFFFF12',
+  surfaceRaised: '#1F1F1F',
+  glass: '#FFFFFF0F',
+  glassStrong: '#181818CC',
   glassBorder: '#FFFFFF1A',
-  spotlight: '#34D3B029',
-  glowAccent: '#34D3B040',
+  spotlight: '#D9F26B26',
+  glowAccent: '#D9F26B40',
   glowBrass: '#E2BC6A40',
 
-  text: '#EEF1EA',
-  textMuted: '#B7C3BC',
-  textSubtle: '#8F9D96',
-  textInverse: '#101412',
+  text: '#F2F2EE',
+  textMuted: '#BDBDB6',
+  textSubtle: '#96968F',
+  textInverse: '#0D0D0D',
 
-  hairline: '#18221E',
-  border: '#222E29',
-  borderStrong: '#6C7C74',
+  hairline: '#202020',
+  border: '#2C2C2C',
+  borderStrong: '#75756F',
 
-  accent: '#34D3B0',
-  accentHover: '#5BE0C3',
-  accentActive: '#7DE9D1',
-  accentSubtle: '#0E2E28',
-  accentText: '#6EE7CC',
-  onAccent: '#03201A',
+  accent: '#D9F26B',
+  accentHover: '#E5F78F',
+  accentActive: '#EEFAB0',
+  accentSubtle: '#2B3212',
+  accentText: '#D9F26B',
+  onAccent: '#141900',
 
   brass: '#E2BC6A',
   brassSubtle: '#2C2310',
   brassText: '#EBCB8A',
 
-  signal: '#8C9BFF',
-  signalSubtle: '#181D4A',
-  signalText: '#B4BEFF',
-  onSignal: '#0A0F33',
+  action: '#D9F26B',
+  actionHover: '#E5F78F',
+  actionActive: '#EEFAB0',
+  onAction: '#141900',
 
-  auroraTeal: '#12B8A0',
-  auroraEmerald: '#1F9D6B',
+  lime: '#D9F26B',
+  limeSubtle: '#2B3212',
+  limeText: '#D9F26B',
+  onLime: '#1A2000',
+
+  lilac: '#BDB4F4',
+  lilacSubtle: '#25214A',
+  lilacText: '#CFC8F8',
+  onLilac: '#1B1740',
+
+  auroraLilac: '#7F6CF5',
+  auroraLime: '#B5E03A',
   auroraBrass: '#C99A3A',
-  auroraSignal: '#5B6CFF',
+  auroraPatina: '#1FB89B',
 
   danger: '#F0857B',
   dangerHover: '#F5A099',
@@ -327,20 +364,20 @@ export const darkColors: ThemeColors = {
   infoSubtle: '#1B2547',
   infoText: '#B6C6FA',
 
-  focusRing: '#F5A862',
+  focusRing: '#BDB4F4',
 
-  vault: '#0B1613',
-  vaultRaised: '#13241F',
-  vaultSunken: '#08100E',
-  vaultBorder: '#26403A',
-  vaultBorderStrong: '#7E9A90',
-  onVault: '#EEEBDD',
-  onVaultMuted: '#B3C4BC',
-  onVaultSubtle: '#93A89F',
-  vaultAccent: '#6FD6C2',
-  vaultAccentSubtle: '#1A3832',
-  onVaultAccent: '#06201B',
-  vaultBrass: '#DDB968',
+  vault: '#141414',
+  vaultRaised: '#202020',
+  vaultSunken: '#0D0D0D',
+  vaultBorder: '#2C2C2C',
+  vaultBorderStrong: '#8A8A84',
+  onVault: '#F4F4F0',
+  onVaultMuted: '#BDBDB6',
+  onVaultSubtle: '#9A9A93',
+  vaultAccent: '#D9F26B',
+  vaultAccentSubtle: '#3A4214',
+  onVaultAccent: '#1A2000',
+  vaultBrass: '#E3C77A',
   vaultBrassSubtle: '#34290F',
 
   ...darkProducts,

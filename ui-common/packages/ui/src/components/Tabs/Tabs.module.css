@@ -1,17 +1,66 @@
+/* A segmented rail with a glowing pill that glides to the active tab. */
 .list {
-  display: flex;
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
   gap: var(--pp-space-1);
-  border-bottom: 1px solid var(--pp-color-border);
+  padding: var(--pp-space-1);
   overflow-x: auto;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  background: var(--pp-color-surface-sunken);
+  border: 1px solid var(--pp-color-hairline);
+  border-radius: var(--pp-radius-lg);
+  box-shadow: var(--pp-shadow-inset);
 }
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: var(--pp-ind-w, 0);
+  height: var(--pp-ind-h, 0);
+  border-radius: calc(var(--pp-radius-lg) - 4px);
+  background: var(--pp-color-surface-raised);
+  box-shadow:
+    inset 0 1px 0 var(--pp-color-highlight),
+    0 0 0 1px var(--pp-color-border),
+    var(--pp-shadow-sm);
+  opacity: 0;
+  transform: translate3d(var(--pp-ind-x, 0), 0, 0);
+  pointer-events: none;
+}
+.list[data-indicator] .indicator {
+  opacity: 1;
+}
+.list[data-indicator='ready'] .indicator {
+  transition:
+    transform var(--pp-duration-slow) var(--pp-ease-emphasized),
+    width var(--pp-duration-slow) var(--pp-ease-emphasized);
+}
+/* A thread of patina along the pill's lower edge. */
+.indicator::after {
+  content: '';
+  position: absolute;
+  inset-inline: 22%;
+  bottom: 0;
+  height: 2px;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-gradient-brand);
+  box-shadow: 0 0 10px var(--pp-color-glow-accent);
+}
+
 .trigger {
   position: relative;
+  z-index: 1;
   flex: none;
-  padding: var(--pp-space-3) var(--pp-space-4);
+  padding: var(--pp-space-2) var(--pp-space-4);
   background: none;
   border: 0;
-  border-radius: var(--pp-radius-sm) var(--pp-radius-sm) 0 0;
+  border-radius: calc(var(--pp-radius-lg) - 4px);
   color: var(--pp-color-text-muted);
   font: inherit;
   font-size: var(--pp-text-label-size);
@@ -19,33 +68,40 @@
   cursor: pointer;
   transition: color var(--pp-duration-fast) var(--pp-ease-standard);
 }
-.trigger::after {
-  content: '';
-  position: absolute;
-  inset-inline: var(--pp-space-2);
-  bottom: -1px;
-  height: 3px;
-  border-radius: var(--pp-radius-full) var(--pp-radius-full) 0 0;
-  background: transparent;
-  transition: background-color var(--pp-duration-fast) var(--pp-ease-standard);
-}
 .trigger:hover:not(:disabled) {
   color: var(--pp-color-text);
 }
 .trigger[data-state='active'] {
-  color: var(--pp-color-accent-text);
+  color: var(--pp-color-text);
 }
-.trigger[data-state='active']::after {
-  background: var(--pp-color-accent);
+/* Before the indicator has measured (first paint, no JS), the active tab still reads as active. */
+.list:not([data-indicator]) .trigger[data-state='active'] {
+  background: var(--pp-color-surface-raised);
+  box-shadow: 0 0 0 1px var(--pp-color-border);
 }
 .trigger:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+.trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--pp-shadow-focus);
+}
+
 .content {
-  padding-top: var(--pp-space-4);
+  padding-top: var(--pp-space-5);
+}
+.content[data-state='active'] {
+  animation: enter var(--pp-duration-slow) var(--pp-ease-emphasized);
 }
 .content:focus-visible {
   outline-offset: 4px;
   border-radius: var(--pp-radius-sm);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
 }

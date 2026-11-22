@@ -1,0 +1,170 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-3);
+}
+
+.zone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--pp-space-1);
+  padding: var(--pp-space-8) var(--pp-space-6);
+  text-align: center;
+  border-radius: var(--pp-radius-lg);
+  background: var(--pp-color-surface-sunken);
+  /* A dashed edge drawn as an SVG-free gradient border so the radius stays round. */
+  border: 1.5px dashed var(--pp-color-border-strong);
+  transition:
+    background-color var(--pp-duration-normal) var(--pp-ease-standard),
+    border-color var(--pp-duration-normal) var(--pp-ease-standard),
+    transform var(--pp-duration-slow) var(--pp-ease-emphasized);
+}
+.zone:hover {
+  border-color: var(--pp-color-text);
+}
+.zone:has(:focus-visible) {
+  border-color: var(--pp-color-focus-ring);
+  box-shadow: var(--pp-shadow-focus);
+}
+.over {
+  background: color-mix(in srgb, var(--pp-color-lime) 35%, var(--pp-color-surface));
+  border-color: var(--pp-color-text);
+  border-style: solid;
+  transform: scale(1.01);
+}
+.zone[data-invalid] {
+  border-color: var(--pp-color-danger);
+}
+.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* The input covers the whole zone: clicking anywhere opens the picker, and it stays focusable. */
+.input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.input:disabled {
+  cursor: not-allowed;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--pp-space-2);
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-hairline);
+  color: var(--pp-color-text);
+  transition: transform var(--pp-duration-slow) var(--pp-ease-spring);
+}
+.zone:hover .icon,
+.over .icon {
+  transform: translateY(-3px);
+}
+.title {
+  font-size: var(--pp-text-label-size);
+  font-weight: 650;
+}
+.hint {
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-caption-size);
+}
+
+.rejected {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--pp-color-danger-text);
+  font-size: var(--pp-text-body-small-size);
+  font-weight: 550;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.file {
+  display: flex;
+  align-items: center;
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-2) var(--pp-space-2) var(--pp-space-2) var(--pp-space-3);
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-hairline);
+  border-radius: var(--pp-radius-full);
+  animation: enter var(--pp-duration-slower) var(--pp-ease-emphasized);
+}
+.fileIcon {
+  display: inline-flex;
+  color: var(--pp-color-text-muted);
+}
+.fileName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--pp-text-body-small-size);
+  font-weight: 550;
+}
+.fileSize {
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-caption-size);
+  font-variant-numeric: tabular-nums;
+}
+.remove {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--pp-radius-full);
+  background: transparent;
+  color: var(--pp-color-text-muted);
+  cursor: pointer;
+}
+.remove:hover {
+  background: var(--pp-color-surface-sunken);
+  color: var(--pp-color-text);
+}
+.remove:focus-visible {
+  outline: none;
+  box-shadow: var(--pp-shadow-focus);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zone,
+  .icon,
+  .file {
+    animation: none;
+    transition: none;
+  }
+  .over,
+  .zone:hover .icon {
+    transform: none;
+  }
+}

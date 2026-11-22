@@ -1,37 +1,161 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--pp-space-1);
+  gap: var(--pp-space-2);
   min-width: 0;
+}
+
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--pp-space-3);
 }
 .label {
   font-size: var(--pp-text-label-size);
   line-height: var(--pp-text-label-line);
   font-weight: var(--pp-text-label-weight);
+  letter-spacing: var(--pp-text-label-tracking);
   color: var(--pp-color-text);
 }
 .disabled .label {
   color: var(--pp-color-text-subtle);
 }
+.hint {
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-caption-size);
+  font-variant-numeric: tabular-nums;
+}
 .required {
   color: var(--pp-color-danger-text);
   margin-inline-start: 2px;
 }
+
+.control {
+  position: relative;
+  min-width: 0;
+}
+
 .description {
   font-size: var(--pp-text-body-small-size);
   line-height: var(--pp-text-body-small-line);
   color: var(--pp-color-text-muted);
 }
-.error {
+
+/* Messages ease open (grid rows 0fr to 1fr) so the layout below glides instead of jumping. */
+.reveal {
+  display: grid;
+  grid-template-rows: 1fr;
+  animation: open var(--pp-duration-slow) var(--pp-ease-emphasized);
+}
+.reveal > * {
+  min-height: 0;
+  overflow: hidden;
+}
+.error,
+.success {
   display: flex;
-  gap: var(--pp-space-1);
+  gap: var(--pp-space-2);
   align-items: flex-start;
   font-size: var(--pp-text-body-small-size);
   line-height: var(--pp-text-body-small-line);
+  font-weight: 550;
+}
+.error {
   color: var(--pp-color-danger-text);
-  font-weight: var(--pp-weight-medium);
+}
+.success {
+  color: var(--pp-color-success-text);
 }
 .errorIcon {
   flex: none;
   margin-top: 2px;
+}
+
+.validMark {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: var(--pp-space-3);
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
+  transform: translateY(-50%);
+  pointer-events: none;
+  animation: pop var(--pp-duration-slower) var(--pp-ease-settle);
+}
+[data-valid] .control :is(input, select, textarea) {
+  padding-inline-end: 2.5rem;
+}
+
+/* ---- floating label ---- */
+.floating .control :is(input, textarea, select) {
+  padding-top: 1.3rem;
+  padding-bottom: 0.3rem;
+}
+.floating .control textarea {
+  padding-top: 1.7rem;
+}
+.floatLabel {
+  position: absolute;
+  top: calc(var(--pp-control-md) / 2);
+  inset-inline-start: var(--pp-space-4);
+  max-width: calc(100% - var(--pp-space-8));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--pp-color-text-subtle);
+  font-weight: 500;
+  pointer-events: none;
+  transform-origin: 0 0;
+  transform: translate3d(0, -50%, 0);
+  transition:
+    transform var(--pp-duration-slow) var(--pp-ease-emphasized),
+    color var(--pp-duration-normal) var(--pp-ease-standard);
+}
+/* Lifted: focus, a value, or a native control that always shows one (select, date). */
+.floating .control:has(:is(input, textarea):focus) .floatLabel,
+.floating .control:has(:is(input, textarea):not(:placeholder-shown)) .floatLabel,
+.floating .control:has(select) .floatLabel,
+.floating .control:has(input:is([type='date'], [type='time'], [type='file'])) .floatLabel {
+  transform: translate3d(0, -112%, 0) scale(0.78);
+}
+.floating .control:has(textarea) .floatLabel {
+  top: 1.25rem;
+}
+.floating .control:has(textarea:focus) .floatLabel,
+.floating .control:has(textarea:not(:placeholder-shown)) .floatLabel {
+  transform: translate3d(0, -78%, 0) scale(0.78);
+}
+.floating .control:has(:focus-visible) .floatLabel {
+  color: var(--pp-color-text);
+}
+.floating[data-invalid] .floatLabel {
+  color: var(--pp-color-danger-text);
+}
+
+@keyframes open {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+@keyframes pop {
+  from {
+    transform: translateY(-50%) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .validMark {
+    animation: none;
+  }
+  .floatLabel {
+    transition: none;
+  }
 }

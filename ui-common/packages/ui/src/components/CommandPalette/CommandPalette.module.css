@@ -3,7 +3,8 @@
   inset: 0;
   z-index: var(--pp-z-overlay);
   background: var(--pp-color-scrim);
-  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(var(--pp-blur-sm));
+  backdrop-filter: blur(var(--pp-blur-sm));
   animation: fade var(--pp-duration-normal) var(--pp-ease-enter);
 }
 
@@ -19,13 +20,11 @@
   max-height: min(34rem, calc(100dvh - 8rem));
   background: var(--pp-color-surface-overlay);
   color: var(--pp-color-text);
-  border: 1px solid var(--pp-color-border);
+  border: 1px solid var(--pp-color-hairline);
   border-radius: var(--pp-radius-xl);
-  box-shadow:
-    inset 0 1px 0 var(--pp-color-highlight),
-    var(--pp-shadow-xl);
+  box-shadow: var(--pp-shadow-xl);
   overflow: hidden;
-  animation: drop var(--pp-duration-normal) var(--pp-ease-enter);
+  animation: drop var(--pp-duration-slow) var(--pp-ease-emphasized);
 }
 
 .search {
@@ -57,9 +56,6 @@
 .input:focus-visible {
   outline: none;
 }
-.search:focus-within {
-  box-shadow: inset 0 -2px 0 var(--pp-color-accent);
-}
 
 .list {
   flex: 1;
@@ -88,19 +84,11 @@
   border-radius: var(--pp-radius-md);
   cursor: pointer;
   font-size: var(--pp-text-body-size);
+  transition: background-color var(--pp-duration-fast) var(--pp-ease-standard);
 }
 .active {
-  background: var(--pp-color-accent-subtle);
-  color: var(--pp-color-accent-text);
-}
-.active::before {
-  content: '';
-  position: absolute;
-  inset-block: 0.6rem;
-  inset-inline-start: 0;
-  width: 3px;
-  border-radius: 0 var(--pp-radius-sm) var(--pp-radius-sm) 0;
-  background: var(--pp-color-brass);
+  background: var(--pp-color-text);
+  color: var(--pp-color-surface);
 }
 .optionIcon {
   display: inline-flex;
@@ -127,8 +115,8 @@
   color: var(--pp-color-text-subtle);
 }
 .active .optionHint {
-  color: var(--pp-color-accent-text);
-  opacity: 0.85;
+  color: inherit;
+  opacity: 0.7;
 }
 
 .empty {
@@ -143,7 +131,7 @@
   gap: var(--pp-space-2) var(--pp-space-5);
   padding: var(--pp-space-3) var(--pp-space-5);
   border-top: 1px solid var(--pp-color-hairline);
-  background: color-mix(in srgb, var(--pp-color-surface-sunken) 60%, transparent);
+  background: var(--pp-color-surface-sunken);
   font-size: var(--pp-text-caption-size);
   color: var(--pp-color-text-muted);
 }

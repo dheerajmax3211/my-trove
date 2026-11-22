@@ -1,0 +1,19 @@
+.bar {
+  height: 2px;
+  width: 100%;
+  transform-origin: 0 50%;
+  background: linear-gradient(
+    90deg,
+    var(--pp-color-aurora-lilac),
+    var(--pp-color-aurora-lime) 45%,
+    var(--pp-color-aurora-brass)
+  );
+  box-shadow: 0 0 12px var(--pp-color-glow-accent);
+  pointer-events: none;
+}
+
+.top {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: var(--pp-z-toast);
+}

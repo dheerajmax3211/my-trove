@@ -2,6 +2,7 @@ import './styles/base.css'
 
 export {
   AppShell,
+  SidebarCount,
   SidebarLink,
   SidebarNav,
   SidebarSection,
@@ -167,3 +168,101 @@ export { cx } from './internal/cx'
 export { useHotkey, type HotkeyOptions } from './internal/use-hotkey'
 export { useReducedMotion } from './internal/use-reduced-motion'
 export * from './internal/icons'
+
+// ---- motion primitives ----
+export { useInView, type UseInViewOptions } from './motion/use-in-view'
+export {
+  Reveal,
+  Stagger,
+  type RevealDirection,
+  type RevealOptions,
+  type RevealProps,
+  type StaggerProps,
+} from './motion/Reveal'
+export { CountUp, type CountUpProps } from './motion/CountUp'
+export { Parallax, type ParallaxProps } from './motion/Parallax'
+export { SpotlightCard, type SpotlightCardProps } from './motion/SpotlightCard'
+export { Magnetic, type MagneticProps } from './motion/Magnetic'
+export { PageTransition, type PageTransitionProps } from './motion/PageTransition'
+export { ScrollProgress, type ScrollProgressProps } from './motion/ScrollProgress'
+export { SplitText, type SplitTextProps } from './motion/SplitText'
+export { Marquee, type MarqueeProps } from './motion/Marquee'
+export {
+  SmoothScroll,
+  useScrollSmooth,
+  type SmoothScrollProps,
+  type SmoothScrollValue,
+} from './motion/SmoothScroll'
+export {
+  loadScrollStory,
+  useScrollStory,
+  type ScrollStoryContext,
+  type ScrollStoryKit,
+} from './motion/scroll-story'
+export {
+  IndicatorGroup,
+  LayoutIndicator,
+  type LayoutIndicatorProps,
+} from './motion/LayoutIndicator'
+export {
+  AnimatedList,
+  AnimatedListItem,
+  type AnimatedListItemProps,
+  type AnimatedListProps,
+} from './motion/AnimatedList'
+
+// ---- backgrounds and surfaces ----
+export {
+  Aurora,
+  type AuroraIntensity,
+  type AuroraPalette,
+  type AuroraProps,
+} from './surfaces/Aurora'
+export { GridGlow, type GridGlowProps } from './surfaces/GridGlow'
+export { Grain, type GrainProps } from './surfaces/Grain'
+export { GlassPanel, type GlassPanelProps } from './surfaces/GlassPanel'
+export { GradientBorder, type GradientBorderProps } from './surfaces/GradientBorder'
+
+// ---- forms ----
+export {
+  Form,
+  FormActions,
+  FormGrid,
+  FormSection,
+  type FormActionsProps,
+  type FormGridProps,
+  type FormProps,
+  type FormSectionProps,
+} from './forms/Form'
+export { FileDrop, type FileDropProps } from './forms/FileDrop'
+
+// ---- charts ----
+export { AreaChart, smoothPath, type AreaChartProps, type AreaPoint } from './charts/AreaChart'
+export { BarList, type BarListItem, type BarListProps } from './charts/BarList'
+export { Donut, type DonutProps, type DonutSegment } from './charts/Donut'
+export { type ChartTone } from './charts/tone'
+
+// ---- dashboard kit ----
+export {
+  AppFrame,
+  SearchPill,
+  UserChip,
+  type AppFrameProps,
+  type SearchPillProps,
+  type UserChipProps,
+} from './dashboard/AppFrame'
+export {
+  BentoCard,
+  BentoGrid,
+  type BentoCardProps,
+  type BentoGridProps,
+  type BentoTone,
+} from './dashboard/Bento'
+export { BigStat, type BigStatProps, type BigStatSecondary } from './dashboard/BigStat'
+export { BubbleChart, type Bubble, type BubbleChartProps } from './dashboard/BubbleChart'
+export { DotMatrix, type DotMatrixColumn, type DotMatrixProps } from './dashboard/DotMatrix'
+export { BarsChart, type BarsChartProps, type BarsDatum } from './dashboard/BarsChart'
+export { ProgressStat, type DashTone, type ProgressStatProps } from './dashboard/ProgressStat'
+export { PromoCard, PromoOrb, type PromoCardProps } from './dashboard/PromoCard'
+export { PillSelect, type PillSelectOption, type PillSelectProps } from './dashboard/PillSelect'
+export { RoundIconButton, type RoundIconButtonProps } from './dashboard/RoundIconButton'

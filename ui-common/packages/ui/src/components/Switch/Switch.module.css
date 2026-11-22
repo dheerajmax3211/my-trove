@@ -6,48 +6,61 @@
 .track {
   flex: none;
   position: relative;
-  width: 42px;
-  height: 24px;
+  width: 46px;
+  height: 28px;
   padding: 0;
   margin: 0;
-  background: var(--pp-color-surface-sunken);
-  border: 1.5px solid var(--pp-color-border-strong);
+  background: var(--pp-color-border);
+  border: 0;
   border-radius: var(--pp-radius-full);
-  box-shadow: var(--pp-shadow-inset);
   cursor: pointer;
   transition:
     background-color var(--pp-duration-normal) var(--pp-ease-standard),
-    border-color var(--pp-duration-normal) var(--pp-ease-standard);
+    box-shadow var(--pp-duration-normal) var(--pp-ease-standard);
+}
+.track:hover:not(:disabled) {
+  background: var(--pp-color-border-strong);
 }
 .track[data-state='checked'] {
-  background: var(--pp-color-accent);
-  border-color: var(--pp-color-accent);
+  background: var(--pp-color-action);
+}
+.track[data-state='checked']:hover:not(:disabled) {
+  background: var(--pp-color-action-hover);
+}
+.track:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--pp-color-canvas),
+    0 0 0 4px var(--pp-color-focus-ring);
 }
 .track:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-/* The thumb clicks over like a tumbler: it overshoots a hair and settles. */
+/* The thumb clicks over and settles with a hair of overshoot. */
 .thumb {
   display: block;
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   border-radius: var(--pp-radius-full);
-  background: var(--pp-color-text-muted);
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
   transform: translateX(3px);
-  transition:
-    transform var(--pp-duration-normal) var(--pp-ease-settle),
-    background-color var(--pp-duration-normal) var(--pp-ease-standard);
+  transition: transform var(--pp-duration-slow) var(--pp-ease-settle);
+}
+.track:active:not(:disabled) .thumb {
+  width: 26px;
 }
 .thumb[data-state='checked'] {
-  transform: translateX(20px);
-  background: var(--pp-color-on-accent);
-  box-shadow: var(--pp-shadow-sm);
+  transform: translateX(21px);
+}
+.track:active:not(:disabled) .thumb[data-state='checked'] {
+  transform: translateX(17px);
 }
 .text {
   display: flex;
   flex-direction: column;
-  padding-top: 2px;
+  padding-top: 3px;
 }
 .label {
   cursor: pointer;

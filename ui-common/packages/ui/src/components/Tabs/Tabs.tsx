@@ -1,16 +1,33 @@
 import { Tabs as TabsPrimitive } from 'radix-ui'
-import { forwardRef, type ComponentPropsWithoutRef, type ElementRef } from 'react'
+import { forwardRef, useRef, type ComponentPropsWithoutRef, type ElementRef } from 'react'
 import { cx } from '../../internal/cx'
+import { mergeRefs } from '../../internal/merge-refs'
+import { useSlidingIndicator } from '../../internal/use-sliding-indicator'
 import styles from './Tabs.module.css'
 
 /** Roving-tabindex tablist: arrow keys move between tabs, Home/End jump, Tab enters the panel. */
 export const Tabs = TabsPrimitive.Root
 
+/**
+ * The tab strip. A pill glides under the active tab (one transform transition, measured from the
+ * active trigger), so switching tabs reads as one object moving rather than two states swapping.
+ */
 export const TabsList = forwardRef<
   ElementRef<typeof TabsPrimitive.List>,
   ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(function TabsList({ className, ...rest }, ref) {
-  return <TabsPrimitive.List ref={ref} className={cx(styles.list, className)} {...rest} />
+>(function TabsList({ className, children, ...rest }, ref) {
+  const own = useRef<HTMLDivElement>(null)
+  useSlidingIndicator(own, '[role="tab"][data-state="active"]')
+  return (
+    <TabsPrimitive.List
+      ref={mergeRefs<HTMLDivElement>(own, ref)}
+      className={cx(styles.list, className)}
+      {...rest}
+    >
+      {children}
+      <span className={styles.indicator} aria-hidden="true" />
+    </TabsPrimitive.List>
+  )
 })
 
 export const TabsTrigger = forwardRef<

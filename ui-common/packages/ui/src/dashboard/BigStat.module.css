@@ -1,0 +1,105 @@
+.stat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--pp-space-4);
+  min-width: 0;
+}
+.main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--pp-space-1);
+  min-width: 0;
+}
+
+.figure {
+  display: flex;
+  align-items: baseline;
+  gap: var(--pp-space-2);
+  margin: 0;
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-figure-size);
+  line-height: var(--pp-text-figure-line);
+  font-weight: var(--pp-text-figure-weight);
+  letter-spacing: var(--pp-text-figure-tracking);
+  font-variant-numeric: lining-nums tabular-nums;
+  color: inherit;
+}
+.md .figure {
+  font-size: var(--pp-text-stat-size);
+  line-height: var(--pp-text-stat-line);
+  letter-spacing: var(--pp-text-stat-tracking);
+}
+.unit {
+  font-family: var(--pp-font-sans);
+  font-size: var(--pp-text-body-small-size);
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--pp-color-text-muted);
+  white-space: nowrap;
+}
+
+/* The pill rides on the top edge of the number, like a tag stuck to it. */
+.delta {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
+  font-size: var(--pp-text-caption-size);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+  margin-bottom: calc(var(--pp-space-1) * -1);
+  animation: tag var(--pp-duration-slower) var(--pp-ease-settle) 0.4s backwards;
+}
+.down {
+  background: var(--pp-color-danger-subtle);
+  color: var(--pp-color-danger-text);
+}
+
+.caption {
+  margin: 0;
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+}
+
+.secondary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-1);
+  margin: 0;
+  text-align: end;
+}
+.secondaryItem {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: var(--pp-space-2);
+  font-size: var(--pp-text-body-small-size);
+}
+.secondaryItem dt {
+  color: var(--pp-color-text-muted);
+}
+.secondaryItem dd {
+  margin: 0;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes tag {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.85);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .delta {
+    animation: none;
+  }
+}

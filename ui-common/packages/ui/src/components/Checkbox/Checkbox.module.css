@@ -7,28 +7,27 @@
   flex: none;
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
-  margin: 2px 0;
+  width: 22px;
+  height: 22px;
+  margin: 1px 0;
   padding: 0;
   background: var(--pp-color-surface);
-  color: var(--pp-color-on-accent);
+  color: var(--pp-color-on-action);
   border: 1.5px solid var(--pp-color-border-strong);
-  border-radius: var(--pp-radius-sm);
-  box-shadow: var(--pp-shadow-inset);
+  border-radius: 7px;
   cursor: pointer;
   transition:
     background-color var(--pp-duration-fast) var(--pp-ease-standard),
     border-color var(--pp-duration-fast) var(--pp-ease-standard);
 }
 .box:hover:not(:disabled) {
-  border-color: var(--pp-color-accent);
+  border-color: var(--pp-color-text);
 }
 .box[data-state='checked'],
 .box[data-state='indeterminate'] {
-  background: var(--pp-color-accent);
-  border-color: var(--pp-color-accent);
-  box-shadow: var(--pp-shadow-xs);
+  background: var(--pp-color-action);
+  border-color: var(--pp-color-action);
+  color: var(--pp-color-on-action);
 }
 .box[aria-invalid='true'] {
   border-color: var(--pp-color-danger);

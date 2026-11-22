@@ -6,12 +6,12 @@
 }
 
 .word {
-  font-family: var(--pp-font-display);
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  font-family: var(--pp-font-sans);
+  font-weight: 700;
+  letter-spacing: -0.04em;
 }
 
-/* color: a vault-green tile with a brass keyhole; the name takes the page ink. */
+/* color: a near-black tile with a lime keyhole; the name takes the page ink. */
 .color .tile {
   fill: var(--pp-color-vault);
 }
@@ -20,13 +20,13 @@
   stroke-width: 1;
 }
 .color .keyhole {
-  fill: var(--pp-color-vault-brass);
+  fill: var(--pp-color-vault-accent);
 }
 .color .word {
   fill: var(--pp-color-text);
 }
 .color .hyphen {
-  fill: var(--pp-color-brass);
+  fill: var(--pp-color-lilac);
 }
 
 /* The default tone adapts: inside a vault surface the tile lifts off the dark ground. */
@@ -48,13 +48,13 @@
   stroke-width: 1;
 }
 .inverse .keyhole {
-  fill: var(--pp-color-vault-brass);
+  fill: var(--pp-color-vault-accent);
 }
 .inverse .word {
   fill: var(--pp-color-on-vault);
 }
 .inverse .hyphen {
-  fill: var(--pp-color-vault-brass);
+  fill: var(--pp-color-vault-accent);
 }
 
 /* mono: one color, the keyhole is a true cut-out. Follows currentColor. */

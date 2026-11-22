@@ -20,17 +20,15 @@
   align-items: start;
   gap: var(--pp-space-3);
   padding: var(--pp-space-3) var(--pp-space-3) var(--pp-space-3) var(--pp-space-4);
-  background: var(--pp-color-surface-overlay);
-  color: var(--pp-color-text);
-  border: 1px solid var(--pp-color-border);
-  border-inline-start: 4px solid var(--_accent, var(--pp-color-border-strong));
+  background: var(--pp-color-vault);
+  color: var(--pp-color-on-vault);
+  border: 1px solid var(--pp-color-vault-border);
   border-radius: var(--pp-radius-lg);
-  box-shadow:
-    inset 0 1px 0 var(--pp-color-highlight),
-    var(--pp-shadow-lg);
+  box-shadow: var(--pp-shadow-xl);
+  overflow: hidden;
 }
 .toast[data-state='open'] {
-  animation: slide-in var(--pp-duration-normal) var(--pp-ease-enter);
+  animation: slide-in var(--pp-duration-slower) var(--pp-ease-emphasized);
 }
 .toast[data-state='closed'] {
   animation: fade-out var(--pp-duration-fast) var(--pp-ease-exit);
@@ -46,23 +44,24 @@
   animation: swipe-out var(--pp-duration-fast) var(--pp-ease-exit);
 }
 .neutral {
-  --_accent: var(--pp-color-border-strong);
+  --_accent: var(--pp-color-on-vault-subtle);
+  --_icon: var(--pp-color-on-vault-muted);
 }
 .success {
-  --_accent: var(--pp-color-success);
-  --_icon: var(--pp-color-success-text);
+  --_accent: var(--pp-color-lime);
+  --_icon: var(--pp-color-lime);
 }
 .danger {
   --_accent: var(--pp-color-danger);
-  --_icon: var(--pp-color-danger-text);
+  --_icon: #ffa9a0;
 }
 .warning {
   --_accent: var(--pp-color-warning);
-  --_icon: var(--pp-color-warning-text);
+  --_icon: #f0c879;
 }
 .info {
   --_accent: var(--pp-color-info);
-  --_icon: var(--pp-color-info-text);
+  --_icon: #b6c6fa;
 }
 .icon {
   display: flex;
@@ -81,7 +80,7 @@
   line-height: var(--pp-text-body-small-line);
 }
 .description {
-  color: var(--pp-color-text-muted);
+  color: var(--pp-color-on-vault-muted);
   font-size: var(--pp-text-body-small-size);
   line-height: var(--pp-text-body-small-line);
   overflow-wrap: anywhere;
@@ -107,4 +106,14 @@
   to {
     transform: translateX(calc(100% + var(--pp-space-4)));
   }
+}
+
+/* A short coloured thread along the top edge carries the variant. */
+.toast::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--_accent, transparent);
+  opacity: 0.9;
 }

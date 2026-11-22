@@ -31,11 +31,11 @@ export const spacing = {
 export const radius = {
   none: 0,
   xs: 2,
-  sm: 4,
-  md: 8,
-  lg: 14,
-  xl: 24,
-  '2xl': 36,
+  sm: 6,
+  md: 12,
+  lg: 18,
+  xl: 28,
+  '2xl': 40,
   full: 9999,
 } as const
 
@@ -43,8 +43,13 @@ export const radius = {
 export const layout = { narrow: 704, content: 1152, wide: 1312 } as const
 
 export const fontFamily = {
-  sans: '"Instrument Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  /** The one app face: a geometric sans with confident numerals. */
+  sans: '"Plus Jakarta Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  /** Headlines and figures in the app: the same family, set tight and medium. */
   display:
+    '"Plus Jakarta Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  /** The public site's editorial voice. Never in the app. */
+  editorial:
     '"Young Serif", "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif',
   mono: '"JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
 } as const
@@ -82,39 +87,49 @@ export interface TextStyle {
 export const textStyles = {
   displayXl: {
     family: 'display',
-    size: 104,
-    minSize: 48,
+    size: 112,
+    minSize: 52,
     lineHeight: 104,
-    weight: 400,
-    tracking: -0.034,
+    weight: 500,
+    tracking: -0.05,
   },
-  hero: { family: 'display', size: 76, minSize: 42, lineHeight: 80, weight: 400, tracking: -0.028 },
+  hero: { family: 'display', size: 84, minSize: 44, lineHeight: 80, weight: 500, tracking: -0.045 },
   displayLg: {
     family: 'display',
-    size: 56,
-    minSize: 36,
-    lineHeight: 60,
-    weight: 400,
-    tracking: -0.024,
+    size: 60,
+    minSize: 38,
+    lineHeight: 62,
+    weight: 500,
+    tracking: -0.04,
   },
   display: {
     family: 'display',
-    size: 44,
+    size: 46,
     minSize: 32,
-    lineHeight: 48,
-    weight: 400,
-    tracking: -0.02,
+    lineHeight: 50,
+    weight: 500,
+    tracking: -0.035,
   },
-  h1: { family: 'display', size: 36, minSize: 30, lineHeight: 42, weight: 400, tracking: -0.015 },
-  h2: { family: 'display', size: 26, lineHeight: 34, weight: 400, tracking: -0.01 },
-  h3: { family: 'sans', size: 20, lineHeight: 28, weight: 600, tracking: -0.008 },
-  h4: { family: 'sans', size: 17, lineHeight: 24, weight: 600, tracking: -0.004 },
-  lead: { family: 'sans', size: 20, minSize: 18, lineHeight: 32, weight: 400, tracking: -0.006 },
-  body: { family: 'sans', size: 16, lineHeight: 24, weight: 400, tracking: 0 },
-  bodySmall: { family: 'sans', size: 14, lineHeight: 20, weight: 400, tracking: 0 },
-  label: { family: 'sans', size: 14, lineHeight: 20, weight: 550, tracking: 0.004 },
-  caption: { family: 'sans', size: 12, lineHeight: 16, weight: 500, tracking: 0.02 },
-  stat: { family: 'display', size: 40, minSize: 32, lineHeight: 44, weight: 400, tracking: -0.02 },
+  /** The page title in the app: big, tight, medium. */
+  h1: { family: 'display', size: 56, minSize: 36, lineHeight: 60, weight: 500, tracking: -0.04 },
+  h2: { family: 'display', size: 28, lineHeight: 34, weight: 600, tracking: -0.025 },
+  h3: { family: 'sans', size: 20, lineHeight: 28, weight: 600, tracking: -0.015 },
+  h4: { family: 'sans', size: 16, lineHeight: 24, weight: 600, tracking: -0.008 },
+  lead: { family: 'sans', size: 20, minSize: 17, lineHeight: 32, weight: 400, tracking: -0.012 },
+  body: { family: 'sans', size: 15, lineHeight: 24, weight: 400, tracking: -0.003 },
+  bodySmall: { family: 'sans', size: 14, lineHeight: 20, weight: 400, tracking: -0.002 },
+  label: { family: 'sans', size: 14, lineHeight: 20, weight: 600, tracking: -0.004 },
+  caption: { family: 'sans', size: 12, lineHeight: 16, weight: 500, tracking: 0.004 },
+  stat: { family: 'display', size: 40, minSize: 32, lineHeight: 44, weight: 500, tracking: -0.04 },
+  /** The huge number on a bento card. */
+  figure: {
+    family: 'display',
+    size: 64,
+    minSize: 44,
+    lineHeight: 64,
+    weight: 500,
+    tracking: -0.055,
+  },
   code: { family: 'mono', size: 13, lineHeight: 20, weight: 450, tracking: 0 },
 } as const satisfies Record<string, TextStyle>
 
@@ -147,7 +162,7 @@ export type ShadowName =
   | 'focus'
 export type ThemeShadows = Record<ShadowName, readonly ShadowLayer[]>
 
-const INK = '#14211C'
+const INK = '#111111'
 
 /**
  * Soft layered shadows: a tight contact shadow plus one or two long, low ones, tinted with the
@@ -180,14 +195,14 @@ export const lightShadows: ThemeShadows = {
     { x: 0, y: 0, blur: 0, spread: 1, color: INK, opacity: 0.02, inset: true },
   ],
   glow: [
-    { x: 0, y: 1, blur: 2, spread: 0, color: '#0B6A5C', opacity: 0.3 },
-    { x: 0, y: 8, blur: 24, spread: -6, color: '#0B6A5C', opacity: 0.45 },
+    { x: 0, y: 1, blur: 2, spread: 0, color: '#8FAE1B', opacity: 0.35 },
+    { x: 0, y: 8, blur: 24, spread: -6, color: '#8FAE1B', opacity: 0.5 },
   ],
   glowBrass: [
     { x: 0, y: 1, blur: 2, spread: 0, color: '#A97C1F', opacity: 0.3 },
     { x: 0, y: 8, blur: 24, spread: -6, color: '#A97C1F', opacity: 0.4 },
   ],
-  focus: [{ x: 0, y: 0, blur: 0, spread: 4, color: '#C2570C', opacity: 0.22 }],
+  focus: [{ x: 0, y: 0, blur: 0, spread: 4, color: '#5B49D6', opacity: 0.22 }],
 }
 
 export const darkShadows: ThemeShadows = {
@@ -216,16 +231,16 @@ export const darkShadows: ThemeShadows = {
     { x: 0, y: 0, blur: 0, spread: 1, color: '#000000', opacity: 0.2, inset: true },
   ],
   glow: [
-    { x: 0, y: 0, blur: 0, spread: 1, color: '#34D3B0', opacity: 0.35 },
-    { x: 0, y: 0, blur: 22, spread: 0, color: '#34D3B0', opacity: 0.38 },
-    { x: 0, y: 12, blur: 40, spread: -10, color: '#34D3B0', opacity: 0.4 },
+    { x: 0, y: 0, blur: 0, spread: 1, color: '#D9F26B', opacity: 0.35 },
+    { x: 0, y: 0, blur: 22, spread: 0, color: '#D9F26B', opacity: 0.38 },
+    { x: 0, y: 12, blur: 40, spread: -10, color: '#D9F26B', opacity: 0.4 },
   ],
   glowBrass: [
     { x: 0, y: 0, blur: 0, spread: 1, color: '#E2BC6A', opacity: 0.35 },
     { x: 0, y: 0, blur: 22, spread: 0, color: '#E2BC6A', opacity: 0.3 },
     { x: 0, y: 12, blur: 40, spread: -10, color: '#E2BC6A', opacity: 0.32 },
   ],
-  focus: [{ x: 0, y: 0, blur: 0, spread: 4, color: '#F5A862', opacity: 0.28 }],
+  focus: [{ x: 0, y: 0, blur: 0, spread: 4, color: '#BDB4F4', opacity: 0.32 }],
 }
 
 /**
@@ -274,7 +289,7 @@ export const zIndex = {
 } as const
 
 /** Interactive control heights (px). md/lg are >= 40px for comfortable touch targets. */
-export const controlSize = { sm: 32, md: 40, lg: 48 } as const
+export const controlSize = { sm: 36, md: 44, lg: 52 } as const
 
 /** Min-widths (px) for responsive layout. CSS media queries cannot read variables; keep in sync. */
 export const breakpoints = { sm: 480, md: 768, lg: 1024, xl: 1280 } as const
@@ -301,22 +316,22 @@ export const textures = {
  * would build its own from the aurora colors.
  */
 export const gradients = {
-  /** Patina into emerald: the brand wash. */
-  brand: 'linear-gradient(135deg, var(--pp-color-aurora-teal), var(--pp-color-aurora-emerald))',
+  /** Lilac into lime: the brand wash. */
+  brand: 'linear-gradient(135deg, var(--pp-color-aurora-lilac), var(--pp-color-aurora-lime))',
   /** Brass, the lent-and-sealed metal. */
   brass: 'linear-gradient(135deg, var(--pp-color-aurora-brass), var(--pp-color-brass))',
-  /** The electric spark: signal blue bleeding into patina. */
-  signal: 'linear-gradient(135deg, var(--pp-color-aurora-signal), var(--pp-color-aurora-teal))',
-  /** Headline accent: ink, patina, brass. Large display type only. */
-  text: 'linear-gradient(100deg, var(--pp-color-text) 8%, var(--pp-color-accent-text) 58%, var(--pp-color-brass-text) 100%)',
+  /** Lilac bleeding into patina. */
+  lilac: 'linear-gradient(135deg, var(--pp-color-aurora-lilac), var(--pp-color-aurora-patina))',
+  /** Headline accent: ink, lilac, lime. Large display type only. */
+  text: 'linear-gradient(100deg, var(--pp-color-text) 6%, var(--pp-color-aurora-lilac) 56%, var(--pp-color-aurora-lime) 100%)',
   /** Primary button fill: a lit top edge sliding into the accent. */
   accentFill:
-    'linear-gradient(180deg, color-mix(in srgb, var(--pp-color-accent) 86%, #fff), var(--pp-color-accent))',
+    'linear-gradient(180deg, color-mix(in srgb, var(--pp-color-action) 88%, #fff), var(--pp-color-action))',
   /** Raised card fill. */
   card: 'linear-gradient(180deg, var(--pp-color-surface-raised), var(--pp-color-surface))',
   /** Light catching the top of a surface. */
   sheen: 'linear-gradient(180deg, rgb(255 255 255 / 0.06), transparent 44%)',
   /** Hairline gradient used as a 1px border (see `.pp-gradient-border`). */
   border:
-    'linear-gradient(140deg, color-mix(in srgb, var(--pp-color-accent) 60%, transparent), color-mix(in srgb, var(--pp-color-border) 80%, transparent) 36%, color-mix(in srgb, var(--pp-color-brass) 50%, transparent))',
+    'linear-gradient(140deg, color-mix(in srgb, var(--pp-color-aurora-lilac) 60%, transparent), color-mix(in srgb, var(--pp-color-border) 80%, transparent) 36%, color-mix(in srgb, var(--pp-color-aurora-lime) 70%, transparent))',
 } as const

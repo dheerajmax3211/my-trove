@@ -6,6 +6,9 @@ const external = [
   /^react(\/.*)?$/,
   /^react-dom(\/.*)?$/,
   /^radix-ui(\/.*)?$/,
+  /^motion(\/.*)?$/,
+  /^lenis(\/.*)?$/,
+  /^gsap(\/.*)?$/,
   /^@platform\/tokens$/,
 ]
 
