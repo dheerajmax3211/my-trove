@@ -84,6 +84,7 @@ public class ReminderEngine {
                     .set(NOTIFICATIONS.KIND, "REMINDER")
                     .set(NOTIFICATIONS.SOURCE, "shared")
                     .set(NOTIFICATIONS.TITLE, r.getTitle())
+                    .set(NOTIFICATIONS.BODY, "Your reminder \"" + r.getTitle() + "\" is due now.")
                     .set(NOTIFICATIONS.IN_APP, true)
                     .set(NOTIFICATIONS.DEDUPE_KEY, Notification.dedupeKey("reminder", r.getId().toString(),
                             r.getDueAt().toInstant().toString(), recipient))

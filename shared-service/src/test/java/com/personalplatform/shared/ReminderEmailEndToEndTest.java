@@ -91,6 +91,8 @@ class ReminderEmailEndToEndTest {
         String listing = mailpit("/api/v1/search?query=" + search);
         assertThat(JsonPath.<java.util.List<?>>read(listing, "$.messages")).hasSize(1);
         assertThat(JsonPath.<String>read(listing, "$.messages[0].To[0].Address")).isEqualTo(address);
+        String text = JsonPath.read(mailpit("/api/v1/message/" + JsonPath.<String>read(listing, "$.messages[0].ID")), "$.Text");
+        assertThat(text).contains("is due now");
 
         String inbox = mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
                         "/v1/notifications/unread-count").header("Authorization", bearer(member)))
