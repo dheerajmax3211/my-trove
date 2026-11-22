@@ -1,4 +1,3 @@
-import { isApiError } from '@platform/api-client'
 import { BentoCard, BentoGrid, Button, ChartIcon, PageHeader } from '@platform/ui'
 import { ErrorNotice } from '../../components/ErrorNotice'
 import { PageSkeleton } from '../../components/PageSkeleton'
@@ -15,10 +14,10 @@ export function VaultPage() {
   const { key, lock } = useVaultKey()
 
   if (vault.isPending) return <PageSkeleton label="Loading your vault" />
-  const missing = isApiError(vault.error) && vault.error.status === 404
-  if (vault.error && !missing)
-    return <ErrorNotice error={vault.error} onRetry={() => void vault.refetch()} />
+  if (vault.error) return <ErrorNotice error={vault.error} onRetry={() => void vault.refetch()} />
 
+  // no vault yet is a normal state the API reports as exists=false (not an error)
+  const missing = vault.data?.exists === false
   const summary = missing ? null : (vault.data ?? null)
   const editable = missing || state.data?.state === 'ACTIVE'
 
@@ -65,7 +64,7 @@ export function VaultPage() {
                 </div>
                 <div>
                   <dt>Algorithm</dt>
-                  <dd>{summary.metadata.alg}</dd>
+                  <dd>{summary.metadata?.alg ?? '—'}</dd>
                 </div>
                 <div>
                   <dt>Last updated</dt>
@@ -73,7 +72,7 @@ export function VaultPage() {
                 </div>
                 <div>
                   <dt>Ciphertext SHA-256</dt>
-                  <dd className="mono">{summary.ciphertextSha256.slice(0, 16)}...</dd>
+                  <dd className="mono">{summary.ciphertextSha256?.slice(0, 16) ?? '—'}...</dd>
                 </div>
               </dl>
             </div>

@@ -63,7 +63,10 @@ public class TrusteeAdminService {
 
     @Transactional(readOnly = true)
     public List<TrusteeView> list(String uid) {
-        VaultRow vault = vaults.findByOwner(uid).orElseThrow(() -> new NotFoundException("No vault"));
+        VaultRow vault = vaults.findByOwner(uid).orElse(null);
+        if (vault == null) {
+            return List.of(); // no vault means no trustees; a normal state, not a 404
+        }
         return trustees.listForVault(vault.id()).stream().map(t -> view(t, vault)).toList();
     }
 

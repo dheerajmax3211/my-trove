@@ -55,6 +55,7 @@ export function SealSharesCard({
   const seal = useMutation({
     mutationFn: async () => {
       if (!key) throw new Error('The vault key is locked')
+      if (!vault.id) throw new Error('There is no vault yet')
       setProgress({})
       setOutcomes(null)
       return sealAndUploadShares({

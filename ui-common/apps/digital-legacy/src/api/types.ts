@@ -42,18 +42,23 @@ export interface VaultMetadata {
   nonce: string
 }
 
+/** The state an owner reads while no vault exists yet (the API answers 200 with this, never 404). */
+export const NO_VAULT_STATE = 'NONE' as const
+
 export interface VaultSummary {
-  id: string
-  state: SwitchStateName
+  /** False when the owner has no vault yet; every other field is then empty. */
+  exists: boolean
+  id: string | null
+  state: SwitchStateName | typeof NO_VAULT_STATE
   armed: boolean
   vaultVersion: number
   contentRevision: number
   ciphertextBytes: number
-  ciphertextSha256: string
-  metadata: VaultMetadata
+  ciphertextSha256: string | null
+  metadata: VaultMetadata | null
   hasPolicy: boolean
-  createdAt: string
-  updatedAt: string
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface CreateVaultRequest {
@@ -66,10 +71,11 @@ export interface UpdateVaultRequest extends CreateVaultRequest {
 }
 
 export interface CiphertextView {
-  ciphertext: string
-  metadata: VaultMetadata
+  /** Null (with metadata and sha256) when no vault exists. */
+  ciphertext: string | null
+  metadata: VaultMetadata | null
   vaultVersion: number
-  sha256: string
+  sha256: string | null
 }
 
 export interface InviteResponse {
@@ -121,7 +127,7 @@ export interface Readiness {
 }
 
 export interface StateView {
-  state: SwitchStateName
+  state: SwitchStateName | typeof NO_VAULT_STATE
   armed: boolean
   epoch: number
   lastCheckInAt: string | null

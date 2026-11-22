@@ -1,4 +1,3 @@
-import { isApiError } from '@platform/api-client'
 import { Button, EmptyState, Illustration, PageHeader, PlusIcon } from '@platform/ui'
 import { useState } from 'react'
 import { ModuleLink } from '@platform/workspace-kit'
@@ -21,21 +20,21 @@ export function TrusteesPage() {
 
   if (vault.isPending || state.isPending || trustees.isPending)
     return <PageSkeleton label="Loading your trustees" />
+  if (vault.data?.exists === false)
+    return (
+      <EmptyState
+        illustration={<Illustration name="locked" size={200} />}
+        title="Create your vault first"
+        description="Trustees hold pieces of your vault's key, so there has to be a vault."
+        action={
+          <Button asChild>
+            <ModuleLink to="/vault">Create your vault</ModuleLink>
+          </Button>
+        }
+      />
+    )
   if (vault.error || state.error || trustees.error) {
     const error = vault.error ?? state.error ?? trustees.error
-    if (isApiError(error) && error.status === 404)
-      return (
-        <EmptyState
-          illustration={<Illustration name="locked" size={200} />}
-          title="Create your vault first"
-          description="Trustees hold pieces of your vault's key, so there has to be a vault."
-          action={
-            <Button asChild>
-              <ModuleLink to="/vault">Create your vault</ModuleLink>
-            </Button>
-          }
-        />
-      )
     return (
       <ErrorNotice
         error={error}

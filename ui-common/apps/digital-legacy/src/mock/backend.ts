@@ -26,6 +26,7 @@ import type {
   VaultSummary,
   VoteResponse,
 } from '../api/types'
+import { NO_VAULT_STATE } from '../api/types'
 import { sha256Hex } from './sha256'
 
 /**
@@ -136,6 +137,54 @@ class HttpProblem extends Error {
 }
 
 const notFound = (detail: string) => new HttpProblem(404, 'Not found', detail)
+
+/** What the API answers for an owner with no vault: the same shapes, empty (see OwnerDtos.absent in the service). */
+const absentSummary = (): VaultSummary => ({
+  exists: false,
+  id: null,
+  state: NO_VAULT_STATE,
+  armed: false,
+  vaultVersion: 0,
+  contentRevision: 0,
+  ciphertextBytes: 0,
+  ciphertextSha256: null,
+  metadata: null,
+  hasPolicy: false,
+  createdAt: null,
+  updatedAt: null,
+})
+
+const absentCiphertext = (): CiphertextView => ({
+  ciphertext: null,
+  metadata: null,
+  vaultVersion: 0,
+  sha256: null,
+})
+
+const absentState = (): StateView => ({
+  state: NO_VAULT_STATE,
+  armed: false,
+  epoch: 0,
+  lastCheckInAt: null,
+  nextDueAt: null,
+  pausedUntil: null,
+  stateEnteredAt: null,
+  nextActionAt: null,
+  releasedAt: null,
+  escalation: { stepsExecuted: 0, totalSteps: 0 },
+  quorum: {
+    required: 0,
+    approved: 0,
+    declined: 0,
+    trusteesActive: 0,
+    trusteesHoldingShare: 0,
+    quorumReachedAt: null,
+    releaseNotBefore: null,
+  },
+  pause: { usedSeconds: 0, yearlyBudgetSeconds: 0, maxSingleSeconds: 0 },
+  readiness: { armable: false, problems: ['no vault yet'] },
+  policy: null,
+})
 const conflict = (detail: string) =>
   new HttpProblem(409, 'Not allowed in the current state', detail)
 const invalid = (problems: string[]) =>
@@ -299,22 +348,29 @@ export class MockBackend {
     if (sub === '') {
       if (method === 'POST') return ok(this.createVault(json()), 201)
       if (method === 'PUT') return ok(this.updateVault(json()))
-      if (method === 'GET') return ok(this.summary(this.requireVault()))
+      if (method === 'GET') return ok(this.vault ? this.summary(this.vault) : absentSummary())
     }
-    if (method === 'GET' && sub === '/ciphertext') return ok(this.ownerCiphertext())
+    if (method === 'GET' && sub === '/ciphertext')
+      return ok(this.vault ? this.ownerCiphertext() : absentCiphertext())
     if (method === 'PUT' && sub === '/policy') return ok(this.setPolicy(json()))
-    if (method === 'GET' && sub === '/state') return ok(this.stateView(this.requireVault()))
+    if (method === 'GET' && sub === '/state')
+      return ok(this.vault ? this.stateView(this.vault) : absentState())
     if (method === 'POST' && sub === '/arm') return ok(this.arm())
     if (method === 'POST' && sub === '/disarm') return ok(this.disarm())
     if (method === 'POST' && sub === '/checkin') return ok(this.checkIn())
     if (method === 'POST' && sub === '/pause') return ok(this.pause(json()))
     if (method === 'POST' && sub === '/resume') return ok(this.resume())
     if (method === 'GET' && sub === '/timeline')
-      return ok(this.timeline(Number(query.get('limit') ?? 100)))
-    if (method === 'GET' && sub === '/audit/verify') return ok(this.verifyAudit())
+      return ok(this.vault ? this.timeline(Number(query.get('limit') ?? 100)) : [])
+    if (method === 'GET' && sub === '/audit/verify')
+      return ok(
+        this.vault
+          ? this.verifyAudit()
+          : { intact: true, length: 0, headHash: null, firstBadSeq: null },
+      )
     if (sub === '/trustees') {
       if (method === 'POST') return ok(this.invite(json()), 201)
-      if (method === 'GET') return ok(this.listTrustees())
+      if (method === 'GET') return ok(this.vault ? this.listTrustees() : [])
     }
     const id = trusteeRoute?.[1]
     if (id && !trusteeRoute[2] && method === 'DELETE') {
@@ -493,6 +549,7 @@ export class MockBackend {
 
   private summary(v: VaultRow): VaultSummary {
     return {
+      exists: true,
       id: v.id,
       state: v.state,
       armed: v.armed,

@@ -21,8 +21,10 @@ public final class OwnerDtos {
     public record UpdateVaultRequest(
             @NotBlank String ciphertext, @NotNull Map<String, Object> metadata, boolean keyRotated) {}
 
+    /** {@code exists} is false (and the rest empty) when the caller has no vault yet: a normal state, not an error. */
     public record VaultSummary(
             UUID id,
+            boolean exists,
             String state,
             boolean armed,
             int vaultVersion,
@@ -32,9 +34,22 @@ public final class OwnerDtos {
             Map<String, Object> metadata,
             boolean hasPolicy,
             Instant createdAt,
-            Instant updatedAt) {}
+            Instant updatedAt) {
 
-    public record CiphertextView(String ciphertext, Map<String, Object> metadata, int vaultVersion, String sha256) {}
+        public static VaultSummary absent() {
+            return new VaultSummary(null, false, NO_VAULT, false, 0, 0, 0, null, Map.of(), false, null, null);
+        }
+    }
+
+    /** The state name the owner reads while no vault exists. */
+    public static final String NO_VAULT = "NONE";
+
+    public record CiphertextView(String ciphertext, Map<String, Object> metadata, int vaultVersion, String sha256) {
+
+        public static CiphertextView absent() {
+            return new CiphertextView(null, Map.of(), 0, null);
+        }
+    }
 
     public record InviteRequest(@NotBlank @Size(max = 100) String label) {}
 
@@ -72,7 +87,15 @@ public final class OwnerDtos {
             Quorum quorum,
             Pause pause,
             Readiness readiness,
-            SwitchPolicy policy) {}
+            SwitchPolicy policy) {
+
+        /** The switch as an owner without a vault sees it: nothing armed, nothing due, no policy. */
+        public static StateView absent() {
+            return new StateView(NO_VAULT, false, 0, null, null, null, null, null, null,
+                    new Escalation(0, 0), new Quorum(0, 0, 0, 0, 0, null, null), new Pause(0, 0, 0),
+                    new Readiness(false, List.of("no vault yet")), null);
+        }
+    }
 
     public record Escalation(int stepsExecuted, int totalSteps) {}
 
@@ -86,5 +109,11 @@ public final class OwnerDtos {
 
     public record TimelineEntry(long seq, Instant at, String actorKind, String eventType, Map<String, Object> detail) {}
 
-    public record ChainView(boolean intact, long length, String headHash, Long firstBadSeq) {}
+    public record ChainView(boolean intact, long length, String headHash, Long firstBadSeq) {
+
+        /** An owner without a vault has an empty chain, which is intact by definition. */
+        public static ChainView empty() {
+            return new ChainView(true, 0, null, null);
+        }
+    }
 }

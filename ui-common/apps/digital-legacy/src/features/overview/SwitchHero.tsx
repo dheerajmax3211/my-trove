@@ -2,14 +2,15 @@ import { useApiMutation } from '@platform/api-client'
 import { BentoCard, Badge, Button, KeyIcon, useToast, type BadgeVariant } from '@platform/ui'
 import type { CSSProperties } from 'react'
 import { ownerPaths } from '../../api/paths'
-import type { StateView, SwitchStateName } from '../../api/types'
+import type { StateView } from '../../api/types'
 import { CountdownRing } from '../../components/CountdownRing'
 import { ErrorNotice } from '../../components/ErrorNotice'
 import { formatDateTime } from '../../lib/format'
 import { OWNER_KEYS } from '../queries'
 import { ringTotalSeconds, summarize } from './status'
 
-const STATE_LABEL: Record<SwitchStateName, string> = {
+const STATE_LABEL: Record<StateView['state'], string> = {
+  NONE: 'No vault',
   ACTIVE: 'Active',
   GRACE: 'Grace',
   ESCALATING: 'Escalating',

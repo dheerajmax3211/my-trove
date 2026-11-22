@@ -1,4 +1,4 @@
-import type { StateView } from '../../api/types'
+import { NO_VAULT_STATE, type StateView } from '../../api/types'
 import { formatDateTime } from '../../lib/format'
 
 /** Where the switch sits on the ladder from "checked in" (0) to "released" (4). */
@@ -25,6 +25,14 @@ export interface StatusSummary {
 
 /** Plain-language reading of the switch, one place so the wording is consistent and testable. */
 export function summarize(s: StateView): StatusSummary {
+  if (s.state === NO_VAULT_STATE)
+    return {
+      headline: 'No vault yet',
+      detail: 'Create a vault and the switch starts with it. Nothing is armed until you arm it.',
+      countdownLabel: null,
+      countdownTarget: null,
+      tone: 'neutral',
+    }
   const approvals = `${s.quorum.approved} of ${s.quorum.required} trustees have approved`
   if (!s.armed && s.state === 'ACTIVE')
     return {

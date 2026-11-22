@@ -1,4 +1,3 @@
-import { isApiError } from '@platform/api-client'
 import { useApiMutation } from '@platform/api-client'
 import {
   Button,
@@ -29,6 +28,7 @@ import {
   type StateView,
   type SwitchPolicy,
 } from '../../api/types'
+import { NO_VAULT_STATE } from '../../api/types'
 import { Callout } from '../../components/Callout'
 import { ErrorNotice } from '../../components/ErrorNotice'
 import { PageSkeleton } from '../../components/PageSkeleton'
@@ -392,20 +392,20 @@ export function PolicyPage() {
   const { email } = useWorkspaceSession()
 
   if (state.isPending || trustees.isPending) return <PageSkeleton label="Loading your policy" />
+  if (state.data?.state === NO_VAULT_STATE)
+    return (
+      <EmptyState
+        title="Create your vault first"
+        description="The policy belongs to a vault."
+        action={
+          <Button asChild>
+            <ModuleLink to="/vault">Create your vault</ModuleLink>
+          </Button>
+        }
+      />
+    )
   if (state.error || trustees.error) {
     const error = state.error ?? trustees.error
-    if (isApiError(error) && error.status === 404)
-      return (
-        <EmptyState
-          title="Create your vault first"
-          description="The policy belongs to a vault."
-          action={
-            <Button asChild>
-              <ModuleLink to="/vault">Create your vault</ModuleLink>
-            </Button>
-          }
-        />
-      )
     return (
       <ErrorNotice
         error={error}

@@ -1,4 +1,3 @@
-import { isApiError } from '@platform/api-client'
 import type { CSSProperties } from 'react'
 import {
   Badge,
@@ -121,17 +120,17 @@ function CountCard({
 export function TimelinePage() {
   const timeline = useTimelineQuery(100)
   if (timeline.isPending) return <PageSkeleton label="Loading the timeline" />
-  if (timeline.error) {
-    if (isApiError(timeline.error) && timeline.error.status === 404)
-      return (
-        <EmptyState
-          illustration={<Illustration name="empty" size={200} />}
-          title="Nothing to show yet"
-          description="The trail starts when you create your vault."
-        />
-      )
+  if (timeline.error)
     return <ErrorNotice error={timeline.error} onRetry={() => void timeline.refetch()} />
-  }
+  // every vault has at least its creation event, so an empty trail means there is no vault yet
+  if (timeline.data.length === 0)
+    return (
+      <EmptyState
+        illustration={<Illustration name="empty" size={200} />}
+        title="Nothing to show yet"
+        description="The trail starts when you create your vault."
+      />
+    )
   return (
     <>
       <PageHeader

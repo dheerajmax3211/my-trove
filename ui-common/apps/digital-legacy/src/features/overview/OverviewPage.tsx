@@ -1,7 +1,6 @@
-import { isApiError } from '@platform/api-client'
 import { BentoCard, BentoGrid, ClockIcon, Skeleton } from '@platform/ui'
 import type { CSSProperties } from 'react'
-import type { StateView } from '../../api/types'
+import { NO_VAULT_STATE, type StateView } from '../../api/types'
 import { ErrorNotice } from '../../components/ErrorNotice'
 import { PageSkeleton } from '../../components/PageSkeleton'
 import { formatDateTime } from '../../lib/format'
@@ -63,10 +62,8 @@ export function OverviewPage() {
   const refresh = useRefreshOwnerData()
 
   if (state.isPending) return <PageSkeleton label="Loading your switch" />
-  if (state.error) {
-    if (isApiError(state.error) && state.error.status === 404) return <FirstRun />
-    return <ErrorNotice error={state.error} onRetry={() => void state.refetch()} />
-  }
+  if (state.data?.state === NO_VAULT_STATE) return <FirstRun />
+  if (state.error) return <ErrorNotice error={state.error} onRetry={() => void state.refetch()} />
 
   const s = state.data
   return (

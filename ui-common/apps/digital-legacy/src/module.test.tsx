@@ -59,7 +59,9 @@ describe('createDemoFetch', () => {
   it('is an in-memory server that answers through the gateway path, without a network call', async () => {
     const f = createDemoFetch()
     const none = await f(url, auth)
-    expect(none.status).toBe(404) // no vault yet: the first-run screen
+    // no vault yet is a normal state: 200 with exists=false, so the first-run screen loads without a console error
+    expect(none.status).toBe(200)
+    expect(await none.json()).toMatchObject({ state: 'NONE', armed: false })
     expect((await f(url)).status).toBe(401) // the owner chain needs a bearer token
   })
 
@@ -76,7 +78,8 @@ describe('createDemoFetch', () => {
     })
     expect(created.status, await created.clone().text()).toBeLessThan(300)
     expect((await a(url, auth)).status).toBe(200)
-    expect((await b(url, auth)).status).toBe(404)
+    // b never saw a's vault: it answers as an owner with no vault, not with a's data
+    expect(await (await b(url, auth)).json()).toMatchObject({ state: 'NONE' })
   })
 })
 

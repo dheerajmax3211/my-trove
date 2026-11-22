@@ -47,9 +47,10 @@ class LegacyApiTest extends LegacyIntegrationBase {
         // a trustee token is not an owner credential
         mvc.perform(get("/v1/legacy/vault").header("Authorization", "Trustee " + team.trustees.get(0).token()))
                 .andExpect(status().isUnauthorized());
-        // (the stub decoder accepts any base64url as a uid, so this decodes to a stranger with no data)
+        // (the stub decoder accepts any base64url as a uid, so this decodes to a stranger: an empty "no vault" state)
         mvc.perform(get("/v1/legacy/vault").header("Authorization", "Bearer " + team.trustees.get(0).token()))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.exists").value(false));
         tGet(team.trustees.get(0).token(), "/v1/legacy/trustee/me").andExpect(status().isOk());
     }
 
@@ -266,11 +267,18 @@ class LegacyApiTest extends LegacyIntegrationBase {
         Team a = setupTeam(uniqueUid("alice"), 2, 2, true);
         String bob = uniqueUid("bob");
 
-        // Bob has no vault: nothing of Alice's leaks through any owner endpoint
-        for (String path : List.of("/v1/legacy/vault", "/v1/legacy/vault/state", "/v1/legacy/vault/ciphertext",
-                "/v1/legacy/vault/trustees", "/v1/legacy/vault/timeline", "/v1/legacy/vault/audit/verify")) {
-            oGet(bob, path).andExpect(status().isNotFound());
-        }
+        // Bob has no vault: every owner read answers 200 with an empty "no vault" state (never a 404), and none of
+        // Alice's data leaks through any of them
+        oGet(bob, "/v1/legacy/vault").andExpect(status().isOk())
+                .andExpect(jsonPath("$.exists").value(false)).andExpect(jsonPath("$.state").value("NONE"));
+        oGet(bob, "/v1/legacy/vault/state").andExpect(status().isOk())
+                .andExpect(jsonPath("$.state").value("NONE")).andExpect(jsonPath("$.armed").value(false));
+        oGet(bob, "/v1/legacy/vault/ciphertext").andExpect(status().isOk())
+                .andExpect(jsonPath("$.vaultVersion").value(0));
+        oGet(bob, "/v1/legacy/vault/trustees").andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+        oGet(bob, "/v1/legacy/vault/timeline").andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+        oGet(bob, "/v1/legacy/vault/audit/verify").andExpect(status().isOk()).andExpect(jsonPath("$.length").value(0));
+        // actions on a vault that does not exist are still refused
         oPost(bob, "/v1/legacy/vault/checkin", null).andExpect(status().isNotFound());
         oPost(bob, "/v1/legacy/vault/arm", null).andExpect(status().isNotFound());
 

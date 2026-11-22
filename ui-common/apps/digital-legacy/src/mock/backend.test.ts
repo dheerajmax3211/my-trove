@@ -66,9 +66,18 @@ describe('mock backend: authentication', () => {
 describe('mock backend: vault', () => {
   it('has no vault until one is created, and only one per owner', async () => {
     const h = createHarness()
-    expect((await failure(h.owner.getVault())).status).toBe(404)
-    expect((await failure(h.owner.getState())).status).toBe(404)
+    // no vault is a normal state: every owner read answers with an empty "no vault" shape, never a 404
+    const summary = await h.owner.getVault()
+    expect(summary).toMatchObject({ exists: false, id: null, state: 'NONE', armed: false })
+    expect(await h.owner.getState()).toMatchObject({ state: 'NONE', armed: false })
+    expect(await h.owner.getCiphertext()).toMatchObject({ ciphertext: null, sha256: null })
+    expect(await h.owner.listTrustees()).toEqual([])
+    expect(await h.owner.timeline()).toEqual([])
+    expect(await h.owner.verifyAudit()).toMatchObject({ intact: true, length: 0 })
+    // actions still need a vault
+    expect((await failure(h.owner.checkIn())).status).toBe(404)
     await saveVault(h.owner, generateVaultKey(), sampleDocument, 'create')
+    expect((await h.owner.getVault()).exists).toBe(true)
     expect(
       (await failure(saveVault(h.owner, generateVaultKey(), sampleDocument, 'create'))).status,
     ).toBe(409)

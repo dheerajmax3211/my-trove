@@ -76,6 +76,8 @@ export async function armedScenario(
   const h = createHarness(options.backend)
   const vaultKey = generateVaultKey()
   const summary = await saveVault(h.owner, vaultKey, sampleDocument, 'create')
+  if (summary.id === null) throw new Error('scenario setup: the vault was not created')
+  const vaultId = summary.id
   await h.owner.putPolicy(testPolicy())
   const trustees: TrusteeFixture[] = []
   for (const [i, label] of ['Ada', 'Ben', 'Cleo'].entries()) {
@@ -96,7 +98,7 @@ export async function armedScenario(
   }
   const outcomes = await sealAndUploadShares({
     api: h.owner,
-    vaultId: summary.id,
+    vaultId,
     vaultVersion: summary.vaultVersion,
     vaultKey,
     trustees: await h.owner.listTrustees(),
@@ -104,5 +106,5 @@ export async function armedScenario(
   })
   if (!outcomes.every((o) => o.ok)) throw new Error('sealing failed in scenario setup')
   if (options.arm !== false) await h.owner.arm()
-  return { h, vaultKey, vaultId: summary.id, trustees }
+  return { h, vaultKey, vaultId, trustees }
 }

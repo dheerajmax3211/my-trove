@@ -110,15 +110,19 @@ public class VaultService {
         return summary(vaults.findById(row.id()).orElseThrow());
     }
 
+    /** No vault yet is a normal state: an empty summary with {@code exists=false}, not a 404. */
     @Transactional(readOnly = true)
     public VaultSummary get(String uid) {
-        return summary(vaults.findByOwner(uid).orElseThrow(() -> new NotFoundException("No vault")));
+        return vaults.findByOwner(uid).map(this::summary).orElseGet(VaultSummary::absent);
     }
 
     /** The owner may always download their own ciphertext (to decrypt it client-side). */
     @Transactional(readOnly = true)
     public CiphertextView ciphertext(String uid) {
-        VaultRow row = vaults.findByOwner(uid).orElseThrow(() -> new NotFoundException("No vault"));
+        VaultRow row = vaults.findByOwner(uid).orElse(null);
+        if (row == null) {
+            return CiphertextView.absent();
+        }
         var blob = vaults.fetchCiphertext(row.id()).orElseThrow();
         return new CiphertextView(Base64.getEncoder().encodeToString(blob.ciphertext()),
                 json.read(blob.metadataJson(), new TypeReference<Map<String, Object>>() {}), blob.vaultVersion(),
@@ -261,12 +265,15 @@ public class VaultService {
 
     @Transactional(readOnly = true)
     public StateView state(String uid) {
-        return state(vaults.findByOwner(uid).orElseThrow(() -> new NotFoundException("No vault")));
+        return vaults.findByOwner(uid).map(row -> state(row)).orElseGet(StateView::absent);
     }
 
     @Transactional(readOnly = true)
     public List<TimelineEntry> timeline(String uid, int limit) {
-        VaultRow row = vaults.findByOwner(uid).orElseThrow(() -> new NotFoundException("No vault"));
+        VaultRow row = vaults.findByOwner(uid).orElse(null);
+        if (row == null) {
+            return List.of();
+        }
         return audit.timeline(row.id(), Math.max(1, Math.min(limit, 500))).stream()
                 .map(e -> new TimelineEntry(e.seq(), e.at(), e.actorKind(), e.eventType(), e.detail()))
                 .toList();
@@ -274,7 +281,10 @@ public class VaultService {
 
     @Transactional(readOnly = true)
     public ChainView verifyAudit(String uid) {
-        VaultRow row = vaults.findByOwner(uid).orElseThrow(() -> new NotFoundException("No vault"));
+        VaultRow row = vaults.findByOwner(uid).orElse(null);
+        if (row == null) {
+            return ChainView.empty();
+        }
         var c = audit.verify(row.id());
         return new ChainView(c.intact(), c.length(), c.headHash(), c.firstBadSeq());
     }
@@ -332,7 +342,7 @@ public class VaultService {
     }
 
     VaultSummary summary(VaultRow row) {
-        return new VaultSummary(row.id(), row.state().name(), row.armed(), row.vaultVersion(), row.contentRevision(),
+        return new VaultSummary(row.id(), true, row.state().name(), row.armed(), row.vaultVersion(), row.contentRevision(),
                 row.ciphertextBytes(), Tokens.hex(row.ciphertextSha256()),
                 json.read(row.metadataJson(), new TypeReference<Map<String, Object>>() {}), row.policy() != null,
                 row.createdAt(), row.updatedAt());
