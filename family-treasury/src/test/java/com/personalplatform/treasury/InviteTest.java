@@ -33,18 +33,6 @@ class InviteTest extends AbstractIntegrationTest {
         return dsl.fetchCount(HOUSEHOLD_INVITES, HOUSEHOLD_INVITES.HOUSEHOLD_ID.eq(h.id()));
     }
 
-    /** No email delivery is wired yet (W3 supplies the notifier), so an email invite is refused and stores nothing. */
-    @Test
-    void emailInviteIsRefusedBeforeAnythingIsStoredWhenNoNotifierIsWired() throws Exception {
-        Household h = newHousehold(uid("owner"), null);
-        int before = invitesIn(h);
-        post("/v1/households/" + h.id() + "/invites", h.owner(), null,
-                Map.of("role", "MEMBER", "email", "ben@example.test"))
-                .andExpect(status().isNotImplemented())
-                .andExpect(jsonPath("$.code").value("EMAIL_INVITES_UNAVAILABLE"));
-        assertThat(invitesIn(h)).isEqualTo(before);
-    }
-
     @Test
     void ownerInvitesMemberByCodeAndTheyJoinWithTheirOwnPot() throws Exception {
         Household h = newHousehold(uid("owner"), null);

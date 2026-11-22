@@ -1,6 +1,5 @@
 package com.personalplatform.shared.reminder;
 
-import com.personalplatform.shared.reminder.ReminderService.NotificationView;
 import com.personalplatform.shared.reminder.ReminderService.ReminderView;
 import com.personalplatform.shared.reminder.ReminderService.Status;
 import jakarta.validation.Valid;
@@ -77,9 +76,4 @@ public class ReminderController {
         return reminders.cancel(jwt.getSubject(), id);
     }
 
-    @GetMapping("/notifications")
-    public List<NotificationView> notifications(@AuthenticationPrincipal Jwt jwt,
-            @RequestParam(required = false) String status) {
-        return reminders.notifications(jwt.getSubject(), status);
-    }
 }

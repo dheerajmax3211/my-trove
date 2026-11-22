@@ -38,6 +38,6 @@ final class MessageTemplates {
             }
             default -> throw new IllegalStateException();
         }
-        return new NotificationMessage(n.vaultId(), n.kind(), n.urgency(), n.recipientKind(), subject, body);
+        return new NotificationMessage(n.vaultId(), n.kind(), n.urgency(), n.recipientKind(), subject, body, n.id());
     }
 }

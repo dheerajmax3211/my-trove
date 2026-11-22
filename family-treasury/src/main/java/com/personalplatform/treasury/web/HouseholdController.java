@@ -80,13 +80,13 @@ public class HouseholdController {
 
     /**
      * Owner invites someone by code. The code is shown once; the invitee redeems it on their own account. With an
-     * email address the code is also handed to the {@code InvitationNotifier} (refused with 501 when none is wired).
+     * email address the code is emailed to that address through the notifications outbox.
      */
     @PostMapping("/{householdId}/invites")
     @ResponseStatus(HttpStatus.CREATED)
     public InviteCreated createInvite(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID householdId,
                                       @Valid @RequestBody CreateInviteRequest req) {
-        return households.createInvite(householdId, jwt.getSubject(), req.role(), req.ttlHours(), req.email());
+        return households.createInvite(householdId, jwt.getSubject(), req.role(), req.ttlHours(), req.inviteeEmail());
     }
 
     @GetMapping("/{householdId}/invites")

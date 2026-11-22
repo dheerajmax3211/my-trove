@@ -14,12 +14,15 @@ import com.personalplatform.legacy.web.NotFoundException;
 import com.personalplatform.legacy.web.OwnerDtos.InviteResponse;
 import com.personalplatform.legacy.web.OwnerDtos.ShareUpload;
 import com.personalplatform.legacy.web.OwnerDtos.TrusteeView;
+import com.personalplatform.notify.Notification;
+import com.personalplatform.notify.NotificationOutbox;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,9 +37,12 @@ public class TrusteeAdminService {
     private final Json json;
     private final Clock clock;
     private final LegacyProperties props;
+    private final NotificationOutbox outbox;
+    private final String trusteePortalUrl;
 
     public TrusteeAdminService(VaultRepository vaults, TrusteeRepository trustees, AuditService audit,
-            EnvelopeValidator envelopes, Json json, Clock clock, LegacyProperties props) {
+            EnvelopeValidator envelopes, Json json, Clock clock, LegacyProperties props, NotificationOutbox outbox,
+            @Value("${legacy.trustee-portal-url:http://localhost:5190}") String trusteePortalUrl) {
         this.vaults = vaults;
         this.trustees = trustees;
         this.audit = audit;
@@ -44,10 +50,16 @@ public class TrusteeAdminService {
         this.json = json;
         this.clock = clock;
         this.props = props;
+        this.outbox = outbox;
+        this.trusteePortalUrl = trusteePortalUrl.replaceAll("/+$", "");
     }
 
+    /**
+     * Creates a trustee invite. With an address, the invite link is also emailed to the trustee in the same transaction;
+     * the link leaves the outbox once it has been sent.
+     */
     @Transactional
-    public InviteResponse invite(String uid, String label) {
+    public InviteResponse invite(String uid, String label, String email) {
         VaultRow vault = lockActive(uid, "Trustees can only be changed while the switch is ACTIVE");
         long active = trustees.listForVault(vault.id()).stream().filter(TrusteeRow::active).count();
         if (active >= props.maxTrustees()) {
@@ -58,6 +70,16 @@ public class TrusteeAdminService {
         Instant expires = now.plus(props.inviteTtl());
         UUID id = trustees.invite(vault.id(), label.strip(), Tokens.sha256(token), expires, now);
         audit.record(vault.id(), Actor.owner(uid), "TRUSTEE_INVITED", Map.of("trusteeId", id.toString()));
+        if (email != null && !email.isBlank()) {
+            // The fragment after # is never sent to a server by a browser, so the token stays out of server logs.
+            String link = trusteePortalUrl + "/trustee/accept#invite=" + token;
+            outbox.enqueue(Notification.toAddress(email.trim(), "TRUSTEE_INVITE", "digital-legacy",
+                    "A trustee invitation from My-Trove",
+                    "Hello " + label.strip() + ", you have been asked to be a trustee of a digital legacy. "
+                            + "Open this link on your own device to register your key:\n" + link
+                            + "\n\nWe will compare a short fingerprint by phone afterwards.",
+                    null, Notification.dedupeKey("trustee-invite", id.toString())));
+        }
         return new InviteResponse(id, label.strip(), token, expires);
     }
 

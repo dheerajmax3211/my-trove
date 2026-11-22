@@ -1,7 +1,8 @@
 package com.personalplatform.waitingon.config;
 
-import com.personalplatform.waitingon.notify.LoggingNotificationPort;
+import com.personalplatform.notify.NotificationOutbox;
 import com.personalplatform.waitingon.notify.NotificationPort;
+import com.personalplatform.waitingon.notify.OutboxNotificationPort;
 import com.personalplatform.waitingon.reply.ReplyClassifier;
 import com.personalplatform.waitingon.reply.RuleBasedReplyClassifier;
 import com.personalplatform.waitingon.temporal.NoopFollowUpScheduler;
@@ -22,10 +23,11 @@ import org.springframework.context.annotation.Bean;
 @EnableConfigurationProperties(TemporalProperties.class)
 public class WaitingOnDefaultsAutoConfiguration {
 
+    /** Email and inbox delivery through the shared outbox. Define your own NotificationPort to replace it. */
     @Bean
     @ConditionalOnMissingBean
-    NotificationPort loggingNotificationPort() {
-        return new LoggingNotificationPort();
+    NotificationPort outboxNotificationPort(NotificationOutbox outbox) {
+        return new OutboxNotificationPort(outbox);
     }
 
     @Bean

@@ -1,12 +1,12 @@
-package com.personalplatform.shared.reminder;
+package com.personalplatform.notify;
 
 import static com.personalplatform.sql.jooq.shared.shared.Tables.NOTIFICATIONS;
 
-import com.personalplatform.shared.common.Times;
 import com.personalplatform.sql.jooq.shared.shared.tables.records.NotificationsRecord;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +16,11 @@ import org.springframework.transaction.support.TransactionTemplate;
  * Outbox relay: delivers PENDING notifications through the {@link NotificationSender}.
  * Each notification is claimed with {@code FOR UPDATE SKIP LOCKED} in its own short transaction, so relays on several
  * instances never send the same row concurrently and one bad row cannot block the others.
+ * The address is the row's own {@code recipient_email}, or else the address on file for its uid. Without either, the
+ * attempt fails and is retried like any other failure.
  * On failure: attempts+1 and next_attempt_at = now + base * 2^(attempts-1) (capped); after {@code maxAttempts} the row
- * becomes DEAD (dead-letter) and is never retried automatically.
+ * becomes DEAD and is never retried automatically. Email-only rows (not in any inbox) have their body and link cleared
+ * once they are SENT or DEAD.
  */
 public class NotificationRelay {
 
@@ -33,16 +36,18 @@ public class NotificationRelay {
     private final TransactionTemplate tx;
     private final Clock clock;
     private final NotificationSender sender;
+    private final ContactDirectory contacts;
     private final int maxAttempts;
     private final Duration baseBackoff;
     private final Duration maxBackoff;
 
     public NotificationRelay(DSLContext dsl, TransactionTemplate tx, Clock clock, NotificationSender sender,
-            int maxAttempts, Duration baseBackoff, Duration maxBackoff) {
+            ContactDirectory contacts, int maxAttempts, Duration baseBackoff, Duration maxBackoff) {
         this.dsl = dsl;
         this.tx = tx;
         this.clock = clock;
         this.sender = sender;
+        this.contacts = contacts;
         this.maxAttempts = maxAttempts;
         this.baseBackoff = baseBackoff;
         this.maxBackoff = maxBackoff;
@@ -71,7 +76,7 @@ public class NotificationRelay {
     private Outcome dispatchOne() {
         Instant now = clock.instant();
         NotificationsRecord n = dsl.selectFrom(NOTIFICATIONS)
-                .where(NOTIFICATIONS.STATUS.eq("PENDING").and(NOTIFICATIONS.NEXT_ATTEMPT_AT.le(Times.odt(now))))
+                .where(NOTIFICATIONS.STATUS.eq("PENDING").and(NOTIFICATIONS.NEXT_ATTEMPT_AT.le(now.atOffset(ZoneOffset.UTC))))
                 .orderBy(NOTIFICATIONS.NEXT_ATTEMPT_AT, NOTIFICATIONS.ID)
                 .limit(1)
                 .forUpdate()
@@ -82,19 +87,30 @@ public class NotificationRelay {
         }
         int attempt = n.getAttempts() + 1;
         try {
-            sender.send(new NotificationSender.Message(n.getId(), n.getReminderId(), n.getHouseholdId(),
-                    n.getRecipientUid(), n.getTitle(), Times.instant(n.getOccurrenceAt()), attempt));
+            String address = n.getRecipientEmail() != null ? n.getRecipientEmail() : resolve(n.getRecipientUid());
+            sender.send(new NotificationSender.Message(n.getId(), n.getKind(), n.getRecipientUid(), address,
+                    n.getTitle(), n.getBody(), n.getLink(), n.getReplyTo(), attempt));
         } catch (Exception e) {
             return recordFailure(n, attempt, now, e);
         }
-        dsl.update(NOTIFICATIONS)
+        var update = dsl.update(NOTIFICATIONS)
                 .set(NOTIFICATIONS.STATUS, "SENT")
                 .set(NOTIFICATIONS.ATTEMPTS, attempt)
-                .set(NOTIFICATIONS.SENT_AT, Times.odt(now))
-                .set(NOTIFICATIONS.LAST_ERROR, (String) null)
-                .where(NOTIFICATIONS.ID.eq(n.getId()))
-                .execute();
+                .set(NOTIFICATIONS.SENT_AT, now.atOffset(ZoneOffset.UTC))
+                .set(NOTIFICATIONS.LAST_ERROR, (String) null);
+        if (!n.getInApp()) {
+            update.set(NOTIFICATIONS.BODY, (String) null).set(NOTIFICATIONS.LINK, (String) null);
+        }
+        update.where(NOTIFICATIONS.ID.eq(n.getId())).execute();
         return Outcome.SENT;
+    }
+
+    private String resolve(String uid) {
+        if (uid == null) {
+            throw new IllegalStateException("no recipient address");
+        }
+        return contacts.emailFor(uid).orElseThrow(
+                () -> new IllegalStateException("no email address on file for this user"));
     }
 
     private Outcome recordFailure(NotificationsRecord n, int attempt, Instant now, Exception e) {
@@ -108,9 +124,12 @@ public class NotificationRelay {
                 .set(NOTIFICATIONS.LAST_ERROR, error);
         if (dead) {
             update.set(NOTIFICATIONS.STATUS, "DEAD");
+            if (!n.getInApp()) {
+                update.set(NOTIFICATIONS.BODY, (String) null).set(NOTIFICATIONS.LINK, (String) null);
+            }
             LOG.warn("Notification {} dead-lettered after {} attempts: {}", n.getId(), attempt, error);
         } else {
-            update.set(NOTIFICATIONS.NEXT_ATTEMPT_AT, Times.odt(now.plus(backoff(attempt))));
+            update.set(NOTIFICATIONS.NEXT_ATTEMPT_AT, now.plus(backoff(attempt)).atOffset(ZoneOffset.UTC));
             LOG.warn("Notification {} attempt {} failed, will retry: {}", n.getId(), attempt, error);
         }
         update.where(NOTIFICATIONS.ID.eq(n.getId())).execute();

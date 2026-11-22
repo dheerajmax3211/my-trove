@@ -6,6 +6,8 @@ import static com.personalplatform.sql.jooq.treasury.treasury.Tables.HOUSEHOLDS;
 import static com.personalplatform.sql.jooq.treasury.treasury.Tables.HOUSEHOLD_INVITES;
 import static com.personalplatform.sql.jooq.treasury.treasury.Tables.HOUSEHOLD_MEMBERS;
 
+import com.personalplatform.notify.Notification;
+import com.personalplatform.notify.NotificationOutbox;
 import com.personalplatform.sql.UuidV7;
 import com.personalplatform.treasury.household.Dtos.AccountView;
 import com.personalplatform.treasury.household.Dtos.InviteCreated;
@@ -58,14 +60,13 @@ public class HouseholdService {
     private final DSLContext dsl;
     private final Clock clock;
     private final IdempotencyService idempotency;
-    private final ObjectProvider<InvitationNotifier> invitationNotifier;
+    private final NotificationOutbox outbox;
 
-    public HouseholdService(DSLContext dsl, Clock clock, IdempotencyService idempotency,
-                            ObjectProvider<InvitationNotifier> invitationNotifier) {
+    public HouseholdService(DSLContext dsl, Clock clock, IdempotencyService idempotency, NotificationOutbox outbox) {
         this.dsl = dsl;
         this.clock = clock;
         this.idempotency = idempotency;
-        this.invitationNotifier = invitationNotifier;
+        this.outbox = outbox;
     }
 
     private OffsetDateTime now() {
@@ -308,17 +309,11 @@ public class HouseholdService {
      * Joining with it gives the invitee the role and a pot of their own, so no one needs another person's member ID.
      */
     @Transactional
-    public InviteCreated createInvite(UUID householdId, String uid, Role role, Integer ttlHours, String email) {
+    public InviteCreated createInvite(UUID householdId, String uid, Role role, Integer ttlHours, String inviteeEmail) {
         requireRole(householdId, uid, Role.OWNER);
         int hours = ttlHours == null ? DEFAULT_INVITE_HOURS : ttlHours;
         if (hours < 1 || hours > MAX_INVITE_HOURS) {
             throw ApiException.badRequest("INVITE_TTL", "invite lifetime must be 1 to " + MAX_INVITE_HOURS + " hours");
-        }
-        // refuse an email invite before anything is stored when no delivery is wired
-        InvitationNotifier notifier = email == null ? null : invitationNotifier.getIfAvailable();
-        if (email != null && notifier == null) {
-            throw ApiException.notImplemented("EMAIL_INVITES_UNAVAILABLE",
-                    "email invites are not available yet; share the code instead");
         }
         byte[] raw = new byte[18];
         RANDOM.nextBytes(raw);
@@ -331,9 +326,14 @@ public class HouseholdService {
                 .set(HOUSEHOLD_INVITES.CODE_HASH, sha256Hex(code)).set(HOUSEHOLD_INVITES.ROLE, role.name())
                 .set(HOUSEHOLD_INVITES.CREATED_BY_UID, uid).set(HOUSEHOLD_INVITES.CREATED_AT, now)
                 .set(HOUSEHOLD_INVITES.EXPIRES_AT, expires).execute();
-        if (notifier != null) {
-            notifier.invitationCreated(new InvitationNotifier.EmailInvitation(
-                    householdId, id, role, email, code, expires.toInstant()));
+        if (inviteeEmail != null && !inviteeEmail.isBlank()) {
+            // Email only, in the same transaction as the invite. The code leaves the outbox once it has been sent.
+            outbox.enqueue(Notification.toAddress(inviteeEmail.trim(), "HOUSEHOLD_INVITE", "family-treasury",
+                    "You are invited to a household on My-Trove",
+                    "You have been invited to join a household as " + role.name().toLowerCase(java.util.Locale.ROOT)
+                            + ".\n\nYour invite code: " + code + "\nIt works once and expires " + expires.toInstant()
+                            + ". Sign in to My-Trove and choose to join with a code.",
+                    null, Notification.dedupeKey("household-invite", id.toString())));
         }
         return new InviteCreated(id, code, role, expires.toInstant());
     }

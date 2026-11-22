@@ -1,6 +1,7 @@
 package com.personalplatform.legacy.web;
 
 import com.personalplatform.legacy.protocol.SwitchPolicy;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -51,7 +52,8 @@ public final class OwnerDtos {
         }
     }
 
-    public record InviteRequest(@NotBlank @Size(max = 100) String label) {}
+    /** email is optional: when given, the invite link is emailed to that address (the owner need not pass it on). */
+    public record InviteRequest(@NotBlank @Size(max = 100) String label, @Email @Size(max = 320) String email) {}
 
     public record InviteResponse(UUID trusteeId, String label, String inviteToken, Instant inviteExpiresAt) {}
 

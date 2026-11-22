@@ -34,6 +34,13 @@ class TestSupportConfig {
         @Override public Instant instant() { return now.get(); }
     }
 
+    /** The shared notifications table is not part of this database: writes are recorded instead. */
+    @Bean
+    @Primary
+    RecordingNotificationOutbox recordingNotificationOutbox() {
+        return new RecordingNotificationOutbox();
+    }
+
     @Bean
     @Primary
     MutableClock testClock() {

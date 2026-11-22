@@ -11,6 +11,8 @@ import com.personalplatform.consent.policy.Scope;
 import com.personalplatform.consent.policy.Sensitivity;
 import com.personalplatform.consent.policy.TimeWindow;
 import com.personalplatform.consent.token.TokenService;
+import com.personalplatform.notify.Notification;
+import com.personalplatform.notify.NotificationOutbox;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -45,6 +47,7 @@ public class ConsentService {
     private final AuditService audit;
     private final ConsentProperties props;
     private final Clock clock;
+    private final NotificationOutbox outbox;
 
     public ConsentService(
             AccessRequestRepository requests,
@@ -53,7 +56,8 @@ public class ConsentService {
             TokenService tokens,
             AuditService audit,
             ConsentProperties props,
-            Clock clock) {
+            Clock clock,
+            NotificationOutbox outbox) {
         this.requests = requests;
         this.grants = grants;
         this.clients = clients;
@@ -61,6 +65,7 @@ public class ConsentService {
         this.audit = audit;
         this.props = props;
         this.clock = clock;
+        this.outbox = outbox;
     }
 
     // ---- client side ----
@@ -93,6 +98,11 @@ public class ConsentService {
         audit.append(client.ownerUid(), AuditEvent.ACCESS_REQUESTED, "CLIENT", client.clientId(), client.clientId(), null,
                 Map.of("requestId", id.toString(), "scopes", scopes, "purpose", req.purpose().trim(),
                         "durationSeconds", req.durationSeconds()));
+        outbox.enqueue(Notification.toUser(client.ownerUid(), "CONSENT_REQUEST", "consent-gateway",
+                "Access request from " + client.name(),
+                client.name() + " asks to see: " + String.join(", ", scopes) + ".\nPurpose: " + req.purpose().trim()
+                        + "\nReview it in Consent to approve or deny.",
+                "/consent", Notification.dedupeKey("consent-request", id.toString())));
         return requests.findForClient(client.pk(), id).orElseThrow();
     }
 

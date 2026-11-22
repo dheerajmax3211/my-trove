@@ -4,7 +4,8 @@ import static com.personalplatform.sql.jooq.shared.shared.Tables.NOTIFICATIONS;
 import static com.personalplatform.sql.jooq.shared.shared.Tables.REMINDERS;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.personalplatform.shared.reminder.NotificationRelay;
+import com.personalplatform.notify.ContactDirectory;
+import com.personalplatform.notify.NotificationRelay;
 import com.personalplatform.shared.reminder.Recurrence;
 import com.personalplatform.shared.reminder.Recurrence.Unit;
 import com.personalplatform.shared.reminder.ReminderEngine;
@@ -30,17 +31,24 @@ import org.springframework.transaction.support.TransactionTemplate;
 class ReminderEngineTests extends AbstractIntegrationTest {
 
     @Autowired ReminderService reminders;
+    @Autowired ContactDirectory contacts;
 
     private ReminderEngine newInstance(int batchSize, java.util.function.Consumer<List<UUID>> hook) {
         return new ReminderEngine(dsl, new TransactionTemplate(txManager), clock, batchSize, hook);
     }
 
     private NotificationRelay newRelay(int maxAttempts) {
-        return new NotificationRelay(dsl, new TransactionTemplate(txManager), clock, sender, maxAttempts,
+        return new NotificationRelay(dsl, new TransactionTemplate(txManager), clock, sender, contacts, maxAttempts,
                 Duration.ofSeconds(30), Duration.ofHours(1));
     }
 
+    /** Every test user has an address on file, as a real user would after signing in. */
+    private void onFile(String uid) {
+        contacts.remember(uid, uid + "@example.test");
+    }
+
     private UUID personal(String uid, String title, Instant due, Recurrence rec) {
+        onFile(uid);
         return reminders.create(uid, title, due, rec, null).id();
     }
 

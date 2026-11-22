@@ -19,6 +19,7 @@
 	<modules>
 		<module>sql-jooq</module>
 		<module>libs/platform-security</module>
+		<module>libs/platform-notify</module>
 		<module>auth</module>
 		<module>shared-service</module>
 		<module>waiting-on</module>
@@ -45,6 +46,11 @@
 			<dependency>
 				<groupId>com.personalplatform</groupId>
 				<artifactId>platform-security</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.personalplatform</groupId>
+				<artifactId>platform-notify</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>

@@ -25,6 +25,13 @@ public class TestSupportConfig {
         return new PostgreSQLContainer(DockerImageName.parse("postgres:16"));
     }
 
+    /** The shared notifications table is not part of this database: writes are recorded instead. */
+    @Bean
+    @Primary
+    RecordingNotificationOutbox recordingNotificationOutbox() {
+        return new RecordingNotificationOutbox();
+    }
+
     @Bean
     @Primary
     MutableClock testClock() {
