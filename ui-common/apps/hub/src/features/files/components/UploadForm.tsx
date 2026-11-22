@@ -1,5 +1,5 @@
-import { Button, FieldError, useToast } from '@platform/ui'
-import { useState, type DragEvent, type FormEvent } from 'react'
+import { Button, Field, FieldError, FileDrop, useToast } from '@platform/ui'
+import { useState, type FormEvent } from 'react'
 import { ScopeSelect, SCOPE_PERSONAL } from '../../../components/ScopeSelect'
 import { errorMessage } from '../../../lib/errors'
 import { formatBytes } from '../../../lib/format'
@@ -24,7 +24,6 @@ export function UploadForm({
   const [file, setFile] = useState<File | null>(null)
   const [scope, setScope] = useState(defaultScope ?? SCOPE_PERSONAL)
   const [error, setError] = useState<string>()
-  const [over, setOver] = useState(false)
   // Changing the key remounts the file input, which is the only way to clear it.
   const [inputKey, setInputKey] = useState(0)
 
@@ -48,51 +47,19 @@ export function UploadForm({
     )
   }
 
-  const hover = (next: boolean) => (event: DragEvent) => {
-    event.preventDefault()
-    setOver(next)
-  }
-
   return (
     <form className={styles.form} onSubmit={submit} noValidate aria-label="Upload a file">
-      <div
-        className={styles.zone}
-        data-over={over || undefined}
-        data-filled={file ? '' : undefined}
-      >
-        <input
+      <Field label="File" className={styles.drop}>
+        <FileDrop
           key={inputKey}
-          type="file"
-          aria-label="File"
-          className={styles.input}
-          onChange={(e) => {
-            setFile(e.target.files?.[0] ?? null)
+          onFilesChange={(picked) => {
+            setFile(picked[0] ?? null)
             setError(undefined)
           }}
-          onDragEnter={hover(true)}
-          onDragOver={hover(true)}
-          onDragLeave={hover(false)}
-          onDrop={() => setOver(false)}
+          title="Drop a file here, or browse"
+          hint={`Up to ${formatBytes(MAX_UPLOAD_BYTES)}. Personal files are visible only to you; household files to every member.`}
         />
-        <p className={styles.prompt}>
-          {file ? (
-            <>
-              <strong className={styles.picked}>{file.name}</strong>
-              <span className={styles.hint}>
-                {formatBytes(file.size)}. Choose another file to replace it.
-              </span>
-            </>
-          ) : (
-            <>
-              <strong>Drop a file here, or choose one</strong>
-              <span className={styles.hint}>
-                Up to {formatBytes(MAX_UPLOAD_BYTES)}. Personal files are visible only to you;
-                household files to every member.
-              </span>
-            </>
-          )}
-        </p>
-      </div>
+      </Field>
       <div className={styles.controls}>
         <ScopeSelect label="Save to" value={scope} onChange={setScope} households={households} />
         <Button type="submit" loading={upload.isPending}>

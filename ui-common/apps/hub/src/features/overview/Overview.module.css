@@ -221,3 +221,23 @@
     line-height: var(--pp-text-h1-line);
   }
 }
+
+.householdBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-5);
+}
+.householdBody .vaultMeta,
+.householdBody .personRole {
+  color: rgb(255 255 255 / 0.7);
+}
+.householdBody .people {
+  border-top-color: rgb(255 255 255 / 0.18);
+}
+.agendaItem {
+  padding: var(--pp-space-3) var(--pp-space-4);
+  margin-bottom: var(--pp-space-2);
+  border-bottom: 0;
+  border-radius: var(--pp-radius-lg);
+  background: var(--pp-color-surface-sunken);
+}

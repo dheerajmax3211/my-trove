@@ -1,5 +1,13 @@
 import { useAuth } from '@platform/auth-web'
-import { AppShell, Button, Select, SidebarLink, SidebarNav, SidebarSection } from '@platform/ui'
+import {
+  AppFrame,
+  Button,
+  ProductMark,
+  Select,
+  SidebarLink,
+  SidebarNav,
+  SidebarSection,
+} from '@platform/ui'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ThemeSelect } from '../components/ThemeSelect'
@@ -55,16 +63,23 @@ function DemoUserSwitch() {
 export function HubShell() {
   const { user, signOut } = useAuth()
   const profile = useProfile()
-  const initials = (user?.displayName ?? user?.email ?? '?').slice(0, 1).toUpperCase()
   useFocusMainOnNavigation()
 
   return (
-    <AppShell
+    <AppFrame
       brand={
         <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-          Hub
+          <span className="hub-brand">
+            <ProductMark product="core" size={28} variant="solid" />
+            Hub
+          </span>
         </Link>
       }
+      user={{
+        name: user?.displayName ?? user?.email ?? 'You',
+        ...(user?.email ? { email: user.email } : {}),
+      }}
+      search={false}
       sidebar={
         <SidebarNav label="Hub">
           <SidebarSection title="Workspace">
@@ -82,16 +97,10 @@ export function HubShell() {
           </SidebarSection>
         </SidebarNav>
       }
-      topbar={
+      headerEnd={
         <>
           <DemoUserSwitch />
           <ThemeSelect />
-          <div className="hub-user-chip hub-hide-sm">
-            <span className="hub-avatar" aria-hidden="true">
-              {initials}
-            </span>
-            <span>{user?.email}</span>
-          </div>
           <Button size="sm" variant="secondary" onClick={() => void signOut()}>
             Sign out
           </Button>
@@ -99,6 +108,6 @@ export function HubShell() {
       }
     >
       <Outlet />
-    </AppShell>
+    </AppFrame>
   )
 }

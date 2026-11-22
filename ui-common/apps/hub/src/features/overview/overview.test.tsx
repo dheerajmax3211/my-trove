@@ -46,8 +46,7 @@ describe('overview states', () => {
     expect(within(members).getByText('Bob Rivera')).toBeInTheDocument()
     expect(within(panel).getByText(/You share it with Bob Rivera/)).toBeInTheDocument()
 
-    const glance = screen.getByRole('region', { name: 'At a glance' })
-    const stat = (label: string) => within(glance).getByRole('group', { name: label })
+    const stat = (label: string) => screen.getByRole('region', { name: label })
     expect(stat('People you share with')).toHaveTextContent('1')
     expect(stat('Reminders due this week')).toHaveTextContent(/[0-9]/)
     expect(stat('Files shared')).toHaveTextContent('1')

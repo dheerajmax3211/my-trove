@@ -69,3 +69,11 @@
   display: block;
   margin-bottom: var(--pp-space-3);
 }
+.hub-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pp-space-2);
+}
+.hub-inline-control {
+  white-space: nowrap;
+}
