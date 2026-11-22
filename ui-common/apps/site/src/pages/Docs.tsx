@@ -30,7 +30,6 @@ export function Docs() {
   return (
     <>
       <PageIntro
-        eyebrow="Docs"
         title="Read the code, run the stack"
         lead="The documentation today is the repository itself: one README per service with its endpoints and its honest limits, a design document, and the design language. The API reference and SDK come later."
         actions={

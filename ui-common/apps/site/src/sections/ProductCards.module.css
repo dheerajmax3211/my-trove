@@ -1,0 +1,211 @@
+.section {
+  padding-block: var(--st-section) 0;
+}
+.head {
+  padding-bottom: 0;
+}
+
+/* Full-bleed: the grid runs edge to edge and the cards share hairlines. */
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-block: 1px solid var(--pp-color-hairline);
+  background: var(--pp-color-hairline);
+}
+.item {
+  display: flex;
+  min-width: 0;
+}
+
+.card {
+  --accent: var(--pp-color-lime);
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: clamp(21rem, 52vw, 34rem);
+  padding: clamp(1.25rem, 2.6vw, 2.25rem);
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: var(--pp-color-canvas);
+  color: var(--pp-color-text);
+  isolation: isolate;
+}
+/* SpotlightCard wraps children in its own content box: make that box the column and drop its positioning so the sheet anchors to the card. */
+.card > div {
+  position: static;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* The product's colour rises from the bottom edge on hover. */
+.card::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: radial-gradient(
+    90% 70% at 50% 120%,
+    color-mix(in srgb, var(--accent) 38%, transparent),
+    transparent 70%
+  );
+  opacity: 0.35;
+  transition: opacity var(--pp-duration-slower) var(--pp-ease-standard);
+}
+.card:hover::before,
+.card:focus-within::before {
+  opacity: 1;
+}
+
+.num {
+  position: absolute;
+  inset-block-start: clamp(0.5rem, 1.2vw, 1.25rem);
+  inset-inline-start: clamp(1rem, 2.4vw, 2rem);
+  font-family: var(--pp-font-editorial);
+  font-size: clamp(5.5rem, 11vw, 9.5rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--accent) 70%, var(--pp-color-text-subtle));
+  transition: transform var(--pp-duration-slower) var(--pp-ease-emphasized);
+}
+.card:hover .num,
+.card:focus-within .num {
+  transform: translate3d(0, -6px, 0);
+}
+.mark {
+  align-self: flex-end;
+}
+
+.foot {
+  display: grid;
+  gap: var(--pp-space-1);
+  transition: transform var(--pp-duration-slower) var(--pp-ease-emphasized);
+}
+.name {
+  font-family: var(--pp-font-editorial);
+  font-size: clamp(1.75rem, 3vw, 2.75rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+/* The whole card is the target: the heading's link stretches over it. */
+.link {
+  color: inherit;
+  text-decoration: none;
+}
+.link::after {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+}
+.link:focus-visible {
+  outline: none;
+}
+.card:has(.link:focus-visible) {
+  outline: 3px solid var(--pp-color-focus-ring);
+  outline-offset: -3px;
+}
+.tagline {
+  color: var(--pp-color-text-muted);
+}
+
+/* The reveal. On a phone (no hover) it is simply part of the card. */
+.sheet {
+  display: grid;
+  gap: var(--pp-space-3);
+  margin-top: var(--pp-space-4);
+  padding-top: var(--pp-space-4);
+  border-top: 1px solid var(--pp-color-border);
+}
+.summary {
+  color: var(--pp-color-text);
+  font-size: var(--pp-text-body-small-size);
+  line-height: 1.5;
+}
+.hard {
+  display: grid;
+  gap: 2px;
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-caption-size);
+}
+.hardLabel {
+  color: var(--accent);
+  font-weight: 700;
+}
+.go {
+  display: none;
+}
+
+@media (hover: hover) and (min-width: 48rem) {
+  .sheet {
+    position: absolute;
+    z-index: 2;
+    inset: auto 0 0;
+    margin: 0;
+    padding: clamp(1.25rem, 2.6vw, 2.25rem);
+    padding-block-end: clamp(1.25rem, 2.6vw, 2rem);
+    border-top: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+    background: color-mix(in srgb, var(--pp-color-canvas) 88%, var(--accent));
+    transform: translate3d(0, 101%, 0);
+    transition: transform var(--pp-duration-slower) var(--pp-ease-emphasized);
+  }
+  .card:hover .sheet,
+  .card:focus-within .sheet {
+    transform: none;
+  }
+  .card:hover .foot,
+  .card:focus-within .foot {
+    transform: translate3d(0, -4px, 0);
+  }
+  .go {
+    position: absolute;
+    inset-block-start: calc(var(--pp-space-4) * -1 - 24px);
+    inset-inline-end: clamp(1.25rem, 2.6vw, 2.25rem);
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--pp-radius-full);
+    background: var(--pp-color-lime);
+    color: var(--pp-color-on-lime);
+    opacity: 0;
+    transition: opacity var(--pp-duration-slower) var(--pp-ease-standard);
+  }
+  .card:hover .go,
+  .card:focus-within .go {
+    opacity: 1;
+  }
+}
+
+/* On a phone the outlined number sits above the name, not behind it. */
+@media (max-width: 47.99rem) {
+  .card {
+    min-height: 0;
+    padding-top: 6.75rem;
+  }
+}
+
+@media (min-width: 48rem) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .card {
+    min-height: clamp(24rem, 34vw, 36rem);
+  }
+}
+@media (min-width: 72rem) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

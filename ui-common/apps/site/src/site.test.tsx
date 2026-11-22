@@ -237,6 +237,8 @@ describe('keyboard', () => {
     const user = userEvent.setup()
     renderAt('/')
     await user.tab() // skip link
+    await user.tab() // announcement link
+    await user.tab() // dismiss the announcement
     await user.tab()
     expect(screen.getByRole('link', { name: 'My-Trove, home' })).toHaveFocus()
     await user.tab()

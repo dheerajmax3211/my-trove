@@ -1,0 +1,51 @@
+.bar {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: var(--pp-space-2) var(--pp-space-12);
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
+  font-size: var(--pp-text-body-small-size);
+  font-weight: 600;
+  text-align: center;
+  animation: bar-in var(--pp-duration-slower) var(--pp-ease-emphasized) both;
+}
+@keyframes bar-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -100%, 0);
+  }
+}
+.text {
+  line-height: 1.35;
+}
+.text a {
+  color: inherit;
+  font-weight: 700;
+  text-underline-offset: 0.2em;
+}
+.close {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: var(--pp-space-2);
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-block: auto;
+  border: 0;
+  border-radius: var(--pp-radius-full);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.close:hover {
+  background: rgb(0 0 0 / 0.1);
+}
+.close:focus-visible {
+  outline: 2px solid var(--pp-color-on-lime);
+  outline-offset: -2px;
+}

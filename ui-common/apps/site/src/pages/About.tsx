@@ -21,7 +21,6 @@ export function About() {
   return (
     <>
       <PageIntro
-        eyebrow="About"
         title="An open portfolio build"
         lead="My-Trove is one developer’s project, built in the open. It is a working answer to a small question and a demonstration of how several hard backend problems are solved properly."
         actions={

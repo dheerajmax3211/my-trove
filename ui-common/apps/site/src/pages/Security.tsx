@@ -15,7 +15,6 @@ export function Security() {
   return (
     <>
       <PageIntro
-        eyebrow="Security"
         title="What is protected, and what is not"
         lead="The first half of this page lists protections that are built and tested. The second half lists what a careful reviewer would want to know is missing. Both are written plainly."
       />

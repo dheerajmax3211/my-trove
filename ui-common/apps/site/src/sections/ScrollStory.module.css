@@ -1,0 +1,231 @@
+/* Static by default: a complete layout. [data-story='on'] (set by the scroll story) turns it into the pinned stage. */
+.story {
+  overflow: hidden;
+  padding-block: var(--st-section);
+  border-block: 1px solid var(--pp-color-hairline);
+}
+.stage {
+  display: grid;
+  gap: clamp(2rem, 4vw, 3rem);
+}
+
+.head {
+  max-width: 54rem;
+}
+.title {
+  font-family: var(--pp-font-editorial);
+  font-size: clamp(2.25rem, 5vw, 4.25rem);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+/* The diagram needs room to read: phones get the steps instead. */
+.diagramWrap {
+  display: none;
+  min-height: 0;
+}
+.diagram {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  overflow: visible;
+}
+
+.inPath,
+.outPath,
+.blocked {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.inPath {
+  stroke: var(--c, var(--pp-color-text-subtle));
+  stroke-opacity: 0.85;
+}
+.outPath {
+  stroke: var(--pp-color-lime);
+  stroke-width: 2.5;
+}
+.blocked {
+  stroke: var(--pp-color-text-subtle);
+  stroke-dashoffset: 0.72;
+}
+
+.pill {
+  fill: var(--pp-color-surface-raised);
+  stroke: var(--pp-color-border);
+  stroke-width: 1;
+}
+.nodeText {
+  fill: var(--pp-color-text);
+  font-family: var(--pp-font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.subText,
+.endText {
+  fill: var(--pp-color-text-muted);
+  font-family: var(--pp-font-sans);
+  font-size: 13px;
+}
+.endText {
+  fill: var(--pp-color-lime);
+  font-weight: 600;
+  opacity: 0;
+}
+.gateHalo {
+  fill: color-mix(in srgb, var(--pp-color-lime) 7%, transparent);
+}
+.gateRing {
+  fill: none;
+  stroke: var(--pp-color-lime);
+  stroke-opacity: 0.5;
+  stroke-dasharray: 3 9;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+}
+.gateCore {
+  fill: var(--pp-color-surface-raised);
+  stroke: var(--pp-color-lime);
+  stroke-width: 1.5;
+}
+.gateLabel {
+  fill: var(--pp-color-text-muted);
+  font-family: var(--pp-font-sans);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Static layout of the steps: a row of four on wide screens, a stack on phones. */
+.captions {
+  display: grid;
+  gap: var(--pp-space-6);
+}
+.ticks {
+  display: none;
+}
+.steps {
+  display: grid;
+  gap: var(--pp-space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--pp-space-4);
+  padding-top: var(--pp-space-5);
+  border-top: 1px solid var(--pp-color-border);
+}
+.stepNo {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
+  font-size: var(--pp-text-body-small-size);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.stepTitle {
+  font-family: var(--pp-font-sans);
+  font-size: var(--pp-text-h3-size);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.stepText {
+  max-width: 34rem;
+  margin-top: var(--pp-space-2);
+  color: var(--pp-color-text-muted);
+}
+.marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-space-2);
+  margin: var(--pp-space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 48rem) {
+  .steps {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .step {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .diagramWrap {
+    display: block;
+  }
+}
+
+/* ---- Pinned stage ---- */
+.story[data-story='on'] {
+  display: flex;
+  align-items: stretch;
+  min-height: 100svh;
+  padding-block: 6.5rem 2rem;
+}
+.story[data-story='on'] .stage {
+  flex: 1;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--pp-space-4);
+}
+.story[data-story='on'] .title {
+  font-size: clamp(2rem, 3.6vw, 3.25rem);
+}
+.story[data-story='on'] .captions {
+  position: relative;
+  min-height: 8.5rem;
+}
+.story[data-story='on'] .ticks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--pp-space-2);
+}
+.tickTrack {
+  height: 3px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--pp-color-border);
+}
+.tick {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--pp-color-lime);
+}
+.story[data-story='on'] .steps {
+  position: absolute;
+  inset: calc(3px + var(--pp-space-6)) 0 0;
+  display: block;
+}
+.story[data-story='on'] .step {
+  position: absolute;
+  inset: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  padding-top: 0;
+  border-top: 0;
+}
+.story[data-story='on'] .stepTitle {
+  font-family: var(--pp-font-editorial);
+  font-size: clamp(1.5rem, 2.4vw, 2.25rem);
+  font-weight: 400;
+}
+.story[data-story='on'] .stepText {
+  max-width: 44rem;
+  font-size: var(--pp-text-lead-size);
+}
+.story[data-story='on'] .marks {
+  display: none;
+}

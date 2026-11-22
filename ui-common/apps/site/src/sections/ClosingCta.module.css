@@ -1,0 +1,35 @@
+.band {
+  overflow: hidden;
+  padding-block: clamp(6rem, 14vw, 12rem);
+  text-align: center;
+}
+.inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: var(--pp-space-6);
+  justify-items: center;
+}
+.title {
+  display: block;
+  max-width: 14ch;
+  font-family: var(--pp-font-editorial);
+  font-size: clamp(2.75rem, 8vw, 7rem);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+.lead p {
+  max-width: 34rem;
+  color: var(--pp-color-text-muted);
+  font-size: clamp(1.0625rem, 1.5vw, 1.25rem);
+}
+.actions {
+  justify-content: center;
+}
+.link {
+  color: var(--pp-color-text);
+  font-weight: 600;
+  text-underline-offset: 0.3em;
+}

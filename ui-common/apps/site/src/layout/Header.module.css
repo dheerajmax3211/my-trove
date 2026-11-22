@@ -1,34 +1,43 @@
+/*
+ * A floating glass pill. The wrapper is sticky with no height, so the page's dark hero runs
+ * underneath it. It is dark in both themes. This is the page's one backdrop-filter layer.
+ */
 .header {
   position: sticky;
   top: 0;
-  z-index: var(--pp-z-sticky);
-  background: color-mix(in srgb, var(--pp-color-canvas) 90%, transparent);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
-  backdrop-filter: blur(14px) saturate(1.2);
-  border-bottom: 1px solid var(--pp-color-border);
+  z-index: var(--pp-z-sticky, 40);
+  height: 0;
+  padding-inline: var(--pp-space-3);
+  color: var(--pp-color-text);
 }
 
 .bar {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--pp-space-6);
-  max-width: var(--pp-layout-wide);
-  min-height: 4rem;
-  margin-inline: auto;
-  padding-inline: var(--pp-space-4);
+  justify-content: space-between;
+  gap: var(--pp-space-4);
+  max-width: 78rem;
+  height: 3.75rem;
+  margin: var(--pp-space-3) auto 0;
+  padding-inline: var(--pp-space-3) var(--pp-space-3);
+  border: 1px solid var(--pp-color-glass-border);
+  border-radius: var(--pp-radius-full);
+  background: color-mix(in srgb, #0a0a0a 72%, transparent);
+  -webkit-backdrop-filter: blur(var(--pp-blur-lg)) saturate(1.4);
+  backdrop-filter: blur(var(--pp-blur-lg)) saturate(1.4);
+  box-shadow: 0 10px 40px -12px rgb(0 0 0 / 0.5);
 }
 
 .brand {
   display: inline-flex;
-  flex: none;
   align-items: center;
-  border-radius: var(--pp-radius-md);
-  color: inherit;
+  padding-inline-start: var(--pp-space-2);
+  border-radius: var(--pp-radius-full);
 }
 
 .nav {
   display: none;
-  flex: 1;
   align-items: center;
   gap: var(--pp-space-1);
 }
@@ -38,61 +47,82 @@
   display: inline-flex;
   align-items: center;
   gap: var(--pp-space-1);
-  min-height: var(--pp-control-md);
-  padding: 0 var(--pp-space-3);
+  min-height: 2.5rem;
+  padding: 0 var(--pp-space-4);
   border: 0;
-  border-radius: var(--pp-radius-md);
-  background: none;
+  border-radius: var(--pp-radius-full);
+  background: transparent;
   color: var(--pp-color-text-muted);
   font: inherit;
-  font-size: var(--pp-text-label-size);
-  font-weight: var(--pp-text-label-weight);
+  font-size: var(--pp-text-body-small-size);
+  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: color var(--pp-duration-fast) var(--pp-ease-standard);
+  transition:
+    color var(--pp-duration-normal) var(--pp-ease-standard),
+    background-color var(--pp-duration-normal) var(--pp-ease-standard);
 }
-.link:hover {
+.link:hover,
+.link[aria-expanded='true'] {
+  background: var(--pp-color-glass);
   color: var(--pp-color-text);
 }
-.link.active {
+.active {
   color: var(--pp-color-text);
 }
-/* The brass tab: the page you are on, as in the workspace sidebar. */
-.link.active::after {
+.active::after {
   content: '';
   position: absolute;
-  inset-inline: var(--pp-space-3);
-  bottom: 2px;
-  height: 2px;
-  border-radius: 1px;
-  background: var(--pp-color-brass);
+  inset: auto 50% 4px;
+  width: 4px;
+  height: 4px;
+  margin-inline-start: -2px;
+  border-radius: 50%;
+  background: var(--pp-color-lime);
+  box-shadow: 0 0 8px var(--pp-color-lime);
 }
 
 .menuRoot {
-  position: relative;
+  position: static;
 }
 .chevron {
-  transition: transform var(--pp-duration-fast) var(--pp-ease-standard);
+  transition: transform var(--pp-duration-slow) var(--pp-ease-emphasized);
 }
 .chevronOpen {
   transform: rotate(180deg);
 }
 
+/* ---- The mega-menu panel ---- */
 .panel {
   position: absolute;
-  top: calc(100% + var(--pp-space-2));
-  inset-inline-start: 0;
-  width: 22rem;
-  padding: var(--pp-space-2);
-  border: 1px solid var(--pp-color-border);
-  border-radius: var(--pp-radius-lg);
-  background: var(--pp-color-surface-overlay);
-  box-shadow:
-    inset 0 1px 0 var(--pp-color-highlight),
-    var(--pp-shadow-lg);
+  inset: calc(100% + var(--pp-space-2)) 0 auto;
+  display: grid;
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-4);
+  border: 1px solid var(--pp-color-glass-border);
+  border-radius: var(--pp-radius-xl);
+  background: color-mix(in srgb, #0d0d0d 94%, transparent);
+  box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.7);
+  transform-origin: top center;
+  animation: panel-in var(--pp-duration-slower) var(--pp-ease-emphasized) both;
 }
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0) scale(0.985);
+  }
+}
+
+.panelGrid {
+  display: grid;
+  gap: var(--pp-space-3);
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+}
+
 .productList {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pp-space-1);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -101,57 +131,118 @@
   display: flex;
   align-items: center;
   gap: var(--pp-space-3);
-  padding: var(--pp-space-2) var(--pp-space-3);
-  border-radius: var(--pp-radius-md);
+  height: 100%;
+  padding: var(--pp-space-3);
+  border-radius: var(--pp-radius-lg);
   color: var(--pp-color-text);
   text-decoration: none;
+  transition: background-color var(--pp-duration-normal) var(--pp-ease-standard);
 }
-.productLink:hover {
-  background: var(--pp-color-surface-sunken);
+.productLink:hover,
+.productLink:focus-visible {
+  background: var(--pp-color-surface-raised);
 }
 .productName {
   display: block;
-  font-weight: var(--pp-weight-semibold);
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .productTagline {
   display: block;
-  color: var(--pp-color-text-subtle);
-  font-size: var(--pp-text-body-small-size);
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-caption-size);
+  line-height: 1.35;
 }
-.allProducts {
-  display: block;
-  margin-top: var(--pp-space-1);
-  padding: var(--pp-space-3) var(--pp-space-3) var(--pp-space-2);
-  border-top: 1px solid var(--pp-color-hairline);
+
+.feature {
+  position: relative;
+  display: grid;
+  align-content: end;
+  gap: var(--pp-space-5);
+  min-height: 15rem;
+  padding: var(--pp-space-6);
+  overflow: hidden;
+  border-radius: var(--pp-radius-lg);
+  background:
+    radial-gradient(
+      120% 90% at 100% 0%,
+      color-mix(in srgb, var(--accent) 45%, transparent),
+      transparent 70%
+    ),
+    var(--pp-color-surface-raised);
+}
+.featureText {
+  display: grid;
+  gap: var(--pp-space-2);
+  animation: feature-in var(--pp-duration-slower) var(--pp-ease-emphasized) both;
+}
+@keyframes feature-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+}
+.featureName {
+  font-family: var(--pp-font-editorial);
+  font-size: var(--pp-text-h2-size);
+  line-height: 1.1;
+}
+.featureSummary {
+  color: var(--pp-color-text-muted);
   font-size: var(--pp-text-body-small-size);
-  font-weight: var(--pp-weight-semibold);
+  line-height: 1.45;
+}
+.featureHard {
+  color: var(--pp-color-text);
+  font-size: var(--pp-text-caption-size);
+  font-weight: 600;
+}
+
+.allProducts {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--pp-space-2);
+  padding: var(--pp-space-2) var(--pp-space-3);
+  border-radius: var(--pp-radius-full);
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+  font-weight: 600;
+  text-decoration: none;
+}
+.allProducts:hover {
+  color: var(--pp-color-lime);
 }
 
 .actions {
   display: flex;
   align-items: center;
   gap: var(--pp-space-2);
-  margin-inline-start: auto;
 }
 .ctas {
   display: none;
+  align-items: center;
   gap: var(--pp-space-2);
 }
 
-/* ---- phone and tablet menu ---- */
+/* ---- Phone menu ---- */
 .mobile {
+  position: absolute;
+  inset: calc(3.75rem + var(--pp-space-3) + var(--pp-space-2)) var(--pp-space-3) auto;
   display: grid;
   gap: var(--pp-space-5);
-  max-height: calc(100dvh - 4rem);
+  max-height: calc(100dvh - 6rem);
   overflow-y: auto;
-  padding: var(--pp-space-4) var(--pp-space-4) var(--pp-space-6);
-  border-top: 1px solid var(--pp-color-hairline);
-  background: var(--pp-color-canvas);
+  padding: var(--pp-space-5);
+  border: 1px solid var(--pp-color-glass-border);
+  border-radius: var(--pp-radius-xl);
+  background: color-mix(in srgb, #0d0d0d 96%, transparent);
+  animation: panel-in var(--pp-duration-slower) var(--pp-ease-emphasized) both;
 }
 .mobileHeading {
   color: var(--pp-color-text-subtle);
   font-size: var(--pp-text-body-small-size);
-  font-weight: var(--pp-weight-semibold);
+  font-weight: 600;
 }
 .mobileProducts,
 .mobileLinks {
@@ -162,52 +253,67 @@
   list-style: none;
 }
 .mobileProducts {
-  margin-top: calc(var(--pp-space-3) * -1);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .mobileProduct,
 .mobileLink {
   display: flex;
   align-items: center;
   gap: var(--pp-space-3);
-  min-height: var(--pp-control-md);
-  padding: var(--pp-space-1) var(--pp-space-2);
-  border-radius: var(--pp-radius-md);
+  min-height: 2.75rem;
+  padding: var(--pp-space-2) var(--pp-space-3);
+  border-radius: var(--pp-radius-lg);
   color: var(--pp-color-text);
-  font-weight: var(--pp-weight-semibold);
+  font-size: var(--pp-text-body-small-size);
+  font-weight: 600;
   text-decoration: none;
 }
 .mobileLink {
-  font-family: var(--pp-font-display);
+  font-family: var(--pp-font-editorial);
   font-size: var(--pp-text-h2-size);
   font-weight: 400;
 }
-.mobileLinks {
-  padding-top: var(--pp-space-4);
-  border-top: 1px solid var(--pp-color-hairline);
+.mobileProduct:hover,
+.mobileLink:hover {
+  background: var(--pp-color-surface-raised);
 }
-.mobileLink[aria-current='page'],
-.mobileProduct[aria-current='page'] {
-  background: var(--pp-color-brass-subtle);
+.mobileLinks a[aria-current='page'] {
+  color: var(--pp-color-lime);
 }
 .mobileCtas {
   display: grid;
-  gap: var(--pp-space-3);
+  gap: var(--pp-space-2);
 }
 
 @media (min-width: 64rem) {
-  .bar {
-    padding-inline: var(--pp-space-10);
-  }
   .nav {
     display: flex;
-  }
-  .ctas {
-    display: inline-flex;
   }
   .burger {
     display: none;
   }
   .mobile {
+    display: none;
+  }
+  .panel {
+    inset-inline: 10%;
+  }
+}
+@media (min-width: 64rem) and (max-width: 79.99rem) {
+  .ctas a[data-cta='demo'] {
+    display: none;
+  }
+  .ctas {
+    display: flex;
+  }
+}
+@media (min-width: 80rem) {
+  .ctas {
+    display: flex;
+  }
+}
+@media (max-width: 63.99rem) {
+  .panel {
     display: none;
   }
 }

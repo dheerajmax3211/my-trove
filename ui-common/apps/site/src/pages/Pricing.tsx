@@ -16,7 +16,6 @@ export function Pricing() {
   return (
     <>
       <PageIntro
-        eyebrow="Plans"
         title="Plans set limits. Nothing is charged."
         lead="Free, Pro and Developer differ in how many requests you can make and how many API keys and webhooks you can hold. There are no prices, no card form and no invoices, because billing is simulated."
         actions={<CtaPair size="lg" />}
