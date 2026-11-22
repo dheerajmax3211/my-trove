@@ -43,20 +43,27 @@ function StatusLayout({
 
 /** Shown instead of a module (never half of it) when the signed-in role does not hold the permission it needs. */
 export function ForbiddenPage({ module }: { module: ProductModule }) {
+  return <ForbiddenFor title={module.title} needs={accessPermissions(module)} />
+}
+
+/**
+ * The same screen for any part of the workspace: `needs` is the list of permissions that would open it (any one).
+ * It names the role the person is signed in as and the permissions they lack, so the reason is never a guess.
+ */
+export function ForbiddenFor({ title, needs }: { title: string; needs: readonly string[] }) {
   const session = useWorkspaceSession()
   usePageTitle('No access')
   const persona = primaryPersona(session.roles)
-  const needs = accessPermissions(module)
   const missing = needs.filter((permission) => !session.can(permission))
   return (
     <StatusLayout
       testId="forbidden"
       art={<IllustrationLocked size={260} />}
-      title={`${module.title} is not part of your role`}
+      title={`${title} is not part of your role`}
       description={
         needs.length > 1
-          ? `Opening ${module.title} takes one of the permissions below, and your role has none of them.`
-          : `Opening ${module.title} takes a permission your role does not have.`
+          ? `Opening ${title} takes one of the permissions below, and your role has none of them.`
+          : `Opening ${title} takes a permission your role does not have.`
       }
     >
       <dl className={styles.facts}>

@@ -132,6 +132,49 @@
   display: grid;
   gap: var(--pp-space-3);
 }
+
+/* The development account chooser, shown in place of Google when the local identity provider is in use. */
+.accounts {
+  display: grid;
+  gap: var(--pp-space-3);
+}
+.accountsTitle {
+  margin: 0;
+  font-size: var(--pp-text-body-size);
+  font-weight: 600;
+}
+.accountList {
+  display: grid;
+  gap: var(--pp-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.account {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: var(--pp-space-3) var(--pp-space-4);
+  border: 1px solid var(--pp-color-border);
+  border-radius: var(--pp-radius-lg);
+  background: var(--pp-color-surface);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.account:hover:not(:disabled),
+.account:focus-visible {
+  border-color: var(--pp-color-accent);
+}
+.account:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.accountEmail {
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+}
 .muted {
   margin: 0;
   font-size: var(--pp-text-body-small-size);

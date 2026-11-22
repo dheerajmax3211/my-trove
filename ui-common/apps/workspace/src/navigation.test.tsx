@@ -15,9 +15,9 @@ async function sidebarLinks(): Promise<string[]> {
 describe('persona navigation matrix', () => {
   const matrix: [Persona, string[]][] = [
     ['MEMBER', ['Home', 'Alpha', 'Beta', 'Account']],
-    ['DEVELOPER', ['Home', 'Alpha', 'Beta', 'Account']],
+    ['DEVELOPER', ['Home', 'Alpha', 'Beta', 'Developer', 'Account']],
     ['ADMIN', ['Home', 'Alpha', 'Beta', 'Admin', 'Account']],
-    ['OWNER', ['Home', 'Alpha', 'Beta', 'Admin', 'Account']],
+    ['OWNER', ['Home', 'Alpha', 'Beta', 'Admin', 'Developer', 'Account']],
     // An auditor has no products:use, so no products, but may read users and usage.
     ['AUDITOR', ['Home', 'Admin', 'Account']],
   ]

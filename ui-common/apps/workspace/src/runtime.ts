@@ -2,6 +2,7 @@ import {
   DEMO_USER,
   createFirebaseAuthClient,
   createStubAuthClient,
+  createUnconfiguredAuthClient,
   getFirebaseConfigFromEnv,
   isFirebaseConfigured,
   type AuthClient,
@@ -24,7 +25,7 @@ export interface DemoControls {
   persona: () => Persona
   setPersona: (persona: Persona) => void
   subscribe: (listener: () => void) => () => void
-  /** True when the visitor asked for demo (`?demo=1`); false when the build simply has no sign-in configured. */
+  /** Always true: demo is only ever entered by the visitor's own `?demo=1` (the flag is kept for the tab). */
   explicit: boolean
 }
 
@@ -72,9 +73,9 @@ const str = (value: string | boolean | undefined): string | undefined =>
 const trimSlash = (value: string) => value.replace(/\/+$/, '')
 
 /**
- * Demo mode is on when the URL carries `?demo=1` (remembered for the tab), or when the build has no
- * sign-in configured at all. It uses a stub identity and each module's in-memory mock API, so it can
- * never reach real data; with a real identity provider configured and no `?demo=1`, it is off.
+ * Demo mode is on only when the URL carries `?demo=1` (remembered for the tab; "Try the demo" links there). It uses a
+ * stub identity and each module's in-memory mock API, so it can never reach real data. Otherwise this is a live
+ * workspace: a build with no sign-in configured shows the sign-in page with a clear error, never a silent demo.
  */
 export function createRuntime(env: Env = import.meta.env, options: RuntimeOptions = {}): Runtime {
   const storage = options.storage ?? browserStorages()
@@ -91,7 +92,7 @@ export function createRuntime(env: Env = import.meta.env, options: RuntimeOption
   if (demoParam === '0' || (demoParam === null && pathname === '/'))
     writeItem(storage.session, DEMO_FLAG_KEY, null)
   const explicit = readItem(storage.session, DEMO_FLAG_KEY) === '1'
-  const demo = explicit || !isFirebaseConfigured(env)
+  const demo = explicit
 
   const apiBase = trimSlash(str(env.VITE_API_BASE_URL) ?? DEFAULT_API_BASE)
   const siteUrl = trimSlash(str(env.VITE_SITE_URL) ?? DEFAULT_SITE_URL)
@@ -99,7 +100,11 @@ export function createRuntime(env: Env = import.meta.env, options: RuntimeOption
   const leaveDemo = () => writeItem(storage.session, DEMO_FLAG_KEY, null)
 
   if (!demo) {
-    const authClient = options.authClient ?? createFirebaseAuthClient(getFirebaseConfigFromEnv(env))
+    const authClient =
+      options.authClient ??
+      (isFirebaseConfigured(env)
+        ? createFirebaseAuthClient(getFirebaseConfigFromEnv(env))
+        : createUnconfiguredAuthClient())
     return {
       mode: 'live',
       demo: null,

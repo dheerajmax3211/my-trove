@@ -5,12 +5,21 @@ import { DEFAULT_API_BASE, DEFAULT_SITE_URL, DEMO_FLAG_KEY, createRuntime } from
 afterEach(() => vi.unstubAllGlobals())
 
 describe('createRuntime mode', () => {
-  it('is demo when no identity provider is configured', () => {
+  it('is never demo unless asked: with no identity provider configured it is live and refuses to sign in', async () => {
     const runtime = createRuntime({}, { search: '', storage: memoryStorages() })
-    expect(runtime.mode).toBe('demo')
-    expect(runtime.demo?.explicit).toBe(false)
+    expect(runtime.mode).toBe('live')
+    expect(runtime.demo).toBeNull()
     expect(runtime.apiBase).toBe(DEFAULT_API_BASE)
     expect(runtime.siteUrl).toBe(DEFAULT_SITE_URL)
+    await expect(runtime.authClient.signInWithGoogle()).rejects.toMatchObject({
+      code: 'auth/not-configured',
+    })
+  })
+
+  it('is demo only when the visitor asks for it with ?demo=1', () => {
+    const runtime = createRuntime({}, { search: '?demo=1', storage: memoryStorages() })
+    expect(runtime.mode).toBe('demo')
+    expect(runtime.demo?.explicit).toBe(true)
   })
 
   it('a plain visit to the front door (/) forgets a stale demo flag and shows the real sign-in', () => {
