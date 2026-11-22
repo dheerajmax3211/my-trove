@@ -11,6 +11,8 @@ export interface DeviceDto {
   active: boolean
   /** The built-in simulator, not a real plug. Anything it produces is labelled "Simulated". */
   simulated: boolean
+  /** Readings the owner entered by hand (meter totals or CSV). It has no token and never reports by itself. */
+  manual?: boolean
 }
 
 export interface RegisteredDevice {

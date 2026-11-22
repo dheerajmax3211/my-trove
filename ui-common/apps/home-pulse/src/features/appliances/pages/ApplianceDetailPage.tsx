@@ -20,15 +20,14 @@ import { errorMessage } from '../../../lib/errors'
 import { formatRelative, pluralize } from '../../../lib/format'
 import { useDocumentTitle } from '../../../lib/useDocumentTitle'
 import { DataSourceCard } from '../../devices/components/DataSourceExplainer'
-import {
-  SimulatePlugButton,
-  SimulatedBadge,
-  SimulationCard,
-} from '../../simulation/SimulationControls'
+import { useDevices } from '../../devices/hooks'
+import { SimulatePlugButton, SimulationCard } from '../../simulation/SimulationControls'
 import { AlertCard } from '../../alerts/components/AlertCard'
 import { useReminders } from '../../reminders/hooks'
 import { sortReminders } from '../../reminders/sort'
+import { ManualReadingsCard } from '../../readings/components/ManualReadingsCard'
 import { PowerChartSection } from '../../readings/components/PowerChartSection'
+import { SourceBadge } from '../../readings/components/SourceBadge'
 import { HealthStatusBadge } from '../components/HealthStatusBadge'
 import { BaselineCard, HealthSummary } from '../components/HealthSummary'
 import { ServicePanel } from '../components/ServicePanel'
@@ -42,6 +41,7 @@ export function ApplianceDetailPage() {
   const { toast } = useToast()
   const appliance = useAppliance(id)
   const health = useHealth(id)
+  const devices = useDevices(id)
   const reminders = useReminders()
   const remove = useDeleteAppliance(id)
   const relearn = useRelearnBaseline(id)
@@ -73,6 +73,10 @@ export function ApplianceDetailPage() {
 
   const a = appliance.data
   const hasDevice = health.data ? health.data.status !== 'NO_DEVICE' : false
+  // Entering readings by hand is offered whenever no plug or simulator feeds the appliance, or manual entries already do.
+  const source = health.data?.source ?? null
+  const canEnterReadings = health.data !== undefined && (source === null || source === 'MANUAL')
+  const manualDeviceId = devices.data?.find((d) => d.manual && d.active)?.id ?? null
   const mine = sortReminders((reminders.data ?? []).filter((r) => r.applianceId === id))
   const alertList = health.data?.activeAlerts ?? []
 
@@ -100,7 +104,7 @@ export function ApplianceDetailPage() {
           health.data ? (
             <span className="hp-inline-meta">
               <HealthStatusBadge status={health.data.status} />
-              {health.data.simulated ? <SimulatedBadge /> : null}
+              <SourceBadge source={source} />
               <span>
                 {hasDevice
                   ? `Last reading ${formatRelative(health.data.lastReadingAt, clock()).toLowerCase()}`
@@ -138,6 +142,13 @@ export function ApplianceDetailPage() {
             ) : undefined
           }
         />
+        {canEnterReadings ? (
+          <ManualReadingsCard
+            applianceId={id}
+            applianceName={a.name}
+            manualDeviceId={manualDeviceId}
+          />
+        ) : null}
         {health.isPending ? (
           <div className="hp-span-4" role="status" aria-busy="true" aria-label="Loading health">
             <Skeleton height="22rem" />

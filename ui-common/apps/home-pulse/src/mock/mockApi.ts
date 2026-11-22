@@ -7,13 +7,22 @@ import type {
   ServiceInfo,
 } from '../features/appliances/types'
 import type { DeviceDto } from '../features/devices/types'
-import type { ReadingSeries, Resolution } from '../features/readings/types'
+import type { ReadingSeries, ReadingSource, Resolution } from '../features/readings/types'
 import type { Clock } from '../lib/clock'
 import { computeReminders, daysBetween } from './reminders'
 import { demoSeed, emptySeed, TYPE_SIGNALS } from './seed'
 import { bucketMs, hasData, lastSeen, seriesFor, wattsAt, type SignalProfile } from './signal'
 import type { StoredAlert, StoredAppliance, StoredDevice } from './types'
 import { json, noContent, problem } from './problem'
+import {
+  importCsv,
+  manualLast24h,
+  manualSeries,
+  ManualConflict,
+  parseCsv,
+  recordMeterTotal,
+  type ManualState,
+} from './manual'
 import { BadRequest, parseApplianceBody, parseLabel } from './validation'
 
 const MIN = 60_000
@@ -92,19 +101,63 @@ export function createMockApi(options: MockApiOptions): MockApi {
 
   const applianceView = (a: StoredAppliance): Appliance => ({ ...a, ...warrantyOf(a) })
 
+  /** Mirrors ReadingSource: which kind of device the numbers come from. */
+  const sourceOf = (d: StoredDevice | null | undefined): ReadingSource | null =>
+    !d ? null : d.simulated ? 'SIMULATED' : d.manual ? 'MANUAL' : 'DEVICE'
+
+  const lastSeenOf = (d: StoredDevice, now: number): number | null => {
+    if (d.manual) {
+      const last = d.manual.samples[d.manual.samples.length - 1]
+      return last ? last.ms : null
+    }
+    return lastSeen(d.profile, now)
+  }
+
   const deviceView = (d: StoredDevice): DeviceDto => ({
     id: d.id,
     applianceId: d.applianceId,
     label: d.label,
-    tokenPrefix: d.token.slice(0, 10),
+    // A manual device has no token; the placeholder is never a credential.
+    tokenPrefix: d.manual ? 'manual' : d.token.slice(0, 10),
     createdAt: d.createdAt,
-    lastSeenAt: ((t) => (t === null ? null : new Date(t).toISOString()))(
-      lastSeen(d.profile, nowMs()),
-    ),
+    lastSeenAt: ((t) => (t === null ? null : new Date(t).toISOString()))(lastSeenOf(d, nowMs())),
     revokedAt: d.revokedAt,
     active: d.revokedAt === null,
     simulated: d.simulated === true,
+    manual: d.manual !== undefined,
   })
+
+  /** The live manual device of an appliance, created on the first entry. Refuses while a plug or the simulator runs. */
+  const manualDeviceFor = (a: StoredAppliance): StoredDevice => {
+    const live = activeDevice(a.id)
+    if (live && live.manual) return live
+    if (live && live.simulated)
+      throw new Conflict(
+        'This appliance runs on the simulator. Remove the simulation before entering readings by hand',
+      )
+    if (live)
+      throw new Conflict(
+        'This appliance has a live smart plug. Revoke the plug before entering readings by hand',
+      )
+    const device: StoredDevice = {
+      id: nextId(),
+      applianceId: a.id,
+      label: 'Entered by you',
+      token: '',
+      createdAt: nowIso(),
+      revokedAt: null,
+      profile: {
+        seed: counter,
+        ...TYPE_SIGNALS[a.type],
+        dataFrom: nowMs(),
+        dataTo: nowMs(),
+        outages: [],
+      },
+      manual: { samples: [], totals: [] },
+    }
+    devices.push(device)
+    return device
+  }
 
   const alertView = (a: StoredAlert): AlertDto => {
     const owner = appliances.find((x) => x.id === a.applianceId)
@@ -165,14 +218,18 @@ export function createMockApi(options: MockApiOptions): MockApi {
     const now = nowMs()
     const device = activeDevice(a.id)
     const live = liveAlerts(a.id).map(alertView)
-    const learnedSince = device
-      ? Math.max(device.learnFromMs ?? Date.parse(device.createdAt), relearnedAt.get(a.id) ?? 0)
-      : null
+    // The demo does not learn a baseline from entered readings: a manual device stays in LEARNING.
+    const learnedSince =
+      device && !device.manual
+        ? Math.max(device.learnFromMs ?? Date.parse(device.createdAt), relearnedAt.get(a.id) ?? 0)
+        : null
     const ready = learnedSince !== null && now - learnedSince >= LEARN_DAYS * DAY
-    const baseline = device && ready ? baselineFor(device) : null
+    const baseline = device && !device.manual && ready ? baselineFor(device) : null
 
     let last24h: ApplianceHealth['last24h'] = null
-    if (device) {
+    if (device?.manual) {
+      last24h = manualLast24h(device.manual.samples, now)
+    } else if (device) {
       let sum = 0
       let max = 0
       let on = 0
@@ -216,7 +273,7 @@ export function createMockApi(options: MockApiOptions): MockApi {
       nextServiceDate: a.nextServiceDate,
       serviceOverdue: w.serviceOverdue,
     }
-    const seen = device ? lastSeen(device.profile, now) : null
+    const seen = device ? lastSeenOf(device, now) : null
     return {
       applianceId: a.id,
       name: a.name,
@@ -229,6 +286,7 @@ export function createMockApi(options: MockApiOptions): MockApi {
       activeAlerts: live,
       service,
       simulated: device?.simulated === true,
+      source: sourceOf(device),
     }
   }
 
@@ -250,13 +308,24 @@ export function createMockApi(options: MockApiOptions): MockApi {
       throw new BadRequest(
         `range would return more than ${MAX_POINTS} points at resolution ${resolution}; use a coarser resolution or a shorter range`,
       )
-    // Newest device wins where two devices overlap (a replaced sensor).
+    // Never mix sources (mirrors ReadingsService): a running simulation answers with its own readings only; otherwise
+    // the real and manual history of the appliance. Newest device wins where two devices overlap (a replaced sensor).
+    const live = activeDevice(a.id)
+    const simulatedRun = live?.simulated === true
     const merged = new Map<string, ReadingSeries['points'][number]>()
     const owned = devices
-      .filter((d) => d.applianceId === a.id)
+      .filter(
+        (d) =>
+          d.applianceId === a.id &&
+          (simulatedRun ? d.simulated === true && d.revokedAt === null : d.simulated !== true),
+      )
       .sort((x, y) => x.createdAt.localeCompare(y.createdAt))
-    for (const d of owned)
-      for (const p of seriesFor(d.profile, start, end, resolution, nowMs())) merged.set(p.ts, p)
+    for (const d of owned) {
+      const pts = d.manual
+        ? manualSeries(d.manual.samples, start, end, resolution)
+        : seriesFor(d.profile, start, end, resolution, nowMs())
+      for (const p of pts) merged.set(p.ts, p)
+    }
     const points = [...merged.values()].sort((x, y) => x.ts.localeCompare(y.ts))
     const body: ReadingSeries = {
       applianceId: a.id,
@@ -264,7 +333,8 @@ export function createMockApi(options: MockApiOptions): MockApi {
       to: new Date(end).toISOString(),
       resolution,
       points,
-      simulated: owned.some((d) => d.simulated === true && d.revokedAt === null),
+      source: sourceOf(live),
+      simulated: simulatedRun,
     }
     return json(body)
   }
@@ -455,6 +525,32 @@ export function createMockApi(options: MockApiOptions): MockApi {
       }
     }
 
+    // Readings entered by hand (mirrors ManualReadingsController).
+    if ((m = /^\/v1\/appliances\/([^/]+)\/meter-readings$/.exec(path)) && method === 'POST') {
+      const a = find(m[1] as string)
+      const body = (readBody(init) ?? {}) as { kwh?: unknown; at?: unknown }
+      if (typeof body.kwh !== 'number' || !Number.isFinite(body.kwh) || body.kwh < 0)
+        throw new BadRequest('kwh must be a number of 0 or more')
+      let atMs: number | undefined
+      if (body.at !== undefined) {
+        atMs = typeof body.at === 'string' ? Date.parse(body.at) : Number.NaN
+        if (Number.isNaN(atMs)) throw new BadRequest('at must be an ISO 8601 instant')
+      }
+      const device = manualDeviceFor(a)
+      return json(recordMeterTotal(device.manual as ManualState, { kwh: body.kwh, atMs }, nowMs()))
+    }
+
+    if ((m = /^\/v1\/appliances\/([^/]+)\/readings\/import$/.exec(path)) && method === 'POST') {
+      const a = find(m[1] as string)
+      const body = (readBody(init) ?? {}) as { csv?: unknown }
+      if (typeof body.csv !== 'string' || body.csv.trim() === '')
+        throw new BadRequest('csv must not be blank')
+      // Validate before the device exists, so a refused file creates nothing (as the service does).
+      parseCsv(body.csv)
+      const device = manualDeviceFor(a)
+      return json(importCsv(device.manual as ManualState, body.csv, nowMs()))
+    }
+
     if ((m = /^\/v1\/appliances\/([^/]+)\/simulation$/.exec(path))) {
       const a = find(m[1] as string)
       if (method === 'POST') return simulate(a, readBody(init))
@@ -574,7 +670,8 @@ export function createMockApi(options: MockApiOptions): MockApi {
       return route(method, path, url.searchParams, init)
     } catch (error) {
       if (error instanceof NotFound) return problem(404, error.message, path)
-      if (error instanceof Conflict) return problem(409, error.message, path)
+      if (error instanceof Conflict || error instanceof ManualConflict)
+        return problem(409, error.message, path)
       if (error instanceof BadRequest) return problem(400, error.message, path)
       throw error
     }

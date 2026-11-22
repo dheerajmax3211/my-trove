@@ -26,6 +26,7 @@ import { formatDateTime, formatRelative } from '../../../lib/format'
 import { useDocumentTitle } from '../../../lib/useDocumentTitle'
 import { useAppliances } from '../../appliances/hooks'
 import { PlugIcon } from '../../../lib/icons'
+import { SourceBadge } from '../../readings/components/SourceBadge'
 import { SimulatePlugButton, SimulatedBadge } from '../../simulation/SimulationControls'
 import { DataSourceExplainer } from '../components/DataSourceExplainer'
 import { RegisterDeviceDialog } from '../components/RegisterDeviceDialog'
@@ -57,7 +58,9 @@ export function DevicesPage() {
     (deviceQueries[i]?.data ?? []).map((device) => ({ ...device, applianceName: appliance.name })),
   )
   const occupied = new Set(rows.filter((d) => d.active).map((d) => d.applianceId))
-  const waiting = rows.filter((d) => d.active && !d.simulated && d.lastSeenAt === null)
+  // Entered readings never report by themselves, so they are not counted as a device that is "waiting" or "sending".
+  const hardware = rows.filter((d) => !d.manual && !d.simulated)
+  const waiting = hardware.filter((d) => d.active && d.lastSeenAt === null)
   const bare = applianceList.filter((a) => !occupied.has(a.id))
   const devicesLoading = deviceQueries.some((q) => q.isPending)
   const devicesError = deviceQueries.find((q) => q.isError)
@@ -71,6 +74,7 @@ export function DevicesPage() {
         <span className="hp-inline-meta">
           <strong>{d.label}</strong>
           {d.simulated ? <SimulatedBadge /> : null}
+          {d.manual ? <SourceBadge source="MANUAL" /> : null}
         </span>
       ),
     },
@@ -84,7 +88,8 @@ export function DevicesPage() {
       id: 'token',
       header: 'Token',
       headerLabel: 'Token',
-      cell: (d) => <code>{d.tokenPrefix}...</code>,
+      cell: (d) =>
+        d.manual ? <span className="hp-muted">No token</span> : <code>{d.tokenPrefix}...</code>,
     },
     {
       id: 'status',
@@ -117,7 +122,16 @@ export function DevicesPage() {
       headerLabel: 'Actions',
       align: 'end',
       cell: (d) =>
-        d.active ? (
+        d.active && d.manual ? (
+          <Button
+            size="sm"
+            variant="secondary"
+            aria-label={`Stop entering readings for ${d.applianceName}`}
+            onClick={() => setRevoking(d)}
+          >
+            Stop
+          </Button>
+        ) : d.active ? (
           <Button
             size="sm"
             variant="secondary"
@@ -181,8 +195,8 @@ export function DevicesPage() {
       <BentoGrid>
         <BentoCard span={4} tone="dark" title="Reporting" icon={<PlugIcon size={18} />}>
           <BigStat
-            value={rows.filter((d) => d.active && d.lastSeenAt !== null).length}
-            unit={`of ${rows.filter((d) => d.active).length} active`}
+            value={hardware.filter((d) => d.active && d.lastSeenAt !== null).length}
+            unit={`of ${hardware.filter((d) => d.active).length} active`}
             trend={waiting.length === 0 ? 'up' : 'flat'}
             delta={waiting.length === 0 ? 'All sending' : `${waiting.length} waiting`}
             caption="Devices that have sent a reading."
@@ -259,7 +273,7 @@ export function DevicesPage() {
     <>
       <PageHeader
         title="Devices"
-        description="The smart plugs and sensors that report power readings. Each appliance has at most one active device."
+        description="The smart plugs and sensors that report power readings, and the readings you enter by hand. Each appliance has at most one active source."
         actions={
           applianceList.length > 0 ? (
             <Button leftIcon={<PlusIcon size={18} />} onClick={() => setRegistering(true)}>
@@ -295,9 +309,17 @@ export function DevicesPage() {
             revoke.reset()
           }
         }}
-        title={`Revoke ${revoking?.label ?? 'device'}?`}
-        description="The device stops being accepted immediately. Readings it already sent are kept. To replace it, register a new device afterwards."
-        confirmLabel="Revoke device"
+        title={
+          revoking?.manual
+            ? `Stop entering readings for ${revoking.applianceName}?`
+            : `Revoke ${revoking?.label ?? 'device'}?`
+        }
+        description={
+          revoking?.manual
+            ? 'No more readings can be entered by hand for this appliance until you enter one again. Readings already entered are kept, and a smart plug can be connected afterwards.'
+            : 'The device stops being accepted immediately. Readings it already sent are kept. To replace it, register a new device afterwards.'
+        }
+        confirmLabel={revoking?.manual ? 'Stop entering readings' : 'Revoke device'}
         busy={revoke.isPending}
         error={revoke.error ? errorMessage(revoke.error) : null}
         onConfirm={confirmRevoke}

@@ -1,5 +1,6 @@
 import type { AlertKind, AlertStatus, Severity } from '../features/alerts/types'
 import type { ApplianceType } from '../features/appliances/types'
+import type { ManualState } from './manual'
 import type { SignalProfile } from './signal'
 
 export interface StoredAppliance {
@@ -26,6 +27,8 @@ export interface StoredDevice {
   profile: SignalProfile
   /** The built-in simulator. */
   simulated?: boolean
+  /** Readings the owner entered by hand. Such a device has its own samples and meter totals, not a profile. */
+  manual?: ManualState
   /** Where baseline learning counts from, when it is not the registration time (a simulated history). */
   learnFromMs?: number
 }

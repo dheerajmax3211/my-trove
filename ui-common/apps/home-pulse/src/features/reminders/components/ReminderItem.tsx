@@ -2,7 +2,16 @@ import { Badge } from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
 import { formatDate, formatDaysUntil } from '../../../lib/format'
 import { REMINDER_LABELS } from '../sort'
-import type { Reminder } from '../types'
+import type { Reminder, ReminderType } from '../types'
+
+/** Where each kind of reminder comes from, in the owner's own terms. */
+export const REMINDER_SOURCES: Record<ReminderType, string> = {
+  SERVICE_OVERDUE: 'From the next service date you entered on the appliance.',
+  SERVICE_DUE: 'From the next service date you entered on the appliance.',
+  WARRANTY_ENDING: 'From the warranty end date you entered on the appliance.',
+  WARRANTY_CLAIM_WINDOW:
+    'From the warranty end date you entered, plus a live anomaly alert on the appliance.',
+}
 
 export function ReminderItem({
   reminder,
@@ -36,6 +45,9 @@ export function ReminderItem({
           </>
         ) : null}
         {reminder.message}
+      </p>
+      <p className="hp-muted hp-small" data-testid="reminder-source">
+        {REMINDER_SOURCES[reminder.type]}
       </p>
     </div>
   )

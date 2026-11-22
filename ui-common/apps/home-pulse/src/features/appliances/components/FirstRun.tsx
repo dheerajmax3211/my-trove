@@ -54,8 +54,9 @@ export function FirstRun() {
           </Button>
         </div>
         <p className="hp-small hp-muted">
-          No smart plug? After you add an appliance you can simulate one and see charts, the learned
-          normal and an alert, clearly labelled Simulated.
+          No smart plug? After you add an appliance you can type in its meter total or import a CSV
+          (labelled Entered by you), or simulate a plug to see charts, the learned normal and an
+          alert (labelled Simulated).
         </p>
         <DataSourceExplainer headingAs="h3" />
       </div>

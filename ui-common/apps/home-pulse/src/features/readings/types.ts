@@ -12,14 +12,57 @@ export interface ReadingPoint {
   samples: number
 }
 
+/**
+ * Where an appliance's energy numbers come from. Mirrors ReadingSource.
+ * DEVICE: a smart plug or meter reports watts with its device token.
+ * MANUAL: the owner entered meter totals or imported a CSV; each point is the average over the interval entered.
+ * SIMULATED: the built-in simulator made the numbers. They are not the appliance's.
+ */
+export type ReadingSource = 'DEVICE' | 'MANUAL' | 'SIMULATED'
+
 export interface ReadingSeries {
   applianceId: string
   from: string
   to: string
   resolution: Resolution
   points: ReadingPoint[]
+  /** The source of the numbers, or null when the appliance has no live source. */
+  source?: ReadingSource | null
   /** The readings come from the built-in simulator. */
   simulated?: boolean
+}
+
+/** Mirrors MeterReadingRequest. `kwh` is the meter's running total; `at` defaults to now on the server. */
+export interface MeterReadingInput {
+  kwh: number
+  at?: string
+}
+
+/**
+ * Mirrors ManualReadingResult. The first total only sets the starting point (BASELINE). Each later one turns the
+ * energy used since the previous total into one average-power value per minute (RECORDED).
+ */
+export interface MeterReadingResult {
+  outcome: 'BASELINE' | 'RECORDED'
+  at: string
+  previousAt: string | null
+  /** Energy since the previous total. 0 for a baseline. */
+  energyKwh: number
+  intervalMinutes: number
+  /** Average power over the interval. Null for a baseline. */
+  averageWatts: number | null
+  /** Minutes stored as readings. */
+  minutesStored: number
+  /** Minutes not stored because they are older than the service accepts (30 days). */
+  minutesRejected: number
+}
+
+/** Mirrors CsvImportResult. */
+export interface CsvImportResult {
+  rows: number
+  accepted: number
+  duplicates: number
+  rejected: number
 }
 
 export const RANGES = ['hour', 'day', 'week', 'month'] as const

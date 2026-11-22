@@ -1,12 +1,13 @@
 import { ActivityIcon, BentoCard, EmptyState, Skeleton } from '@platform/ui'
 import { useState, type ReactNode } from 'react'
 import { ErrorState } from '../../../components/ErrorState'
+import { sourceSentence } from '../copy'
 import { useReadings } from '../hooks'
-import type { RangeKey } from '../types'
+import type { ReadingSource, RangeKey } from '../types'
 import type { Slot } from '../../appliances/components/slot'
-import { SimulatedBadge } from '../../simulation/SimulationControls'
 import { PowerChart } from './PowerChart'
 import { RangeSelector } from './RangeSelector'
+import { SourceBadge } from './SourceBadge'
 
 const RANGE_LABELS: Record<RangeKey, string> = {
   hour: 'last hour',
@@ -38,6 +39,14 @@ export function PowerChartSection({
 }: PowerChartSectionProps) {
   const [range, setRange] = useState<RangeKey>('day')
   const readings = useReadings(applianceId, range, hasDevice)
+  // Older responses carry only `simulated`; a series without a live source is shown without a sentence.
+  const source: ReadingSource | null = readings.data
+    ? readings.data.source !== undefined
+      ? readings.data.source
+      : readings.data.simulated
+        ? 'SIMULATED'
+        : 'DEVICE'
+    : null
 
   let body: ReactNode
   if (loading) {
@@ -98,12 +107,8 @@ export function PowerChartSection({
       {...(style ? { style } : {})}
     >
       <p className="hp-muted hp-small hp-inline-meta">
-        <span>
-          {readings.data?.simulated
-            ? `Watts from the simulated plug, ${RANGE_LABELS[range]}.`
-            : `Watts reported by the plug, ${RANGE_LABELS[range]}.`}
-        </span>
-        {readings.data?.simulated ? <SimulatedBadge /> : null}
+        {source ? <span>{sourceSentence(source, RANGE_LABELS[range])}</span> : null}
+        <SourceBadge source={source} />
       </p>
       {body}
     </BentoCard>

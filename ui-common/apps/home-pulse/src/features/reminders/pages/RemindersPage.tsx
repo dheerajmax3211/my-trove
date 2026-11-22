@@ -14,7 +14,7 @@ export function RemindersPage() {
     <>
       <PageHeader
         title="Reminders"
-        description={`Services and warranties coming up in the next ${REMINDER_HORIZON_DAYS} days, most important first. An anomaly on an appliance that is still under warranty comes first, because that is when a claim is easiest.`}
+        description={`Services and warranties coming up in the next ${REMINDER_HORIZON_DAYS} days, most important first. Reminders come only from the service and warranty dates you enter on each appliance, plus a live alert on an appliance still under warranty, which comes first because that is when a claim is easiest.`}
       />
       {reminders.isPending ? (
         <div className="hp-stack-3" role="status" aria-busy="true" aria-label="Loading reminders">

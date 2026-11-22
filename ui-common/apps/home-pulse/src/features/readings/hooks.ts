@@ -1,11 +1,49 @@
-import { useQuery } from '@tanstack/react-query'
+import type { ApiError } from '@platform/api-client'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useClock } from '../../lib/clock'
 import { keys } from '../../lib/queryKeys'
 import { useApi } from '../../lib/useApi'
 import { readingsApi } from './api'
-import { RANGE_OPTIONS, type RangeKey } from './types'
+import {
+  RANGE_OPTIONS,
+  type CsvImportResult,
+  type MeterReadingInput,
+  type MeterReadingResult,
+  type RangeKey,
+} from './types'
 
 const CURRENT_DRAW_WINDOW_MS = 15 * 60_000
+
+/** Manual readings move health, devices, charts, the overview's energy and the reminders that read alerts. */
+function useRefreshAfterManualReadings() {
+  const queryClient = useQueryClient()
+  return () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: keys.appliances }),
+      queryClient.invalidateQueries({ queryKey: keys.alerts }),
+      queryClient.invalidateQueries({ queryKey: keys.reminders }),
+    ])
+}
+
+/** Enters the meter's running total. The result says what the numbers became. */
+export function useRecordMeterTotal(applianceId: string) {
+  const api = useApi(readingsApi)
+  const refresh = useRefreshAfterManualReadings()
+  return useMutation<MeterReadingResult, ApiError, MeterReadingInput>({
+    mutationFn: (input) => api.recordMeterTotal(applianceId, input),
+    onSuccess: () => refresh(),
+  })
+}
+
+/** Imports `timestamp,watts` rows. Whole-file validation happens on the server; nothing is stored on a 400. */
+export function useImportCsv(applianceId: string) {
+  const api = useApi(readingsApi)
+  const refresh = useRefreshAfterManualReadings()
+  return useMutation<CsvImportResult, ApiError, string>({
+    mutationFn: (csv) => api.importCsv(applianceId, csv),
+    onSuccess: () => refresh(),
+  })
+}
 
 /** Readings for the chart. The window is computed when the request is made, so a refetch is always fresh. */
 export function useReadings(applianceId: string, range: RangeKey, enabled = true) {

@@ -6,7 +6,7 @@ const SOURCES: { icon: ReactNode; title: string; body: string }[] = [
   {
     icon: <BoltIcon size={18} />,
     title: 'Energy readings',
-    body: 'A smart plug or meter on the appliance measures its power and reports watts to this service, using the device token. Home Pulse never measures anything by itself.',
+    body: 'Three sources, and each one is labelled. A smart plug or meter reports its watts to this service with its device token. With no plug, you can type in the meter total or import a CSV, and Home Pulse works out the average power between your entries (Entered by you). The built-in simulator invents numbers (Simulated). Home Pulse never measures anything by itself.',
   },
   {
     icon: <CalendarIcon size={18} />,

@@ -77,11 +77,24 @@ export function EnergyCard({
 }: { appliances: readonly Appliance[] } & Slot) {
   const results = useAllHealth(appliances.map((a) => a.id))
   const rows = appliances
-    .map((a, i) => ({ name: a.name, last24h: results[i]?.data?.last24h ?? null }))
+    .map((a, i) => ({
+      name: a.name,
+      last24h: results[i]?.data?.last24h ?? null,
+      source: results[i]?.data?.source ?? null,
+    }))
     .filter((r) => r.last24h)
   const loaded = results.every((r) => r.isSuccess || r.isError)
   const total = rows.reduce((sum, r) => sum + (r.last24h?.energyKwh ?? 0), 0)
   const avg = rows.reduce((sum, r) => sum + (r.last24h?.avgWatts ?? 0), 0)
+  // Simulated and entered numbers are never presented as measurements: say so next to the total.
+  const simulatedCount = rows.filter((r) => r.source === 'SIMULATED').length
+  const enteredCount = rows.filter((r) => r.source === 'MANUAL').length
+  const note =
+    simulatedCount > 0
+      ? `Includes simulated numbers for ${pluralize(simulatedCount, 'appliance', 'appliances')}, which are not measured.`
+      : enteredCount > 0
+        ? `Includes readings you entered for ${pluralize(enteredCount, 'appliance', 'appliances')}.`
+        : null
   return (
     <BentoCard
       span={5}
@@ -104,11 +117,20 @@ export function EnergyCard({
             format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
             caption={`${formatWatts(avg)} on average, across ${pluralize(rows.length, 'appliance')}.`}
           />
+          {note ? <p className="hp-small">{note}</p> : null}
           <div className="hp-energy-list">
             <BarList
               label="Energy by appliance, last 24 hours"
               tone="ink"
-              items={rows.map((r) => ({ label: r.name, value: r.last24h?.energyKwh ?? 0 }))}
+              items={rows.map((r) => ({
+                label:
+                  r.source === 'SIMULATED'
+                    ? `${r.name} (simulated)`
+                    : r.source === 'MANUAL'
+                      ? `${r.name} (entered by you)`
+                      : r.name,
+                value: r.last24h?.energyKwh ?? 0,
+              }))}
               format={(v) => `${v.toFixed(1)} kWh`}
             />
           </div>

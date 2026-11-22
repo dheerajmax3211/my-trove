@@ -1,5 +1,6 @@
 /** Mirrors the home-pulse DTO records (ApplianceResponse, ApplianceRequest, ApplianceHealth). */
 import type { AlertDto } from '../alerts/types'
+import type { ReadingSource } from '../readings/types'
 
 export const APPLIANCE_TYPES = [
   'FRIDGE',
@@ -92,6 +93,8 @@ export interface ApplianceHealth {
   service: ServiceInfo
   /** The readings behind this health come from the built-in simulator. */
   simulated?: boolean
+  /** Where the energy numbers come from: a device, the owner's manual entries, the simulator, or nowhere (null). */
+  source?: ReadingSource | null
 }
 
 export const TYPE_LABELS: Record<ApplianceType, string> = {
