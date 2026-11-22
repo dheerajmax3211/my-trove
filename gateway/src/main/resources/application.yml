@@ -56,6 +56,11 @@ gateway:
     - service: digital-legacy
       path: /v1/legacy/trustee/**
       description: trustee portal token / invitation acceptance
+    # platform: the OpenAPI document describes the API and holds no secrets; developers read it without a key.
+    - service: platform
+      methods: [GET]
+      path: /v3/api-docs
+      description: public OpenAPI document of the platform service
     # auth: the exchange takes the identity provider's token itself, and the JWKS is public.
     - service: auth
       methods: [POST]
