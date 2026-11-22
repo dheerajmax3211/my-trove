@@ -20,7 +20,7 @@ function module(id: string): ProductModule {
     icon: InboxIcon,
     nav: [],
     Routes: () => null,
-  } as unknown as ProductModule
+  }
 }
 
 const MODULES = [module('consent'), module('waiting-on')]
@@ -37,17 +37,20 @@ function item(overrides: Partial<InboxItem> = {}): InboxItem {
     createdAt: '2026-11-22T10:00:00Z',
     readAt: null,
     ...overrides,
-  } as InboxItem
+  }
 }
 
 function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  })
 }
 
 /** A fake gateway: answers the inbox and records every request made to it. */
 function fakeGateway(inbox: InboxItem[] | 'error') {
   const calls: { method: string; url: string }[] = []
-  const fetchImpl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+  const fetchImpl = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
     const method = init?.method ?? 'GET'
     calls.push({ method, url })
@@ -66,7 +69,7 @@ function renderBell(inbox: InboxItem[] | 'error') {
   const gateway = fakeGateway(inbox)
   const client = createApiClient({
     baseUrl: API,
-    getToken: async () => 'token',
+    getToken: () => Promise.resolve('token'),
     fetch: gateway.fetchImpl as unknown as typeof fetch,
   })
   function Where() {
@@ -136,7 +139,10 @@ describe('NotificationBell', () => {
   })
 
   it('marks unread items as unread and leaves read ones alone', async () => {
-    renderBell([item({ readAt: null }), item({ id: 'n-2', title: 'Old one', readAt: '2026-11-20T10:00:00Z' })])
+    renderBell([
+      item({ readAt: null }),
+      item({ id: 'n-2', title: 'Old one', readAt: '2026-11-20T10:00:00Z' }),
+    ])
     const list = await screen.findByRole('list', { name: 'Notifications' })
     const [unread, read] = within(list).getAllByRole('listitem')
     expect(unread).toHaveAttribute('data-unread', 'true')

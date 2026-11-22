@@ -43,7 +43,8 @@ async function check(name, fn) {
     }
   } catch (error) {
     fail += 1;
-    const message = error instanceof Error ? error.message.split("\n")[0] : String(error);
+    const message =
+      error instanceof Error ? error.message.split("\n")[0] : String(error);
     console.log(`  FAIL  ${name}  (${message})`);
   }
 }
@@ -89,18 +90,23 @@ async function waitForMail(subject, timeoutMs) {
   return null;
 }
 
-console.log(`Notifications live check: gateway ${GW}, workspace ${WS}, mailpit ${MAILPIT}`);
+console.log(
+  `Notifications live check: gateway ${GW}, workspace ${WS}, mailpit ${MAILPIT}`,
+);
 
 const title = `Live check reminder ${Date.now()}`;
 let token;
 let reminderId;
 let mailId;
 
-await check("the member can reach the platform through the gateway", async () => {
-  token = await idpToken(MEMBER);
-  const r = await shared(token, "GET", "/v1/notifications/unread-count");
-  return eq(r.status, 200);
-});
+await check(
+  "the member can reach the platform through the gateway",
+  async () => {
+    token = await idpToken(MEMBER);
+    const r = await shared(token, "GET", "/v1/notifications/unread-count");
+    return eq(r.status, 200);
+  },
+);
 
 await check("a reminder for the member, already due, is created", async () => {
   const r = await shared(token, "POST", "/v1/reminders", {
@@ -111,28 +117,39 @@ await check("a reminder for the member, already due, is created", async () => {
   return eq(r.status, 201) || (reminderId ? undefined : "no reminder id");
 });
 
-await check("its email arrives in Mailpit, addressed to the member", async () => {
-  const message = await waitForMail(title, 90_000);
-  if (!message) return "no email within 90 seconds (is shared-service running with MAIL_ENABLED=true?)";
-  mailId = message.ID;
-  return eq(message.To?.[0]?.Address, MEMBER);
-});
+await check(
+  "its email arrives in Mailpit, addressed to the member",
+  async () => {
+    const message = await waitForMail(title, 90_000);
+    if (!message)
+      return "no email within 90 seconds (is shared-service running with MAIL_ENABLED=true?)";
+    mailId = message.ID;
+    return eq(message.To?.[0]?.Address, MEMBER);
+  },
+);
 
 await check("the email body says the reminder is due", async () => {
   if (!mailId) return "no email to read";
   const res = await fetch(`${MAILPIT}/api/v1/message/${mailId}`);
   const full = await res.json();
-  return full.Text?.includes("is due now") ? undefined : "no due-now wording in the email text";
+  return full.Text?.includes("is due now")
+    ? undefined
+    : "no due-now wording in the email text";
 });
 
-await check("the in-app inbox lists it, unread, with a count of at least one", async () => {
-  const list = await shared(token, "GET", "/v1/notifications");
-  const item = list.body?.find((n) => n.title === title);
-  if (!item) return "not in the inbox";
-  if (item.readAt !== null) return "already read";
-  const count = await shared(token, "GET", "/v1/notifications/unread-count");
-  return count.body?.count >= 1 ? undefined : `unread count is ${count.body?.count}`;
-});
+await check(
+  "the in-app inbox lists it, unread, with a count of at least one",
+  async () => {
+    const list = await shared(token, "GET", "/v1/notifications");
+    const item = list.body?.find((n) => n.title === title);
+    if (!item) return "not in the inbox";
+    if (item.readAt !== null) return "already read";
+    const count = await shared(token, "GET", "/v1/notifications/unread-count");
+    return count.body?.count >= 1
+      ? undefined
+      : `unread count is ${count.body?.count}`;
+  },
+);
 
 // The installed Google Chrome when there is one (no browser download); otherwise Playwright's own build.
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -142,23 +159,30 @@ const browser = await chromium.launch({
     ? { executablePath: process.env.CHROME_PATH || CHROME }
     : {}),
 });
-const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+const context = await browser.newContext({
+  viewport: { width: 1280, height: 900 },
+});
 const page = await context.newPage();
 page.setDefaultTimeout(20_000);
 
 try {
-  await check("the member signs in to the workspace through the dev chooser", async () => {
-    await page.goto(`${WS}/`, { waitUntil: "networkidle" });
-    await page.getByRole("button", { name: "Continue with Google" }).click();
-    await page
-      .getByRole("button", { name: /^Sign in as Member, member@example\.test$/ })
-      .click();
-    const skip = page.getByRole("button", { name: "Skip for now" });
-    const nav = page.getByRole("navigation", { name: "Workspace" });
-    await nav.or(skip).first().waitFor();
-    if (await skip.count()) await skip.first().click();
-    await nav.waitFor();
-  });
+  await check(
+    "the member signs in to the workspace through the dev chooser",
+    async () => {
+      await page.goto(`${WS}/`, { waitUntil: "networkidle" });
+      await page.getByRole("button", { name: "Continue with Google" }).click();
+      await page
+        .getByRole("button", {
+          name: /^Sign in as Member, member@example\.test$/,
+        })
+        .click();
+      const skip = page.getByRole("button", { name: "Skip for now" });
+      const nav = page.getByRole("navigation", { name: "Workspace" });
+      await nav.or(skip).first().waitFor();
+      if (await skip.count()) await skip.first().click();
+      await nav.waitFor();
+    },
+  );
 
   await check("the bell shows an unread count", async () => {
     const bell = page.getByRole("button", { name: /^Notifications/ });
@@ -169,7 +193,9 @@ try {
         const button = [...document.querySelectorAll("button")].find((b) =>
           /^Notifications/.test(b.getAttribute("aria-label") || ""),
         );
-        return /Notifications, [1-9]\d* unread/.test(button?.getAttribute("aria-label") || "");
+        return /Notifications, [1-9]\d* unread/.test(
+          button?.getAttribute("aria-label") || "",
+        );
       },
       null,
       { timeout: 30_000 },
@@ -190,14 +216,11 @@ try {
   await check("marking it read clears it from the unread list", async () => {
     const dialog = page.getByRole("dialog", { name: "Notifications" });
     await dialog.getByRole("button", { name: new RegExp(title) }).click();
-    await page.waitForFunction(
-      (t) => {
-        const items = [...document.querySelectorAll('[role="dialog"] li')];
-        const li = items.find((el) => el.textContent?.includes(t));
-        return li?.getAttribute("data-unread") === "false";
-      },
-      title,
-    );
+    await page.waitForFunction((t) => {
+      const items = [...document.querySelectorAll('[role="dialog"] li')];
+      const li = items.find((el) => el.textContent?.includes(t));
+      return li?.getAttribute("data-unread") === "false";
+    }, title);
     const list = await shared(token, "GET", "/v1/notifications");
     const item = list.body?.find((n) => n.title === title);
     return item?.readAt ? undefined : "server still shows it unread";

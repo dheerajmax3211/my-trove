@@ -65,7 +65,12 @@ interface NotificationBellProps {
  * The panel behind the header bell: the inbox, newest first. Opening an item marks it read and goes to the product it
  * is about. The unread badge is the bell's own (see useUnreadCount); this component is the list.
  */
-export function NotificationBell({ open, onClose, modules, enabled = true }: NotificationBellProps) {
+export function NotificationBell({
+  open,
+  onClose,
+  modules,
+  enabled = true,
+}: NotificationBellProps) {
   const titleId = useId()
   const navigate = useNavigate()
   const inbox = useApiQuery<InboxItem[]>(INBOX_PATH, { enabled: open && enabled, retry: false })
@@ -117,12 +122,19 @@ export function NotificationBell({ open, onClose, modules, enabled = true }: Not
         >
           Mark all read
         </button>
-        <button type="button" className={styles.textButton} onClick={onClose} aria-label="Close notifications">
+        <button
+          type="button"
+          className={styles.textButton}
+          onClick={onClose}
+          aria-label="Close notifications"
+        >
           Close
         </button>
       </header>
 
-      {!enabled ? <p className={styles.empty}>Notifications are not available in demo mode.</p> : null}
+      {!enabled ? (
+        <p className={styles.empty}>Notifications are not available in demo mode.</p>
+      ) : null}
       {enabled && inbox.isPending ? <p className={styles.empty}>Loading...</p> : null}
       {enabled && inbox.isError ? (
         <p role="status" className={styles.empty}>
@@ -138,7 +150,11 @@ export function NotificationBell({ open, onClose, modules, enabled = true }: Not
       {items.length > 0 ? (
         <ul aria-label="Notifications" className={styles.list}>
           {items.map((item) => (
-            <li key={item.id} data-unread={item.readAt === null ? 'true' : 'false'} className={styles.row}>
+            <li
+              key={item.id}
+              data-unread={item.readAt === null ? 'true' : 'false'}
+              className={styles.row}
+            >
               <button type="button" className={styles.item} onClick={() => openItem(item)}>
                 <span className={styles.title}>{item.title}</span>
                 {item.body ? <span className={styles.body}>{item.body}</span> : null}
