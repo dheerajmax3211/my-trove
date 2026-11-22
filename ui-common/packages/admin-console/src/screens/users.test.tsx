@@ -5,14 +5,14 @@ import { callsTo, jsonResponse, problem, renderAdmin } from '../testing/harness'
 describe('Users list', () => {
   it('lists the first page with roles as badges, plan and status', async () => {
     const { requests } = renderAdmin({ route: '/users' })
-    const table = await screen.findByRole('table', { name: 'Users' })
-    await within(table).findByText('Isabel Costa')
-    expect(within(table).getAllByRole('row')).toHaveLength(21) // header + 20
+    const list = await screen.findByRole('list', { name: 'Users' })
+    await within(list).findByText('Isabel Costa')
+    expect(within(list).getAllByRole('listitem')).toHaveLength(20)
     expect(screen.getByText('Showing 1 to 20 of 24, page 1 of 2')).toBeInTheDocument()
     expect(callsTo(requests, 'GET', '/v1/admin/users')[0]?.search.get('size')).toBe('20')
 
     const mei = (await screen.findByRole('link', { name: 'Mei Tanaka' })).closest(
-      'tr',
+      'li',
     ) as HTMLElement
     expect(within(mei).getByText('Developer')).toBeInTheDocument()
     expect(within(mei).getByText('Member')).toBeInTheDocument()
@@ -23,7 +23,7 @@ describe('Users list', () => {
   it('shows suspended people as suspended', async () => {
     renderAdmin({ route: '/users?q=luca' })
     const row = (await screen.findByRole('link', { name: 'Luca Ferrari' })).closest(
-      'tr',
+      'li',
     ) as HTMLElement
     expect(within(row).getByText('Suspended')).toBeInTheDocument()
   })

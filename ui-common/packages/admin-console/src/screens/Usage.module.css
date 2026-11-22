@@ -6,53 +6,56 @@
 }
 .switcher {
   display: inline-flex;
-  padding: 3px;
+  padding: 4px;
   gap: 2px;
-  background: var(--pp-color-surface-sunken);
-  border: 1px solid var(--pp-color-border);
-  border-radius: var(--pp-radius-md);
-  box-shadow: var(--pp-shadow-inset);
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-hairline);
+  border-radius: var(--pp-radius-full);
 }
 .rangeButton {
-  min-width: 3rem;
-  min-height: 2rem;
-  padding: 0 var(--pp-space-3);
+  min-width: 3.25rem;
+  min-height: 2.25rem;
+  padding: 0 var(--pp-space-4);
   border: 0;
-  border-radius: var(--pp-radius-sm);
+  border-radius: var(--pp-radius-full);
   background: transparent;
   color: var(--pp-color-text-muted);
   font: inherit;
   font-weight: var(--pp-weight-semibold);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
+  transition:
+    background-color var(--pp-duration-fast) var(--pp-ease-standard),
+    color var(--pp-duration-fast) var(--pp-ease-standard);
 }
 .rangeButton:hover {
   color: var(--pp-color-text);
 }
 .rangeButton[aria-pressed='true'] {
-  background: var(--pp-color-surface-overlay);
-  color: var(--pp-color-text);
-  box-shadow:
-    inset 0 1px 0 var(--pp-color-highlight),
-    var(--pp-shadow-sm);
+  background: var(--pp-color-vault);
+  color: var(--pp-color-on-vault);
 }
 .rangeButton:focus-visible {
   outline: 2px solid var(--pp-color-focus-ring);
   outline-offset: 2px;
 }
-.twoUp {
-  display: grid;
-  gap: var(--pp-space-6);
-  grid-template-columns: minmax(0, 1fr);
-}
-@media (min-width: 64rem) {
-  .twoUp {
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-    align-items: start;
-  }
-}
 .principal {
   display: inline-flex;
   align-items: center;
   gap: var(--pp-space-2);
+}
+.donutCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+  font-size: var(--pp-text-caption-size);
+  color: var(--pp-color-text-muted);
+}
+.donutCenter strong {
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-stat-size);
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  color: var(--pp-color-text);
 }

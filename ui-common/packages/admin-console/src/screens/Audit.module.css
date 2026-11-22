@@ -1,0 +1,17 @@
+.card {
+  padding: var(--pp-space-6) var(--pp-space-7);
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-hairline);
+  border-radius: var(--pp-radius-xl);
+}
+.meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pp-space-2) var(--pp-space-3);
+}
+.actor {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pp-space-2);
+}

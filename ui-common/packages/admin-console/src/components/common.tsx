@@ -82,7 +82,6 @@ export function Screen({ title, area, description, permission, actions, children
   return (
     <div className={styles.stack}>
       <PageHeader
-        eyebrow="Admin"
         title={title}
         {...(description ? { description } : {})}
         {...(allowed && actions ? { actions } : {})}

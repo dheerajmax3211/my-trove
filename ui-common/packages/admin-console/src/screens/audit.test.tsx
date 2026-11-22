@@ -8,10 +8,10 @@ const HANNAH = demoId(6)
 describe('Audit log', () => {
   it('lists entries with actor and target names, the action and its detail', async () => {
     renderAdmin({ persona: 'AUDITOR', route: '/audit' })
-    const table = await screen.findByRole('table', { name: 'Audit log' })
+    const table = await screen.findByRole('list', { name: 'Audit log' })
     await within(table).findAllByText('Maya Ortiz')
-    expect(within(table).getAllByRole('row')).toHaveLength(9) // header + 8 seeded entries
-    const rows = within(table).getAllByRole('row').slice(1)
+    expect(within(table).getAllByRole('listitem')).toHaveLength(8) // 8 seeded entries
+    const rows = within(table).getAllByRole('listitem')
     const first = rows[0] as HTMLElement // newest first
     expect(within(first).getByText('Plan changed')).toBeInTheDocument()
     expect(within(first).getByText('FREE to PRO')).toBeInTheDocument()
@@ -47,12 +47,12 @@ describe('Audit log', () => {
         ),
       ).toBe(true),
     )
-    await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(2)) // header + her one change
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(1)) // her one change
     expect(await screen.findByText(/Showing changes to/)).toHaveTextContent('Hannah Lindqvist')
     expect(screen.getByTestId('where')).toHaveTextContent(`target=${HANNAH}`)
 
     await user.click(screen.getByRole('button', { name: 'Clear filter' }))
-    await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(9))
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(8))
     expect(screen.queryByText(/Showing changes to/)).not.toBeInTheDocument()
   })
 
