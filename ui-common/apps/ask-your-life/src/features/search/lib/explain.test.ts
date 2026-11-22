@@ -23,9 +23,9 @@ describe('explainHit', () => {
       'hybrid',
       debug,
     )
-    expect(e.summary).toMatch(/both keywords and meaning/)
+    expect(e.summary).toMatch(/both your exact words and similar wording/)
     expect(e.details.join(' ')).toContain('ranks 2nd among keyword matches')
-    expect(e.details.join(' ')).toContain('ranks 5th by meaning (similarity 71 out of 100)')
+    expect(e.details.join(' ')).toContain('ranks 5th on that list (similarity 71 out of 100)')
     expect(e.details.join(' ')).toContain('passage 3 of the document')
     expect(e.scoreLine).toBe(
       'Score 0.0323 = 1/(60 + 2) + 1/(60 + 5). Higher is better; a passage found by both lists scores highest.',
@@ -38,14 +38,14 @@ describe('explainHit', () => {
       'hybrid',
       debug,
     )
-    expect(keywordOnly.summary).toMatch(/keywords only/)
-    expect(keywordOnly.details.join(' ')).toMatch(/not close enough in meaning/)
+    expect(keywordOnly.summary).toMatch(/your exact words only/)
+    expect(keywordOnly.details.join(' ')).toMatch(/wording was not similar enough/)
     const meaningOnly = explainHit(
       hit({ ftsRank: null, semanticRank: 3, ftsScore: null, semanticSimilarity: 0.3 }),
       'hybrid',
       debug,
     )
-    expect(meaningOnly.summary).toMatch(/meaning only/)
+    expect(meaningOnly.summary).toMatch(/similar wording only/)
   })
 
   it('only talks about the list the mode uses', () => {
@@ -54,7 +54,7 @@ describe('explainHit', () => {
       'keyword',
       debug,
     )
-    expect(keyword.details.join(' ')).not.toMatch(/Meaning match/)
+    expect(keyword.details.join(' ')).not.toMatch(/Similar-wording match/)
     const semantic = explainHit(
       hit({ ftsRank: null, semanticRank: 1, ftsScore: null, semanticSimilarity: 0.9 }),
       'semantic',

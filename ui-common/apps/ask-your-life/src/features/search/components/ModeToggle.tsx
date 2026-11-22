@@ -9,7 +9,8 @@ export const MODE_OPTIONS: readonly {
   {
     value: 'hybrid',
     label: 'Hybrid',
-    description: 'Best for most questions: matches your exact words and similar meaning.',
+    description:
+      'Best for most questions: matches your exact words and similar wording. Similar wording stands in for meaning until the real model is connected.',
     hint: 'Leave it here if you are not sure.',
   },
   {
@@ -21,7 +22,8 @@ export const MODE_OPTIONS: readonly {
   {
     value: 'semantic',
     label: 'Semantic',
-    description: 'Passages that read like your question, even when the words differ.',
+    description:
+      'Passages that read like your question. Stand-in for now: it scores similar wording with a fixed local method, not a language model, so it can miss passages that share no words with your question.',
     hint: 'Ask a full sentence.',
   },
 ]

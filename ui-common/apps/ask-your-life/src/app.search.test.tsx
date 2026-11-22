@@ -14,7 +14,7 @@ describe('search home', () => {
     const modes = screen.getByRole('group', { name: 'Search mode' })
     expect(within(modes).getByRole('radio', { name: /Hybrid/ })).toBeChecked()
     expect(
-      within(modes).getByText(/matches your exact words and similar meaning/),
+      within(modes).getByText(/matches your exact words and similar wording/),
     ).toBeInTheDocument()
     expect(within(modes).getByText(/Only passages containing your words/)).toBeInTheDocument()
     expect(within(modes).getByText(/read like your question/)).toBeInTheDocument()

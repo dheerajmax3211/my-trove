@@ -69,12 +69,12 @@ export function explainHit(
   if (mode !== 'keyword') {
     steps.push({
       id: 'meaning',
-      label: 'Meaning match',
+      label: 'Similar-wording match',
       found: meaning !== null,
       text:
         meaning === null
-          ? 'it was not close enough in meaning to make the meaning list.'
-          : `it reads like your search and ranks ${ordinal(meaning)} by meaning${
+          ? 'its wording was not similar enough to make the similar-wording list.'
+          : `its wording is similar to your search and ranks ${ordinal(meaning)} on that list${
               similarity === null ? '' : ` (similarity ${Math.round(similarity * 100)} out of 100)`
             }.`,
     })
@@ -98,16 +98,17 @@ export function explainHit(
   let summary: string
   if (mode === 'hybrid') {
     if (keyword !== null && meaning !== null)
-      summary = 'Found by both keywords and meaning, which is why it ranks well.'
+      summary = 'Found by both your exact words and similar wording, which is why it ranks well.'
     else if (keyword !== null)
-      summary = 'Found by keywords only. Nothing close in meaning backed it up.'
+      summary = 'Found by your exact words only. Nothing with similar wording backed it up.'
     else if (meaning !== null)
-      summary = 'Found by meaning only. It does not contain your exact words.'
+      summary = 'Found by similar wording only. It does not contain your exact words.'
     else summary = 'Matched your search.'
   } else if (mode === 'keyword') {
     summary = 'Found because it contains your words.'
   } else {
-    summary = 'Found because it reads like your search, even if the words differ.'
+    summary =
+      'Found because its wording is similar to your search (a stand-in for meaning for now).'
   }
 
   return { summary, details, steps, scoreLine }
