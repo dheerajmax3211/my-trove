@@ -55,6 +55,8 @@ export interface Runtime {
 export interface RuntimeOptions {
   /** The URL's query string. Default: `window.location.search`. */
   search?: string
+  /** The URL's path. Default: `window.location.pathname`. */
+  pathname?: string
   storage?: Storages
   now?: () => Date
   /** Replace the auth client (tests). */
@@ -80,9 +82,14 @@ export function createRuntime(env: Env = import.meta.env, options: RuntimeOption
   const search = options.search ?? (typeof window === 'undefined' ? '' : window.location.search)
 
   const demoParam = new URLSearchParams(search).get('demo')
+  const pathname =
+    options.pathname ?? (typeof window === 'undefined' ? '/' : window.location.pathname)
   if (demoParam === '1') writeItem(storage.session, DEMO_FLAG_KEY, '1')
-  // `?demo=0` is the escape hatch: it forgets a demo flag left over in this tab.
-  if (demoParam === '0') writeItem(storage.session, DEMO_FLAG_KEY, null)
+  // `?demo=0` forgets a demo flag left over in this tab. So does a plain visit to the front door (`/` with no
+  // parameters): a full load there always means "show me the real sign-in". Demo inside the app survives
+  // reloads of /app/... pages, and `?demo=1` (or "Try the demo") turns it on again.
+  if (demoParam === '0' || (demoParam === null && pathname === '/'))
+    writeItem(storage.session, DEMO_FLAG_KEY, null)
   const explicit = readItem(storage.session, DEMO_FLAG_KEY) === '1'
   const demo = explicit || !isFirebaseConfigured(env)
 

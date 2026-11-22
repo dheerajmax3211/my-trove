@@ -13,11 +13,22 @@ describe('createRuntime mode', () => {
     expect(runtime.siteUrl).toBe(DEFAULT_SITE_URL)
   })
 
+  it('a plain visit to the front door (/) forgets a stale demo flag and shows the real sign-in', () => {
+    const storage = memoryStorages()
+    const env = { VITE_DEV_IDP_URL: 'http://idp.test' }
+    createRuntime(env, { search: '?demo=1', storage })
+    const frontDoor = createRuntime(env, { search: '', pathname: '/', storage })
+    expect(frontDoor.mode).toBe('live')
+    expect(storage.session?.getItem(DEMO_FLAG_KEY)).toBeNull()
+  })
+
   it('?demo=0 forgets a demo flag left in the tab, so a configured identity provider is live again', () => {
     const storage = memoryStorages()
     const env = { VITE_DEV_IDP_URL: 'http://idp.test' }
     createRuntime(env, { search: '?demo=1', storage })
-    expect(createRuntime(env, { search: '', storage }).mode).toBe('demo')
+    expect(createRuntime(env, { search: '', pathname: '/app/waiting-on', storage }).mode).toBe(
+      'demo',
+    )
     const escaped = createRuntime(env, { search: '?demo=0', storage })
     expect(escaped.mode).toBe('live')
     expect(storage.session?.getItem(DEMO_FLAG_KEY)).toBeNull()
@@ -38,8 +49,10 @@ describe('createRuntime mode', () => {
     expect(first.mode).toBe('demo')
     expect(first.demo?.explicit).toBe(true)
     expect(storage.session?.getItem(DEMO_FLAG_KEY)).toBe('1')
-    // a later load without the parameter, in the same tab, is still demo
-    expect(createRuntime(env, { search: '', storage }).mode).toBe('demo')
+    // an in-app page load without the parameter, in the same tab, is still demo
+    expect(createRuntime(env, { search: '', pathname: '/app/waiting-on', storage }).mode).toBe(
+      'demo',
+    )
     // a new tab (fresh session storage) is live
     const fresh = createRuntime(env, {
       search: '',

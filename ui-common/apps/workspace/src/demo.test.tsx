@@ -92,7 +92,11 @@ describe('demo mode', () => {
     const first = renderDemo('AUDITOR', { modules: modules(), storage })
     await screen.findByRole('navigation', { name: 'Workspace' })
     first.unmount()
-    const runtime = createRuntime({}, { search: '', storage, retryQueries: false })
+    // a reload of a page inside the demo keeps the demo (and the persona chosen in it)
+    const runtime = createRuntime(
+      {},
+      { search: '', pathname: '/app/beta', storage, retryQueries: false },
+    )
     mountApp(runtime, modules(), '/')
     const nav = await screen.findByRole('navigation', { name: 'Workspace' })
     expect(within(nav).queryByRole('link', { name: 'Alpha' })).not.toBeInTheDocument()
