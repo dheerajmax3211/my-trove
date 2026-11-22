@@ -12,13 +12,14 @@ import {
   type ThemePreference,
 } from '@platform/ui'
 import { useWorkspaceSession } from '@platform/workspace-kit'
-import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate, useOutlet } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useOutlet } from 'react-router-dom'
 import { primaryPersona } from '../lib/personas'
 import { canOpen, moduleBase } from '../modules/registry'
 import { useOnboarding } from '../onboarding/OnboardingProvider'
 import { useWorkspace } from '../workspace/context'
 import { CommandPaletteHost, hotkeyLabel } from './CommandPaletteHost'
+import { NotificationBell, useUnreadCount } from './NotificationBell'
 import { PaletteContext } from './palette'
 import { Sidebar } from './Sidebar'
 import { UserMenu } from './UserMenu'
@@ -116,10 +117,14 @@ function Promo() {
 /** The signed-in frame: the floating app frame, the sidebar, the header (account, search, bell) and the routed page. */
 export function WorkspaceShell() {
   const session = useWorkspaceSession()
-  const navigate = useNavigate()
+  const { modules, runtime } = useWorkspace()
+  const live = runtime.mode === 'live'
   const { pathname } = useLocation()
   const outlet = useOutlet()
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const [inboxOpen, setInboxOpen] = useState(false)
+  const closeInbox = useCallback(() => setInboxOpen(false), [])
+  const unread = useUnreadCount({ enabled: live })
   // The menu is open for one page only: it closes by itself when the route changes.
   const [menuAt, setMenuAt] = useState<string | null>(null)
   const menuOpen = menuAt === pathname
@@ -158,7 +163,8 @@ export function WorkspaceShell() {
             }
           },
         }}
-        onNotificationsClick={() => void navigate('/')}
+        notifications={unread}
+        onNotificationsClick={() => setInboxOpen((open) => !open)}
         headerEnd={
           <>
             {session.isDemo ? (
@@ -183,6 +189,7 @@ export function WorkspaceShell() {
         </PaletteContext>
       </AppFrame>
       <CommandPaletteHost open={paletteOpen} onOpenChange={setPaletteOpen} />
+      <NotificationBell open={inboxOpen} onClose={closeInbox} modules={modules} enabled={live} />
     </>
   )
 }
