@@ -46,7 +46,7 @@ export function Overview({ held }: { held: readonly string[] }) {
         <Link to="/developer/keys">Manage keys</Link>
       </BentoCard>
 
-      <BentoCard span={3} title="Webhook endpoints" icon={<LinkIcon size={18} />}>
+      <BentoCard span={3} title="Webhooks" icon={<LinkIcon size={18} />}>
         <CapacityBar label="Active endpoints" capacity={hookCap} />
         <p className={styles.muted}>
           Up to {limits.webhooks} on the {plan?.name ?? session.plan} plan.

@@ -128,8 +128,8 @@ export function Playground() {
               onChange={(event) => setValue(event.target.value)}
             />
           </Field>
-          <div className={styles.row}>
-            <Field label="Method" controlId="pg-method">
+          <div className={styles.fieldRow}>
+            <Field label="Method" controlId="pg-method" description="Keys may GET today.">
               <Select
                 value={method}
                 onChange={(event) => setMethod(event.target.value as 'GET' | 'POST')}

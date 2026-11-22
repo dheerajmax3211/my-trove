@@ -54,8 +54,6 @@ export function Webhooks() {
     <div className={styles.stack}>
       <CapacityBar label="Active endpoints on your plan" capacity={cap} />
 
-      <AddEndpoint apps={list.filter((app) => !app.revokedAt)} full={cap.full} limit={limit} />
-
       <section aria-labelledby="endpoints-heading" className={styles.stack}>
         <h2 id="endpoints-heading">Endpoints</h2>
         {hooks.pending && hooks.webhooks.length === 0 ? (
@@ -63,7 +61,7 @@ export function Webhooks() {
         ) : hooks.webhooks.length === 0 ? (
           <EmptyState
             title="No endpoints yet"
-            description="An endpoint is an address that receives events from your data. Add one above."
+            description="An endpoint is an address that receives events from your data. Add one below."
           />
         ) : (
           <ul className={styles.list} aria-label="Webhook endpoints">
@@ -77,6 +75,8 @@ export function Webhooks() {
           </ul>
         )}
       </section>
+
+      <AddEndpoint apps={list.filter((app) => !app.revokedAt)} full={cap.full} limit={limit} />
 
       <DeliveryLog endpoints={hooks.webhooks} />
     </div>

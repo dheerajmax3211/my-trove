@@ -39,8 +39,6 @@ export function Keys() {
     <div className={styles.stack}>
       <CapacityBar label="Active keys on your plan" capacity={cap} />
 
-      <IssueKey apps={list.filter((app) => !app.revokedAt)} full={cap.full} limit={limit} />
-
       <section aria-labelledby="keys-list" className={styles.stack}>
         <h2 id="keys-list">Your keys</h2>
         {keys.pending && keys.keys.length === 0 ? (
@@ -48,7 +46,7 @@ export function Keys() {
         ) : keys.keys.length === 0 ? (
           <EmptyState
             title="No keys yet"
-            description="Issue a key above. It is shown once, so copy it when it appears."
+            description="Issue a key below. It is shown once, so copy it when it appears."
           />
         ) : (
           <div className={styles.tableWrap}>
@@ -105,6 +103,8 @@ export function Keys() {
           </div>
         )}
       </section>
+
+      <IssueKey apps={list.filter((app) => !app.revokedAt)} full={cap.full} limit={limit} />
 
       <Confirm
         open={revoking !== null}
