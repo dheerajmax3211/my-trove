@@ -46,7 +46,8 @@ try {
   await member.page.locator('[role=dialog] input').first().fill(code)
   await member.page.locator('[role=dialog]').getByRole('button', { name: /join/i }).last().click()
   await member.page.waitForURL(new RegExp(`/households/${householdId}$`))
-  await member.page.getByText('Your role:').first().waitFor({ timeout: 15000 })
+  // wait for the role badge itself, not just its label: the label renders before the role value does
+  await member.page.waitForFunction(() => /Your role:\s*Member/.test(document.body.innerText), null, { timeout: 15000 })
   const memberView = await member.page.innerText('body')
   check(/Your role:\s*Member/.test(memberView), `member lands on the household as a Member (${memberView.slice(0, 160).replace(/\n/g, ' | ')})`)
 
