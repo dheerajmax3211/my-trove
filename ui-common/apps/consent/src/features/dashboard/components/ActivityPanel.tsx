@@ -1,4 +1,11 @@
-import { EmptyState, Illustration, Timeline, type TimelineItem } from '@platform/ui'
+import {
+  ActivityIcon,
+  BentoCard,
+  EmptyState,
+  Illustration,
+  Timeline,
+  type TimelineItem,
+} from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
 import type { AuditEntry, AuditEventType } from '../../../shared/api/types'
 import { eventLabel, summarizeEntry } from '../../../shared/lib/audit'
@@ -43,15 +50,16 @@ export interface ActivityPanelProps {
 /** The last few entries of the audit log, newest first, in plain words. */
 export function ActivityPanel({ entries, nameOf }: ActivityPanelProps) {
   return (
-    <section className="ledger" aria-labelledby="activity-title">
-      <div className="ledger-head">
-        <h2 id="activity-title" className="ledger-title">
-          Recent activity
-        </h2>
-        <ModuleLink to="/history" className="ledger-link">
+    <BentoCard
+      span={5}
+      title="Recent activity"
+      icon={<ActivityIcon size={18} />}
+      actions={
+        <ModuleLink to="/history" className="section-link" style={{ marginInlineStart: 0 }}>
           See all history
         </ModuleLink>
-      </div>
+      }
+    >
       {entries.length === 0 ? (
         <EmptyState
           illustration={<Illustration name="empty" size={160} />}
@@ -62,6 +70,6 @@ export function ActivityPanel({ entries, nameOf }: ActivityPanelProps) {
       ) : (
         <Timeline items={activityItems(entries, nameOf)} label="Recent activity" compact />
       )}
-    </section>
+    </BentoCard>
   )
 }
