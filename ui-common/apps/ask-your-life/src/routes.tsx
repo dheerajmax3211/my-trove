@@ -6,6 +6,7 @@ import { LibraryPage } from './features/documents/pages/LibraryPage'
 import { SearchPage } from './features/search/pages/SearchPage'
 import { useSlashShortcut } from './lib/useSlashShortcut'
 
+import './app.css'
 const trimSlash = (path: string): string => (path.length > 1 ? path.replace(/\/+$/, '') : path)
 
 /** "/" jumps to search from any page of the product. (The search page focuses its own box.) */

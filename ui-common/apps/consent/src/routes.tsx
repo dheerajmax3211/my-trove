@@ -9,6 +9,8 @@ import { HistoryPage } from './features/history/pages/HistoryPage'
 import { RequestsPage } from './features/requests/pages/RequestsPage'
 import { VaultPage } from './features/vault/pages/VaultPage'
 
+import './app.css'
+import './home.css'
 function NotFound() {
   return (
     <EmptyState

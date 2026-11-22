@@ -5,6 +5,7 @@ import { ItemsPage } from './features/items/pages/ItemsPage'
 import { NewItemPage } from './features/items/pages/NewItemPage'
 import { NotFoundPage } from './features/items/pages/NotFoundPage'
 
+import './app.css'
 /** Moves focus to the page heading after each navigation so keyboard and screen reader users land on the new page. */
 function useFocusHeadingOnNavigate() {
   const { pathname } = useLocation()
