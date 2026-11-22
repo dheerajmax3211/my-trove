@@ -91,7 +91,7 @@ export function FollowUpCard({ item, onRetry }: { item: Item; onRetry: () => voi
           />
         ) : null}
         <StageGauge item={item} size="lg" />
-        <KeyValueList items={rows} dense />
+        <KeyValueList items={rows} layout="stacked" dense />
       </div>
     )
   }

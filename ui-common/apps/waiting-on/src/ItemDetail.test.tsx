@@ -57,16 +57,12 @@ describe('item page', () => {
     expect(card.getByText('7 days in total')).toBeInTheDocument()
   })
 
-  it('explains how the reply address works and copies it', async () => {
-    const { user } = renderApp({ route: open(JACKET) })
-    const address = await screen.findByText(/waiting\+[a-f0-9]{20}@reply\.waiting-on\.local/)
-    expect(
-      screen.getByRole('heading', { name: 'How forwarding replies works' }),
-    ).toBeInTheDocument()
-    expect(screen.getByText(/Put this address in Cc or Reply-To/)).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Copy reply address' }))
-    expect(await navigator.clipboard.readText()).toBe(address.textContent)
-    expect(await screen.findByRole('button', { name: 'Copied' })).toBeInTheDocument()
+  it('says plainly that replies by email are not connected yet', async () => {
+    renderApp({ route: open(JACKET) })
+    const card = within(await screen.findByRole('region', { name: 'Replies by email' }))
+    expect(card.getByText(/Not connected yet/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Copy reply address' })).not.toBeInTheDocument()
+    expect(screen.queryByText(/@reply\.waiting-on\.local/)).not.toBeInTheDocument()
   })
 })
 

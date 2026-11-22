@@ -66,8 +66,8 @@ export function FirstUse() {
       <BentoCard span={12} title="You send the letters" icon={<ShieldIcon size={18} />}>
         <p className="wo-detail-note" style={{ maxWidth: '70ch' }}>
           Waiting On does not email anyone for you. It prepares each letter on its day and keeps it
-          ready to copy. Each item also gets its own private reply address: forward the answers you
-          get there, and a payment closes the item while a refusal brings the escalation forward.
+          ready to copy. You send it yourself, then mark the item resolved when the money or the
+          approval arrives. Reading replies sent by email is not connected yet.
         </p>
       </BentoCard>
     </BentoGrid>

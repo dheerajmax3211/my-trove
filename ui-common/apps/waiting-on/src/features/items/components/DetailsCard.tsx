@@ -53,7 +53,7 @@ export function DetailsCard({ item }: { item: Item }) {
           />
         </div>
       ) : null}
-      <KeyValueList items={rows} dense />
+      <KeyValueList items={rows} layout="stacked" dense />
     </BentoCard>
   )
 }
