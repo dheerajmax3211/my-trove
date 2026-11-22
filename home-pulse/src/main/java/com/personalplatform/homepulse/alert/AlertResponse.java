@@ -27,7 +27,8 @@ public record AlertResponse(
         Long daysToWarrantyEnd,
         LocalDate lastServiceDate,
         LocalDate nextServiceDate,
-        boolean serviceOverdue) {
+        boolean serviceOverdue,
+        boolean simulated) {
 
     public static AlertResponse from(Alert a, LocalDate today) {
         boolean warranty = a.warrantyEndDate() != null && !a.warrantyEndDate().isBefore(today);
@@ -35,6 +36,6 @@ public record AlertResponse(
         boolean overdue = a.nextServiceDate() != null && a.nextServiceDate().isBefore(today);
         return new AlertResponse(a.id(), a.applianceId(), a.applianceName(), a.kind(), a.severity(), a.status(),
                 a.message(), a.evidence(), a.openedAt(), a.updatedAt(), a.acknowledgedAt(), a.resolvedAt(),
-                warranty, a.warrantyEndDate(), days, a.lastServiceDate(), a.nextServiceDate(), overdue);
+                warranty, a.warrantyEndDate(), days, a.lastServiceDate(), a.nextServiceDate(), overdue, a.simulated());
     }
 }

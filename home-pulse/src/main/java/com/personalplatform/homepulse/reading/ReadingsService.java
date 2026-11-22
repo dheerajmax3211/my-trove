@@ -16,7 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class ReadingsService {
 
-    public record Series(UUID applianceId, Instant from, Instant to, Resolution resolution, List<ReadingPoint> points) {}
+    /** {@code simulated}: one of the appliance's devices is the built-in simulator. */
+    public record Series(UUID applianceId, Instant from, Instant to, Resolution resolution, boolean simulated,
+                         List<ReadingPoint> points) {}
 
     static final Duration MAX_RANGE = Duration.ofDays(400);
 
@@ -53,7 +55,9 @@ public class ReadingsService {
             throw new IllegalArgumentException("range would return more than " + Resolution.MAX_POINTS
                     + " points at resolution " + chosen + "; use a coarser resolution or a shorter range");
         }
-        List<UUID> deviceIds = devices.listForAppliance(ownerUid, applianceId).stream().map(Device::id).toList();
-        return new Series(applianceId, start, end, chosen, readings.series(deviceIds, start, end, chosen));
+        List<Device> all = devices.listForAppliance(ownerUid, applianceId);
+        List<UUID> deviceIds = all.stream().map(Device::id).toList();
+        boolean simulated = all.stream().anyMatch(Device::simulated);
+        return new Series(applianceId, start, end, chosen, simulated, readings.series(deviceIds, start, end, chosen));
     }
 }

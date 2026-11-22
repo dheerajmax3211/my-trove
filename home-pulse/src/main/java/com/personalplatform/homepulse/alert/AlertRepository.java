@@ -37,6 +37,11 @@ public class AlertRepository {
     }
 
     public UUID insert(String ownerUid, UUID applianceId, Finding f, Instant now) {
+        return insert(ownerUid, applianceId, f, now, false);
+    }
+
+    /** {@code simulated}: the alert was derived from the built-in simulator's readings. */
+    public UUID insert(String ownerUid, UUID applianceId, Finding f, Instant now, boolean simulated) {
         UUID id = UuidV7.next();
         OffsetDateTime t = now.atOffset(ZoneOffset.UTC);
         dsl.insertInto(ALERTS)
@@ -51,6 +56,7 @@ public class AlertRepository {
                 .set(ALERTS.CLEAR_STREAK, 0)
                 .set(ALERTS.OPENED_AT, t)
                 .set(ALERTS.UPDATED_AT, t)
+                .set(ALERTS.SIMULATED, simulated)
                 // the partial unique index (appliance, kind) where live is the dedup backstop for concurrent runs
                 .onConflictDoNothing()
                 .execute();
@@ -84,6 +90,18 @@ public class AlertRepository {
                 .set(ALERTS.RESOLVED_AT, t)
                 .set(ALERTS.UPDATED_AT, t)
                 .where(ALERTS.ID.eq(id), ALERTS.STATUS.in("OPEN", "ACKNOWLEDGED"))
+                .execute();
+    }
+
+    /** Closes the live alerts that came from simulated readings (removing or regenerating a simulation). */
+    public int resolveSimulated(UUID applianceId, Instant now) {
+        OffsetDateTime t = now.atOffset(ZoneOffset.UTC);
+        return dsl.update(ALERTS)
+                .set(ALERTS.STATUS, AlertStatus.RESOLVED.name())
+                .set(ALERTS.RESOLVED_AT, t)
+                .set(ALERTS.UPDATED_AT, t)
+                .where(ALERTS.APPLIANCE_ID.eq(applianceId), ALERTS.SIMULATED.isTrue(),
+                        ALERTS.STATUS.in("OPEN", "ACKNOWLEDGED"))
                 .execute();
     }
 
@@ -144,7 +162,8 @@ public class AlertRepository {
                 r.get(ALERTS.OPENED_AT).toInstant(), r.get(ALERTS.UPDATED_AT).toInstant(),
                 r.get(ALERTS.ACKNOWLEDGED_AT) == null ? null : r.get(ALERTS.ACKNOWLEDGED_AT).toInstant(),
                 r.get(ALERTS.RESOLVED_AT) == null ? null : r.get(ALERTS.RESOLVED_AT).toInstant(),
-                r.get(APPLIANCES.WARRANTY_END_DATE), r.get(APPLIANCES.LAST_SERVICE_DATE), r.get(APPLIANCES.NEXT_SERVICE_DATE));
+                r.get(APPLIANCES.WARRANTY_END_DATE), r.get(APPLIANCES.LAST_SERVICE_DATE), r.get(APPLIANCES.NEXT_SERVICE_DATE),
+                r.get(ALERTS.SIMULATED));
     }
 
     private static String trim(String s) {

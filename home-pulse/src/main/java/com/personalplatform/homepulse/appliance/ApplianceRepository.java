@@ -81,12 +81,16 @@ public class ApplianceRepository {
                 .execute() == 1;
     }
 
-    /** Scheduler use only (spans owners): every appliance that currently has a live device. */
+    /**
+     * Scheduler use only (spans owners): every appliance that currently has a live, real device. A simulated device
+     * is a snapshot that stops "reporting" the moment it is generated, so the scheduler would only raise NO_DATA
+     * for it; the simulator evaluates it once, on demand.
+     */
     public List<Appliance> listWithActiveDevice() {
         var d = com.personalplatform.sql.jooq.home_pulse.home_pulse.Tables.DEVICES;
         return dsl.selectFrom(APPLIANCES)
                 .whereExists(dsl.selectOne().from(d)
-                        .where(d.APPLIANCE_ID.eq(APPLIANCES.ID), d.REVOKED_AT.isNull()))
+                        .where(d.APPLIANCE_ID.eq(APPLIANCES.ID), d.REVOKED_AT.isNull(), d.SIMULATED.isFalse()))
                 .orderBy(APPLIANCES.ID)
                 .fetch(this::map);
     }

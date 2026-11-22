@@ -54,6 +54,10 @@ public class BaselineRepository {
                 .execute();
     }
 
+    public void delete(UUID applianceId) {
+        dsl.deleteFrom(BASELINES).where(BASELINES.APPLIANCE_ID.eq(applianceId)).execute();
+    }
+
     public void saveReady(UUID applianceId, Baseline stats, Instant now) {
         OffsetDateTime t = now.atOffset(ZoneOffset.UTC);
         dsl.update(BASELINES)

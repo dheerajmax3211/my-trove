@@ -43,6 +43,29 @@ public class DeviceService {
         }
     }
 
+    /**
+     * The built-in simulator's device: the appliance's live device when it is already a simulated one, a new one
+     * (random token, only the hash stored, the plaintext is dropped right here) when there is none, 409 when the
+     * appliance already has a real device.
+     */
+    public Device ensureSimulated(String ownerUid, UUID applianceId) {
+        appliances.find(ownerUid, applianceId).orElseThrow(() -> new NotFoundException("Appliance"));
+        var active = devices.findActiveForAppliance(applianceId);
+        if (active.isPresent()) {
+            if (active.get().simulated()) {
+                return active.get();
+            }
+            throw new ConflictException("Appliance already has a real device; the simulator only runs on appliances without one");
+        }
+        String token = DeviceTokens.generate();
+        try {
+            return devices.insert(ownerUid, applianceId, "Built-in simulator", DeviceTokens.hash(token),
+                    DeviceTokens.displayPrefix(token), clock.instant(), true);
+        } catch (DuplicateKeyException e) {
+            throw new ConflictException("Appliance already has an active device");
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<Device> list(String ownerUid, UUID applianceId) {
         appliances.find(ownerUid, applianceId).orElseThrow(() -> new NotFoundException("Appliance"));
