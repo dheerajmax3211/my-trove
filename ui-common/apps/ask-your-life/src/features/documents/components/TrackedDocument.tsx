@@ -4,7 +4,7 @@ import { ModuleLink } from '@platform/workspace-kit'
 import { SourceBadge, StatusBadge } from '../../../components/Badges'
 import { useDocument } from '../hooks/useDocuments'
 import type { DocumentResponse, IngestOutcome } from '../api/types'
-import { STATUS_INFO } from '../lib/labels'
+import { STATUS_INFO, indexingReason } from '../lib/labels'
 import { IngestProgress } from './IngestProgress'
 
 export interface TrackedItem {
@@ -27,6 +27,7 @@ export function TrackedDocument({ item }: { item: TrackedItem }) {
   // Until the first poll answers, trust what the add request returned.
   const document = query.data ?? item.document
   const note = OUTCOME_NOTE[item.outcome]
+  const reason = indexingReason(document)
   const gone = query.error instanceof ApiError && query.error.status === 404
 
   return (
@@ -44,6 +45,7 @@ export function TrackedDocument({ item }: { item: TrackedItem }) {
           <p role="status" className="ayl-tracked-status">
             {note ? `${note} ` : ''}
             {STATUS_INFO[document.status].description}
+            {reason ? ` ${reason}` : ''}
           </p>
         </>
       )}

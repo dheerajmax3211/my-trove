@@ -164,7 +164,12 @@ export function createMockApi(options: MockApiOptions = {}): MockApi {
   const finishIndexing = (stored: Stored): void => {
     const now = new Date().toISOString()
     if (stored.text.includes(FAIL_MARKER)) {
-      stored.doc = { ...stored.doc, status: 'FAILED' }
+      // the same kind of reason the service stores from its dead-lettered job
+      stored.doc = {
+        ...stored.doc,
+        status: 'FAILED',
+        indexingError: 'Demo: the embedding service is unavailable',
+      }
       return
     }
     stored.passages = chunkText(stored.text)

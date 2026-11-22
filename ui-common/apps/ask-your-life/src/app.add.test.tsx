@@ -140,6 +140,10 @@ describe('add a note', () => {
       expect(within(item).getByRole('status')).toHaveTextContent(/Delete it and add it again/),
     )
     expect(within(item).getAllByText('Failed').length).toBeGreaterThan(0)
+    // the reason the service gave is shown, not only the generic advice
+    expect(within(item).getByRole('status')).toHaveTextContent(
+      'Reason: Demo: the embedding service is unavailable',
+    )
     expect(within(item).queryByRole('link', { name: 'Search for it' })).not.toBeInTheDocument()
   })
 

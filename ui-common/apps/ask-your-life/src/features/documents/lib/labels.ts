@@ -16,6 +16,20 @@ export interface StatusInfo {
 }
 
 /**
+ * The reason indexing has not succeeded, in words: a failed document says why it failed; a document being retried
+ * says what the last try hit. Null when there is no reason to show.
+ */
+export function indexingReason(doc: {
+  status: DocumentStatus
+  indexingError?: string | null
+}): string | null {
+  if (!doc.indexingError) return null
+  return doc.status === 'FAILED'
+    ? `Reason: ${doc.indexingError}`
+    : `The last try failed (${doc.indexingError}). It will be retried.`
+}
+
+/**
  * The backend reports PENDING / INDEXED / FAILED. We show them as Indexing / Ready / Failed so the
  * words match what the person is waiting for.
  */
