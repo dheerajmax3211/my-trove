@@ -1,19 +1,11 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  KeyValueList,
-  type KeyValueItem,
-} from '@platform/ui'
+import { BentoCard, BigStat, FileIcon, KeyValueList, type KeyValueItem } from '@platform/ui'
 import { formatDate, formatDateTime, parseCalendarDate } from '../../../lib/dates'
 import { isTerminal, type Item } from '../api/types'
-import { CATEGORY_LABEL, formatAmount } from '../logic/labels'
+import { CATEGORY_LABEL } from '../logic/labels'
 import { DueIndicator } from './DueIndicator'
 
 export function DetailsCard({ item }: { item: Item }) {
   const expected = parseCalendarDate(item.expectedBy)
-  const amount = formatAmount(item.amount, item.currency)
   const rows: KeyValueItem[] = [
     {
       id: 'who',
@@ -31,13 +23,15 @@ export function DetailsCard({ item }: { item: Item }) {
       ),
     },
     { id: 'category', label: 'Category', value: CATEGORY_LABEL[item.category] },
-    ...(amount ? [{ id: 'amount', label: 'Amount', value: amount }] : []),
     {
       id: 'expected',
       label: 'Expected by',
       value: (
         <>
-          {expected ? formatDate(expected) : item.expectedBy} <DueIndicator item={item} />
+          {expected ? formatDate(expected) : item.expectedBy}
+          <span style={{ display: 'block', marginTop: 4 }}>
+            <DueIndicator item={item} />
+          </span>
         </>
       ),
     },
@@ -48,13 +42,18 @@ export function DetailsCard({ item }: { item: Item }) {
     ...(item.outcome ? [{ id: 'outcome', label: 'Outcome', value: item.outcome }] : []),
   ]
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle as="h2">Details</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <KeyValueList items={rows} dense />
-      </CardContent>
-    </Card>
+    <BentoCard span={5} title="Details" icon={<FileIcon size={18} />}>
+      {item.amount !== null ? (
+        <div style={{ marginBottom: 'var(--pp-space-5)' }}>
+          <BigStat
+            size="md"
+            value={item.amount}
+            format={{ style: 'currency', currency: item.currency ?? 'USD' }}
+            caption={`${CATEGORY_LABEL[item.category]} you are owed`}
+          />
+        </div>
+      ) : null}
+      <KeyValueList items={rows} dense />
+    </BentoCard>
   )
 }

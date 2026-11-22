@@ -1,10 +1,9 @@
 import { isApiError } from '@platform/api-client'
 import {
+  ActivityIcon,
+  BentoCard,
+  BentoGrid,
   Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
   EmptyState,
   Illustration,
   PageHeader,
@@ -46,12 +45,9 @@ function TimelineCard({ itemId }: { itemId: string }) {
     )
   else body = <ItemTimeline events={timeline.data} />
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle as="h2">Timeline</CardTitle>
-      </CardHeader>
-      <CardContent>{body}</CardContent>
-    </Card>
+    <BentoCard span={7} title="Timeline" icon={<ActivityIcon size={18} />}>
+      {body}
+    </BentoCard>
   )
 }
 
@@ -99,8 +95,8 @@ export function ItemDetailPage() {
         <PageHeader eyebrow={back} title="Loading item" />
         <div className="wo-page" aria-busy="true">
           <VisuallyHidden role="status">Loading item</VisuallyHidden>
-          <Skeleton height={160} />
-          <Skeleton height={120} />
+          <Skeleton height={260} style={{ borderRadius: 'var(--pp-radius-xl)' }} />
+          <Skeleton height={200} style={{ borderRadius: 'var(--pp-radius-xl)' }} />
         </div>
       </>
     )
@@ -114,19 +110,15 @@ export function ItemDetailPage() {
         description={`Waiting on ${data.counterparty}`}
         actions={<StatusBadge status={data.status} />}
       />
-      <div className="wo-detail">
-        <div className="wo-detail-col">
-          <DetailsCard item={data} />
-          <FollowUpCard item={data} onRetry={() => void item.refetch()} />
-          <ActionsCard item={data} />
-          <ReplyAddressCard item={data} />
-        </div>
-        <div className="wo-detail-col">
-          <PlanCard item={data} />
-          <TimelineCard itemId={data.id} />
-          <LetterPreview itemId={data.id} />
-        </div>
-      </div>
+      <BentoGrid>
+        <FollowUpCard item={data} onRetry={() => void item.refetch()} />
+        <DetailsCard item={data} />
+        <ActionsCard item={data} />
+        <LetterPreview itemId={data.id} />
+        <PlanCard item={data} />
+        <TimelineCard itemId={data.id} />
+        <ReplyAddressCard item={data} />
+      </BentoGrid>
     </>
   )
 }

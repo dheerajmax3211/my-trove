@@ -1,11 +1,10 @@
 import {
   Button,
   EmptyState,
-  Field,
   Illustration,
   PageHeader,
+  PillSelect,
   PlusIcon,
-  Select,
   Skeleton,
   VisuallyHidden,
 } from '@platform/ui'
@@ -50,16 +49,12 @@ function HomeSkeleton() {
   return (
     <div aria-busy="true" className="wo-page">
       <VisuallyHidden role="status">Loading your items</VisuallyHidden>
-      <Skeleton height={184} />
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="wo-row wo-row-skeleton" aria-hidden="true">
-          <div className="wo-row-main">
-            <Skeleton height={22} width="55%" />
-            <Skeleton height={16} width="80%" />
-          </div>
-          <Skeleton height={24} width={90} />
-        </div>
-      ))}
+      <Skeleton height={300} style={{ borderRadius: 'var(--pp-radius-xl)' }} />
+      <div className="wo-items" aria-hidden="true">
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} height={240} style={{ borderRadius: 'var(--pp-radius-xl)' }} />
+        ))}
+      </div>
     </div>
   )
 }
@@ -173,34 +168,26 @@ export function ItemsPage() {
       <div className="wo-page">
         {home && items.isSuccess && !isEmpty ? <HomeSummary active={items.data} /> : null}
         {neverUsed ? null : (
-          <div className="wo-filters" role="group" aria-label="Filters">
-            <Field label="Status">
-              <Select
-                value={status}
-                onChange={(e) => setFilter('status', e.target.value, 'ACTIVE')}
-              >
-                <option value="ACTIVE">Active (open, nudged, escalated)</option>
-                <option value="ALL">All statuses</option>
-                {ITEM_STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {STATUS_LABEL[s]}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Category">
-              <Select
-                value={category}
-                onChange={(e) => setFilter('category', e.target.value, 'ALL')}
-              >
-                <option value="ALL">All categories</option>
-                {ITEM_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {CATEGORY_LABEL[c]}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+          <div className="wo-toolbar" role="group" aria-label="Filters">
+            <PillSelect
+              label="Status"
+              value={status}
+              onChange={(e) => setFilter('status', e.target.value, 'ACTIVE')}
+              options={[
+                { value: 'ACTIVE', label: 'Active (open, nudged, escalated)' },
+                { value: 'ALL', label: 'All statuses' },
+                ...ITEM_STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] })),
+              ]}
+            />
+            <PillSelect
+              label="Category"
+              value={category}
+              onChange={(e) => setFilter('category', e.target.value, 'ALL')}
+              options={[
+                { value: 'ALL', label: 'All categories' },
+                ...ITEM_CATEGORIES.map((c) => ({ value: c, label: CATEGORY_LABEL[c] })),
+              ]}
+            />
           </div>
         )}
         {content}

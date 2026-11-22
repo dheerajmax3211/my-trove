@@ -1,14 +1,15 @@
 import { useAuth } from '@platform/auth-web'
 import {
-  AppShell,
+  AppFrame,
   Badge,
   Button,
   ProductMark,
-  Select,
+  PromoCard,
   SidebarLink,
   SidebarNav,
   SidebarSection,
   useTheme,
+  PillSelect,
   type ThemePreference,
 } from '@platform/ui'
 import { ModuleLink, ModuleNavLink } from '@platform/workspace-kit'
@@ -18,36 +19,34 @@ import { NAV } from '../navigation'
 function ThemeSelect() {
   const { theme, setTheme } = useTheme()
   return (
-    <div className="wo-theme">
-      <span className="wo-hide-sm">Theme</span>
-      <Select
-        size="sm"
-        aria-label="Theme"
-        value={theme}
-        onChange={(e) => setTheme(e.target.value as ThemePreference)}
-        style={{ width: 'auto' }}
-      >
-        <option value="system">System</option>
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-      </Select>
-    </div>
+    <PillSelect
+      label="Theme"
+      value={theme}
+      onChange={(e) => setTheme(e.target.value as ThemePreference)}
+      options={[
+        { value: 'system', label: 'System' },
+        { value: 'light', label: 'Light' },
+        { value: 'dark', label: 'Dark' },
+      ]}
+    />
   )
 }
 
-/** The standalone frame. Inside the workspace the shell replaces this; the pages do not care which one wraps them. */
+/** The standalone frame: the same AppFrame the workspace uses. Inside the workspace the shell replaces this; the pages do not care which one wraps them. */
 export function AppLayout({ demo, children }: { demo: boolean; children: ReactNode }) {
   const { user, signOut } = useAuth()
+  const email = user?.email ?? undefined
+  const name = user?.displayName ?? email ?? 'Signed in'
   return (
-    <AppShell
+    <AppFrame
       brand={
         <ModuleLink to="/" className="wo-brand">
-          <span className="wo-hide-xs">
-            <ProductMark product="waiting-on" size={28} variant="solid" />
-          </span>
-          Waiting On
+          <ProductMark product="waiting-on" size={28} variant="solid" />
+          <span>Waiting On</span>
         </ModuleLink>
       }
+      user={{ name, ...(email ? { email } : {}) }}
+      search={false}
       sidebar={
         <SidebarNav label="Main">
           <SidebarSection>
@@ -56,7 +55,7 @@ export function AppLayout({ demo, children }: { demo: boolean; children: ReactNo
                 <ModuleNavLink to={item.to} end={item.end ?? false}>
                   {item.icon ? (
                     <span style={{ display: 'inline-flex' }} aria-hidden="true">
-                      {createElement(item.icon)}
+                      {createElement(item.icon, { size: 18 })}
                     </span>
                   ) : null}
                   {item.label}
@@ -66,7 +65,7 @@ export function AppLayout({ demo, children }: { demo: boolean; children: ReactNo
           </SidebarSection>
         </SidebarNav>
       }
-      topbar={
+      headerEnd={
         <>
           {demo ? (
             <Badge variant="warning" className="wo-hide-xs">
@@ -74,14 +73,24 @@ export function AppLayout({ demo, children }: { demo: boolean; children: ReactNo
             </Badge>
           ) : null}
           <ThemeSelect />
-          <span className="wo-hide-sm">{user?.email}</span>
           <Button size="sm" variant="secondary" onClick={() => void signOut()}>
             Sign out
           </Button>
         </>
       }
+      promo={
+        <PromoCard
+          title="Add what you are owed"
+          description="A refund, a claim, an approval. We keep the follow-ups going."
+          action={
+            <Button asChild size="sm">
+              <ModuleLink to="/new">Add an item</ModuleLink>
+            </Button>
+          }
+        />
+      }
     >
       {children}
-    </AppShell>
+    </AppFrame>
   )
 }

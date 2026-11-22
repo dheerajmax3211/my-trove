@@ -1,4 +1,14 @@
-import { Button, Field, Input, Select, Switch } from '@platform/ui'
+import {
+  Button,
+  Field,
+  Form,
+  FormActions,
+  FormGrid,
+  FormSection,
+  Input,
+  Select,
+  Switch,
+} from '@platform/ui'
 import { useRef, useState, type FormEvent } from 'react'
 import { useClock } from '../../../lib/clock'
 import { describeError, serverFieldErrors } from '../../../lib/errors'
@@ -79,126 +89,151 @@ export function ItemForm({ onCreated }: { onCreated: (item: Item) => void }) {
 
   return (
     <div className="wo-form-layout">
-      <form
+      <Form
         ref={formRef}
-        className="wo-form"
+        width="full"
+        className="wo-form-col"
         onSubmit={onSubmit}
-        noValidate
         aria-label="New waiting item"
       >
-        <Field label="What are you waiting for?" required error={fieldError('title')}>
-          <Input
-            value={values.title}
-            maxLength={200}
-            placeholder="Refund for the returned jacket"
-            onChange={(e) => set('title', e.target.value)}
-          />
-        </Field>
-        <Field label="Who are you waiting on?" required error={fieldError('counterparty')}>
-          <Input
-            value={values.counterparty}
-            maxLength={200}
-            placeholder="Northwind Outfitters"
-            onChange={(e) => set('counterparty', e.target.value)}
-          />
-        </Field>
-        <Field
-          label="Their email"
-          description="Optional. Only used to address your letters."
-          error={fieldError('counterpartyEmail')}
+        <FormSection
+          title="The item"
+          description="Say what is owed and who owes it. The email is optional and only used to address your letters."
         >
-          <Input
-            type="email"
-            autoComplete="off"
-            value={values.counterpartyEmail}
-            onChange={(e) => set('counterpartyEmail', e.target.value)}
-          />
-        </Field>
-        <Field
-          label="Category"
-          required
-          description="Sets the default schedule and the wording of your letters."
-          error={fieldError('category')}
-        >
-          <Select
-            placeholder="Choose a category"
-            value={values.category}
-            onChange={(e) => set('category', e.target.value as NewItemValues['category'])}
+          <Field
+            label="What are you waiting for?"
+            variant="floating"
+            required
+            error={fieldError('title')}
           >
-            {ITEM_CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {CATEGORY_LABEL[c]}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <div className="wo-form-pair">
-          <Field label="Amount" description="Optional." error={fieldError('amount')}>
             <Input
-              inputMode="decimal"
-              value={values.amount}
-              placeholder="129.99"
-              onChange={(e) => set('amount', e.target.value)}
+              value={values.title}
+              maxLength={200}
+              onChange={(e) => set('title', e.target.value)}
             />
           </Field>
-          <Field label="Currency" error={fieldError('currency')}>
-            <Select value={values.currency} onChange={(e) => set('currency', e.target.value)}>
-              {CURRENCIES.map((code) => (
-                <option key={code} value={code}>
-                  {code}
+          <FormGrid>
+            <Field
+              label="Who are you waiting on?"
+              variant="floating"
+              required
+              error={fieldError('counterparty')}
+            >
+              <Input
+                value={values.counterparty}
+                maxLength={200}
+                onChange={(e) => set('counterparty', e.target.value)}
+              />
+            </Field>
+            <Field
+              label="Their email (optional)"
+              variant="floating"
+              error={fieldError('counterpartyEmail')}
+            >
+              <Input
+                type="email"
+                autoComplete="off"
+                value={values.counterpartyEmail}
+                onChange={(e) => set('counterpartyEmail', e.target.value)}
+              />
+            </Field>
+          </FormGrid>
+          <Field
+            label="Category"
+            required
+            description="Sets the default schedule and the wording of your letters."
+            error={fieldError('category')}
+          >
+            <Select
+              placeholder="Choose a category"
+              value={values.category}
+              onChange={(e) => set('category', e.target.value as NewItemValues['category'])}
+            >
+              {ITEM_CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {CATEGORY_LABEL[c]}
                 </option>
               ))}
             </Select>
           </Field>
-        </div>
-        <Field
-          label="Expected by"
-          required
-          description="The date they promised, or the date you reasonably expected it."
-          error={fieldError('expectedBy')}
-        >
-          <Input
-            type="date"
-            value={values.expectedBy}
-            onChange={(e) => set('expectedBy', e.target.value)}
-          />
-        </Field>
+        </FormSection>
 
-        <Switch
-          label="Customise the follow-up schedule"
-          description="Optional. The defaults suit most items."
-          checked={values.customise}
-          onCheckedChange={toggleCustomise}
-        />
-        {values.customise ? (
-          <fieldset className="wo-plan">
-            <legend>Follow-up days, counted from today</legend>
-            {PLAN_FIELDS.map(([key, label, hint]) => (
-              <Field key={key} label={label} description={hint} error={planError(key)}>
-                <Input
-                  type="number"
-                  min={0}
-                  inputMode="numeric"
-                  value={values.plan[key]}
-                  onChange={(e) => set('plan', { ...values.plan, [key]: e.target.value })}
-                />
-              </Field>
-            ))}
-          </fieldset>
-        ) : null}
+        <FormSection
+          title="What it is worth and when"
+          description="The date they promised, or the date you reasonably expected it. Follow-ups are counted from it."
+        >
+          <FormGrid>
+            <Field label="Amount" variant="floating" error={fieldError('amount')}>
+              <Input
+                inputMode="decimal"
+                value={values.amount}
+                onChange={(e) => set('amount', e.target.value)}
+              />
+            </Field>
+            <Field label="Currency" variant="floating" error={fieldError('currency')}>
+              <Select value={values.currency} onChange={(e) => set('currency', e.target.value)}>
+                {CURRENCIES.map((code) => (
+                  <option key={code} value={code}>
+                    {code}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </FormGrid>
+          <Field label="Expected by" required error={fieldError('expectedBy')}>
+            <Input
+              type="date"
+              value={values.expectedBy}
+              onChange={(e) => set('expectedBy', e.target.value)}
+            />
+          </Field>
+        </FormSection>
+
+        <FormSection
+          title="Follow-up schedule"
+          description="The defaults suit most items. Change the days if you want to chase sooner or later."
+        >
+          <Switch
+            label="Customise the follow-up schedule"
+            description="Optional."
+            checked={values.customise}
+            onCheckedChange={toggleCustomise}
+          />
+          {values.customise ? (
+            <fieldset className="wo-plan">
+              <legend>Follow-up days, counted from today</legend>
+              {PLAN_FIELDS.map(([key, label, hint]) => (
+                <Field key={key} label={label} description={hint} error={planError(key)}>
+                  <Input
+                    type="number"
+                    min={0}
+                    inputMode="numeric"
+                    value={values.plan[key]}
+                    onChange={(e) => set('plan', { ...values.plan, [key]: e.target.value })}
+                  />
+                </Field>
+              ))}
+            </fieldset>
+          ) : null}
+        </FormSection>
 
         {create.isError && !Object.keys(serverErrors).length ? (
           <p className="wo-alert" role="alert">
             {describeError(create.error)}
           </p>
         ) : null}
-        <div className="wo-form-actions">
+        <FormActions
+          status="You can resolve or cancel it any time. Nothing is sent without you."
+          sticky
+        >
           <Button type="submit" loading={create.isPending}>
             Start tracking
           </Button>
-        </div>
-      </form>
-      <SchedulePreview values={values} />
+        </FormActions>
+      </Form>
+      <div className="wo-aside">
+        <SchedulePreview values={values} />
+      </div>
     </div>
   )
 }

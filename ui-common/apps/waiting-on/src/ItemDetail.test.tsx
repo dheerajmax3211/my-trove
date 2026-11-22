@@ -25,9 +25,7 @@ describe('item page', () => {
     })
     expect(heading).toHaveFocus()
     expect(screen.getByText('Waiting on Northwind Outfitters')).toBeInTheDocument()
-    const details = within(
-      screen.getByRole('heading', { name: 'Details' }).closest('div')!.parentElement!,
-    )
+    const details = within(await screen.findByRole('region', { name: 'Details' }))
     expect(details.getByText('support@northwind.example', { exact: false })).toBeInTheDocument()
     expect(details.getByText('Overdue by 8 days')).toBeInTheDocument()
     expect(document.title).toBe('Refund for returned jacket | Waiting On')
@@ -52,10 +50,7 @@ describe('item page', () => {
 
   it('shows the live follow-up stage and when the next step is scheduled', async () => {
     renderApp({ route: open(CLAIM) })
-    const card = within(
-      (await screen.findByRole('heading', { name: 'Follow-up status' })).closest('div')!
-        .parentElement!,
-    )
+    const card = within(await screen.findByRole('region', { name: 'Follow-up status' }))
     expect(await card.findByText('Escalated, waiting for a reply')).toBeInTheDocument()
     expect(card.getByText('Final notice')).toBeInTheDocument()
     expect(card.getByText('(in 2 days)')).toBeInTheDocument()
@@ -138,10 +133,7 @@ describe('draft letters', () => {
 describe('snooze', () => {
   it('moves the next action later and records it on the timeline', async () => {
     const { user, requests } = renderApp({ route: open(EXPENSES) })
-    const status = within(
-      (await screen.findByRole('heading', { name: 'Follow-up status' })).closest('div')!
-        .parentElement!,
-    )
+    const status = within(await screen.findByRole('region', { name: 'Follow-up status' }))
     expect(await status.findByText('(in 10 days)')).toBeInTheDocument()
 
     await user.click(actionButtons().snooze)

@@ -12,27 +12,49 @@ export function rungs(item: Pick<Item, 'status' | 'plan' | 'followUp'>): {
   return { total, reached: item.followUp?.stage === 'FINAL_NOTICE' ? Math.min(3, total) : 2 }
 }
 
+const NAMES = ['Nudge', 'Escalate', 'Final notice']
+
 /**
- * Rising notches, like the bitting of a key: one per follow-up letter, filled as the follow-up climbs.
- * Closed items show no gauge. The status badge next to it says the same in words.
+ * A progress rail: one segment per follow-up letter, filled as the follow-up climbs, with the
+ * letter names underneath when asked. Closed items show no rail. The status badge says the same in words.
  */
-export function StageGauge({ item }: { item: Pick<Item, 'status' | 'plan' | 'followUp'> }) {
+export function StageGauge({
+  item,
+  labels = false,
+  size = 'md',
+}: {
+  item: Pick<Item, 'status' | 'plan' | 'followUp'>
+  labels?: boolean
+  size?: 'md' | 'lg'
+}) {
   if (isTerminal(item.status)) return null
   const { total, reached } = rungs(item)
   return (
-    <span
-      className="wo-gauge"
-      role="img"
-      aria-label={`${reached} of ${total} follow-up letters reached`}
-    >
-      {Array.from({ length: total }, (_, i) => (
-        <i
-          key={i}
-          className="wo-gauge-notch"
-          data-on={i < reached ? 'true' : 'false'}
-          style={{ blockSize: `${0.6 + i * 0.35}rem` }}
-        />
-      ))}
-    </span>
+    <div className="wo-rail" data-size={size}>
+      <div
+        className="wo-rail-track"
+        role="img"
+        aria-label={`${reached} of ${total} follow-up letters reached`}
+      >
+        {Array.from({ length: total }, (_, i) => (
+          <i
+            key={i}
+            className="wo-rail-seg"
+            data-on={i < reached ? 'true' : 'false'}
+            data-last={i === total - 1 ? 'true' : 'false'}
+            style={{ ['--i' as string]: i }}
+          />
+        ))}
+      </div>
+      {labels ? (
+        <ol className="wo-rail-names" aria-hidden="true">
+          {Array.from({ length: total }, (_, i) => (
+            <li key={i} data-on={i < reached ? 'true' : 'false'}>
+              {NAMES[i]}
+            </li>
+          ))}
+        </ol>
+      ) : null}
+    </div>
   )
 }
