@@ -182,16 +182,18 @@ async function signInAs(page, label, email, { narrow = false } = {}) {
   await page.goto(`${WS}/`, { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Continue with Google" }).click();
   await page.getByRole("button", { name: `Sign in as ${label}, ${email}` }).click();
-  const skip = page.getByRole("button", { name: "Skip for now" });
-  const ready = narrow ? page.getByRole("heading", { level: 1 }) : nav(page);
-  await ready.or(skip).first().waitFor({ state: narrow ? "attached" : "visible" });
-  // A first sign-in shows the welcome wizard; let its state settle, then leave it for the workspace.
+  // A first sign-in shows the welcome wizard in place of the workspace; "Skip for now" leaves it. The home heading is
+  // only there once the workspace itself is showing, at every width.
+  const wizard = page.getByRole("button", { name: "Skip for now" });
+  const home = page.getByRole("heading", { name: /^Good (morning|afternoon|evening)/ });
+  await wizard.or(home).first().waitFor({ state: "attached" });
   await page.waitForLoadState("networkidle");
-  if (await skip.isVisible().catch(() => false)) {
-    await skip.first().click();
-    await page.waitForTimeout(300);
+  if ((await wizard.count()) > 0) {
+    await wizard.first().click();
+    await wizard.first().waitFor({ state: "detached" });
   }
-  await ready.first().waitFor({ state: narrow ? "attached" : "visible" });
+  await home.first().waitFor({ state: "attached" });
+  if (!narrow) await nav(page).waitFor({ state: "visible" });
 }
 
 /** The page transition keeps the outgoing page for about 140 ms; wait it out before reading the new one. */
@@ -446,6 +448,8 @@ try {
   await shot(dev, "06-docs-1440-light");
 
   await sections(dev).getByRole("link", { name: "API keys" }).click();
+  await dev.waitForURL(/\/developer\/keys$/);
+  await dev.getByRole("table").waitFor();
   await settle(dev);
   await check("revoking a key asks first, then shows it revoked", async () => {
     const row = dev.getByRole("row").filter({ hasText: KEY_NAME });

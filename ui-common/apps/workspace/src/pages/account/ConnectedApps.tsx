@@ -65,8 +65,13 @@ export function ConnectedApps() {
                 <Badge variant={grant.status === 'ACTIVE' ? 'success' : 'neutral'}>
                   {grant.status === 'ACTIVE' ? 'Active' : grant.status.toLowerCase()}
                 </Badge>
-                <Button variant="ghost" size="sm" onClick={() => setPending(grant)}>
-                  Disconnect {grant.clientName}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label={`Disconnect ${grant.clientName}`}
+                  onClick={() => setPending(grant)}
+                >
+                  Disconnect
                 </Button>
               </div>
             </li>
