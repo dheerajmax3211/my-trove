@@ -22,11 +22,12 @@ public class DeviceController {
 
     public record RegisterRequest(@NotBlank @Size(max = 120) String label) {}
 
+    /** {@code manual}: readings entered by the owner, which have no token. {@code tokenPrefix} is a placeholder then. */
     public record DeviceResponse(UUID id, UUID applianceId, String label, String tokenPrefix, Instant createdAt,
-                                 Instant lastSeenAt, Instant revokedAt, boolean active, boolean simulated) {
+                                 Instant lastSeenAt, Instant revokedAt, boolean active, boolean simulated, boolean manual) {
         static DeviceResponse from(Device d) {
             return new DeviceResponse(d.id(), d.applianceId(), d.label(), d.tokenPrefix(), d.createdAt(),
-                    d.lastSeenAt(), d.revokedAt(), d.active(), d.simulated());
+                    d.lastSeenAt(), d.revokedAt(), d.active(), d.simulated(), d.manual());
         }
     }
 

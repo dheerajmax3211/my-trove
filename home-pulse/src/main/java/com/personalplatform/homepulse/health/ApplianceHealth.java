@@ -2,6 +2,7 @@ package com.personalplatform.homepulse.health;
 
 import com.personalplatform.homepulse.alert.AlertResponse;
 import com.personalplatform.homepulse.detect.Baseline;
+import com.personalplatform.homepulse.device.ReadingSource;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -21,7 +22,9 @@ public record ApplianceHealth(
         Last24h last24h,
         List<AlertResponse> activeAlerts,
         Service service,
-        boolean simulated) {
+        boolean simulated,
+        /** Where the numbers come from (the live device's kind), or null when the appliance has no live device. */
+        ReadingSource source) {
 
     public enum Status { HEALTHY, WARNING, CRITICAL, LEARNING, NO_DEVICE }
 

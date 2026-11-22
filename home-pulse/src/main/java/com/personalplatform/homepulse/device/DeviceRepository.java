@@ -22,11 +22,16 @@ public class DeviceRepository {
     }
 
     public Device insert(String ownerUid, UUID applianceId, String label, String tokenHash, String tokenPrefix, Instant now) {
-        return insert(ownerUid, applianceId, label, tokenHash, tokenPrefix, now, false);
+        return insert(ownerUid, applianceId, label, tokenHash, tokenPrefix, now, false, false);
     }
 
     public Device insert(String ownerUid, UUID applianceId, String label, String tokenHash, String tokenPrefix, Instant now,
                          boolean simulated) {
+        return insert(ownerUid, applianceId, label, tokenHash, tokenPrefix, now, simulated, false);
+    }
+
+    public Device insert(String ownerUid, UUID applianceId, String label, String tokenHash, String tokenPrefix, Instant now,
+                         boolean simulated, boolean manual) {
         UUID id = UuidV7.next();
         dsl.insertInto(DEVICES)
                 .set(DEVICES.ID, id)
@@ -37,6 +42,7 @@ public class DeviceRepository {
                 .set(DEVICES.TOKEN_PREFIX, tokenPrefix)
                 .set(DEVICES.CREATED_AT, now.atOffset(ZoneOffset.UTC))
                 .set(DEVICES.SIMULATED, simulated)
+                .set(DEVICES.MANUAL, manual)
                 .execute();
         return find(ownerUid, id).orElseThrow();
     }
@@ -101,6 +107,6 @@ public class DeviceRepository {
                 r.getCreatedAt().toInstant(),
                 r.getLastSeenAt() == null ? null : r.getLastSeenAt().toInstant(),
                 r.getRevokedAt() == null ? null : r.getRevokedAt().toInstant(),
-                r.getSimulated());
+                r.getSimulated(), r.getManual());
     }
 }

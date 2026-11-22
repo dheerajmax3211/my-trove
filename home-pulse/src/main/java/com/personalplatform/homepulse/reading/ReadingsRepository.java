@@ -13,6 +13,7 @@ import static com.personalplatform.homepulse.reading.TimescaleViews.SAMPLES;
 import static com.personalplatform.sql.jooq.home_pulse.home_pulse.Tables.READINGS;
 
 import com.personalplatform.homepulse.detect.MinuteSample;
+import com.personalplatform.homepulse.device.Device;
 import com.personalplatform.homepulse.ingest.ReadingInput;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -71,9 +72,18 @@ public class ReadingsRepository {
                 .map(OffsetDateTime::toInstant);
     }
 
-    /** 1-minute samples in [from, to) for the evaluator, oldest first; gaps of up to 4 minutes are bridged ({@link SampleGapFill}). */
-    public List<MinuteSample> minuteSamples(UUID deviceId, boolean simulated, Instant from, Instant to) {
-        return simulated ? minuteSamplesRaw(deviceId, from, to) : minuteSamples(deviceId, from, to);
+    /**
+     * 1-minute samples in [from, to) for the evaluator and the health view, oldest first. Gaps of up to 4 minutes are
+     * bridged ({@link SampleGapFill}), except after the last manual reading: manual readings cover exactly the minutes
+     * the owner's totals cover, so nothing is held beyond them.
+     */
+    public List<MinuteSample> minuteSamples(Device device, Instant from, Instant to) {
+        if (device.simulated()) {
+            return minuteSamplesRaw(device.id(), from, to);
+        }
+        List<MinuteSample> samples = aggregatedSamples(device.id(), from, to);
+        Instant limit = device.manual() && !samples.isEmpty() ? samples.get(samples.size() - 1).ts() : to;
+        return SampleGapFill.fill(samples, limit);
     }
 
     /**
@@ -92,12 +102,11 @@ public class ReadingsRepository {
         return SampleGapFill.fill(samples, to);
     }
 
-    public List<MinuteSample> minuteSamples(UUID deviceId, Instant from, Instant to) {
-        List<MinuteSample> samples = dsl.select(BUCKET, AVG_WATTS).from(READINGS_1M)
+    private List<MinuteSample> aggregatedSamples(UUID deviceId, Instant from, Instant to) {
+        return dsl.select(BUCKET, AVG_WATTS).from(READINGS_1M)
                 .where(DEVICE_ID.eq(deviceId), BUCKET.ge(from.atOffset(ZoneOffset.UTC)), BUCKET.lt(to.atOffset(ZoneOffset.UTC)))
                 .orderBy(BUCKET)
                 .fetch(r -> new MinuteSample(r.get(BUCKET).toInstant(), r.get(AVG_WATTS)));
-        return SampleGapFill.fill(samples, to);
     }
 
     /**

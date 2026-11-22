@@ -3,11 +3,13 @@ package com.personalplatform.homepulse.reading;
 import com.personalplatform.homepulse.appliance.ApplianceRepository;
 import com.personalplatform.homepulse.device.Device;
 import com.personalplatform.homepulse.device.DeviceRepository;
+import com.personalplatform.homepulse.device.ReadingSource;
 import com.personalplatform.homepulse.web.NotFoundException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,9 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class ReadingsService {
 
-    /** {@code simulated}: one of the appliance's devices is the built-in simulator. */
-    public record Series(UUID applianceId, Instant from, Instant to, Resolution resolution, boolean simulated,
-                         List<ReadingPoint> points) {}
+    /**
+     * {@code source}: where the numbers come from, the live device's kind (null without a live device).
+     * {@code simulated}: the live device is the built-in simulator.
+     */
+    public record Series(UUID applianceId, Instant from, Instant to, Resolution resolution, ReadingSource source,
+                         boolean simulated, List<ReadingPoint> points) {}
 
     static final Duration MAX_RANGE = Duration.ofDays(400);
 
@@ -55,9 +60,16 @@ public class ReadingsService {
             throw new IllegalArgumentException("range would return more than " + Resolution.MAX_POINTS
                     + " points at resolution " + chosen + "; use a coarser resolution or a shorter range");
         }
+        // Never mix sources. A running simulation answers with its own readings only; otherwise the answer is the
+        // real and manual history of the appliance (a replaced plug keeps its history). Simulated readings are
+        // deleted when the simulation stops, so they are never left behind to leak into a real chart.
+        Optional<Device> live = devices.findActiveForAppliance(applianceId);
+        boolean simulatedRun = live.map(Device::simulated).orElse(false);
         List<Device> all = devices.listForAppliance(ownerUid, applianceId);
-        List<UUID> deviceIds = all.stream().map(Device::id).toList();
-        boolean simulated = all.stream().anyMatch(Device::simulated);
-        return new Series(applianceId, start, end, chosen, simulated, readings.series(deviceIds, start, end, chosen));
+        List<UUID> deviceIds = all.stream()
+                .filter(d -> simulatedRun ? d.simulated() && d.active() : !d.simulated())
+                .map(Device::id).toList();
+        return new Series(applianceId, start, end, chosen, live.map(Device::source).orElse(null), simulatedRun,
+                readings.series(deviceIds, start, end, chosen));
     }
 }

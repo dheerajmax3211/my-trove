@@ -59,7 +59,7 @@ public class HealthService {
         var baselineRow = baselines.find(applianceId);
         Baseline baseline = baselineRow.map(BaselineRepository.Row::stats).orElse(null);
         Instant lastReading = device.flatMap(d -> readings.lastReading(d.id())).orElse(null);
-        Last24h last24h = device.map(d -> last24h(d.id(), baseline, now)).orElse(null);
+        Last24h last24h = device.map(d -> last24h(d, baseline, now)).orElse(null);
 
         Status status;
         if (live.stream().anyMatch(a -> a.severity() == Severity.CRITICAL)) {
@@ -81,11 +81,11 @@ public class HealthService {
         return new ApplianceHealth(applianceId, appliance.name(), status,
                 baselineRow.map(r -> r.status().name()).orElse("NONE"),
                 baselineRow.map(BaselineRepository.Row::learnedAt).orElse(null), baseline, lastReading, last24h,
-                liveViews, service, device.map(Device::simulated).orElse(false));
+                liveViews, service, device.map(Device::simulated).orElse(false), device.map(Device::source).orElse(null));
     }
 
-    private Last24h last24h(UUID deviceId, Baseline baseline, Instant now) {
-        List<MinuteSample> samples = readings.minuteSamples(deviceId, now.minus(Duration.ofHours(24)), now);
+    private Last24h last24h(Device device, Baseline baseline, Instant now) {
+        List<MinuteSample> samples = readings.minuteSamples(device, now.minus(Duration.ofHours(24)), now);
         if (samples.isEmpty()) {
             return new Last24h(0, 0, 0, null, 0);
         }

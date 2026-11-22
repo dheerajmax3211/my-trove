@@ -66,6 +66,32 @@ public class DeviceService {
         }
     }
 
+    /**
+     * The source for readings the owner enters by hand: the appliance's live manual device when it has one, a new one
+     * when it has none, 409 when a real plug or the simulator already feeds the appliance. The token generated here is
+     * dropped at once, so a manual device can never authenticate an ingest request.
+     */
+    public Device ensureManual(String ownerUid, UUID applianceId) {
+        appliances.find(ownerUid, applianceId).orElseThrow(() -> new NotFoundException("Appliance"));
+        var active = devices.findActiveForAppliance(applianceId);
+        if (active.isPresent()) {
+            if (active.get().manual()) {
+                return active.get();
+            }
+            if (active.get().simulated()) {
+                throw new ConflictException("This appliance runs on the simulator. Remove the simulation before entering readings by hand");
+            }
+            throw new ConflictException("This appliance has a live smart plug. Revoke the plug before entering readings by hand");
+        }
+        String token = DeviceTokens.generate();
+        try {
+            return devices.insert(ownerUid, applianceId, "Entered by you", DeviceTokens.hash(token),
+                    "manual", clock.instant(), false, true);
+        } catch (DuplicateKeyException e) {
+            throw new ConflictException("Appliance already has an active device");
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<Device> list(String ownerUid, UUID applianceId) {
         appliances.find(ownerUid, applianceId).orElseThrow(() -> new NotFoundException("Appliance"));
@@ -88,8 +114,10 @@ public class DeviceService {
                 .map(d -> new DevicePrincipal(d.id(), d.ownerUid(), d.applianceId()));
     }
 
+    /** MQTT: a live device that reports by itself. Manual devices never report, so they are never accepted here. */
     @Transactional(readOnly = true)
     public Optional<DevicePrincipal> activeDevice(UUID deviceId) {
-        return devices.findActiveById(deviceId).map(d -> new DevicePrincipal(d.id(), d.ownerUid(), d.applianceId()));
+        return devices.findActiveById(deviceId).filter(d -> !d.manual())
+                .map(d -> new DevicePrincipal(d.id(), d.ownerUid(), d.applianceId()));
     }
 }

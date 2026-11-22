@@ -74,7 +74,7 @@ public class EvaluationService {
 
         Instant lastSeen = readings.lastReading(device.get().id()).orElse(device.get().createdAt());
         Instant lookbackFrom = now.minus(Duration.ofMinutes(DetectorProfile.FETCH_LOOKBACK_MINUTES));
-        List<MinuteSample> samples = readings.minuteSamples(device.get().id(), device.get().simulated(), lookbackFrom, now);
+        List<MinuteSample> samples = readings.minuteSamples(device.get(), lookbackFrom, now);
 
         var live = alerts.liveForAppliance(applianceId);
         Set<AlertKind> liveKinds = live.stream().map(AlertReconciler.LiveAlert::kind).collect(Collectors.toSet());
@@ -105,7 +105,7 @@ public class EvaluationService {
         Instant to = learnTo.isBefore(learnFrom.plus(Duration.ofDays(props.evaluation().learnDays())))
                 ? learnTo : learnFrom.plus(Duration.ofDays(props.evaluation().learnDays()));
         baselines.startLearning(applianceId, learnFrom, now);
-        Optional<Baseline> learned = BaselineLearner.learn(readings.minuteSamples(device.id(), device.simulated(), learnFrom, to),
+        Optional<Baseline> learned = BaselineLearner.learn(readings.minuteSamples(device, learnFrom, to),
                 DetectorProfile.forType(appliance.type()), learnFrom, to);
         learned.ifPresent(b -> baselines.saveReady(applianceId, b, now));
         return learned.isPresent();
@@ -130,7 +130,7 @@ public class EvaluationService {
         if (now.isBefore(learnTo)) {
             return null;
         }
-        List<MinuteSample> window = readings.minuteSamples(device.id(), device.simulated(), r.learnFrom(), learnTo);
+        List<MinuteSample> window = readings.minuteSamples(device, r.learnFrom(), learnTo);
         Optional<Baseline> learned = BaselineLearner.learn(window, profile, r.learnFrom(), learnTo);
         if (learned.isPresent()) {
             baselines.saveReady(appliance.id(), learned.get(), now);
