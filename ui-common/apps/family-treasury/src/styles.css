@@ -594,3 +594,15 @@ span:has(> .ft-inline-select) {
 .ft-hero-chart {
   margin-block: var(--pp-space-4);
 }
+.ft-approval-grid .ft-approval {
+  grid-template-columns: minmax(0, 1fr);
+}
+.ft-approval-grid .ft-approval-amount {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--pp-space-3);
+}
+.ft-approval-grid .ft-approval-facts {
+  max-width: none;
+}

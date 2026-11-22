@@ -87,7 +87,7 @@ export function PoolHero({ className, style }: Slot) {
           className="ft-hero-chart"
           label={`${label} balance after each of the last ${history.count} entries`}
           data={points}
-          height={150}
+          height={250}
           tone="lime"
           showAxis={false}
           gridLines={2}

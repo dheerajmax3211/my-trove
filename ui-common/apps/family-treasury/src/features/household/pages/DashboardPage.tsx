@@ -51,7 +51,7 @@ function ApprovalsCard({ className, style }: Slot) {
       {(list) => (
         <BentoCard
           span={5}
-          tone={list.length > 0 ? 'lilac' : 'light'}
+          tone="light"
           title={title}
           icon={<ShieldIcon size={18} />}
           actions={
@@ -239,7 +239,15 @@ function FullDashboard() {
         {pots.length === 0 ? (
           <NoPotsCard />
         ) : (
-          pots.map((pot, i) => <PotCard key={pot.id} pot={pot} share={shares[i] ?? 0} index={i} />)
+          pots.map((pot, i) => (
+            <PotCard
+              key={pot.id}
+              pot={pot}
+              share={shares[i] ?? 0}
+              index={i}
+              span={pots.length % 4 === 0 ? 3 : 4}
+            />
+          ))
         )}
         <ActivityCard span={trusted ? 7 : 12} />
         {trusted ? <UpcomingAllowances /> : null}

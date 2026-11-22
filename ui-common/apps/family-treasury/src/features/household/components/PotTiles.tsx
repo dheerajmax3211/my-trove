@@ -30,16 +30,17 @@ export function PotCard({
   pot,
   share,
   index,
+  span = 4,
   className,
   style,
-}: { pot: AccountView; share: number; index: number } & Slot) {
+}: { pot: AccountView; share: number; index: number; span?: number } & Slot) {
   const { household, currency, memberName } = useHousehold()
   const name = pot.ownerUid ? memberName(pot.ownerUid) : pot.name
   const role = household.members.find((m) => m.uid === pot.ownerUid)?.role
   const scale = 10 ** minorDigits(currency)
   return (
     <BentoCard
-      span={4}
+      span={span}
       title={name}
       icon={<Avatar name={name} size="sm" decorative />}
       actions={role ? <RoleBadge role={role} /> : null}
