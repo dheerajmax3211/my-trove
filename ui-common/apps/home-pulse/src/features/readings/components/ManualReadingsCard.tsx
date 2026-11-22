@@ -117,9 +117,11 @@ export function ManualReadingsCard({
     >
       <div className="hp-stack-4">
         <p className="hp-small">
-          No smart plug? Type in the total that your plug&apos;s display or your meter shows, or
-          import a CSV export. Home Pulse works out the average power between your entries.
-          Everything it makes from them is labelled <strong>Entered by you</strong>.
+          No smart plug? Type in the energy total shown by a plug or meter that measures only this
+          appliance, or import a CSV export of its power. A whole-home meter also counts everything
+          else in the house, so it cannot stand in for one appliance. Home Pulse works out the
+          average power between your entries. Everything it makes from them is labelled{' '}
+          <strong>Entered by you</strong>.
         </p>
 
         <form onSubmit={submitMeter} className="hp-stack-3" aria-labelledby="hp-meter-form-title">
