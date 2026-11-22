@@ -49,7 +49,7 @@ export function CardState<T>({
           <LoadingBlock label={loadingLabel ?? `Loading ${title.toLowerCase()}`} rows={3} />
         ) : (
           <ErrorNotice
-            error={query.error as ApiError}
+            error={query.error}
             title={errorTitle}
             onRetry={() => void query.refetch()}
           />

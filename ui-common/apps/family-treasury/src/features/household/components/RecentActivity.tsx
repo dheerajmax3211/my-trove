@@ -1,5 +1,7 @@
 import {
+  BentoCard,
   Button,
+  ClockIcon,
   EmptyState,
   Illustration,
   Timeline,
@@ -7,6 +9,7 @@ import {
   type TimelineTone,
 } from '@platform/ui'
 import { ModuleLink } from '@platform/workspace-kit'
+import type { Slot } from '../../../components/CardState'
 import type { EntryKind, EntryView, StatementRow } from '../../../api/types'
 import { MoneyText } from '../../../components/MoneyText'
 import { formatDate } from '../../../lib/dates'
@@ -33,7 +36,12 @@ function Line({ text, amount, signed }: { text: string; amount: number; signed?:
 }
 
 /** The latest ledger entries as a readable timeline: what happened, between whom, how much. */
-export function RecentEntries({ entries }: { entries: EntryView[] }) {
+export function RecentEntries({
+  entries,
+  span = 7,
+  className,
+  style,
+}: { entries: EntryView[]; span?: number } & Slot) {
   const { accountName, household, memberName } = useHousehold()
   const items: TimelineItem[] = entries.map((e) => {
     const s = summarizeEntry(e, accountName)
@@ -47,10 +55,13 @@ export function RecentEntries({ entries }: { entries: EntryView[] }) {
     }
   })
   return (
-    <section aria-labelledby="recent-heading" className="ft-panel">
-      <h2 id="recent-heading" className="ft-h2">
-        Recent activity
-      </h2>
+    <BentoCard
+      span={span}
+      title="Recent activity"
+      icon={<ClockIcon size={18} />}
+      className={className}
+      {...(style ? { style } : {})}
+    >
       {entries.length === 0 ? (
         <EmptyState
           illustration={<Illustration name="empty" size={180} />}
@@ -71,7 +82,7 @@ export function RecentEntries({ entries }: { entries: EntryView[] }) {
           <ModuleLink to={`/h/${household.id}/activity`}>See all activity</ModuleLink>
         </p>
       ) : null}
-    </section>
+    </BentoCard>
   )
 }
 
@@ -79,10 +90,14 @@ export function RecentEntries({ entries }: { entries: EntryView[] }) {
 export function RecentStatementRows({
   rows,
   currency,
+  span = 12,
+  className,
+  style,
 }: {
   rows: StatementRow[]
   currency: string
-}) {
+  span?: number
+} & Slot) {
   const { household } = useHousehold()
   const items: TimelineItem[] = [...rows].reverse().map((r) => ({
     id: `${r.entryId}-${r.seq}`,
@@ -97,10 +112,13 @@ export function RecentStatementRows({
     dateTime: r.postedAt,
   }))
   return (
-    <section aria-labelledby="recent-heading" className="ft-panel">
-      <h2 id="recent-heading" className="ft-h2">
-        Recent activity
-      </h2>
+    <BentoCard
+      span={span}
+      title="Recent activity"
+      icon={<ClockIcon size={18} />}
+      className={className}
+      {...(style ? { style } : {})}
+    >
       {rows.length === 0 ? (
         <EmptyState
           illustration={<Illustration name="empty" size={180} />}
@@ -114,6 +132,6 @@ export function RecentStatementRows({
       <p>
         <ModuleLink to={`/h/${household.id}/statement`}>Open my statement</ModuleLink>
       </p>
-    </section>
+    </BentoCard>
   )
 }
