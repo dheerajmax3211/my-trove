@@ -67,7 +67,7 @@ class HomePulseSchemaTest {
         List<String> versions = inDsl(dsl -> dsl.fetch(
                 "select version from home_pulse.flyway_schema_history where success and version is not null order by installed_rank")
                 .getValues(0, String.class));
-        assertThat(versions).containsExactly("1", "2", "100", "101", "102");
+        assertThat(versions).containsExactly("1", "2", "3", "100", "101", "102");
     }
 
     @Test
@@ -76,6 +76,18 @@ class HomePulseSchemaTest {
             assertThat(count(dsl, "select count(*) from information_schema.columns where table_schema = 'home_pulse' "
                     + "and column_name = 'simulated' and table_name in ('devices', 'alerts') "
                     + "and is_nullable = 'NO' and column_default = 'false'")).isEqualTo(2);
+            return null;
+        });
+    }
+
+    @Test
+    void manualReadingsFlagDevicesAndTheMeterTotalsTableExist() throws Exception {
+        inDsl(dsl -> {
+            assertThat(count(dsl, "select count(*) from information_schema.columns where table_schema = 'home_pulse' "
+                    + "and column_name = 'manual' and table_name = 'devices' "
+                    + "and is_nullable = 'NO' and column_default = 'false'")).isEqualTo(1);
+            assertThat(count(dsl, "select count(*) from information_schema.columns where table_schema = 'home_pulse' "
+                    + "and table_name = 'meter_totals' and column_name in ('device_id', 'ts', 'kwh')")).isEqualTo(3);
             return null;
         });
     }
@@ -133,7 +145,7 @@ class HomePulseSchemaTest {
     @Test
     void everyGeneratedTableMatchesThePostgresSchema() throws Exception {
         inDsl(dsl -> {
-            assertThat(HomePulse.HOME_PULSE.getTables()).hasSize(5);
+            assertThat(HomePulse.HOME_PULSE.getTables()).hasSize(6);
             for (Table<?> t : HomePulse.HOME_PULSE.getTables()) {
                 dsl.selectFrom(t).limit(0).fetch();   // fails if any generated column is missing in the database
             }
