@@ -56,6 +56,27 @@
   margin-top: auto;
 }
 
+/* Dark theme: the surface sits only a step above the canvas and the hairline is nearly the same colour, so black
+   cards dissolve into the page. Give every card one consistent edge (a faint light line) and a lifted top edge,
+   and let the elevated variant keep that edge instead of dropping its border. Mirrors the two dark selectors in
+   packages/tokens/tokens.css. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .card {
+    border-color: rgb(255 255 255 / 0.14);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  }
+  :root:not([data-theme='light']) .elevated {
+    border-color: rgb(255 255 255 / 0.14);
+  }
+}
+:root[data-theme='dark'] .card {
+  border-color: rgb(255 255 255 / 0.14);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+:root[data-theme='dark'] .elevated {
+  border-color: rgb(255 255 255 / 0.14);
+}
+
 @media (max-width: 480px) {
   .header {
     padding: var(--pp-space-5) var(--pp-space-5) 0;

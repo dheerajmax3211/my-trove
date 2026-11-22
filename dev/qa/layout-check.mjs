@@ -23,13 +23,70 @@ import {
   slug,
 } from "./lib.mjs";
 
+// Default ports are the ones this worktree serves (5381-5387, 5391). Override any with QA_BASE_<NAME>, e.g. the canonical 5190 from dev/web.sh.
 const TARGETS = [
+  {
+    name: "workspace",
+    base: process.env.QA_BASE_WORKSPACE || "http://localhost:5391",
+    signin: "chooser",
+    persona: "owner",
+    routes: ["/", "/account"],
+  },
   {
     name: "waiting-on",
     base: process.env.QA_BASE_WAITING_ON || "http://localhost:5382",
     signin: "session",
     persona: "owner",
     routes: ["/", "/new", "FIRST:/items/"],
+  },
+  {
+    name: "consent",
+    base: process.env.QA_BASE_CONSENT || "http://localhost:5383",
+    signin: "session",
+    persona: "owner",
+    routes: [
+      "/requests",
+      "/grants",
+      "/vault",
+      "/clients",
+      "/history",
+      "/audit",
+    ],
+  },
+  {
+    name: "home-pulse",
+    base: process.env.QA_BASE_HOME_PULSE || "http://localhost:5384",
+    signin: "session",
+    persona: "owner",
+    routes: ["/devices", "/alerts", "/reminders", "/appliances/new"],
+  },
+  {
+    name: "ask-your-life",
+    base: process.env.QA_BASE_ASK_YOUR_LIFE || "http://localhost:5385",
+    signin: "session",
+    persona: "owner",
+    routes: ["/add", "/library"],
+  },
+  {
+    name: "digital-legacy",
+    base: process.env.QA_BASE_DIGITAL_LEGACY || "http://localhost:5386",
+    signin: "session",
+    persona: "owner",
+    routes: ["/vault", "/trustees", "/policy", "/timeline"],
+  },
+  {
+    name: "family-treasury",
+    base: process.env.QA_BASE_FAMILY_TREASURY || "http://localhost:5387",
+    signin: "session",
+    persona: "owner",
+    routes: ["FIRST:/h/"],
+  },
+  {
+    name: "hub",
+    base: process.env.QA_BASE_HUB || "http://localhost:5381",
+    signin: "session",
+    persona: "owner",
+    routes: ["/"],
   },
 ];
 

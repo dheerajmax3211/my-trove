@@ -60,13 +60,18 @@ export async function corsShim(context) {
       await route.fulfill({ status: 204, headers: cors });
       return;
     }
-    const response = await route.fetch({
-      headers: { ...headers, origin: SHIM_ORIGIN },
-    });
-    await route.fulfill({
-      response,
-      headers: { ...response.headers(), ...cors },
-    });
+    try {
+      const response = await route.fetch({
+        headers: { ...headers, origin: SHIM_ORIGIN },
+      });
+      await route.fulfill({
+        response,
+        headers: { ...response.headers(), ...cors },
+      });
+    } catch {
+      // The context closed while this request was in flight. Nothing is waiting for it any more.
+      await route.abort().catch(() => {});
+    }
   });
 }
 
