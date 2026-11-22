@@ -6,8 +6,10 @@
 set -uo pipefail
 GW="${GATEWAY_URL:-http://localhost:8080}"
 IDP="${IDP_URL:-http://localhost:9100}"
-MEMBER_EMAIL="${MEMBER_EMAIL:-member@example.test}"
 RUN="$(date +%s)"
+# A fresh MEMBER account per run (the baseline role every new account gets), so the per-user rate limit of the
+# gateway is never exhausted by earlier runs. Set MEMBER_EMAIL to use an existing account instead.
+MEMBER_EMAIL="${MEMBER_EMAIL:-member-$RUN@example.test}"
 pass=0; fail=0
 
 ok()   { echo "  PASS  $1"; pass=$((pass+1)); }
@@ -43,8 +45,8 @@ RS=$(request POST "$MEMBER_T" "/api/waiting-on/v1/items/$ITEM/resolve" '{"outcom
 check "resolve closes the item"              RESOLVED "$(python3 -c "import sys,json;print(json.loads(sys.stdin.read().split(' ',1)[1])['status'])" <<<"$RS" 2>/dev/null)"
 
 echo "== Consent: a third-party app asks, the owner narrows and approves, the app reads only that, then revoke"
-R=$(request PUT "$MEMBER_T" /api/consent/v1/owner/vault/attributes/profile.sizes.shoe '{"value":"US 10","sensitivity":"PERSONAL"}')
-check "owner stores an attribute"            200 "$(code "$R")"
+R=$(request POST "$MEMBER_T" /api/consent/v1/owner/vault/attributes '{"keyPath":"profile.sizes.shoe","value":"US 10","sensitivity":"PERSONAL"}')
+check "owner stores an attribute"            201 "$(code "$R")"
 R=$(request POST "$MEMBER_T" /api/consent/v1/owner/clients "{\"name\":\"e2e sample app $RUN\",\"allowedScopes\":[\"profile.sizes:read\",\"profile.contact:read\"]}")
 check "owner registers an app"               201 "$(code "$R")"
 CID=$(python3 -c "import sys,json;print(json.loads(sys.stdin.read().split(' ',1)[1])['client']['clientId'])" <<<"$R")
