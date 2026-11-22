@@ -83,7 +83,7 @@ public class HouseholdController {
     @ResponseStatus(HttpStatus.CREATED)
     public InviteCreated createInvite(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID householdId,
                                       @Valid @RequestBody CreateInviteRequest req) {
-        return households.createInvite(householdId, jwt.getSubject(), req.role(), req.ttlHours());
+        return households.createInvite(householdId, jwt.getSubject(), req.role(), req.ttlHours(), req.inviteeEmail());
     }
 
     @GetMapping("/{householdId}/invites")
