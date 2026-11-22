@@ -13,9 +13,20 @@
   opacity: 0.6;
 }
 
+/* The product you are inside: softly marked, because its own pages (below) carry the white pill. */
+.nav a[data-related] {
+  background: rgb(255 255 255 / 0.08);
+  color: var(--pp-color-text);
+}
+
 /* The sidebar body does not scroll by itself; keep the footer from covering the last links on short screens. */
-.nav {
+nav.nav {
   height: 100%;
+  gap: var(--pp-space-4);
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+nav.nav a {
+  min-height: 2.5rem;
 }

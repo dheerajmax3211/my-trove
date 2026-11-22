@@ -6,7 +6,6 @@
   text-decoration: none;
 }
 
-/* On a phone the top bar is crowded: show the mark alone there. The drawer (a vault surface) keeps the full logo. */
 .brandMark {
   display: none;
 }
@@ -25,70 +24,63 @@
   }
 }
 
-/* A search field that is really a button: it opens the command palette. */
-.search {
-  margin-inline-end: auto;
+.pageWrap {
   min-width: 0;
-  max-width: 24rem;
-  flex: 1 1 14rem;
-  justify-content: flex-start;
-  color: var(--pp-color-text-muted);
-  font-weight: var(--pp-weight-regular);
 }
-.searchText {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-align: start;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.kbd {
-  flex: none;
-  padding: 0 var(--pp-space-2);
-  border: 1px solid var(--pp-color-border);
-  border-radius: var(--pp-radius-sm);
-  background: var(--pp-color-surface-sunken);
-  color: var(--pp-color-text-muted);
-  font-family: var(--pp-font-sans);
-  font-size: var(--pp-text-caption-size);
-  line-height: 1.375rem;
-}
-.theme {
-  display: block;
+
+.promoStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-3);
 }
 .demoNote {
   margin: 0;
-  padding: var(--pp-space-3);
-  border: 1px solid var(--pp-color-vault-border);
-  border-radius: var(--pp-radius-md);
-  background: var(--pp-color-vault-raised);
+  padding: var(--pp-space-3) var(--pp-space-4);
+  border: 1px dashed var(--pp-color-vault-border);
+  border-radius: var(--pp-radius-lg);
   color: var(--pp-color-on-vault-muted);
   font-size: var(--pp-text-caption-size);
   line-height: var(--pp-text-caption-line);
 }
 .demoNote strong {
-  color: var(--pp-color-vault-brass);
+  color: var(--pp-color-lime);
   font-weight: var(--pp-weight-semibold);
 }
+.demoPill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--pp-space-3);
+  border-radius: var(--pp-radius-full);
+  background: var(--pp-color-lime);
+  color: var(--pp-color-on-lime);
+  font-size: var(--pp-text-caption-size);
+  font-weight: 700;
+  white-space: nowrap;
+}
 
-@media (max-width: 47.99rem) {
-  .theme {
-    display: none;
-  }
-  .search {
-    flex: 0 0 auto;
-    min-width: var(--pp-control-sm);
-    margin-inline-start: auto;
-    margin-inline-end: 0;
-  }
-  .searchText,
-  .kbd {
+/* On a short screen the promo is just its title and button, so the navigation keeps its room. */
+@media (max-height: 56rem) {
+  .demoNote,
+  .promoStack > div > div:first-child,
+  .promoStack > div > p:nth-of-type(2) {
     display: none;
   }
 }
-@media (max-width: 35.99rem) {
+
+.theme {
+  display: inline-flex;
+}
+@media (max-width: 63.99rem) {
   .persona {
+    display: none;
+  }
+}
+@media (max-width: 47.99rem) {
+  .demoPill {
+    display: none;
+  }
+  .theme {
     display: none;
   }
 }

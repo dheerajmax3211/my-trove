@@ -1,5 +1,5 @@
 import { isApiError, useApiQuery } from '@platform/api-client'
-import { Badge, Button, Skeleton, Sparkline } from '@platform/ui'
+import { Badge, BentoCard, BigStat, Button, CoinsIcon, Skeleton, Sparkline } from '@platform/ui'
 import { useWorkspaceSession } from '@platform/workspace-kit'
 import { useMemo, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
@@ -33,8 +33,11 @@ function resetLabel(now: Date): string {
   )
 }
 
-/** Requests used against the plan's monthly limit. Every failure shows a sentence and leaves the rest of the page alone. */
-export function PlanUsage() {
+/**
+ * Requests used against the plan's monthly limit: the page's one black card. Every failure shows a
+ * sentence and leaves the rest of the page alone.
+ */
+export function PlanUsage({ span = 5 }: { span?: number }) {
   const session = useWorkspaceSession()
   const { runtime } = useWorkspace()
   const plan = planInfo(session.plan)
@@ -69,8 +72,9 @@ export function PlanUsage() {
         aria-label="Loading your usage"
         className={styles.loading}
       >
-        <Skeleton width="40%" height="2rem" />
-        <Skeleton width="100%" height="0.5rem" />
+        <Skeleton width="55%" height="3.5rem" />
+        <Skeleton width="100%" height="0.75rem" />
+        <Skeleton width="70%" height="1rem" />
       </div>
     )
   } else if (usage.isError) {
@@ -106,10 +110,15 @@ export function PlanUsage() {
       const percent = Math.min(100, Math.round((used / plan.perMonth) * 100))
       body = (
         <>
-          <p className={styles.figure}>
-            <span className={styles.used}>{number.format(used)}</span>
-            <span className={styles.of}>of {number.format(plan.perMonth)} requests this month</span>
-          </p>
+          <div className={styles.figure}>
+            <BigStat
+              value={used}
+              locale="en"
+              {...(state === 'ok' ? {} : { delta: state === 'over' ? 'Over' : 'Near limit' })}
+              trend={state === 'over' ? 'down' : 'up'}
+              caption={`of ${number.format(plan.perMonth)} requests this month`}
+            />
+          </div>
           <div
             className={styles.track}
             role="meter"
@@ -120,7 +129,7 @@ export function PlanUsage() {
             aria-valuetext={`${number.format(used)} of ${number.format(plan.perMonth)} requests, ${percent} percent`}
             data-state={state}
           >
-            <span className={styles.fill} style={{ inlineSize: `${percent}%` }} />
+            <span className={styles.fill} style={{ ['--_pct' as string]: percent / 100 }} />
           </div>
           <p className={styles.caption} data-state={state}>
             {state === 'over'
@@ -131,9 +140,11 @@ export function PlanUsage() {
           </p>
           {series.length > 1 ? (
             <Sparkline
+              className={styles.spark}
               data={series}
-              width={240}
-              height={36}
+              width={320}
+              height={56}
+              animate
               tone={state === 'ok' ? 'accent' : state === 'near' ? 'brass' : 'danger'}
               label="Requests per day this month"
             />
@@ -144,13 +155,13 @@ export function PlanUsage() {
   }
 
   return (
-    <section className={styles.card} aria-labelledby="plan-usage-title">
-      <header className={styles.header}>
-        <h2 id="plan-usage-title" className={styles.title}>
-          Your plan
-        </h2>
-        <Badge variant="accent">{planName}</Badge>
-      </header>
+    <BentoCard
+      span={span}
+      tone="dark"
+      title="Your plan"
+      icon={<CoinsIcon size={18} />}
+      actions={<Badge variant="accent">{planName}</Badge>}
+    >
       {plan ? (
         <p className={styles.limits}>
           Up to {number.format(plan.perMinute)} requests a minute and {number.format(plan.perMonth)}{' '}
@@ -158,6 +169,6 @@ export function PlanUsage() {
         </p>
       ) : null}
       {body}
-    </section>
+    </BentoCard>
   )
 }

@@ -1,47 +1,25 @@
 .root {
-  position: relative;
-}
-.trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--pp-space-2);
-  min-height: var(--pp-control-md);
-  padding: 0 var(--pp-space-2) 0 var(--pp-space-1);
-  border: 1px solid transparent;
-  border-radius: var(--pp-radius-full);
-  background: transparent;
-  color: var(--pp-color-text);
-  font: inherit;
-  cursor: pointer;
-}
-.trigger:hover,
-.trigger[aria-expanded='true'] {
-  background: var(--pp-color-surface-sunken);
-  border-color: var(--pp-color-border);
-}
-.triggerName {
-  max-width: 11rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--pp-text-body-small-size);
-  font-weight: var(--pp-weight-medium);
+  display: contents;
 }
 .panel {
-  position: absolute;
-  inset-inline-end: 0;
-  top: calc(100% + var(--pp-space-2));
+  position: fixed;
   z-index: var(--pp-z-overlay);
   display: grid;
   gap: var(--pp-space-1);
   width: min(20rem, calc(100vw - 2rem));
   padding: var(--pp-space-2);
-  background: var(--pp-color-surface-overlay);
-  border: 1px solid var(--pp-color-border);
-  border-radius: var(--pp-radius-lg);
-  box-shadow:
-    inset 0 1px 0 var(--pp-color-highlight),
-    var(--pp-shadow-lg);
+  background: var(--pp-color-surface);
+  border: 1px solid var(--pp-color-hairline);
+  border-radius: var(--pp-radius-xl);
+  box-shadow: var(--pp-shadow-lg);
+  transform-origin: top left;
+  animation: panelIn var(--pp-duration-slower) var(--pp-ease-emphasized) both;
+}
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
 }
 .who {
   display: flex;
@@ -132,8 +110,3 @@
   background: var(--pp-color-surface-sunken);
 }
 
-@media (max-width: 40rem) {
-  .triggerName {
-    display: none;
-  }
-}

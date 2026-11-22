@@ -126,8 +126,8 @@ describe('API client and cache isolation', () => {
         name: 'Beta',
       }),
     )
-    // Beta starts from its own empty cache: it loads, then shows its own data, never Alpha's.
-    expect(screen.queryByText(/alpha items/)).not.toBeInTheDocument()
+    // Alpha's page leaves with a short transition; Beta then starts from its own empty cache, loads
+    // and shows its own data, never Alpha's.
     expect(await screen.findByText('beta items for Bearer token-user-a')).toBeInTheDocument()
     expect(screen.queryByText(/alpha items/)).not.toBeInTheDocument()
 

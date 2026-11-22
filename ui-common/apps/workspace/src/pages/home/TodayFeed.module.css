@@ -1,11 +1,12 @@
 .list {
+  display: grid;
+  gap: var(--pp-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--pp-color-border);
 }
 .row {
-  border-bottom: 1px solid var(--pp-color-hairline);
+  min-width: 0;
 }
 /* A row is one link: the whole line opens the item. */
 .link {
@@ -13,27 +14,38 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--pp-space-4);
-  padding: var(--pp-space-4) var(--pp-space-2);
-  margin-inline: calc(var(--pp-space-2) * -1);
-  border-radius: var(--pp-radius-md);
+  padding: var(--pp-space-3) var(--pp-space-4) var(--pp-space-3) var(--pp-space-3);
+  border-radius: var(--pp-radius-lg);
+  background: var(--pp-color-canvas);
   color: var(--pp-color-text);
   text-decoration: none;
+  transition:
+    background-color var(--pp-duration-normal) var(--pp-ease-standard),
+    transform var(--pp-duration-slow) var(--pp-ease-emphasized);
 }
 .link:hover {
-  background: var(--pp-color-surface);
+  background: var(--pp-color-accent-subtle);
+  transform: translateX(2px);
+}
+.row[data-severity='danger'] .link {
+  box-shadow: inset 3px 0 0 var(--pp-color-danger);
 }
 .text {
   display: grid;
-  gap: var(--pp-space-1);
+  gap: 2px;
   min-width: 0;
 }
 .title {
   font-weight: var(--pp-weight-semibold);
+  letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
 .meta {
   font-size: var(--pp-text-body-small-size);
   color: var(--pp-color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .flags {
   display: grid;
@@ -46,17 +58,23 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+.more {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--pp-space-3);
+}
 
 .skeleton {
   display: grid;
-  gap: var(--pp-space-5);
-  padding-block: var(--pp-space-4);
-  border-top: 1px solid var(--pp-color-border);
+  gap: var(--pp-space-3);
 }
 .skeletonRow {
   display: flex;
   align-items: center;
   gap: var(--pp-space-4);
+  padding: var(--pp-space-3);
+  border-radius: var(--pp-radius-lg);
+  background: var(--pp-color-canvas);
 }
 .skeletonText {
   display: grid;

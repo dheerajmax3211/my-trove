@@ -1,7 +1,7 @@
 import { HomeIcon, SidebarLink, SidebarNav, SidebarSection, UserIcon } from '@platform/ui'
 import { joinPath, useWorkspaceSession, type ProductModule } from '@platform/workspace-kit'
 import type { ReactNode } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { ModuleMark } from '../components/ModuleMark'
 import { useOnboarding } from '../onboarding/OnboardingProvider'
 import {
@@ -17,23 +17,26 @@ import styles from './Sidebar.module.css'
 
 function Item({
   to,
-  end = false,
+  active,
+  related = false,
   icon,
   children,
 }: {
   to: string
-  end?: boolean
+  active: boolean
+  /** The page is inside this item and its own pages are listed below: marked softly, no pill. */
+  related?: boolean
   icon: ReactNode
   children: ReactNode
 }) {
   return (
     <SidebarLink asChild>
-      <NavLink to={to} end={end}>
+      <Link to={to} aria-current={active ? 'page' : undefined} data-related={related || undefined}>
         <span className={styles.icon} aria-hidden="true">
           {icon}
         </span>
         {children}
-      </NavLink>
+      </Link>
     </SidebarLink>
   )
 }
@@ -65,31 +68,43 @@ export function Sidebar() {
     : undefined
 
   // The module the URL is inside, if any: its pages get their own list so the sidebar is the sub-nav.
-  const current = modules.find(
-    (module) => pathname === moduleBase(module) || pathname.startsWith(`${moduleBase(module)}/`),
-  )
+  const inside = (base: string) => pathname === base || pathname.startsWith(`${base}/`)
+  const current = modules.find((module) => inside(moduleBase(module)))
   const currentPages = current && canOpen(current, session) ? visibleNav(current, session) : []
+  const pageTo = (module: ProductModule, to: string) => joinPath(moduleBase(module), to)
+
+  // The longest matching in-module page is the current one, so `/` and `/new` never both light up.
+  const activePage = current
+    ? currentPages
+        .filter((page) => {
+          const target = pageTo(current, page.to)
+          return (page.end ?? page.to === '/') ? pathname === target : inside(target)
+        })
+        .sort((a, b) => pageTo(current, b.to).length - pageTo(current, a.to).length)[0]
+    : undefined
+
+  const moduleItem = (module: ProductModule) => (
+    <Item
+      key={module.id}
+      to={moduleBase(module)}
+      active={inside(moduleBase(module)) && !(current === module && activePage)}
+      related={current === module && Boolean(activePage)}
+      icon={<ModuleMark module={module} size={22} variant="solid" />}
+    >
+      {module.title}
+    </Item>
+  )
 
   return (
     <SidebarNav label="Workspace" className={styles.nav}>
       <SidebarSection>
-        <Item to="/" end icon={<HomeIcon size={18} />}>
+        <Item to="/" active={pathname === '/'} icon={<HomeIcon size={18} />}>
           Home
         </Item>
       </SidebarSection>
 
       {products.length > 0 ? (
-        <SidebarSection title="Products">
-          {products.map((module) => (
-            <Item
-              key={module.id}
-              to={moduleBase(module)}
-              icon={<ModuleMark module={module} size={22} variant="solid" />}
-            >
-              {module.title}
-            </Item>
-          ))}
-        </SidebarSection>
+        <SidebarSection title="Products">{products.map(moduleItem)}</SidebarSection>
       ) : null}
 
       {current && currentPages.length > 0 ? (
@@ -97,8 +112,8 @@ export function Sidebar() {
           {currentPages.map((page) => (
             <Item
               key={page.to}
-              to={joinPath(moduleBase(current), page.to)}
-              end={page.end ?? page.to === '/'}
+              to={pageTo(current, page.to)}
+              active={page === activePage}
               icon={page.icon ? <page.icon size={18} /> : <span className={styles.dot} />}
             >
               {page.label}
@@ -107,19 +122,10 @@ export function Sidebar() {
         </SidebarSection>
       ) : null}
 
-      {admin ? (
-        <SidebarSection title="Admin">
-          <Item
-            to={moduleBase(admin)}
-            icon={<ModuleMark module={admin} size={22} variant="solid" />}
-          >
-            {admin.title}
-          </Item>
-        </SidebarSection>
-      ) : null}
+      {admin ? <SidebarSection title="Admin">{moduleItem(admin)}</SidebarSection> : null}
 
       <SidebarSection>
-        <Item to="/account" icon={<UserIcon size={18} />}>
+        <Item to="/account" active={pathname === '/account'} icon={<UserIcon size={18} />}>
           Account
         </Item>
       </SidebarSection>
