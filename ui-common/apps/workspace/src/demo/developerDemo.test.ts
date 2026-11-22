@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return -- the assertions read parsed JSON bodies straight from the demo API, which is what these tests check */
 import { describe, expect, it } from 'vitest'
 import { createDeveloperDemo, type DemoCall } from './developerDemo'
 

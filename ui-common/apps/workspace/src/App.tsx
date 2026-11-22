@@ -10,7 +10,7 @@ import { registry } from './modules/registry'
 import { OnboardingProvider, useOnboarding } from './onboarding/OnboardingProvider'
 import { OnboardingWizard } from './onboarding/OnboardingWizard'
 import { AccountPage } from './pages/account/AccountPage'
-import { DeveloperPage } from './pages/developer/DeveloperPage'
+import { DeveloperArea } from './developer/DeveloperArea'
 import { HomePage } from './pages/home/HomePage'
 import { SignInPage } from './pages/signin/SignInPage'
 import { NotFoundPage } from './pages/StatusPages'
@@ -27,7 +27,7 @@ function WorkspaceRoutes() {
       <Route element={<WorkspaceShell />}>
         <Route index element={<HomePage />} />
         <Route path="account" element={<AccountPage />} />
-        <Route path="developer" element={<DeveloperPage />} />
+        <Route path="developer/*" element={<DeveloperArea />} />
         <Route path="app/:id/*" element={<ModuleRoute />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

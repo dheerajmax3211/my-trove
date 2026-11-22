@@ -95,7 +95,8 @@ export interface Delivery {
   endpointId: string
   eventId: string
   eventType: string
-  status: DeliveryStatus | string
+  /** One of DeliveryStatus today; a string so a new state from the platform does not break the log. */
+  status: string
   attempts: number
   nextAttemptAt: string | null
   lastStatusCode: number | null
@@ -130,7 +131,8 @@ export interface ConnectedGrant {
   readsUsed: number
   revokedAt: string | null
   lastReadAt: string | null
-  status: 'ACTIVE' | 'EXPIRED' | 'REVOKED' | string
+  /** ACTIVE, EXPIRED or REVOKED today. */
+  status: string
 }
 
 /** Every key and endpoint path in one place, so screens and the demo agree. */
