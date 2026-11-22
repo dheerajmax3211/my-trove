@@ -18,13 +18,25 @@ const DAY = 24 * 60 * MIN
 export const MAX_AGE_MS = 30 * DAY
 export const MAX_FUTURE_MS = 5 * MIN
 export const CSV_MAX_ROWS = 10_000
+/** Mirrors CsvReadings.MAX_INTERVAL_MINUTES: a longer gap is kept as a total, never spread over invented minutes. */
+export const MAX_INTERVAL_MINUTES = 120
 const MAX_WATTS = 1_000_000
+const MAX_VOLTS = 1_000
+const MAX_AMPS = 1_000
+const MAX_KWH = 1_000_000_000
 const MAX_PROBLEMS_SHOWN = 5
 
 /** A minute reading kept for a manual device. */
 export interface ManualSample {
   ms: number
   watts: number
+}
+
+/** A parsed CSV row. A kWh row has intervalMinutes > 0 and stands for the minutes (ms - n, ms]. */
+export interface CsvRow {
+  ms: number
+  watts: number
+  intervalMinutes: number
 }
 
 /** A running meter total the owner entered. */
@@ -36,10 +48,14 @@ export interface MeterTotal {
 /** A refusal the real service would answer with 409. */
 export class ManualConflict extends Error {}
 
+/** A problem with one row, collected per line like the service does. */
+class RowError extends Error {}
+
 export const averageWatts = (deltaKwh: number, minutes: number): number =>
   (deltaKwh * 60_000) / minutes
 
 const ISO_WITH_ZONE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/
+const NO_ZONE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/
 
 /** Parses one timestamp with a zone. A timestamp without one is refused, not guessed. */
 export function parseZonedMs(text: string): number | null {
@@ -48,45 +64,187 @@ export function parseZonedMs(text: string): number | null {
   return Number.isNaN(ms) ? null : ms
 }
 
+/** Java's Instant.toString for whole seconds: 2031-01-15T10:00:00Z. */
+const instantText = (ms: number): string => new Date(ms).toISOString().replace('.000Z', 'Z')
+
+const floorMinute = (ms: number): number => Math.floor(ms / MIN) * MIN
+
+const describeMinutes = (minutes: number): string =>
+  minutes % 60 === 0 ? `${minutes / 60} hours` : `${minutes} minutes`
+
+function timestampOf(text: string): number {
+  const ms = parseZonedMs(text)
+  if (ms !== null) return ms
+  if (NO_ZONE.test(text))
+    throw new RowError(
+      'the timestamp has no time zone. Add Z or an offset such as +01:00, for example 2031-01-15T10:00:00Z',
+    )
+  throw new RowError('the timestamp is not ISO 8601, for example 2031-01-15T10:00:00Z')
+}
+
+function numberOf(text: string, name: string, min: number, max: number): number {
+  const trimmed = text.trim()
+  const value = Number(trimmed)
+  if (trimmed === '' || (Number.isNaN(value) && trimmed.toLowerCase() !== 'nan'))
+    throw new RowError(`${name} must be a number`)
+  if (!Number.isFinite(value) || value < min || value > max)
+    throw new RowError(`${name} must be between ${min} and ${max}`)
+  return value
+}
+
+type Unit = 'WATTS' | 'KWH'
+
+/** Which column holds what (-1 when absent). `header` is the text used in messages. */
+interface Columns {
+  ts: number
+  value: number
+  unit: Unit
+  volts: number
+  amps: number
+  count: number
+  header: string
+}
+
+const DEFAULT_COLUMNS: Columns = {
+  ts: 0,
+  value: 1,
+  unit: 'WATTS',
+  volts: -1,
+  amps: -1,
+  count: 2,
+  header: 'timestamp,watts',
+}
+
+/** Mirrors Columns.fromHeader: the header names decide the columns, in any order and case. */
+function columnsFromHeader(line: string): Columns {
+  const names = line.split(',')
+  const found: { ts?: number; watts?: number; kwh?: number; volts?: number; amps?: number } = {}
+  const unknown: string[] = []
+  const place = (key: keyof typeof found, index: number, name: string) => {
+    if (found[key] !== undefined)
+      throw new BadRequest(`Nothing was imported. The header names the column '${name}' twice`)
+    found[key] = index
+  }
+  names.forEach((raw, index) => {
+    const name = raw.trim()
+    switch (name.toLowerCase()) {
+      case 'timestamp':
+      case 'time':
+      case 'ts':
+        place('ts', index, name)
+        break
+      case 'watts':
+        place('watts', index, name)
+        break
+      case 'kwh':
+        place('kwh', index, name)
+        break
+      case 'volts':
+      case 'voltage':
+        place('volts', index, name)
+        break
+      case 'amps':
+      case 'current':
+        place('amps', index, name)
+        break
+      default:
+        unknown.push(`'${name}'`)
+    }
+  })
+  if (unknown.length > 0)
+    throw new BadRequest(
+      `Nothing was imported. The header has unknown column ${unknown.join(', ')}. The columns it understands are timestamp, watts or kwh, volts, amps`,
+    )
+  if (found.ts === undefined)
+    throw new BadRequest('Nothing was imported. The header needs a timestamp column')
+  if (found.watts !== undefined && found.kwh !== undefined)
+    throw new BadRequest(
+      'Nothing was imported. The header has both watts and kwh: use either watts or kwh, not both',
+    )
+  if (found.watts === undefined && found.kwh === undefined)
+    throw new BadRequest(
+      'Nothing was imported. The header needs watts or kwh as its reading column',
+    )
+  return {
+    ts: found.ts,
+    value: (found.watts ?? found.kwh) as number,
+    unit: found.watts !== undefined ? 'WATTS' : 'KWH',
+    volts: found.volts ?? -1,
+    amps: found.amps ?? -1,
+    count: names.length,
+    header: line.trim(),
+  }
+}
+
+/**
+ * The average-power row for energy used since `previous`, or null for the very first kWh row (it only sets the
+ * starting time). Times are compared to the minute, the resolution readings are stored at.
+ */
+function energyRow(ms: number, kwh: number, previous: number | null): CsvRow | null {
+  if (previous === null) return null
+  const minute = floorMinute(ms)
+  const previousMinute = floorMinute(previous)
+  if (minute <= previousMinute)
+    throw new RowError(`kWh rows must be later than the row before (${instantText(previous)})`)
+  const minutes = Math.floor((minute - previousMinute) / MIN)
+  if (minutes > MAX_INTERVAL_MINUTES)
+    throw new RowError(
+      `the interval since the previous row is ${describeMinutes(minutes)}; kWh rows must be at most ${describeMinutes(MAX_INTERVAL_MINUTES)} apart, so export more often`,
+    )
+  const watts = averageWatts(kwh, minutes)
+  if (watts > MAX_WATTS)
+    throw new RowError(
+      `kwh is more than ${MAX_WATTS} watts could draw over ${describeMinutes(minutes)}`,
+    )
+  return { ms: minute, watts, intervalMinutes: minutes }
+}
+
 /** Mirrors CsvReadings.parse: every row is valid or the whole file is refused, listing the first problems. */
-export function parseCsv(csv: string): ManualSample[] {
-  const rows: ManualSample[] = []
+export function parseCsv(csv: string): CsvRow[] {
+  const rows: CsvRow[] = []
   const problems: string[] = []
   const lines = csv.split(/\r?\n/)
-  let firstContentLine = true
+  let columns: Columns | null = null
+  let previous: number | null = null
   for (let i = 0; i < lines.length; i += 1) {
     const line = (lines[i] ?? '').trim()
     const lineNo = i + 1
     if (line === '') continue
-    if (firstContentLine) {
-      firstContentLine = false
+    if (columns === null) {
       // ISO timestamps start with a digit; a header starts with a letter.
-      if (/^[A-Za-z]/.test(line)) continue
+      if (/^[A-Za-z]/.test(line)) {
+        columns = columnsFromHeader(line)
+        continue
+      }
+      columns = DEFAULT_COLUMNS
     }
     if (rows.length + problems.length >= CSV_MAX_ROWS)
       throw new BadRequest(`A file can hold at most ${CSV_MAX_ROWS} readings. Import it in parts`)
     const cells = line.split(',')
-    if (cells.length !== 2) {
-      problems.push(`line ${lineNo}: expected two columns, timestamp,watts`)
+    const cell = (index: number): string => cells[index] ?? ''
+    if (cells.length !== columns.count) {
+      problems.push(`line ${lineNo}: expected ${columns.count} columns, as in ${columns.header}`)
       continue
     }
-    const ms = parseZonedMs((cells[0] ?? '').trim())
-    if (ms === null) {
-      problems.push(
-        `line ${lineNo}: the timestamp must be ISO 8601 with a zone, such as 2026-11-19T10:00:00Z`,
-      )
-      continue
+    try {
+      const ms = timestampOf(cell(columns.ts).trim())
+      if (columns.volts >= 0) numberOf(cell(columns.volts), 'volts', 0, MAX_VOLTS)
+      if (columns.amps >= 0) numberOf(cell(columns.amps), 'amps', 0, MAX_AMPS)
+      if (columns.unit === 'WATTS') {
+        rows.push({
+          ms,
+          watts: numberOf(cell(columns.value), 'watts', 0, MAX_WATTS),
+          intervalMinutes: 0,
+        })
+      } else {
+        const row = energyRow(ms, numberOf(cell(columns.value), 'kwh', 0, MAX_KWH), previous)
+        if (row) rows.push(row)
+      }
+      previous = ms
+    } catch (error) {
+      if (!(error instanceof RowError)) throw error
+      problems.push(`line ${lineNo}: ${error.message}`)
     }
-    const watts = Number((cells[1] ?? '').trim())
-    if ((cells[1] ?? '').trim() === '' || Number.isNaN(watts)) {
-      problems.push(`line ${lineNo}: watts must be a number`)
-      continue
-    }
-    if (!Number.isFinite(watts) || watts < 0 || watts > MAX_WATTS) {
-      problems.push(`line ${lineNo}: watts must be between 0 and ${MAX_WATTS}`)
-      continue
-    }
-    rows.push({ ms, watts })
   }
   if (problems.length > 0) {
     const shown = problems.slice(0, MAX_PROBLEMS_SHOWN)
@@ -96,7 +254,7 @@ export function parseCsv(csv: string): ManualSample[] {
   }
   if (rows.length === 0)
     throw new BadRequest(
-      'The file has no readings. Each line needs a timestamp and watts, such as 2026-11-19T10:00:00Z,118.4',
+      'The file has no readings. Each line needs a timestamp and watts (or kwh), such as 2026-11-19T10:00:00Z,118.4. A kWh file needs at least two rows',
     )
   return rows
 }
@@ -133,6 +291,7 @@ export function recordMeterTotal(
       averageWatts: null,
       minutesStored: 0,
       minutesRejected: 0,
+      spread: false,
     }
   }
   if (at <= last.ms)
@@ -147,6 +306,19 @@ export function recordMeterTotal(
   const minutes = Math.floor((at - last.ms) / MIN)
   const delta = input.kwh - last.kwh
   const watts = averageWatts(delta, minutes)
+  state.totals.push({ ms: at, kwh: input.kwh })
+  const base = {
+    outcome: 'RECORDED' as const,
+    at: new Date(at).toISOString(),
+    previousAt: new Date(last.ms).toISOString(),
+    energyKwh: round(delta, 3),
+    intervalMinutes: minutes,
+    averageWatts: round(watts, 1),
+  }
+  if (minutes > MAX_INTERVAL_MINUTES) {
+    // a long gap: the total is kept, no minute readings are invented across it
+    return { ...base, minutesStored: 0, minutesRejected: 0, spread: false }
+  }
   const oldest = nowMs - MAX_AGE_MS
   const tooOld = Math.min(minutes, Math.max(0, Math.floor((oldest - last.ms) / MIN)))
   let stored = 0
@@ -157,20 +329,13 @@ export function recordMeterTotal(
       stored += 1
     }
   }
-  state.totals.push({ ms: at, kwh: input.kwh })
-  return {
-    outcome: 'RECORDED',
-    at: new Date(at).toISOString(),
-    previousAt: new Date(last.ms).toISOString(),
-    energyKwh: round(delta, 3),
-    intervalMinutes: minutes,
-    averageWatts: round(watts, 1),
-    minutesStored: stored,
-    minutesRejected: minutes - stored,
-  }
+  return { ...base, minutesStored: stored, minutesRejected: minutes - stored, spread: true }
 }
 
-/** Mirrors ManualReadingsService.importCsv. Duplicates are minutes already stored. */
+/**
+ * Mirrors ManualReadingsService.importCsv. A watts row is one reading; a kWh row is one reading per minute of its
+ * interval. Duplicates are minutes already stored.
+ */
 export function importCsv(state: ManualState, csv: string, nowMs: number): CsvImportResult {
   const rows = parseCsv(csv)
   const have = new Set(state.samples.map((s) => s.ms))
@@ -178,14 +343,18 @@ export function importCsv(state: ManualState, csv: string, nowMs: number): CsvIm
   let duplicates = 0
   let rejected = 0
   for (const row of rows) {
-    if (!inWindow(row.ms, nowMs)) {
-      rejected += 1
-    } else if (have.has(row.ms)) {
-      duplicates += 1
-    } else {
-      have.add(row.ms)
-      state.samples.push(row)
-      accepted += 1
+    const minutes = Math.max(1, row.intervalMinutes)
+    for (let back = minutes - 1; back >= 0; back -= 1) {
+      const ms = row.ms - back * MIN
+      if (!inWindow(ms, nowMs)) {
+        rejected += 1
+      } else if (have.has(ms)) {
+        duplicates += 1
+      } else {
+        have.add(ms)
+        state.samples.push({ ms, watts: row.watts })
+        accepted += 1
+      }
     }
   }
   return { rows: rows.length, accepted, duplicates, rejected }

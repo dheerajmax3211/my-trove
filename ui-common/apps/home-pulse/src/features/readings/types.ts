@@ -55,6 +55,11 @@ export interface MeterReadingResult {
   minutesStored: number
   /** Minutes not stored because they are older than the service accepts (30 days). */
   minutesRejected: number
+  /**
+   * False when the gap since the previous total is longer than 2 hours: the total is kept, but no minute readings are
+   * invented across the gap.
+   */
+  spread: boolean
 }
 
 /** Mirrors CsvImportResult. */

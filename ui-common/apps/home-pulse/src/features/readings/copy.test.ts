@@ -11,6 +11,7 @@ const recorded: MeterReadingResult = {
   averageWatts: 1000,
   minutesStored: 30,
   minutesRejected: 0,
+  spread: true,
 }
 
 describe('sourceSentence', () => {
@@ -46,6 +47,18 @@ describe('describeMeterResult', () => {
     expect(describeMeterResult({ ...recorded, minutesStored: 10, minutesRejected: 20 })).toContain(
       '20 minutes fell outside the 30 days',
     )
+  })
+
+  it('says a long gap was kept as a total only, with no readings made up for it', () => {
+    const text = describeMeterResult({
+      ...recorded,
+      spread: false,
+      intervalMinutes: 300,
+      minutesStored: 0,
+      energyKwh: 10,
+    })
+    expect(text).toContain('more than 2 hours')
+    expect(text).toContain('no minute readings were made up')
   })
 })
 

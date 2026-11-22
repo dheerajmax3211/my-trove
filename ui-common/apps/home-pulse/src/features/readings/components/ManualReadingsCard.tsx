@@ -171,7 +171,11 @@ export function ManualReadingsCard({
           <h3 id="hp-csv-form-title" className="hp-explainer-title">
             Import rows
           </h3>
-          <Field label="Rows: timestamp,watts" required error={csvError ?? undefined}>
+          <Field
+            label="Rows: timestamp,watts or timestamp,kwh"
+            required
+            error={csvError ?? undefined}
+          >
             <Textarea
               rows={5}
               value={csv}
@@ -184,8 +188,11 @@ export function ManualReadingsCard({
             Or choose a CSV file <input type="file" accept=".csv,text/csv" onChange={onFile} />
           </label>
           <p className="hp-small hp-muted">
-            One reading per line: a time with a zone (Z or +01:00), a comma, then the average watts
-            for that minute. A header line is fine. Nothing is saved unless every line is valid.
+            One row per line: a time with a zone (Z or +01:00), then either the watts at that
+            moment, or the kWh used since the previous row (its average power is spread over the
+            minutes between the two rows, at most 2 hours apart). Optional volts and amps columns
+            are kept. A header line names the columns, for example <code>timestamp,kwh,volts</code>.
+            Nothing is saved unless every line is valid.
           </p>
           {importRows.error ? (
             <p role="alert" className="hp-form-error">
