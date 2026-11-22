@@ -956,7 +956,7 @@ mark {
   display: grid;
   place-items: center;
   padding: var(--pp-space-4);
-  background: var(--pp-color-canvas);
+  background: var(--pp-color-backdrop);
 }
 
 .ayl-signin-card {

@@ -650,6 +650,22 @@
   position: static;
 }
 
+.wo-preview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: var(--pp-space-5);
+  padding: var(--pp-space-4) var(--pp-space-5);
+  border-radius: var(--pp-radius-lg);
+  background: var(--pp-color-surface-sunken);
+  overflow-wrap: anywhere;
+}
+
+.wo-preview-item span {
+  color: var(--pp-color-text-muted);
+  font-size: var(--pp-text-body-small-size);
+}
+
 .wo-aside {
   position: sticky;
   top: var(--pp-space-6);

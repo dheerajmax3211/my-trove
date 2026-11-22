@@ -18,6 +18,13 @@ export function SchedulePreview({ values }: { values: NewItemValues }) {
       title="What happens after you add this"
       icon={<CalendarIcon size={18} />}
     >
+      <div className="wo-preview-item" aria-live="polite">
+        <strong>{values.title.trim() || 'What you are waiting for'}</strong>
+        <span>
+          {values.counterparty.trim() ? `Waiting on ${values.counterparty.trim()}` : 'Waiting on …'}
+          {values.amount.trim() ? ` · ${values.amount.trim()} ${values.currency}` : ''}
+        </span>
+      </div>
       <p className="wo-detail-note" style={{ marginBottom: 'var(--pp-space-5)' }}>
         Waiting On follows up for you on a fixed schedule, counted in days from today. Anything you
         resolve or cancel stops the schedule straight away.
