@@ -57,12 +57,19 @@ describe('item page', () => {
     expect(card.getByText('7 days in total')).toBeInTheDocument()
   })
 
-  it('says plainly that replies by email are not connected yet', async () => {
-    renderApp({ route: open(JACKET) })
-    const card = within(await screen.findByRole('region', { name: 'Replies by email' }))
-    expect(card.getByText(/Not connected yet/)).toBeInTheDocument()
+  it('lets the owner paste a reply and says how it was read', async () => {
+    const { user } = renderApp({ route: open(JACKET) })
+    const card = within(await screen.findByRole('region', { name: 'Their reply' }))
+    expect(screen.queryByText(/Not connected yet/)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Copy reply address' })).not.toBeInTheDocument()
     expect(screen.queryByText(/@reply\.waiting-on\.local/)).not.toBeInTheDocument()
+
+    await user.click(card.getByRole('button', { name: 'Record reply' }))
+    expect(card.getByRole('alert')).toHaveTextContent('Paste what they said first.')
+
+    await user.type(card.getByLabelText(/What did they say/), 'Your refund has been processed.')
+    await user.click(card.getByRole('button', { name: 'Record reply' }))
+    expect(await card.findByTestId('reply-outcome')).toHaveTextContent('Read as paid or approved')
   })
 })
 
