@@ -69,7 +69,7 @@ class PlatformSchemaTest {
         List<String> versions = inDsl(dsl -> dsl.fetch(
                 "select version from platform.flyway_schema_history where success and version is not null order by installed_rank")
                 .getValues(0, String.class));
-        assertThat(versions).containsExactly("1", "2", "3", "100", "101", "102", "103");
+        assertThat(versions).containsExactly("1", "2", "3", "4", "5", "6", "100", "101", "102", "103");
     }
 
     @Test
@@ -174,7 +174,8 @@ class PlatformSchemaTest {
     @Test
     void everyGeneratedTableMatchesThePostgresSchema() throws Exception {
         inDsl(dsl -> {
-            assertThat(Platform.PLATFORM.getTables()).hasSize(4);
+            // plans, usage_events, feature_flags, flag_audit; developer apps and keys (V4, V5); webhooks (V6)
+            assertThat(Platform.PLATFORM.getTables()).hasSize(12);
             for (Table<?> t : Platform.PLATFORM.getTables()) {
                 dsl.selectFrom(t).limit(0).fetch();   // fails if any generated column is missing in the database
             }
