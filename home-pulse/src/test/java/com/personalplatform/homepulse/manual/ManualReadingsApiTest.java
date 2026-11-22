@@ -100,16 +100,71 @@ class ManualReadingsApiTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void aMeterTotalAfterALongGapStoresTheTotalButInventsNoReadings() throws Exception {
+        UUID fridge = createAppliance(ALICE, "FRIDGE", "");
+        meter(ALICE, fridge, "{\"kwh\":100.0,\"at\":\"2031-01-15T05:00:00Z\"}").andExpect(status().isOk());
+        // five hours of nobody measuring: 10 kWh is real, but spreading it would invent 300 minutes of readings
+        meter(ALICE, fridge, "{\"kwh\":110.0,\"at\":\"2031-01-15T10:00:00Z\"}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.outcome").value("RECORDED"))
+                .andExpect(jsonPath("$.spread").value(false))
+                .andExpect(jsonPath("$.intervalMinutes").value(300))
+                .andExpect(jsonPath("$.minutesStored").value(0))
+                .andExpect(jsonPath("$.minutesRejected").value(0));
+        assertThat(readingCount()).isZero();
+
+        // the next total, 90 minutes later, is spread as usual: the gap stays empty, the new interval is filled
+        meter(ALICE, fridge, "{\"kwh\":110.5,\"at\":\"2031-01-15T11:30:00Z\"}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.spread").value(true))
+                .andExpect(jsonPath("$.minutesStored").value(90));
+        assertThat(readingCount()).isEqualTo(90);
+        assertThat(((Number) dsl.fetchValue("select count(*) from home_pulse.readings where ts <= timestamptz '2031-01-15T10:00:00Z'")).longValue())
+                .isZero();
+    }
+
+    @Test
     void aMeterTotalOlderThanTheAcceptedWindowIsCountedAsRejectedNotStored() throws Exception {
         UUID pump = createAppliance(ALICE, "WATER_PUMP", "");
-        // The window opens 30 days before the test clock (2030-12-16T12:00Z). The 44-day interval from 2030-12-01 keeps
-        // its last 29 days; the first 15 days are counted as rejected, not stored.
-        meter(ALICE, pump, "{\"kwh\":10.0,\"at\":\"2030-12-01T12:00:00Z\"}").andExpect(status().isOk());
-        meter(ALICE, pump, "{\"kwh\":16.0,\"at\":\"2031-01-14T12:00:00Z\"}")
+        // The window opens 30 days before the test clock (2030-12-16T12:00Z). The 2-hour interval from 11:00 keeps
+        // its last hour; the first hour is counted as rejected, not stored.
+        meter(ALICE, pump, "{\"kwh\":10.0,\"at\":\"2030-12-16T11:00:00Z\"}").andExpect(status().isOk());
+        meter(ALICE, pump, "{\"kwh\":10.2,\"at\":\"2030-12-16T13:00:00Z\"}")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.intervalMinutes").value(44 * 24 * 60))
-                .andExpect(jsonPath("$.minutesRejected").value(15 * 24 * 60))
-                .andExpect(jsonPath("$.minutesStored").value(29 * 24 * 60));
+                .andExpect(jsonPath("$.intervalMinutes").value(120))
+                .andExpect(jsonPath("$.averageWatts").value(org.hamcrest.Matchers.closeTo(100.0, 1e-6)))
+                .andExpect(jsonPath("$.minutesRejected").value(60))
+                .andExpect(jsonPath("$.minutesStored").value(60));
+        assertThat(readingCount()).isEqualTo(60);
+    }
+
+    @Test
+    void csvWithKWhAndVoltsIsAveragedOverEachIntervalAndKeepsVolts() throws Exception {
+        UUID dryer = createAppliance(ALICE, "OTHER", "");
+        csv(ALICE, dryer, "timestamp,kwh,volts\n"
+                        + "2031-01-15T10:00:00Z,0.0,229\n"   // starting time only
+                        + "2031-01-15T10:30:00Z,0.5,230\n"   // 0.5 kWh over 30 min = 1000 W
+                        + "2031-01-15T10:45:00Z,0.25,231\n") // 0.25 kWh over 15 min = 1000 W
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rows").value(2))
+                .andExpect(jsonPath("$.accepted").value(45));
+        assertThat(readingCount()).isEqualTo(45);
+        assertThat(((Number) dsl.fetchValue("select count(*) from home_pulse.readings where watts = 1000 and volts = 230")).longValue())
+                .isEqualTo(30);
+        assertThat(((Number) dsl.fetchValue("select count(*) from home_pulse.readings where watts = 1000 and volts = 231")).longValue())
+                .isEqualTo(15);
+    }
+
+    @Test
+    void csvWithAGapOfMoreThanTwoHoursIsRefusedWholeAndNothingIsInvented() throws Exception {
+        UUID dryer = createAppliance(ALICE, "OTHER", "");
+        csv(ALICE, dryer, "timestamp,kwh\n2031-01-15T06:00:00Z,0\n2031-01-15T12:00:00Z,1\n")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("line 3: the interval since the previous row is 6 hours")));
+        csv(ALICE, dryer, "2031-01-15T10:00:00+01:00,100\n2031-01-15T10:00:00,100\n")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("line 2: the timestamp has no time zone")));
+        assertThat(readingCount()).isZero();
     }
 
     @Test

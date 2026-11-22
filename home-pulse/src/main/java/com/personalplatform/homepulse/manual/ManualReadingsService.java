@@ -39,9 +39,11 @@ public class ManualReadingsService {
      * @param averageWatts    average power over the interval (null for a baseline)
      * @param minutesStored   minute readings stored
      * @param minutesRejected minutes not stored: older than the service accepts, or refused by the ingest window
+     * @param spread          false when the gap since the previous total is longer than
+     *                        {@link CsvReadings#MAX_INTERVAL_MINUTES}: the total is kept, but no minute readings are invented
      */
     public record MeterResult(Outcome outcome, Instant at, Instant previousAt, double energyKwh, long intervalMinutes,
-                              Double averageWatts, long minutesStored, long minutesRejected) {}
+                              Double averageWatts, long minutesStored, long minutesRejected, boolean spread) {}
 
     /** @param rejected rows outside the accepted window (too old, or too far in the future) */
     public record ImportResult(int rows, int accepted, int duplicates, int rejected) {}
@@ -88,7 +90,7 @@ public class ManualReadingsService {
         if (previous.isEmpty()) {
             totals.insert(device.id(), at, kwh);
             evaluation.evaluate(applianceId);
-            return new MeterResult(Outcome.BASELINE, at, null, 0, 0, null, 0, 0);
+            return new MeterResult(Outcome.BASELINE, at, null, 0, 0, null, 0, 0, false);
         }
         MeterTotalRepository.Total prev = previous.get();
         if (!at.isAfter(prev.ts())) {
@@ -103,10 +105,15 @@ public class ManualReadingsService {
         long minutes = Duration.between(prev.ts(), at).toMinutes();
         double delta = kwh - prev.kwh();
         double watts = averageWatts(delta, minutes);
+        totals.insert(device.id(), at, kwh);
+        if (minutes > CsvReadings.MAX_INTERVAL_MINUTES) {
+            // A long gap: the energy is real, but spreading it over every minute would invent readings nobody measured.
+            evaluation.evaluate(applianceId);
+            return new MeterResult(Outcome.RECORDED, at, prev.ts(), delta, minutes, watts, 0, 0, false);
+        }
         // Minutes older than the service accepts are never generated: they would be rejected anyway.
         long tooOld = Math.min(minutes, Math.max(0, Duration.between(prev.ts(), now.minus(props.ingest().maxAge())).toMinutes()));
 
-        totals.insert(device.id(), at, kwh);
         Tally tally = new Tally();
         tally.rejected += tooOld;
         List<ReadingInput> batch = new ArrayList<>();
@@ -121,11 +128,13 @@ public class ManualReadingsService {
             tally.add(ingest.ingest(device.id(), batch));
         }
         evaluation.evaluate(applianceId);
-        return new MeterResult(Outcome.RECORDED, at, prev.ts(), delta, minutes, watts, tally.accepted, tally.rejected);
+        return new MeterResult(Outcome.RECORDED, at, prev.ts(), delta, minutes, watts, tally.accepted, tally.rejected, true);
     }
 
     /**
-     * Imports {@code timestamp,watts} rows. The whole file is validated first: a bad row stores nothing.
+     * Imports a smart-meter or plug export (see {@link CsvReadings} for the format). The whole file is validated first:
+     * a bad row stores nothing. A row of watts is one reading; a row of kWh is one reading per minute of its interval,
+     * each at that interval's average power.
      *
      * @throws IllegalArgumentException for a file that does not parse (listed line by line)
      */
@@ -137,10 +146,14 @@ public class ManualReadingsService {
         Tally tally = new Tally();
         List<ReadingInput> batch = new ArrayList<>();
         for (CsvReadings.Row row : rows) {
-            batch.add(new ReadingInput(row.ts(), row.watts(), null, null));
-            if (batch.size() == props.ingest().maxBatchSize()) {
-                tally.add(ingest.ingest(device.id(), batch));
-                batch = new ArrayList<>();
+            // a watts row is one reading at its time; a kWh row covers the minutes (ts - n, ts], ending at its time
+            int minutes = Math.max(1, row.intervalMinutes());
+            for (int back = minutes - 1; back >= 0; back--) {
+                batch.add(new ReadingInput(row.ts().minusSeconds(60L * back), row.watts(), row.volts(), row.amps()));
+                if (batch.size() == props.ingest().maxBatchSize()) {
+                    tally.add(ingest.ingest(device.id(), batch));
+                    batch = new ArrayList<>();
+                }
             }
         }
         if (!batch.isEmpty()) {
