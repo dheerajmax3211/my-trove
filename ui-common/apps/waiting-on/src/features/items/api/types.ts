@@ -118,4 +118,21 @@ export interface SnoozeInput {
   days: number
 }
 
+/** What the backend made of a pasted reply. PAID / REJECTED / NEEDS_INFO / UNKNOWN, as the workflow reads them. */
+export type ReplyClassification = 'PAID' | 'REJECTED' | 'NEEDS_INFO' | 'UNKNOWN'
+
+export interface ReplyInput {
+  from?: string
+  subject?: string
+  text: string
+}
+
+export interface ReplyResult {
+  matched: boolean
+  /** False when the item was already closed: the reply is kept on the timeline and nothing else changes. */
+  applied: boolean
+  itemId: string | null
+  classification: ReplyClassification | null
+}
+
 export const isTerminal = (status: ItemStatus): boolean => !ACTIVE_STATUSES.includes(status)

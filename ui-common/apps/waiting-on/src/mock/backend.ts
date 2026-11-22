@@ -3,7 +3,7 @@
  * status codes, RFC 9457 problem documents and validation rules as ItemController / ItemService,
  * including "another user's item is a 404" and the service's generic 400 for bean-validation failures.
  */
-import { addDays, calendarDaysBetween, parseCalendarDate } from '../lib/dates'
+import { addDays, calendarDaysBetween, parseCalendarDate, pluralDays } from '../lib/dates'
 import type { Clock } from '../lib/clock'
 import {
   ITEM_CATEGORIES,
@@ -23,6 +23,7 @@ import {
 } from '../features/items/api/types'
 import { defaultPlan, validatePlan } from '../features/items/logic/schedule'
 import { draftLetter } from './letters'
+import { classifyReply } from './reply'
 
 const REPLY_DOMAIN = 'reply.waiting-on.local'
 const DRAFT_NOTE =
@@ -313,7 +314,8 @@ export function createMockBackend(options: MockBackendOptions): { fetch: typeof 
       return json(rows.map((i) => view(i, false)))
     }
 
-    const match = /^\/v1\/items\/([^/]+)(?:\/(timeline|draft|resolve|snooze|cancel))?$/.exec(path)
+    const match =
+      /^\/v1\/items\/([^/]+)(?:\/(timeline|draft|resolve|snooze|cancel|replies))?$/.exec(path)
     if (!match)
       throw new Problem(404, 'Not Found', 'No static resource ' + path.replace(/^\//, '') + '.')
     const [, id = '', action] = match
@@ -349,13 +351,47 @@ export function createMockBackend(options: MockBackendOptions): { fetch: typeof 
       close(item, 'CANCELLED', 'Cancelled by owner', 'CANCELLED', 'Tracking cancelled')
       return json(view(item, false))
     }
+    if (action === 'replies' && method === 'POST') {
+      const text = isRecord(body) && typeof body.text === 'string' ? body.text.trim() : ''
+      if (text === '' || text.length > 20000) throw GENERIC_VALIDATION
+      const from =
+        isRecord(body) && typeof body.from === 'string' && body.from.trim() !== ''
+          ? body.from.trim()
+          : item.counterparty
+      const subject = isRecord(body) && typeof body.subject === 'string' ? body.subject : ''
+      const classification = classifyReply(`${subject}\n${text}`)
+      record(
+        item,
+        'REPLY_RECEIVED',
+        `Reply from ${from} classified as ${classification}`,
+        `Subject: ${subject}\n\n${text.slice(0, 2000)}`,
+      )
+      item.updatedAt = clock().toISOString()
+      const applied = !isTerminal(item.status)
+      if (applied) {
+        if (classification === 'PAID')
+          close(
+            item,
+            'RESOLVED',
+            'Counterparty reply indicates it was paid / approved',
+            'RESOLVED',
+            'Marked as resolved',
+          )
+        else if (classification === 'REJECTED') {
+          item.status = 'ESCALATED'
+          item.stage = stageForStatus('ESCALATED')
+          record(item, 'ESCALATION_DRAFTED', 'Escalation drafted after a refusal', null)
+        } else if (classification === 'NEEDS_INFO') item.snoozedDays += 7
+      }
+      return json({ matched: true, applied, itemId: item.id, classification })
+    }
     if (action === 'snooze' && method === 'POST') {
       const days = isRecord(body) ? body.days : undefined
       if (typeof days !== 'number' || !Number.isInteger(days) || days < 1 || days > 90)
         throw GENERIC_VALIDATION
       if (isTerminal(item.status))
         throw new Problem(409, 'Conflict', `Item is already ${item.status}`)
-      record(item, 'SNOOZED', `Follow-ups postponed by ${days} day(s)`, null)
+      record(item, 'SNOOZED', `Follow-ups postponed by ${pluralDays(days)}`, null)
       item.snoozedDays += days
       item.updatedAt = clock().toISOString()
       return json(view(item, true))

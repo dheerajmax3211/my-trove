@@ -25,7 +25,11 @@ public record TimeWindow(int startHour, int endHour, ZoneId zone) {
     }
 
     public boolean contains(Instant instant) {
-        int hour = instant.atZone(zone).getHour();
+        return containsHour(instant.atZone(zone).getHour());
+    }
+
+    /** Whether an hour of the day (0-23, in this window's zone) is allowed. */
+    public boolean containsHour(int hour) {
         return startHour < endHour
                 ? hour >= startHour && hour < endHour
                 : hour >= startHour || hour < endHour;

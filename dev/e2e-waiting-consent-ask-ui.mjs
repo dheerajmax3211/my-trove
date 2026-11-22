@@ -23,6 +23,7 @@ const WAITING_ON = process.env.WAITING_ON_URL ?? 'http://localhost:5182';
 const CONSENT = process.env.CONSENT_URL ?? 'http://localhost:5183';
 const ASK = process.env.ASK_URL ?? 'http://localhost:5185';
 const MEMBER = process.env.MEMBER_EMAIL ?? 'member@example.test';
+const IDP = process.env.IDP_URL ?? 'http://localhost:9100';
 const RUN = Date.now();
 
 const { chromium } = await import(process.env.PLAYWRIGHT_CORE ?? 'playwright-core');
@@ -50,10 +51,19 @@ async function check(name, fn) {
 const expect = (cond, msg) => {
   if (!cond) throw new Error(msg);
 };
+// The dev identity provider issues a one-time sign-in link bound to the address and sends nothing. The product apps
+// do not display it (the workspace does), so this asks the provider for the same link and opens it, as a user would.
 async function signIn(base) {
-  await page.goto(base + '/', { waitUntil: 'networkidle' });
+  const issued = await (
+    await fetch(`${IDP}/link`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: MEMBER }),
+    })
+  ).json();
+  await page.goto(`${base}/?mode=signIn&oobCode=${encodeURIComponent(issued.code)}`, { waitUntil: 'networkidle' });
   await page.getByLabel('Email').fill(MEMBER);
-  await page.getByRole('button', { name: 'Email me a link' }).click();
+  await page.getByRole('button', { name: 'Finish sign-in' }).click();
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(1200);
 }
@@ -78,19 +88,23 @@ await check('add a refund that is already overdue', async () => {
   await page.getByRole('heading', { name: title }).waitFor({ timeout: 15000 });
   expect((await mainText()).includes(title), 'detail page does not show the new item');
 });
-await check('the detail shows the follow-up status and the reply card says replies are not connected', async () => {
+await check('the detail shows the follow-up status, and a pasted reply is read and moves the follow-up', async () => {
   const text = await mainText();
   expect(text.includes('Follow-up status'), 'no follow-up status card');
   expect(text.includes('Overdue by'), 'overdue item not flagged');
-  expect(text.includes('Not connected yet'), 'reply card does not say replies are not connected');
+  expect(!text.includes('Not connected yet'), 'reply card still says replies are not connected');
   expect(!(await page.getByRole('button', { name: 'Copy reply address' }).count()), 'reply address still has a copy button');
+  const reply = page.getByRole('region', { name: 'Their reply' });
+  await reply.getByLabel(/What did they say/).fill('Your refund has been processed.');
+  await reply.getByRole('button', { name: 'Record reply' }).click();
+  await page.getByTestId('reply-outcome').waitFor({ timeout: 15000 });
+  expect((await page.getByTestId('reply-outcome').innerText()).includes('Read as paid or approved'), 'reply was not read as paid');
   await shot('waiting-on-detail');
 });
-await check('resolving the item closes it', async () => {
-  await page.getByRole('button', { name: 'Resolve' }).first().click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Mark as resolved' }).click();
-  await page.waitForTimeout(1200);
-  expect((await mainText()).includes('This item is resolved'), 'item not shown as resolved');
+await check('the paid reply closes the item through the follow-up workflow', async () => {
+  // The reply was read as paid, so the workflow resolves the item; the detail page picks it up on reload.
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.body.innerText.includes('This item is resolved'), null, { timeout: 30000, polling: 1000 });
 });
 
 console.log('== Consent');

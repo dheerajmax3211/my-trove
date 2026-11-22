@@ -1,5 +1,5 @@
 import { screen, waitFor, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createMockBackend } from '../../mock/backend'
 import { callsTo, dialog, pageHeading, renderApp } from '../../test/utils'
 
@@ -142,5 +142,20 @@ describe('dashboard', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('The gateway had a problem')
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await stat('Waiting for you')).toBeInTheDocument()
+  })
+
+  it('renders the owner home without React key warnings', async () => {
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      await openDashboard()
+      await screen.findByRole('region', { name: 'Waiting for your decision' })
+      await screen.findByRole('list', { name: 'Active grants' })
+      const keyWarnings = errors.mock.calls
+        .map((args) => args.map(String).join(' '))
+        .filter((line) => /same key|unique "key"|unique key/i.test(line))
+      expect(keyWarnings).toEqual([])
+    } finally {
+      errors.mockRestore()
+    }
   })
 })

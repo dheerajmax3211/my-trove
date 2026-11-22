@@ -9,6 +9,7 @@ export const draftPath = (id: string) => `${itemPath(id)}/draft`
 export const resolvePath = (id: string) => `${itemPath(id)}/resolve`
 export const snoozePath = (id: string) => `${itemPath(id)}/snooze`
 export const cancelPath = (id: string) => `${itemPath(id)}/cancel`
+export const repliesPath = (id: string) => `${itemPath(id)}/replies`
 
 export const draftQuery = (tone: Tone) => ({ tone })
 

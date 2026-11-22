@@ -183,7 +183,7 @@ public class ConsentService {
             }
             maxReads = approval.maxReads();
         }
-        TimeWindow window = approval.window() != null ? approval.window() : req.window();
+        TimeWindow window = approval.window() == null ? req.window() : narrowWindow(req.window(), approval.window());
         Sensitivity ceiling = approval.maxSensitivity() != null ? approval.maxSensitivity() : Sensitivity.SENSITIVE;
 
         OffsetDateTime now = now();
@@ -201,6 +201,27 @@ public class ConsentService {
         detail.put("maxSensitivity", ceiling.name());
         audit.append(owner, AuditEvent.REQUEST_APPROVED, "OWNER", owner, req.clientId(), grantId, detail);
         return grants.find(grantId).orElseThrow();
+    }
+
+    /**
+     * The owner may narrow the requested hours, never widen them. If the client asked for no particular hours, any
+     * window is a narrowing. Otherwise the approved window must use the requested zone and allow only hours the client
+     * asked for.
+     */
+    static TimeWindow narrowWindow(TimeWindow requested, TimeWindow approved) {
+        if (requested == null) {
+            return approved;
+        }
+        if (!requested.zone().equals(approved.zone())) {
+            throw ApiException.badRequest("Approved hours must use the requested time zone " + requested.zone());
+        }
+        for (int hour = 0; hour < 24; hour++) {
+            if (approved.containsHour(hour) && !requested.containsHour(hour)) {
+                throw ApiException.badRequest("Approval can only narrow the requested hours; hour " + hour
+                        + " was not requested");
+            }
+        }
+        return approved;
     }
 
     @Transactional

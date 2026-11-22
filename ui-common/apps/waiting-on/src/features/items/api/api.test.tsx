@@ -6,7 +6,14 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { createMockBackend } from '../../../mock/backend'
 import { demoSeed, OTHER_USERS_ITEM_ID } from '../../../mock/seed'
 import { NOW } from '../../../testing/harness'
-import { useCreateItem, useItem, useItems, useResolveItem, useSnoozeItem } from '../hooks/useItems'
+import {
+  useCreateItem,
+  useItem,
+  useItems,
+  useRecordReply,
+  useResolveItem,
+  useSnoozeItem,
+} from '../hooks/useItems'
 import { cancelPath, draftPath, itemPath, itemsPath, timelinePath } from './paths'
 import type { Draft, Item, TimelineEvent } from './types'
 
@@ -110,6 +117,21 @@ describe('request shapes', () => {
       ['POST', `/api/v1/items/${JACKET}/resolve`, '{"outcome":"Refunded"}'],
       ['POST', `/api/v1/items/${DESK}/snooze`, '{"days":9}'],
     ])
+  })
+
+  it('records a pasted reply and returns how it was read', async () => {
+    const reply = renderHook(() => useRecordReply(DESK), { wrapper })
+    const result = await reply.result.current.mutateAsync({
+      text: 'Your refund has been processed.',
+    })
+    expect(result).toMatchObject({ matched: true, applied: true, classification: 'PAID' })
+    expect(calls.at(-1)).toMatchObject({
+      method: 'POST',
+      url: `/api/v1/items/${DESK}/replies`,
+    })
+    expect(JSON.parse(calls.at(-1)?.body ?? '{}')).toEqual({
+      text: 'Your refund has been processed.',
+    })
   })
 
   it('cancels with no body and fetches the draft tone as a query parameter', async () => {

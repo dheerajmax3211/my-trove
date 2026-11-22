@@ -7,6 +7,7 @@ import {
   itemKeys,
   itemPath,
   itemsPath,
+  repliesPath,
   resolvePath,
   snoozePath,
   timelinePath,
@@ -16,6 +17,8 @@ import type {
   Draft,
   Item,
   ItemStatus,
+  ReplyInput,
+  ReplyResult,
   ResolveInput,
   SnoozeInput,
   TimelineEvent,
@@ -76,6 +79,13 @@ export function useCancelItem(id: string) {
   return useApiMutation<Item, void>({
     path: cancelPath(id),
     body: () => undefined,
+    invalidate: invalidateItem(id),
+  })
+}
+
+export function useRecordReply(id: string) {
+  return useApiMutation<ReplyResult, ReplyInput>({
+    path: repliesPath(id),
     invalidate: invalidateItem(id),
   })
 }

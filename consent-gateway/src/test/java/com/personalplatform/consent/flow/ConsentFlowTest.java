@@ -272,6 +272,32 @@ class ConsentFlowTest extends IntegrationTest {
     }
 
     @Test
+    void approvalCannotWidenTheRequestedHours() throws Exception {
+        String owner = newOwner();
+        putAttribute(owner, "profile.sizes.shoe", "43", "PERSONAL");
+        Registered client = registerClient(owner, "profile.sizes:read");
+        String ct = clientToken(client);
+        String requestId = createRequest(ct, "{'scopes':['profile.sizes:read'],'purpose':'sizing','durationSeconds':86400,"
+                + "'allowedHours':{'startHour':9,'endHour':17,'zone':'UTC'}}");
+        String path = "/v1/owner/requests/" + requestId + "/approve";
+
+        // every hour the owner approves must have been requested: all of these widen the window
+        ownerPost(owner, path, "{'allowedHours':{'startHour':0,'endHour':24,'zone':'UTC'}}").andExpect(status().isBadRequest());
+        ownerPost(owner, path, "{'allowedHours':{'startHour':8,'endHour':12,'zone':'UTC'}}").andExpect(status().isBadRequest());
+        ownerPost(owner, path, "{'allowedHours':{'startHour':16,'endHour':18,'zone':'UTC'}}").andExpect(status().isBadRequest());
+        // the same hours in another zone are not the same hours
+        ownerPost(owner, path, "{'allowedHours':{'startHour':9,'endHour':17,'zone':'Europe/Berlin'}}").andExpect(status().isBadRequest());
+        // wrapping past midnight is a different set of hours too
+        ownerPost(owner, path, "{'allowedHours':{'startHour':17,'endHour':9,'zone':'UTC'}}").andExpect(status().isBadRequest());
+
+        // narrower is fine, and is what the grant then enforces
+        ownerPost(owner, path, "{'allowedHours':{'startHour':10,'endHour':12,'zone':'UTC'}}")
+                .andExpect(status().isOk());
+        ownerGet(owner, "/v1/owner/grants").andExpect(jsonPath("$[0].allowedHours.startHour").value(10))
+                .andExpect(jsonPath("$[0].allowedHours.endHour").value(12));
+    }
+
+    @Test
     void purposeMustMatchWhenStated() throws Exception {
         String owner = newOwner();
         putAttribute(owner, "profile.sizes.shoe", "43", "PERSONAL");

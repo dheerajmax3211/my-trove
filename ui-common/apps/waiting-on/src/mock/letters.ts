@@ -1,5 +1,5 @@
 import type { ItemCategory, Tone } from '../features/items/api/types'
-import { calendarDaysBetween, addDays } from '../lib/dates'
+import { calendarDaysBetween, addDays, pluralDays } from '../lib/dates'
 
 /** A condensed port of the service's LetterTemplateEngine, so the demo previews realistic letters. */
 
@@ -25,7 +25,7 @@ interface Wording {
 const WORDING: Record<ItemCategory, Wording> = {
   REFUND: {
     situation:
-      'I requested a refund{{amountPhrase}} in connection with "{{title}}". I expected to receive it by {{expectedBy}}; as of {{today}} it is {{daysOverdue}} day(s) overdue and I have been waiting {{daysWaiting}} day(s).',
+      'I requested a refund{{amountPhrase}} in connection with "{{title}}". I expected to receive it by {{expectedBy}}; as of {{today}} it is {{overdueDays}} overdue and I have been waiting {{waitingDays}}.',
     rights:
       'Under consumer protection law (for example, in the UK the Consumer Rights Act 2015, and in the EU Directive 2011/83/EU on consumer rights), a consumer who is entitled to a refund must receive it without undue delay. I am entitled to a full refund to my original payment method.',
     demand: 'refund the full amount to my original payment method',
@@ -34,7 +34,7 @@ const WORDING: Record<ItemCategory, Wording> = {
   },
   CLAIM: {
     situation:
-      'I submitted a claim{{amountPhrase}} regarding "{{title}}". A decision or payment was expected by {{expectedBy}}; as of {{today}} that is {{daysOverdue}} day(s) ago and I have been waiting {{daysWaiting}} day(s).',
+      'I submitted a claim{{amountPhrase}} regarding "{{title}}". A decision or payment was expected by {{expectedBy}}; as of {{today}} that is {{overdueDays}} ago and I have been waiting {{waitingDays}}.',
     rights:
       'An insurer is required to handle claims promptly, fairly and reasonably and must not unreasonably delay or withhold payment of a valid claim (for example the UK Insurance Act 2015, s.13A, and the FCA ICOBS 8.1 claims-handling rules).',
     demand: 'give me a written decision on my claim and, where it is covered, pay it in full',
@@ -43,7 +43,7 @@ const WORDING: Record<ItemCategory, Wording> = {
   },
   REIMBURSEMENT: {
     situation:
-      'I submitted an expense reimbursement{{amountPhrase}} for "{{title}}", due by {{expectedBy}}. As of {{today}} it is {{daysOverdue}} day(s) overdue and I have been waiting {{daysWaiting}} day(s).',
+      'I submitted an expense reimbursement{{amountPhrase}} for "{{title}}", due by {{expectedBy}}. As of {{today}} it is {{overdueDays}} overdue and I have been waiting {{waitingDays}}.',
     rights:
       'Business expenses properly incurred and submitted under the applicable expenses policy are owed to me under the terms of my agreement with you. Please treat this as a formal request under that policy.',
     demand: 'pay the outstanding reimbursement in full',
@@ -52,7 +52,7 @@ const WORDING: Record<ItemCategory, Wording> = {
   },
   APPROVAL: {
     situation:
-      'I am waiting for a decision on "{{title}}"{{amountPhrase}}, which I expected by {{expectedBy}}. As of {{today}} it is {{daysOverdue}} day(s) overdue and I have been waiting {{daysWaiting}} day(s).',
+      'I am waiting for a decision on "{{title}}"{{amountPhrase}}, which I expected by {{expectedBy}}. As of {{today}} it is {{overdueDays}} overdue and I have been waiting {{waitingDays}}.',
     rights:
       'Organisations and public bodies are expected to decide applications within any statutory or published service-standard time limit, and otherwise within a reasonable time, and to give reasons.',
     demand:
@@ -62,7 +62,7 @@ const WORDING: Record<ItemCategory, Wording> = {
   },
   DELIVERY: {
     situation:
-      'I ordered "{{title}}"{{amountPhrase}} for delivery by {{expectedBy}}. As of {{today}} it is {{daysOverdue}} day(s) late and I have been waiting {{daysWaiting}} day(s).',
+      'I ordered "{{title}}"{{amountPhrase}} for delivery by {{expectedBy}}. As of {{today}} it is {{overdueDays}} late and I have been waiting {{waitingDays}}.',
     rights:
       'Under consumer protection law (for example the UK Consumer Rights Act 2015, s.28, and Article 18 of EU Directive 2011/83/EU) goods must be delivered within the agreed time. If they are not, I may set a final deadline and then treat the contract as ended and require a full refund.',
     demand: 'deliver my order, or confirm in writing that you will refund me in full',
@@ -71,7 +71,7 @@ const WORDING: Record<ItemCategory, Wording> = {
   },
   OTHER: {
     situation:
-      'I have been waiting since {{createdOn}} for "{{title}}"{{amountPhrase}}, which I expected by {{expectedBy}}. As of {{today}} it is {{daysOverdue}} day(s) overdue.',
+      'I have been waiting since {{createdOn}} for "{{title}}"{{amountPhrase}}, which I expected by {{expectedBy}}. As of {{today}} it is {{overdueDays}} overdue.',
     rights:
       'I am relying on the commitment you made to me and on my rights under the agreement between us and under applicable law, including the duty to perform obligations within a reasonable time.',
     demand: 'do what you committed to, or confirm in writing exactly when I will receive it',
@@ -96,8 +96,8 @@ function variables(c: LetterContext): Record<string, string> {
     expectedBy: longDate(c.expectedBy),
     createdOn: longDate(c.createdOn),
     today: longDate(c.today),
-    daysOverdue: String(Math.max(0, calendarDaysBetween(c.expectedBy, c.today))),
-    daysWaiting: String(Math.max(0, calendarDaysBetween(c.createdOn, c.today))),
+    overdueDays: pluralDays(Math.max(0, calendarDaysBetween(c.expectedBy, c.today))),
+    waitingDays: pluralDays(Math.max(0, calendarDaysBetween(c.createdOn, c.today))),
     amountPhrase,
     senderName: '[Your name]',
     replyTo: c.replyTo,
@@ -113,7 +113,7 @@ export function draftLetter(tone: Tone, c: LetterContext): { subject: string; bo
         [
           'Hello {{counterparty}},',
           '',
-          'I am following up on "{{title}}"{{amountPhrase}}. I was expecting this by {{expectedBy}} and it is now {{daysOverdue}} day(s) past that date.',
+          'I am following up on "{{title}}"{{amountPhrase}}. I was expecting this by {{expectedBy}} and it is now {{overdueDays}} past that date.',
           '',
           'Could you please let me know the current status and when I can expect it to be completed? If you need anything further from me, just reply to this message and I will send it right away.',
           '',

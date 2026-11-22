@@ -117,7 +117,7 @@ export function demoSeed(now: Date): SeedEntry[] {
           'Friendly nudge prepared for Harbour Mutual Insurance',
           'Following up: Water damage claim #88213',
         ],
-        [30, 'SNOOZED', 'Follow-ups postponed by 7 day(s)', null],
+        [30, 'SNOOZED', 'Follow-ups postponed by 7 days', null],
         [
           12,
           'REPLY_RECEIVED',

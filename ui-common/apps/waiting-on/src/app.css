@@ -547,6 +547,18 @@
   line-height: var(--pp-text-body-line);
 }
 
+/* Reply form: two optional fields side by side when there is room, stacked on a phone. */
+.wo-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--pp-space-3);
+}
+
+.wo-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .wo-stage {
   display: inline-flex;
   align-items: center;

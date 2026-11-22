@@ -57,12 +57,19 @@ describe('item page', () => {
     expect(card.getByText('7 days in total')).toBeInTheDocument()
   })
 
-  it('says plainly that replies by email are not connected yet', async () => {
-    renderApp({ route: open(JACKET) })
-    const card = within(await screen.findByRole('region', { name: 'Replies by email' }))
-    expect(card.getByText(/Not connected yet/)).toBeInTheDocument()
+  it('lets the owner paste a reply and says how it was read', async () => {
+    const { user } = renderApp({ route: open(JACKET) })
+    const card = within(await screen.findByRole('region', { name: 'Their reply' }))
+    expect(screen.queryByText(/Not connected yet/)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Copy reply address' })).not.toBeInTheDocument()
     expect(screen.queryByText(/@reply\.waiting-on\.local/)).not.toBeInTheDocument()
+
+    await user.click(card.getByRole('button', { name: 'Record reply' }))
+    expect(card.getByRole('alert')).toHaveTextContent('Paste what they said first.')
+
+    await user.type(card.getByLabelText(/What did they say/), 'Your refund has been processed.')
+    await user.click(card.getByRole('button', { name: 'Record reply' }))
+    expect(await card.findByTestId('reply-outcome')).toHaveTextContent('Read as paid or approved')
   })
 })
 
@@ -74,7 +81,8 @@ describe('draft letters', () => {
 
     expect(await subject()).toBe('Following up: Refund for returned jacket')
     expect(body()).toContain('Hello Northwind Outfitters,')
-    expect(body()).toContain('8 day(s) past that date')
+    expect(body()).toContain('8 days past that date')
+    expect(body()).not.toContain('day(s)')
 
     await user.click(screen.getByRole('tab', { name: 'Formal escalation' }))
     await waitFor(async () =>
@@ -141,7 +149,7 @@ describe('snooze', () => {
     expect(status.getByText('14 days in total')).toBeInTheDocument()
     expect(requests.find((r) => r.path.endsWith('/snooze'))?.body).toEqual({ days: 14 })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(await screen.findByText('Follow-ups postponed by 14 day(s)')).toBeInTheDocument()
+    expect(await screen.findByText('Follow-ups postponed by 14 days')).toBeInTheDocument()
     expect(await screen.findByText('Snoozed for 14 days')).toBeInTheDocument()
   })
 

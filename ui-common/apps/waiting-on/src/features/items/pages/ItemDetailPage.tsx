@@ -18,7 +18,7 @@ import { ActionsCard } from '../components/ActionsCard'
 import { DetailsCard } from '../components/DetailsCard'
 import { FollowUpCard } from '../components/FollowUpCard'
 import { LetterPreview } from '../components/LetterPreview'
-import { ReplyAddressCard } from '../components/ReplyAddressCard'
+import { ReplyCard } from '../components/ReplyCard'
 import { PlanCard } from '../components/PlanCard'
 import { StatusBadge } from '../components/StatusBadge'
 import { ItemTimeline } from '../components/Timeline'
@@ -117,7 +117,7 @@ export function ItemDetailPage() {
         <LetterPreview itemId={data.id} />
         <PlanCard item={data} />
         <TimelineCard itemId={data.id} />
-        <ReplyAddressCard />
+        <ReplyCard itemId={data.id} counterparty={data.counterparty} />
       </BentoGrid>
     </>
   )
