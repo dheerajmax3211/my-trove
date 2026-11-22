@@ -163,14 +163,21 @@
     display: block;
     flex-shrink: 0;
   }
+  /* Phone: the brand and menu sit on the first row; the header controls take a full row of their own so they
+     can wrap instead of pushing the page past the viewport. */
   .topbar {
+    flex-wrap: wrap;
+    row-gap: var(--pp-space-2);
     gap: var(--pp-space-2);
     min-height: 3.5rem;
     padding-inline: var(--pp-space-3);
   }
   .topbarContent {
-    flex: 1 1 auto;
-    margin-inline-start: auto;
+    flex: 1 1 100%;
+    order: 2;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: flex-start;
     gap: var(--pp-space-2);
   }
   .main {

@@ -123,4 +123,14 @@
     min-height: 40px;
     padding-inline: var(--pp-space-4);
   }
+  /* Phone: the search takes the first row of the header, the account, bell and header controls wrap beneath it. */
+  .header {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    row-gap: var(--pp-space-2);
+  }
+  .headerSearch {
+    order: -1;
+    flex: 1 1 100%;
+  }
 }
