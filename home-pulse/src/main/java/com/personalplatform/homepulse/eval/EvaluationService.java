@@ -81,7 +81,7 @@ public class EvaluationService {
         var evaluation = AnomalyDetector.evaluate(profile, baseline, samples, lastSeen, now, liveKinds);
         var plan = AlertReconciler.reconcile(live, evaluation, props.evaluation().resolveAfterClearRuns());
 
-        plan.toOpen().forEach(f -> alerts.insert(appliance.ownerUid(), applianceId, f, now));
+        plan.toOpen().forEach(f -> alerts.insert(appliance.ownerUid(), applianceId, f, now, device.get().simulated()));
         plan.toRefresh().forEach(r -> alerts.refresh(r.alertId(), r.finding(), now));
         plan.toTick().forEach(t -> alerts.tick(t.alertId(), t.clearStreak(), now));
         plan.toResolve().forEach(id -> alerts.resolve(id, now));
@@ -90,6 +90,25 @@ public class EvaluationService {
                     plan.toRefresh().size(), plan.toResolve().size());
         }
         return plan;
+    }
+
+    /**
+     * Learns the baseline now from the readings in [learnFrom, learnTo) instead of waiting for the learning period to
+     * elapse (used by the built-in simulator, which hands over a whole history at once). The window is capped at the
+     * configured learning period. Leaves the appliance LEARNING when the window holds too little usable data.
+     */
+    @Transactional
+    public boolean learnBaselineNow(UUID applianceId, Instant learnFrom, Instant learnTo) {
+        Appliance appliance = appliances.findInternal(applianceId).orElseThrow(() -> new NotFoundException("Appliance"));
+        Device device = devices.findActiveForAppliance(applianceId).orElseThrow(() -> new NotFoundException("Device"));
+        Instant now = clock.instant();
+        Instant to = learnTo.isBefore(learnFrom.plus(Duration.ofDays(props.evaluation().learnDays())))
+                ? learnTo : learnFrom.plus(Duration.ofDays(props.evaluation().learnDays()));
+        baselines.startLearning(applianceId, learnFrom, now);
+        Optional<Baseline> learned = BaselineLearner.learn(readings.minuteSamples(device.id(), learnFrom, to),
+                DetectorProfile.forType(appliance.type()), learnFrom, to);
+        learned.ifPresent(b -> baselines.saveReady(applianceId, b, now));
+        return learned.isPresent();
     }
 
     /** Null while the appliance is still learning. Learns (and stores) the baseline once enough data exists. */

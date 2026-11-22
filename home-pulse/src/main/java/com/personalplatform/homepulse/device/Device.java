@@ -11,7 +11,8 @@ public record Device(
         String tokenPrefix,
         Instant createdAt,
         Instant lastSeenAt,
-        Instant revokedAt) {
+        Instant revokedAt,
+        boolean simulated) {
 
     public boolean active() {
         return revokedAt == null;

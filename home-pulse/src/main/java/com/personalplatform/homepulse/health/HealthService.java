@@ -81,7 +81,7 @@ public class HealthService {
         return new ApplianceHealth(applianceId, appliance.name(), status,
                 baselineRow.map(r -> r.status().name()).orElse("NONE"),
                 baselineRow.map(BaselineRepository.Row::learnedAt).orElse(null), baseline, lastReading, last24h,
-                liveViews, service);
+                liveViews, service, device.map(Device::simulated).orElse(false));
     }
 
     private Last24h last24h(UUID deviceId, Baseline baseline, Instant now) {

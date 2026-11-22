@@ -67,7 +67,17 @@ class HomePulseSchemaTest {
         List<String> versions = inDsl(dsl -> dsl.fetch(
                 "select version from home_pulse.flyway_schema_history where success and version is not null order by installed_rank")
                 .getValues(0, String.class));
-        assertThat(versions).containsExactly("1", "100", "101", "102");
+        assertThat(versions).containsExactly("1", "2", "100", "101", "102");
+    }
+
+    @Test
+    void devicesAndAlertsCarryTheSimulatedFlagDefaultingToFalse() throws Exception {
+        inDsl(dsl -> {
+            assertThat(count(dsl, "select count(*) from information_schema.columns where table_schema = 'home_pulse' "
+                    + "and column_name = 'simulated' and table_name in ('devices', 'alerts') "
+                    + "and is_nullable = 'NO' and column_default = 'false'")).isEqualTo(2);
+            return null;
+        });
     }
 
     @Test

@@ -20,7 +20,8 @@ public record ApplianceHealth(
         Instant lastReadingAt,
         Last24h last24h,
         List<AlertResponse> activeAlerts,
-        Service service) {
+        Service service,
+        boolean simulated) {
 
     public enum Status { HEALTHY, WARNING, CRITICAL, LEARNING, NO_DEVICE }
 

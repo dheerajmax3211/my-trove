@@ -23,10 +23,10 @@ public class DeviceController {
     public record RegisterRequest(@NotBlank @Size(max = 120) String label) {}
 
     public record DeviceResponse(UUID id, UUID applianceId, String label, String tokenPrefix, Instant createdAt,
-                                 Instant lastSeenAt, Instant revokedAt, boolean active) {
+                                 Instant lastSeenAt, Instant revokedAt, boolean active, boolean simulated) {
         static DeviceResponse from(Device d) {
             return new DeviceResponse(d.id(), d.applianceId(), d.label(), d.tokenPrefix(), d.createdAt(),
-                    d.lastSeenAt(), d.revokedAt(), d.active());
+                    d.lastSeenAt(), d.revokedAt(), d.active(), d.simulated());
         }
     }
 

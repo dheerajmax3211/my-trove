@@ -118,6 +118,18 @@ else's id yields `404`):
 | `POST /v1/appliances/{id}/baseline/relearn` | Forget the baseline (after a repair), close judgement alerts |
 | `GET /v1/reminders?days=60` | Service due/overdue, warranty ending, and high-priority "anomaly while under warranty" |
 
+Built-in simulator (no hardware needed), owner-authenticated, appliance must be the caller's (`404` otherwise):
+
+| Method and path | Purpose |
+| --- | --- |
+| `POST /v1/appliances/{id}/simulation` body `{"days":1..14 (7),"scenario":"NORMAL"\|"ANOMALY" (NORMAL)}` | Ensures a device flagged `simulated` ("Built-in simulator", random token, only the hash stored, plaintext never returned or logged; `409` when the appliance has a real active device), replaces the previous simulated history, generates 5-minute readings ending now through `IngestService`, learns the baseline from the healthy part and evaluates once. Returns `{readingsInserted, baselineStatus, alertOpened}` |
+| `DELETE /v1/appliances/{id}/simulation` | Deletes the simulated device, its readings and baseline, closes alerts that came from simulated data (`204`, also when nothing is running) |
+
+`simulated: boolean` is exposed on devices, alerts, `/health` and `/readings`. The scheduled evaluation skips simulated devices
+(a snapshot would only raise `NO_DATA` an hour later). A baseline needs about 3 days of history (8 six-hour windows); with fewer
+days the status stays `LEARNING`. `ANOMALY` appends a type-specific deviation in the last hours (fridge compressor never stops, etc.).
+The minute series is gap-filled for gaps of up to 4 minutes (`SampleGapFill`) so any 5-minute sensor is judged like a 1-minute one.
+
 Device API (separate filter chain, ordered first): `POST /v1/ingest/readings` with `Authorization: Bearer hpd_...`:
 
 ```json

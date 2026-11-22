@@ -22,6 +22,11 @@ public class DeviceRepository {
     }
 
     public Device insert(String ownerUid, UUID applianceId, String label, String tokenHash, String tokenPrefix, Instant now) {
+        return insert(ownerUid, applianceId, label, tokenHash, tokenPrefix, now, false);
+    }
+
+    public Device insert(String ownerUid, UUID applianceId, String label, String tokenHash, String tokenPrefix, Instant now,
+                         boolean simulated) {
         UUID id = UuidV7.next();
         dsl.insertInto(DEVICES)
                 .set(DEVICES.ID, id)
@@ -31,6 +36,7 @@ public class DeviceRepository {
                 .set(DEVICES.TOKEN_HASH, tokenHash)
                 .set(DEVICES.TOKEN_PREFIX, tokenPrefix)
                 .set(DEVICES.CREATED_AT, now.atOffset(ZoneOffset.UTC))
+                .set(DEVICES.SIMULATED, simulated)
                 .execute();
         return find(ownerUid, id).orElseThrow();
     }
@@ -83,10 +89,18 @@ public class DeviceRepository {
                 .execute();
     }
 
+    /** Removes a device row (simulator only: real devices are only ever soft-revoked). Owner-scoped. */
+    public boolean deleteSimulated(String ownerUid, UUID id) {
+        return dsl.deleteFrom(DEVICES)
+                .where(DEVICES.ID.eq(id), DEVICES.OWNER_UID.eq(ownerUid), DEVICES.SIMULATED.isTrue())
+                .execute() == 1;
+    }
+
     private Device map(DevicesRecord r) {
         return new Device(r.getId(), r.getOwnerUid(), r.getApplianceId(), r.getLabel(), r.getTokenPrefix(),
                 r.getCreatedAt().toInstant(),
                 r.getLastSeenAt() == null ? null : r.getLastSeenAt().toInstant(),
-                r.getRevokedAt() == null ? null : r.getRevokedAt().toInstant());
+                r.getRevokedAt() == null ? null : r.getRevokedAt().toInstant(),
+                r.getSimulated());
     }
 }

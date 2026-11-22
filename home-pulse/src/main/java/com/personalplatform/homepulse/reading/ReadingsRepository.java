@@ -54,6 +54,11 @@ public class ReadingsRepository {
         return values.onConflictDoNothing().execute();
     }
 
+    /** Simulator only: drops every reading of one device. */
+    public int deleteForDevice(UUID deviceId) {
+        return dsl.deleteFrom(READINGS).where(READINGS.DEVICE_ID.eq(deviceId)).execute();
+    }
+
     public Optional<Instant> firstReading(UUID deviceId) {
         return Optional.ofNullable(dsl.select(DSL.min(READINGS.TS)).from(READINGS)
                         .where(READINGS.DEVICE_ID.eq(deviceId)).fetchOne(0, OffsetDateTime.class))
@@ -66,12 +71,13 @@ public class ReadingsRepository {
                 .map(OffsetDateTime::toInstant);
     }
 
-    /** 1-minute samples in [from, to) for the evaluator, oldest first. */
+    /** 1-minute samples in [from, to) for the evaluator, oldest first; gaps of up to 4 minutes are bridged ({@link SampleGapFill}). */
     public List<MinuteSample> minuteSamples(UUID deviceId, Instant from, Instant to) {
-        return dsl.select(BUCKET, AVG_WATTS).from(READINGS_1M)
+        List<MinuteSample> samples = dsl.select(BUCKET, AVG_WATTS).from(READINGS_1M)
                 .where(DEVICE_ID.eq(deviceId), BUCKET.ge(from.atOffset(ZoneOffset.UTC)), BUCKET.lt(to.atOffset(ZoneOffset.UTC)))
                 .orderBy(BUCKET)
                 .fetch(r -> new MinuteSample(r.get(BUCKET).toInstant(), r.get(AVG_WATTS)));
+        return SampleGapFill.fill(samples, to);
     }
 
     /**

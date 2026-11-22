@@ -22,4 +22,5 @@ public record Alert(
         Instant resolvedAt,
         LocalDate warrantyEndDate,
         LocalDate lastServiceDate,
-        LocalDate nextServiceDate) {}
+        LocalDate nextServiceDate,
+        boolean simulated) {}
