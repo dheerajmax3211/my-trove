@@ -168,7 +168,7 @@ describe('library', () => {
   it('polls the list until pending documents are ready', async () => {
     const { user } = renderApp({ route: '/add' })
     await appReady()
-    await user.type(screen.getByLabelText(/^Note/), 'Queue me up')
+    await user.type(screen.getByRole('textbox', { name: /^Note/ }), 'Queue me up')
     await user.click(screen.getByRole('button', { name: 'Save note' }))
     await screen.findByRole('heading', { level: 3, name: 'Queue me up' })
     await user.click(screen.getByRole('link', { name: 'Library' }))

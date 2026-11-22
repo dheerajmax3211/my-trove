@@ -238,7 +238,7 @@ describe('mounted under a base (/app/ask-your-life)', () => {
   it('"Search for it" after adding a note goes to the base with ?q=', async () => {
     const { user } = renderModule({ route: `${BASE}/add` })
     await screen.findByRole('heading', { level: 1, name: 'Add content' })
-    await user.type(screen.getByLabelText(/^Note/), 'Garage keypad is 4821')
+    await user.type(screen.getByRole('textbox', { name: /^Note/ }), 'Garage keypad is 4821')
     await user.click(screen.getByRole('button', { name: 'Save note' }))
     const link = await screen.findByRole('link', { name: 'Search for it' }, { timeout: 8000 })
     const href = link.getAttribute('href') ?? ''

@@ -1,4 +1,4 @@
-import { Button, Field, Input, Textarea, useToast } from '@platform/ui'
+import { Button, Field, FormActions, Input, Textarea, useToast } from '@platform/ui'
 import { useState, type FormEvent } from 'react'
 import { FailureCallout } from '../../../components/FailureCallout'
 import { describeIngestError, validateNote, type FieldErrors } from '../api/documentsApi'
@@ -46,33 +46,59 @@ export function AddNoteForm({ onAdded }: { onAdded: (response: IngestResponse) =
 
   const failure = add.error ? describeIngestError(add.error) : null
 
+  const dirty = title !== '' || text !== '' || externalId !== ''
+  const discard = () => {
+    setTitle('')
+    setText('')
+    setExternalId('')
+    setErrors({})
+  }
+
   return (
     <form className="ayl-form" onSubmit={onSubmit} noValidate aria-label="Paste a note">
       <Field
+        label="Title"
+        description="Optional. Empty means the first line is the title."
+        error={errors.title}
+      >
+        <Input
+          value={title}
+          placeholder="For example: Garage door code"
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </Field>
+      <SourceSelect value={sourceType} onChange={setSourceType} options={NOTE_KINDS} />
+      <Field
         label="Note"
         required
+        hint={`${text.length.toLocaleString()} characters`}
         description="Paste or type anything: a receipt, a message, a lease clause. Markdown is welcome."
         error={errors.text}
       >
-        <Textarea rows={9} value={text} onChange={(e) => setText(e.target.value)} />
+        <Textarea
+          rows={12}
+          placeholder="Paste or type your note here"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
       </Field>
-      <div className="ayl-form-row">
-        <Field
-          label="Title"
-          description="Optional. Empty means the first line is the title."
-          error={errors.title}
-        >
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} />
-        </Field>
-        <SourceSelect value={sourceType} onChange={setSourceType} options={NOTE_KINDS} />
-      </div>
       <ExternalIdField value={externalId} onChange={setExternalId} error={errors.externalId} />
       {failure ? <FailureCallout failure={failure} /> : null}
-      <div>
+      <FormActions
+        sticky={false}
+        status={
+          dirty ? 'Not saved yet. Nothing leaves your account until you save.' : 'Private to you.'
+        }
+      >
+        {dirty ? (
+          <Button type="button" variant="ghost" onClick={discard}>
+            Discard
+          </Button>
+        ) : null}
         <Button type="submit" loading={add.isPending}>
           Save note
         </Button>
-      </div>
+      </FormActions>
     </form>
   )
 }
