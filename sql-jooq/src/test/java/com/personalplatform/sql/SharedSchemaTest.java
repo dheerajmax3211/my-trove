@@ -55,10 +55,43 @@ class SharedSchemaTest {
     void everyGeneratedTableMatchesTheDatabase() throws Exception {
         try (Connection c = dataSource.getConnection()) {
             DSLContext dsl = DSL.using(c, SQLDialect.POSTGRES);
-            assertThat(Shared.SHARED.getTables()).hasSize(7);
+            assertThat(Shared.SHARED.getTables()).hasSize(8);
             for (Table<?> table : Shared.SHARED.getTables()) {
                 dsl.selectFrom(table).limit(0).fetch(); // fails if any generated column is missing in Postgres
             }
+        }
+    }
+
+    @Test
+    void outboxRowsCanBeEmailOnlyWithoutAReminderAndDuplicatesAreRejected() throws Exception {
+        try (Connection c = dataSource.getConnection()) {
+            DSLContext dsl = DSL.using(c, SQLDialect.POSTGRES);
+            String key = "test:" + UUID.randomUUID();
+            OffsetDateTime now = OffsetDateTime.now();
+            dsl.insertInto(Tables.NOTIFICATIONS)
+                    .set(Tables.NOTIFICATIONS.ID, UuidV7.next())
+                    .set(Tables.NOTIFICATIONS.RECIPIENT_EMAIL, "counterparty@example.test")
+                    .set(Tables.NOTIFICATIONS.KIND, "WAITING_NUDGE")
+                    .set(Tables.NOTIFICATIONS.SOURCE, "waiting-on")
+                    .set(Tables.NOTIFICATIONS.IN_APP, false)
+                    .set(Tables.NOTIFICATIONS.DEDUPE_KEY, key)
+                    .set(Tables.NOTIFICATIONS.TITLE, "Hello")
+                    .set(Tables.NOTIFICATIONS.OCCURRENCE_AT, now)
+                    .set(Tables.NOTIFICATIONS.NEXT_ATTEMPT_AT, now)
+                    .set(Tables.NOTIFICATIONS.CREATED_AT, now)
+                    .execute();
+            assertThatThrownBy(() -> dsl.insertInto(Tables.NOTIFICATIONS)
+                    .set(Tables.NOTIFICATIONS.ID, UuidV7.next())
+                    .set(Tables.NOTIFICATIONS.RECIPIENT_EMAIL, "counterparty@example.test")
+                    .set(Tables.NOTIFICATIONS.DEDUPE_KEY, key)
+                    .set(Tables.NOTIFICATIONS.TITLE, "Hello again")
+                    .set(Tables.NOTIFICATIONS.OCCURRENCE_AT, now)
+                    .set(Tables.NOTIFICATIONS.NEXT_ATTEMPT_AT, now)
+                    .set(Tables.NOTIFICATIONS.CREATED_AT, now)
+                    .execute()).isInstanceOf(org.jooq.exception.DataAccessException.class);
+            assertThat(dsl.fetchCount(Tables.NOTIFICATIONS, Tables.NOTIFICATIONS.DEDUPE_KEY.eq(key))).isEqualTo(1);
+            dsl.execute("insert into shared.user_contacts (uid, email, updated_at) values ('contact-test', 'a@example.test', now()) "
+                    + "on conflict (uid) do nothing");
         }
     }
 
