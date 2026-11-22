@@ -81,7 +81,7 @@ export function AppLayout({ demo, children }: { demo: boolean; children: ReactNo
       promo={
         <PromoCard
           title="Add what you are owed"
-          description="A refund, a claim, an approval. We keep the follow-ups going."
+          description="A refund, a claim, an approval. We keep the schedule and draft the letters."
           action={
             <Button asChild size="sm">
               <ModuleLink to="/new">Add an item</ModuleLink>

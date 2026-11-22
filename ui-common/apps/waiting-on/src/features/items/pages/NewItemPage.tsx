@@ -19,7 +19,7 @@ export function NewItemPage() {
           onCreated={(item) => {
             toast({
               title: 'Now tracking it',
-              description: `We will follow up with ${item.counterparty} for you.`,
+              description: `Waiting On will remind you on schedule and draft letters to ${item.counterparty}. You send them.`,
               variant: 'success',
             })
             navigate(`/items/${item.id}`)
