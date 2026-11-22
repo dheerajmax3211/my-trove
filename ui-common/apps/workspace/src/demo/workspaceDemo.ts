@@ -1,5 +1,6 @@
 import type { Persona } from '@platform/ui'
 import { PERSONA_PERMISSIONS, PERSONA_PLAN, planInfo } from '../lib/personas'
+import { createDeveloperDemo, type DemoCall } from './developerDemo'
 
 const PROBLEM_HEADERS = { 'content-type': 'application/problem+json' }
 
@@ -23,12 +24,36 @@ function jsonResponse(body: unknown): Response {
   })
 }
 
+function requestUrl(input: Parameters<typeof fetch>[0]): string {
+  return typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+}
+
 function pathOf(input: Parameters<typeof fetch>[0]): string {
-  const raw = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+  const raw = requestUrl(input)
   try {
     return new URL(raw, 'http://demo.invalid').pathname
   } catch {
     return raw
+  }
+}
+
+/** The path below `/api` with its query string, which is how the demo developer API matches its routes. */
+function apiPathOf(input: Parameters<typeof fetch>[0]): string {
+  const raw = requestUrl(input)
+  try {
+    const url = new URL(raw, 'http://demo.invalid')
+    return `${url.pathname.replace(/^\/api(?=\/|$)/, '')}${url.search}`
+  } catch {
+    return raw
+  }
+}
+
+function parseJson(text: unknown): unknown {
+  if (typeof text !== 'string') return undefined
+  try {
+    return JSON.parse(text)
+  } catch {
+    return undefined
   }
 }
 
@@ -54,16 +79,45 @@ function sampleSeries(now: Date, perMonth: number) {
   })
 }
 
+function usageBody(persona: Persona, now: Date) {
+  const perMonth = planInfo(PERSONA_PLAN[persona])?.perMonth ?? 10_000
+  const series = sampleSeries(now, perMonth)
+  return {
+    totalRequests: series.reduce((sum, point) => sum + point.requests, 0),
+    errorRate: 0.012,
+    series,
+  }
+}
+
 /**
- * The workspace's own endpoints for demo mode: who am I (for the chosen demo persona) and how much
- * have I used. Everything else is a 404 problem body. Reads `persona()` on every call so switching
- * persona and re-reading `/me` is enough to change the whole workspace.
+ * The workspace's own endpoints for demo mode: who am I (for the chosen demo persona), how much have I used, and the
+ * developer platform (apps, keys, webhooks, docs) and the owner's consent grants, answered from memory. Everything else
+ * is a 404 problem body. Reads `persona()` on every call so switching persona and re-reading `/me` is enough to change
+ * the whole workspace.
  */
 export function createWorkspaceDemoFetch({ persona, now }: WorkspaceDemoOptions): typeof fetch {
-  return (input) => {
+  const developer = createDeveloperDemo({
+    now,
+    usage: () => usageBody(persona(), now()),
+  })
+
+  return (input, init) => {
     const path = pathOf(input)
     const current = persona()
     const permissions = PERSONA_PERMISSIONS[current]
+
+    const authorization = new Headers(init?.headers).get('authorization') ?? ''
+    const bearer = authorization.startsWith('Bearer ') ? authorization.slice(7) : undefined
+    const call: DemoCall = {
+      method: (init?.method ?? 'GET').toUpperCase(),
+      path: apiPathOf(input),
+      body: parseJson(init?.body),
+      permissions,
+      plan: PERSONA_PLAN[current],
+      ...(bearer ? { bearer } : {}),
+    }
+    const developerAnswer = developer.handle(call)
+    if (developerAnswer) return Promise.resolve(developerAnswer)
 
     if (path.endsWith('/auth/v1/me')) {
       return Promise.resolve(
@@ -84,15 +138,7 @@ export function createWorkspaceDemoFetch({ persona, now }: WorkspaceDemoOptions)
           problemResponse(403, 'Forbidden', 'Your role does not include usage:read:self.'),
         )
       }
-      const perMonth = planInfo(PERSONA_PLAN[current])?.perMonth ?? 10_000
-      const series = sampleSeries(now(), perMonth)
-      return Promise.resolve(
-        jsonResponse({
-          totalRequests: series.reduce((sum, point) => sum + point.requests, 0),
-          errorRate: 0.012,
-          series,
-        }),
-      )
+      return Promise.resolve(jsonResponse(usageBody(current, now())))
     }
 
     return notFoundDemoFetch(input)

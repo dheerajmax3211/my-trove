@@ -30,7 +30,9 @@ describe('validateCallbackUrl', () => {
 
 describe('parseRedirectUris', () => {
   it('splits on new lines and drops blank lines', () => {
-    expect(parseRedirectUris('https://a.example.test/cb\n\n  http://localhost:3000/cb  \n')).toEqual({
+    expect(
+      parseRedirectUris('https://a.example.test/cb\n\n  http://localhost:3000/cb  \n'),
+    ).toEqual({
       uris: ['https://a.example.test/cb', 'http://localhost:3000/cb'],
     })
   })
