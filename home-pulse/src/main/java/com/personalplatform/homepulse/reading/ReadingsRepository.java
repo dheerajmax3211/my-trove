@@ -72,6 +72,26 @@ public class ReadingsRepository {
     }
 
     /** 1-minute samples in [from, to) for the evaluator, oldest first; gaps of up to 4 minutes are bridged ({@link SampleGapFill}). */
+    public List<MinuteSample> minuteSamples(UUID deviceId, boolean simulated, Instant from, Instant to) {
+        return simulated ? minuteSamplesRaw(deviceId, from, to) : minuteSamples(deviceId, from, to);
+    }
+
+    /**
+     * The same samples straight from the raw readings. A continuous aggregate only picks up rows inserted into
+     * an already-materialised past range at its next refresh, so the simulator (which back-fills days of history
+     * and evaluates at once) reads raw. Real devices keep using the aggregate.
+     */
+    public List<MinuteSample> minuteSamplesRaw(UUID deviceId, Instant from, Instant to) {
+        Field<OffsetDateTime> bucket = DSL.field("time_bucket('1 minute', {0})", OffsetDateTime.class, READINGS.TS);
+        Field<Double> avg = DSL.avg(READINGS.WATTS).cast(Double.class);
+        List<MinuteSample> samples = dsl.select(bucket, avg).from(READINGS)
+                .where(READINGS.DEVICE_ID.eq(deviceId), READINGS.TS.ge(from.atOffset(ZoneOffset.UTC)),
+                        READINGS.TS.lt(to.atOffset(ZoneOffset.UTC)))
+                .groupBy(bucket).orderBy(bucket)
+                .fetch(r -> new MinuteSample(r.get(bucket).toInstant(), r.get(avg)));
+        return SampleGapFill.fill(samples, to);
+    }
+
     public List<MinuteSample> minuteSamples(UUID deviceId, Instant from, Instant to) {
         List<MinuteSample> samples = dsl.select(BUCKET, AVG_WATTS).from(READINGS_1M)
                 .where(DEVICE_ID.eq(deviceId), BUCKET.ge(from.atOffset(ZoneOffset.UTC)), BUCKET.lt(to.atOffset(ZoneOffset.UTC)))
