@@ -12,7 +12,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
  * and {@code platform} answers {@code GET /internal/v1/plans} and {@code /internal/v1/quota/{id}}.
  *
  * <p>Credentials understood by the exchange stub: {@code u|<uid>|<PLAN>|<perm,perm>} (platform token),
- * {@code svc|<appId>|<PLAN>} (service token), {@code suspended} (403), {@code unauthorized} (401), {@code boom} (500).
+ * {@code svc|<appId>|<PLAN>[|<perm,perm>]} (service token, as an API key exchange gives), {@code suspended} (403), {@code unauthorized} (401), {@code boom} (500).
  */
 public final class Backends {
 
@@ -130,6 +130,8 @@ public final class Backends {
         String[] p = cred.split("\\|");
         if (p[0].equals("u") && p.length >= 4) {
             token = TestJwt.platformToken(p[1], p[2], List.of(p[3].split(",")));
+        } else if (p[0].equals("svc") && p.length >= 4) {
+            token = TestJwt.serviceToken(p[1], p[2], List.of(p[3].split(",")));
         } else if (p[0].equals("svc")) {
             token = TestJwt.serviceToken(p[1], p[2]);
         } else {

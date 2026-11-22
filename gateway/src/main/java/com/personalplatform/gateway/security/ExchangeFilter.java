@@ -51,9 +51,11 @@ public class ExchangeFilter implements GlobalFilter, Ordered {
     private final List<PathPattern> blocked;
     private final RateLimiter limiter;
     private final PlanLimits plans;
+    private final ApiKeyRoutes apiKeyRoutes;
 
     public ExchangeFilter(GatewayProperties props, ExchangeClient client, ExchangeCache cache,
-            PassthroughMatcher passthrough, RateLimiter limiter, PlanLimits plans) {
+            PassthroughMatcher passthrough, RateLimiter limiter, PlanLimits plans, ApiKeyRoutes apiKeyRoutes) {
+        this.apiKeyRoutes = apiKeyRoutes;
         this.limiter = limiter;
         this.plans = plans;
         this.props = props;
@@ -111,6 +113,18 @@ public class ExchangeFilter implements GlobalFilter, Ordered {
             }
             ExchangeResult result = (ExchangeResult) o;
             exchange.getAttributes().put(GatewayAttributes.IDENTITY, result.identity());
+            if (result.identity().type() == PrincipalType.API_KEY) {
+                Optional<String> needed = apiKeyRoutes.requiredPermission(service, exchange.getRequest().getMethod().name(), path);
+                if (needed.isEmpty()) {
+                    return Problems.write(exchange, HttpStatus.FORBIDDEN, "forbidden", "Forbidden",
+                            "API keys cannot call this route. Only the routes listed for keys are open to them.");
+                }
+                if (!result.identity().permissions().contains(needed.get())) {
+                    return Problems.write(exchange, HttpStatus.FORBIDDEN, "forbidden", "Forbidden",
+                            "This API key lacks the permission '" + needed.get() + "' that this route requires.");
+                }
+                return chain.filter(withoutInternalHeaders(exchange, result.accessToken()));
+            }
             Optional<String> required = props.requiredPermission(service);
             if (required.isPresent() && !result.identity().permissions().contains(required.get())) {
                 return Problems.write(exchange, HttpStatus.FORBIDDEN, "forbidden", "Forbidden",

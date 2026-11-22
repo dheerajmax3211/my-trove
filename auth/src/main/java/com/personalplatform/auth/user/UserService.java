@@ -27,6 +27,11 @@ public class UserService {
         this.audit = audit;
     }
 
+    /** The user with this internal id, if any (suspension and plan are read from it). */
+    public java.util.Optional<AuthUser> findById(UUID id) {
+        return users.findById(id);
+    }
+
     /** Creates the local user on first sight of a Firebase uid and ensures baseline roles. */
     @Transactional
     public AuthUser provision(Jwt jwt) {

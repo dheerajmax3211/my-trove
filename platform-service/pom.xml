@@ -12,6 +12,12 @@
 	<name>platform-service</name>
 	<description>platform-service: usage metering, plans, quotas, analytics (schema: platform)</description>
 	<dependencies>
+		<!-- OpenAPI document at /v3/api-docs (W4). Version pinned exactly; 3.2.0 is two weeks old (released 2026-10-24). -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+			<version>3.2.0</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>

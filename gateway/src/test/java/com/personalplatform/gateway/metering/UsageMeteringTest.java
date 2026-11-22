@@ -189,4 +189,18 @@ class UsageMeteringTest extends GatewayTestBase {
         assertThat(e.value().toString()).doesNotContain("Bearer").doesNotContain("abc").doesNotContain(Backends.MEMBER)
                 .doesNotContain("eyJ");
     }
+
+    /** W4 item 5: an API key call is metered like any other call, as an API_KEY principal with its app. */
+    @Test
+    void apiKeyCallsAreMeteredAsApiKeyPrincipals() {
+        String appId = "0190f0a0-0000-7000-8000-00000000000a";
+        var response = get("/api/platform/v1/usage/me", "svc|" + appId + "|FREE|usage:read:self");
+        assertThat(response.getStatus().value()).isEqualTo(200);
+
+        Event event = eventFor(response);
+        assertThat(event.text("principalType")).isEqualTo("API_KEY");
+        assertThat(event.text("principalId")).isEqualTo("app:" + appId);
+        assertThat(event.text("appId")).isEqualTo(appId);
+        assertThat(event.text("plan")).isEqualTo("FREE");
+    }
 }
