@@ -2,10 +2,18 @@ import { useAuth } from '@platform/auth-web'
 import {
   Avatar,
   Badge,
+  BentoCard,
+  BentoGrid,
+  BigStat,
   Button,
   Callout,
+  CoinsIcon,
   KeyValueList,
+  LinkIcon,
   PageHeader,
+  SettingsIcon,
+  ShieldIcon,
+  UserIcon,
   PersonaBadge,
   personas,
   useTheme,
@@ -55,28 +63,27 @@ export function AccountPage() {
         description="Your profile, what your role allows, and your preferences."
       />
 
-      <div className={styles.stack}>
-        <section className={styles.section} aria-labelledby="profile-title">
-          <h2 id="profile-title" className={styles.title}>
-            Profile
-          </h2>
+      <BentoGrid>
+        <BentoCard span={5} title="Profile" icon={<UserIcon size={18} />}>
           <div className={styles.profile}>
             <Avatar name={name} size="lg" />
-            <KeyValueList
-              className={styles.facts}
-              items={[
-                { id: 'name', label: 'Name', value: session.displayName ?? 'Not set' },
-                { id: 'email', label: 'Email', value: session.email ?? 'Not set' },
-                { id: 'id', label: 'Account id', value: session.uid, mono: true },
-              ]}
-            />
+            <p className={styles.bigName}>{session.displayName ?? name}</p>
           </div>
-        </section>
+          <KeyValueList
+            className={styles.facts}
+            items={[
+              { id: 'email', label: 'Email', value: session.email ?? 'Not set' },
+              { id: 'id', label: 'Account id', value: session.uid, mono: true },
+            ]}
+          />
+        </BentoCard>
 
-        <section className={styles.section} aria-labelledby="roles-title">
-          <h2 id="roles-title" className={styles.title}>
-            Role and permissions
-          </h2>
+        <BentoCard
+          span={7}
+          rowSpan={2}
+          title="Role and permissions"
+          icon={<ShieldIcon size={18} />}
+        >
           <p className={styles.lead}>{PERSONA_SUMMARY[main]}</p>
           <p className={styles.roles}>
             {(held.length > 0 ? held : [main]).map((persona) => (
@@ -89,7 +96,7 @@ export function AccountPage() {
             <div className={styles.groups}>
               {groups.map((group) => (
                 <section key={group.title} aria-label={group.title} className={styles.group}>
-                  <h3 className={styles.groupTitle}>{group.title}</h3>
+                  <h4 className={styles.groupTitle}>{group.title}</h4>
                   <ul className={styles.perms}>
                     {group.permissions.map((permission) => (
                       <li key={permission}>
@@ -106,33 +113,40 @@ export function AccountPage() {
             Roles are changed by an admin or the owner. A change reaches this page within about a
             minute.
           </p>
-        </section>
+        </BentoCard>
 
-        <section className={styles.section} aria-labelledby="plan-title">
-          <h2 id="plan-title" className={styles.title}>
-            Plan
-          </h2>
-          <p className={styles.roles}>
-            <Badge variant="accent">{plan?.name ?? session.plan}</Badge>
-          </p>
+        <BentoCard
+          span={5}
+          tone="dark"
+          title="Plan"
+          icon={<CoinsIcon size={18} />}
+          actions={<Badge variant="accent">{plan?.name ?? session.plan}</Badge>}
+        >
           {plan ? (
-            <p className={styles.lead}>
-              Up to {number.format(plan.perMinute)} requests a minute and{' '}
-              {number.format(plan.perMonth)} a month. Today shows how much of the month you have
-              used.
-            </p>
-          ) : null}
-        </section>
+            <>
+              <BigStat
+                value={plan.perMonth}
+                locale="en"
+                caption="requests a month"
+                secondary={[{ label: 'Per minute', value: number.format(plan.perMinute) }]}
+              />
+              <p className={styles.planNote}>
+                Up to {number.format(plan.perMinute)} requests a minute and{' '}
+                {number.format(plan.perMonth)} a month. Today shows how much of the month you have
+                used.
+              </p>
+            </>
+          ) : (
+            <p className={styles.planNote}>This plan has no limits we can show.</p>
+          )}
+        </BentoCard>
 
-        <section className={styles.section} aria-labelledby="prefs-title">
-          <h2 id="prefs-title" className={styles.title}>
-            Preferences
-          </h2>
+        <BentoCard span={6} title="Preferences" icon={<SettingsIcon size={18} />}>
           <div className={styles.pref}>
             <div>
-              <h3 className={styles.groupTitle} id="theme-label">
+              <h4 className={styles.groupTitle} id="theme-label">
                 Theme
-              </h3>
+              </h4>
               <p className={styles.muted}>System follows your device.</p>
             </div>
             <div role="group" aria-labelledby="theme-label" className={styles.segmented}>
@@ -150,7 +164,7 @@ export function AccountPage() {
           </div>
           <div className={styles.pref}>
             <div>
-              <h3 className={styles.groupTitle}>Welcome tour</h3>
+              <h4 className={styles.groupTitle}>Welcome tour</h4>
               <p className={styles.muted}>
                 Pick the products to pin and see a first step for each.
               </p>
@@ -159,23 +173,20 @@ export function AccountPage() {
               Open the welcome tour
             </Button>
           </div>
-        </section>
+        </BentoCard>
 
-        <section className={styles.section} aria-labelledby="apps-title">
-          <h2 id="apps-title" className={styles.title}>
-            Connected apps
-          </h2>
+        <BentoCard span={6} title="Connected apps" icon={<LinkIcon size={18} />}>
           <Callout variant="note" title="Coming with the developer portal">
             Apps that other developers build will be listed here, with what each can read and a
             button to disconnect it. Nothing is connected to your account today.
           </Callout>
-        </section>
+        </BentoCard>
+      </BentoGrid>
 
-        <div className={styles.signOut}>
-          <Button variant="secondary" onClick={() => void signOut()}>
-            Sign out
-          </Button>
-        </div>
+      <div className={styles.signOut}>
+        <Button variant="secondary" onClick={() => void signOut()}>
+          Sign out
+        </Button>
       </div>
     </>
   )
