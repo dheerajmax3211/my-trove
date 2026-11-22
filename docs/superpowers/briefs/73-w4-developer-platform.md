@@ -1,0 +1,12 @@
+# Wave 4 / W4: developer platform, backend (Phase 3 of the v2 spec)
+Read first: `docs/superpowers/specs/2026-11-21-trove-platform-v2-design.md` (sections 5.2, 5.3, 5.4, 5.5) and the Phase 1 notes in `docs/TRACKER.md`.
+Scope: `gateway/**`, `platform-service/**`, `sql-jooq/.../platform*` migrations, `auth/**` only for developer app records if needed, `dev/e2e-developer.sh` (new).
+Build, each with tests (unit, Testcontainers, and the gateway's WebTestClient tests):
+1. Developer apps: a developer (role DEVELOPER, apps:manage) registers an app with name, redirect URLs and a description; the platform stores it in `platform.developer_apps`. Client secrets are generated once, shown once, stored hashed (SHA-256 or BCrypt), rotatable, and revocable.
+2. API keys: `platform.api_keys` with per-app scope lists, hashed storage, prefix for identification, last-used timestamp, expiry, revoke. Plan limits apply (FREE 3, PRO 10, DEVELOPER 50 keys) per plan table in the spec.
+3. Gateway accepts `Authorization: Bearer pk_...` (an API key) and exchanges it for a platform token with `token_use=service`, `sub=app:<appId>`, `scopes[]`. Keys can't call endpoints outside their scopes (403). Add the scope catalogue (for example `items:read`, `consent:read`, `reminders:read`) mapped to route permissions.
+4. Webhooks: `platform.webhook_endpoints` (URL, secret, subscribed event types), a delivery worker consuming Kafka topics (usage events are already there; add `platform.domain.events.v1` for reminders created, approvals decided, consent granted/revoked), HMAC-SHA256 signed deliveries with timestamp, retries with exponential backoff, a delivery log table, and replay. Tests: signature verification, retry schedule on failure, dead-letter, replay.
+5. Usage: API key calls are metered like any other call, with principalType API_KEY.
+6. OpenAPI: each backend exposes its OpenAPI document (springdoc-openapi, pinned exact version in the pom); the gateway serves the aggregated list at `/api/platform/v1/docs`. Add a test that each service's OpenAPI document exists.
+7. Do NOT build the developer UI in this wave (W5 does it). Expose everything through the API and document it in `platform-service/README.md`.
+8. End-to-end script `dev/e2e-developer.sh`: as developer@example.test register an app, create a key, call an endpoint with the key (allowed scope → 200; outside scope → 403), create a webhook pointing at a local receiver, trigger a reminder, verify the signed delivery arrived with a valid signature.
