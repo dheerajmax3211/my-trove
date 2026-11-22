@@ -49,6 +49,17 @@ export interface AccountRec {
   allowNegative: boolean
 }
 
+/** An invite code. The mock keeps the code itself (the real service keeps only its hash). */
+export interface InviteRec {
+  id: string
+  code: string
+  role: Role
+  createdByUid: string
+  createdAt: Date
+  expiresAt: Date
+  usedAt: Date | null
+}
+
 export interface HouseholdRec {
   id: string
   name: string
@@ -57,6 +68,7 @@ export interface HouseholdRec {
   approvalExpiryHours: number
   createdAt: Date
   members: MemberView[]
+  invites: InviteRec[]
   accounts: AccountRec[]
   /** The balance projection (raw signed sum of postings), like `account_balances`. */
   balances: Map<string, number>

@@ -1,11 +1,15 @@
 package com.personalplatform.treasury.web;
 
 import com.personalplatform.treasury.household.Dtos.AccountView;
+import com.personalplatform.treasury.household.Dtos.AcceptInviteRequest;
 import com.personalplatform.treasury.household.Dtos.AddMemberRequest;
 import com.personalplatform.treasury.household.Dtos.ChangeRoleRequest;
 import com.personalplatform.treasury.household.Dtos.CreateAccountRequest;
 import com.personalplatform.treasury.household.Dtos.CreateHouseholdRequest;
+import com.personalplatform.treasury.household.Dtos.CreateInviteRequest;
 import com.personalplatform.treasury.household.Dtos.HouseholdView;
+import com.personalplatform.treasury.household.Dtos.InviteCreated;
+import com.personalplatform.treasury.household.Dtos.InviteView;
 import com.personalplatform.treasury.household.Dtos.MemberView;
 import com.personalplatform.treasury.household.Dtos.UpdateSettingsRequest;
 import com.personalplatform.treasury.household.HouseholdService;
@@ -16,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -71,6 +76,31 @@ public class HouseholdController {
     public MemberView addMember(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID householdId,
                                 @Valid @RequestBody AddMemberRequest req) {
         return households.addMember(householdId, jwt.getSubject(), req);
+    }
+
+    /** Owner invites someone by code. The code is shown once; the invitee redeems it on their own account. */
+    @PostMapping("/{householdId}/invites")
+    @ResponseStatus(HttpStatus.CREATED)
+    public InviteCreated createInvite(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID householdId,
+                                      @Valid @RequestBody CreateInviteRequest req) {
+        return households.createInvite(householdId, jwt.getSubject(), req.role(), req.ttlHours());
+    }
+
+    @GetMapping("/{householdId}/invites")
+    public List<InviteView> invites(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID householdId) {
+        return households.pendingInvites(householdId, jwt.getSubject());
+    }
+
+    @DeleteMapping("/{householdId}/invites/{inviteId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void revokeInvite(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID householdId, @PathVariable UUID inviteId) {
+        households.revokeInvite(householdId, jwt.getSubject(), inviteId);
+    }
+
+    /** Joins the household the code belongs to. The caller's name claim, when present, labels their pot. */
+    @PostMapping("/invites/accept")
+    public HouseholdView acceptInvite(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody AcceptInviteRequest req) {
+        return households.acceptInvite(jwt.getSubject(), jwt.getClaimAsString("name"), req.code());
     }
 
     @PutMapping("/{householdId}/members/{uid}/role")

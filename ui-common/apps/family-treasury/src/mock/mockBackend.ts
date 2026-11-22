@@ -40,6 +40,7 @@ import {
   statementRows,
   type AccountRec,
   type HouseholdRec,
+  type InviteRec,
   type Line,
 } from './ledger'
 
@@ -209,6 +210,7 @@ export class MockBackend {
       approvalExpiryHours: input.approvalExpiryHours ?? 72,
       createdAt: input.createdAt ?? this.now(),
       members: [],
+      invites: [],
       accounts: [],
       balances: new Map(),
       entries: [],
@@ -604,6 +606,91 @@ export class MockBackend {
           optStr(body.displayName, 200),
         )
         return { status: 201, body: { ...m } }
+      }),
+
+      r('POST', '/households/:h/invites', (ctx) => {
+        const h = hh(ctx)
+        requireRole(h, ctx.uid, 'OWNER')
+        const body = obj(ctx.body)
+        const inviteRole = role(body.role)
+        const hours =
+          body.ttlHours === undefined || body.ttlHours === null
+            ? 168
+            : typeof body.ttlHours === 'number' &&
+                Number.isInteger(body.ttlHours) &&
+                body.ttlHours >= 1 &&
+                body.ttlHours <= 720
+              ? body.ttlHours
+              : invalid()
+        const now = this.now()
+        const invite: InviteRec = {
+          id: this.nextId(),
+          code: `demo-${this.nextId()}`,
+          role: inviteRole,
+          createdByUid: ctx.uid,
+          createdAt: now,
+          expiresAt: new Date(now.getTime() + hours * 3_600_000),
+          usedAt: null,
+        }
+        h.invites.push(invite)
+        return {
+          status: 201,
+          body: {
+            id: invite.id,
+            code: invite.code,
+            role: invite.role,
+            expiresAt: invite.expiresAt.toISOString(),
+          },
+        }
+      }),
+
+      r('GET', '/households/:h/invites', (ctx) => {
+        const h = hh(ctx)
+        requireRole(h, ctx.uid, 'OWNER')
+        const now = this.now().getTime()
+        return {
+          status: 200,
+          body: h.invites
+            .filter((i) => i.usedAt === null && i.expiresAt.getTime() > now)
+            .map((i) => ({
+              id: i.id,
+              role: i.role,
+              createdByUid: i.createdByUid,
+              createdAt: i.createdAt.toISOString(),
+              expiresAt: i.expiresAt.toISOString(),
+            })),
+        }
+      }),
+
+      r('DELETE', '/households/:h/invites/:invite', (ctx) => {
+        const h = hh(ctx)
+        requireRole(h, ctx.uid, 'OWNER')
+        const invite = h.invites.find((i) => i.id === ctx.params.invite && i.usedAt === null)
+        if (!invite) throw problem.notFound('invite')
+        h.invites = h.invites.filter((i) => i !== invite)
+        return { status: 204 }
+      }),
+
+      r('POST', '/households/invites/accept', (ctx) => {
+        const code = str(obj(ctx.body).code, 200).trim()
+        const now = this.now().getTime()
+        const live = (i: InviteRec) =>
+          i.code === code && i.usedAt === null && i.expiresAt.getTime() > now
+        const h = this.households.find((x) => x.invites.some(live))
+        if (!h) {
+          throw problem.badRequest(
+            'INVITE_INVALID',
+            'This invite code is invalid, already used or expired',
+          )
+        }
+        if (h.members.some((m) => m.uid === ctx.uid)) {
+          throw problem.conflict('ALREADY_MEMBER', 'You are already a member of this household')
+        }
+        const invite = h.invites.find(live)
+        if (!invite) throw problem.badRequest('INVITE_INVALID', 'This invite code is invalid')
+        invite.usedAt = this.now()
+        this.addMember(h, ctx.uid, invite.role, null)
+        return { status: 200, body: householdView(h, member(h, ctx.uid)) }
       }),
 
       r('PUT', '/households/:h/members/:uid/role', (ctx) => {

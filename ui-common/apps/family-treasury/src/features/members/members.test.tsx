@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { findField, getField, renderApp, screen, within } from '../../test/renderApp'
+import type { HouseholdRec } from '../../mock/ledger'
+import { findField, getField, renderApp, screen, waitFor, within } from '../../test/renderApp'
 
 describe('members and roles', () => {
   it('lists members with roles and pot balances, and what each role can do', async () => {
@@ -26,33 +27,64 @@ describe('members and roles', () => {
     expect(cellsOf(/run the reconciliation/i)).toEqual(['Yes', 'No', 'No', 'No'])
   })
 
-  it('adds a member, who gets a pot, and validates the form', async () => {
+  it('invites someone with a code: the code is shown once and the open invite is listed', async () => {
     const { user, backend, householdId } = renderApp({ path: 'members' })
-    await user.click(await screen.findByRole('button', { name: 'Add member' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Add a member' })
-    await user.click(within(dialog).getByRole('button', { name: 'Add member' }))
-    expect(await within(dialog).findByText('Enter their member ID.')).toBeInTheDocument()
-
-    await user.type(getField('Member ID'), 'u-gran')
-    await user.type(getField('Name'), 'Grandma')
-    await user.selectOptions(getField('Role'), 'Approver')
-    await user.click(within(dialog).getByRole('button', { name: 'Add member' }))
-
-    expect(await screen.findByText('Member added')).toBeInTheDocument()
-    const table = screen.getByRole('table', { name: 'Household members' })
-    expect(await within(table).findByText('Grandma')).toBeInTheDocument()
-    expect(backend.accountOf(householdId, 'POT:u-gran').ownerUid).toBe('u-gran')
-    expect(backend.household(householdId).members.find((m) => m.uid === 'u-gran')?.role).toBe(
-      'APPROVER',
-    )
+    await user.click(await screen.findByRole('button', { name: 'Create invite code' }))
+    expect(await screen.findByTestId('invite-code')).toHaveTextContent(/demo-/)
+    const table = screen.getByRole('table', { name: 'Pending invites' })
+    expect(await within(table).findByText('Member')).toBeInTheDocument()
+    expect(backend.household(householdId).invites).toHaveLength(1)
+    expect(backend.household(householdId).members.map((m) => m.uid)).not.toContain('u-gran')
   })
 
-  it('says so when the person is already a member', async () => {
-    const { user } = renderApp({ path: 'members' })
-    await user.click(await screen.findByRole('button', { name: 'Add member' }))
-    await user.type(await findField('Member ID'), 'u-dev')
-    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Add member' }))
-    expect(await screen.findByText(/already a member of this household/i)).toBeInTheDocument()
+  it('cancels an open invite so its code stops working', async () => {
+    const { user, backend, householdId } = renderApp({ path: 'members' })
+    await user.click(await screen.findByRole('button', { name: 'Create invite code' }))
+    await screen.findByTestId('invite-code')
+    await user.click(await screen.findByRole('button', { name: /Cancel invite expiring/ }))
+    expect(await screen.findByText('No open invite codes.')).toBeInTheDocument()
+    expect(backend.household(householdId).invites).toHaveLength(0)
+  })
+
+  it('joins a household with a code and gets the invited role and a pot', async () => {
+    let household: HouseholdRec | null = null
+    const { user, backend } = renderApp({
+      uid: 'u-ada',
+      path: '/welcome',
+      seed: false,
+      prepare: (b) => {
+        household = b.createHousehold({
+          name: 'Garden House',
+          currency: 'USD',
+          ownerUid: 'u-maya',
+          ownerName: 'Maya Okafor',
+          approvalThresholdMinor: null,
+        })
+        household.invites.push({
+          id: 'invite-1',
+          code: 'join-me',
+          role: 'APPROVER',
+          createdByUid: 'u-maya',
+          createdAt: new Date('2026-11-01T00:00:00Z'),
+          expiresAt: new Date('2030-01-01T00:00:00Z'),
+          usedAt: null,
+        })
+      },
+    })
+    await user.type(await findField('Invite code'), 'join-me')
+    await user.click(screen.getByRole('button', { name: 'Join household' }))
+    const id = (household as HouseholdRec | null)?.id ?? ''
+    await waitFor(() =>
+      expect(backend.household(id).members.find((m) => m.uid === 'u-ada')?.role).toBe('APPROVER'),
+    )
+    expect(backend.accountOf(id, 'POT:u-ada').ownerUid).toBe('u-ada')
+  })
+
+  it('says so when the code is wrong or already used', async () => {
+    const { user } = renderApp({ uid: 'u-ada', path: '/welcome', seed: false })
+    await user.type(await findField('Invite code'), 'not-a-code')
+    await user.click(screen.getByRole('button', { name: 'Join household' }))
+    expect(await screen.findByText(/invalid, already used or expired/i)).toBeInTheDocument()
   })
 
   it('changes a role', async () => {

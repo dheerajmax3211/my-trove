@@ -31,6 +31,24 @@ function setup(
   return { api: createTreasuryApi(client), calls }
 }
 
+describe('invite codes', () => {
+  it('creates, lists and cancels invites for one household, and redeems a code on the caller account', async () => {
+    const { api, calls } = setup()
+    await api.createInvite('h1', { role: 'APPROVER', ttlHours: 24 })
+    await api.listInvites('h1')
+    await api.revokeInvite('h1', 'i1')
+    await api.acceptInvite('  code-1 ')
+    expect(calls.map((c) => [c.method, c.url])).toEqual([
+      ['POST', '/api/v1/households/h1/invites'],
+      ['GET', '/api/v1/households/h1/invites'],
+      ['DELETE', '/api/v1/households/h1/invites/i1'],
+      ['POST', '/api/v1/households/invites/accept'],
+    ])
+    expect(calls[0]!.body).toEqual({ role: 'APPROVER', ttlHours: 24 })
+    expect(calls[3]!.body).toEqual({ code: '  code-1 ' })
+  })
+})
+
 describe('request shapes', () => {
   it('sends the Idempotency-Key header and JSON body on every money post', async () => {
     const { api, calls } = setup()

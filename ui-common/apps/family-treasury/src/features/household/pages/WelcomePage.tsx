@@ -24,6 +24,7 @@ import type { CreateHouseholdRequest, HouseholdView } from '../../../api/types'
 import { describeError } from '../../../lib/errors'
 import { parseAmount } from '../../../lib/money'
 import { writeStored } from '../../../lib/storage'
+import { JoinHouseholdCard } from '../components/JoinHouseholdCard'
 import { ModuleBar } from '../components/ModuleBar'
 import { TreasuryScene } from '../components/TreasuryScene'
 import { LAST_HOUSEHOLD_KEY } from '../nav'
@@ -110,7 +111,8 @@ export function WelcomePage() {
           <CardHeader>
             <CardTitle as="h2">New household</CardTitle>
             <CardDescription>
-              You become the owner. You can add the others afterwards from Members and roles.
+              You become the owner. Invite the others afterwards from Members and roles, with a
+              code.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -158,6 +160,7 @@ export function WelcomePage() {
             </form>
           </CardContent>
         </Card>
+        <JoinHouseholdCard />
       </div>
     </>
   )
