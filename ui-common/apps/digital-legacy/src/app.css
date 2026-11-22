@@ -203,7 +203,7 @@
   border-left: 4px solid var(--pp-color-accent);
 }
 .plaintext-area {
-  border-style: dashed;
+  border: 0;
 }
 
 /* ---- timeline preview ---------------------------------------------------------------------- */

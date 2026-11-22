@@ -1,15 +1,6 @@
 import { useApiMutation } from '@platform/api-client'
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Field,
-  Select,
-  useToast,
-} from '@platform/ui'
+import { BentoCard, Button, ClockIcon, Field, Select, useToast } from '@platform/ui'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { ownerPaths } from '../../api/paths'
 import type { StateView } from '../../api/types'
@@ -20,7 +11,15 @@ import { OWNER_KEYS } from '../queries'
 import { pauseOptions } from './pauseOptions'
 
 /** Vacation mode: hold the timers for a bounded stretch. Bounded on purpose, see the limits shown. */
-export function PauseCard({ state }: { state: StateView }) {
+export function PauseCard({
+  state,
+  className,
+  style,
+}: {
+  state: StateView
+  className?: string
+  style?: CSSProperties
+}) {
   const { toast } = useToast()
   const options = pauseOptions(state)
   const [days, setDays] = useState('7')
@@ -46,18 +45,19 @@ export function PauseCard({ state }: { state: StateView }) {
   })
 
   return (
-    <Card aria-labelledby="pause-title">
-      <CardHeader>
-        <CardTitle as="h2" id="pause-title">
-          Vacation mode
-        </CardTitle>
-        <CardDescription>
+    <BentoCard
+      span={12}
+      title="Vacation mode"
+      icon={<ClockIcon size={18} />}
+      {...(className ? { className } : {})}
+      {...(style ? { style } : {})}
+    >
+      <div className="stack-3">
+        <p className="small muted" style={{ margin: 0 }}>
           Pause the countdown while you are away and cannot check in. A pause can never be longer
           than your policy allows, and the total is capped per year so it cannot become a way to
           switch the system off.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
         <div className="stack-3">
           <p className="small muted" style={{ margin: 0 }}>
             Longest single pause: {formatDuration(state.pause.maxSingleSeconds)}. Used this year:{' '}
@@ -104,7 +104,7 @@ export function PauseCard({ state }: { state: StateView }) {
             <ErrorNotice error={resume.error} title="Could not end the pause" />
           ) : null}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </BentoCard>
   )
 }

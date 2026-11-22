@@ -1,13 +1,5 @@
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Field,
-  Input,
-} from '@platform/ui'
+import { BentoCard, Button, Field, Input, KeyIcon } from '@platform/ui'
+import type { CSSProperties } from 'react'
 import { useState, type FormEvent } from 'react'
 import { ErrorNotice } from '../../components/ErrorNotice'
 import { KeyFilePicker } from '../../components/KeyFilePicker'
@@ -17,7 +9,13 @@ import { useVaultKey } from './VaultKeyContext'
 import { openVault } from './vaultService'
 
 /** Brings the vault key back into memory from the owner's key file, proving it by decrypting the vault. */
-export function UnlockVaultCard() {
+export function UnlockVaultCard({
+  className,
+  style,
+}: {
+  className?: string
+  style?: CSSProperties
+}) {
   const api = useOwnerApi()
   const { unlock } = useVaultKey()
   const [fileText, setFileText] = useState('')
@@ -41,17 +39,19 @@ export function UnlockVaultCard() {
   }
 
   return (
-    <Card aria-labelledby="unlock-title">
-      <CardHeader>
-        <CardTitle as="h2" id="unlock-title">
-          Unlock your vault
-        </CardTitle>
-        <CardDescription>
+    <BentoCard
+      span={8}
+
+      title="Unlock your vault"
+      icon={<KeyIcon size={18} />}
+      {...(className ? { className } : {})}
+      {...(style ? { style } : {})}
+    >
+      <div className="stack-3">
+        <p className="small muted" style={{ margin: 0 }}>
           Your vault key is not kept anywhere in this browser. Load your key file and enter its
           passphrase to read or edit the vault. Decryption happens on this device.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
         <form className="stack-3" onSubmit={(e) => void onSubmit(e)} noValidate>
           <KeyFilePicker label="Vault key file" value={fileText} onChange={setFileText} />
           <Field label="Passphrase" required>
@@ -73,7 +73,7 @@ export function UnlockVaultCard() {
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </BentoCard>
   )
 }

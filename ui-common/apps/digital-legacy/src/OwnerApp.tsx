@@ -1,7 +1,7 @@
 import { ApiProvider } from '@platform/api-client'
 import { AuthProvider, RequireAuth, useAuth } from '@platform/auth-web'
 import {
-  AppShell,
+  AppFrame,
   Badge,
   Button,
   Card,
@@ -142,15 +142,19 @@ function Shell({ runtime }: { runtime: Runtime }) {
   const { user, signOut } = useAuth()
   const queryClient = useQueryClient()
   useEffect(() => () => queryClient.clear(), [queryClient])
-  const initials = (user?.displayName ?? user?.email ?? '?').slice(0, 1).toUpperCase()
   return (
-    <AppShell
+    <AppFrame
       brand={
         <span className="brand-lockup">
-          <ProductMark product="digital-legacy" size={28} />
+          <ProductMark product="digital-legacy" size={28} variant="solid" />
           <span className="brand-name">Digital Legacy</span>
         </span>
       }
+      user={{
+        name: user?.displayName ?? user?.email ?? 'You',
+        ...(user?.email ? { email: user.email } : {}),
+      }}
+      search={false}
       sidebar={
         <SidebarNav label="Main">
           <SidebarSection title="Your switch">
@@ -164,17 +168,11 @@ function Shell({ runtime }: { runtime: Runtime }) {
           </SidebarSection>
         </SidebarNav>
       }
-      sidebarFooter={runtime.mock ? <DemoControls mock={runtime.mock} /> : null}
-      topbar={
+      {...(runtime.mock ? { promo: <DemoControls mock={runtime.mock} /> } : {})}
+      headerEnd={
         <>
           <KeyStatus />
           <ThemeSelect />
-          <div className="user-chip hide-sm">
-            <span className="avatar" aria-hidden="true">
-              {initials}
-            </span>
-            <span>{user?.email}</span>
-          </div>
           <Button size="sm" variant="secondary" onClick={() => void signOut()}>
             Sign out
           </Button>
@@ -182,7 +180,7 @@ function Shell({ runtime }: { runtime: Runtime }) {
       }
     >
       <OwnerRoutes />
-    </AppShell>
+    </AppFrame>
   )
 }
 

@@ -1,4 +1,5 @@
-import { Stepper, type StepperStep } from '@platform/ui'
+import { BentoCard, HourglassIcon, Stepper, type StepperStep } from '@platform/ui'
+import type { CSSProperties } from 'react'
 import type { StateView } from '../../api/types'
 import { formatDuration } from '../../lib/format'
 import { ladderIndex } from './status'
@@ -47,19 +48,28 @@ export function ladderSteps(state: StateView): StepperStep[] {
 }
 
 /** Where the switch is on the way from "all quiet" to "released". A check-in at any rung before the last goes back to the start. */
-export function StateLadder({ state }: { state: StateView }) {
+export function StateLadder({
+  state,
+  className,
+  style,
+}: {
+  state: StateView
+  className?: string
+  style?: CSSProperties
+}) {
   const here = state.armed || state.state !== 'ACTIVE' ? ladderIndex(state.state) : -1
   return (
-    <section className="ladder" aria-labelledby="ladder-title">
-      <div className="stack-2">
-        <h2 className="section-title" id="ladder-title">
-          What happens if you go quiet
-        </h2>
-        <p className="section-lead">
-          Each rung is a chance to stop it. Until the last one, a single check-in puts everything
-          back to the start.
-        </p>
-      </div>
+    <BentoCard
+      span={12}
+      title="What happens if you go quiet"
+      icon={<HourglassIcon size={18} />}
+      className={className ? `ladder ${className}` : 'ladder'}
+      {...(style ? { style } : {})}
+    >
+      <p className="section-lead">
+        Each rung is a chance to stop it. Until the last one, a single check-in puts everything back
+        to the start.
+      </p>
       <Stepper
         label="From checked in to released"
         steps={ladderSteps(state)}
@@ -73,6 +83,6 @@ export function StateLadder({ state }: { state: StateView }) {
           rung once you arm it.
         </p>
       ) : null}
-    </section>
+    </BentoCard>
   )
 }

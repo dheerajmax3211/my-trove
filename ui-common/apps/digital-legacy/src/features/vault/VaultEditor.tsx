@@ -1,11 +1,7 @@
 import {
+  BentoCard,
   Badge,
   Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
   Dialog,
   DialogClose,
   EmptyState,
@@ -15,10 +11,11 @@ import {
   PlusIcon,
   CloseIcon,
   Textarea,
+  FileIcon,
   useToast,
 } from '@platform/ui'
 import { useMutation } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import type { VaultSummary } from '../../api/types'
 import { Callout } from '../../components/Callout'
 import { ErrorNotice } from '../../components/ErrorNotice'
@@ -39,13 +36,15 @@ interface Props {
   vault: VaultSummary | null
   /** Whether the switch allows content changes (ACTIVE). */
   editable: boolean
+  className?: string
+  style?: CSSProperties
 }
 
 /**
  * Edits the vault. The plaintext exists only in this component's state; saving encrypts it here and
  * uploads ciphertext. Creating or rotating generates a fresh key and forces a key-file backup first.
  */
-export function VaultEditor({ vault, editable }: Props) {
+export function VaultEditor({ vault, editable, className, style }: Props) {
   const api = useOwnerApi()
   const { toast } = useToast()
   const { key, unlock } = useVaultKey()
@@ -126,182 +125,202 @@ export function VaultEditor({ vault, editable }: Props) {
     else if (key) save.mutate({ mode: 'update', key })
   }
 
-  if (loadError) return <ErrorNotice error={loadError} title="Could not open the vault" />
-  if (!loaded) return <PageSkeleton label="Decrypting your vault" />
+  const slot = {
+    ...(className ? { className } : {}),
+    ...(style ? { style } : {}),
+  }
+  if (loadError)
+    return (
+      <BentoCard span={8} title="What you are leaving" {...slot}>
+        <ErrorNotice error={loadError} title="Could not open the vault" />
+      </BentoCard>
+    )
+  if (!loaded)
+    return (
+      <BentoCard span={8} title="What you are leaving" {...slot}>
+        <PageSkeleton label="Decrypting your vault" />
+      </BentoCard>
+    )
 
   return (
-    <div className="stack-3">
-      {!editable ? (
-        <Callout tone="warning" title="The vault is read-only right now">
-          <p>
-            The server only accepts changes while the switch is quiet. Check in on the Overview
-            page, then edit.
-          </p>
-        </Callout>
-      ) : null}
-      <Card className="plaintext-area" aria-labelledby="entries-title">
-        <CardHeader>
-          <div className="row-wrap">
-            <CardTitle as="h2" id="entries-title">
-              What you are leaving
-            </CardTitle>
-            {dirty ? (
-              <Badge variant="warning">Unsaved changes</Badge>
-            ) : (
-              <Badge variant="success">Saved</Badge>
-            )}
-          </div>
-          <CardDescription>
+    <BentoCard
+      span={8}
+
+      title="What you are leaving"
+      icon={<FileIcon size={18} />}
+      actions={
+        dirty ? (
+          <Badge variant="warning">Unsaved changes</Badge>
+        ) : (
+          <Badge variant="success">Saved</Badge>
+        )
+      }
+      {...slot}
+    >
+      <div className="stack-3">
+        {!editable ? (
+          <Callout tone="warning" title="The vault is read-only right now">
+            <p>
+              The server only accepts changes while the switch is quiet. Check in on the Overview
+              page, then edit.
+            </p>
+          </Callout>
+        ) : null}
+        <div className="plaintext-area stack-3">
+          <p className="small muted" style={{ margin: 0 }}>
             Account locations, instructions, letters, passwords. Each entry is a title and free
             text.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="stack-3">
-            {entries.length === 0 ? (
-              <EmptyState
-                headingAs="h3"
-                title="Nothing here yet"
-                description="Add the first thing you want your trustees to find."
-                action={
+          </p>
+          <div>
+            <div className="stack-3">
+              {entries.length === 0 ? (
+                <EmptyState
+                  headingAs="h3"
+                  title="Nothing here yet"
+                  description="Add the first thing you want your trustees to find."
+                  action={
+                    <Button
+                      leftIcon={<PlusIcon size={16} />}
+                      disabled={!editable}
+                      onClick={() => setEntries([newEntry()])}
+                    >
+                      Add an entry
+                    </Button>
+                  }
+                />
+              ) : (
+                entries.map((entry, index) => (
+                  <div key={entry.id} className="entry-card">
+                    <Field
+                      label={`Title of entry ${index + 1}`}
+                      error={
+                        showErrors && entry.title.trim() === ''
+                          ? 'Give this entry a title.'
+                          : undefined
+                      }
+                    >
+                      <Input
+                        value={entry.title}
+                        disabled={!editable}
+                        autoComplete="off"
+                        spellCheck={false}
+                        onChange={(e) => update(entry.id, { title: e.target.value })}
+                      />
+                    </Field>
+                    <Field label={`Contents of entry ${index + 1}`}>
+                      <Textarea
+                        rows={5}
+                        value={entry.body}
+                        disabled={!editable}
+                        autoComplete="off"
+                        spellCheck={false}
+                        onChange={(e) => update(entry.id, { body: e.target.value })}
+                      />
+                    </Field>
+                    <div>
+                      <IconButton
+                        label={`Remove entry ${index + 1}`}
+                        icon={<CloseIcon size={16} />}
+                        disabled={!editable}
+                        onClick={() => setEntries((c) => c.filter((e) => e.id !== entry.id))}
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
+              {entries.length > 0 ? (
+                <div>
                   <Button
+                    variant="secondary"
                     leftIcon={<PlusIcon size={16} />}
                     disabled={!editable}
-                    onClick={() => setEntries([newEntry()])}
+                    onClick={() => setEntries((c) => [...c, newEntry()])}
                   >
-                    Add an entry
+                    Add another entry
                   </Button>
-                }
-              />
-            ) : (
-              entries.map((entry, index) => (
-                <div key={entry.id} className="entry-card">
-                  <Field
-                    label={`Title of entry ${index + 1}`}
-                    error={
-                      showErrors && entry.title.trim() === ''
-                        ? 'Give this entry a title.'
-                        : undefined
-                    }
-                  >
-                    <Input
-                      value={entry.title}
-                      disabled={!editable}
-                      autoComplete="off"
-                      spellCheck={false}
-                      onChange={(e) => update(entry.id, { title: e.target.value })}
-                    />
-                  </Field>
-                  <Field label={`Contents of entry ${index + 1}`}>
-                    <Textarea
-                      rows={5}
-                      value={entry.body}
-                      disabled={!editable}
-                      autoComplete="off"
-                      spellCheck={false}
-                      onChange={(e) => update(entry.id, { body: e.target.value })}
-                    />
-                  </Field>
-                  <div>
-                    <IconButton
-                      label={`Remove entry ${index + 1}`}
-                      icon={<CloseIcon size={16} />}
-                      disabled={!editable}
-                      onClick={() => setEntries((c) => c.filter((e) => e.id !== entry.id))}
-                    />
-                  </div>
                 </div>
-              ))
-            )}
-            {entries.length > 0 ? (
-              <div>
-                <Button
-                  variant="secondary"
-                  leftIcon={<PlusIcon size={16} />}
-                  disabled={!editable}
-                  onClick={() => setEntries((c) => [...c, newEntry()])}
-                >
-                  Add another entry
-                </Button>
-              </div>
-            ) : null}
-            <p className="small muted" style={{ margin: 0 }} role="status">
-              {formatBytes(size)} of {formatBytes(MAX_PLAINTEXT_BYTES)} used
-            </p>
-            {showErrors && tooBig ? (
-              <Callout tone="danger" role="alert" title="This is too large to store">
-                <p>
-                  Shorten the text, or move large files out of the vault and point to them instead.
-                </p>
-              </Callout>
-            ) : null}
-            {save.error && !pending ? (
-              <ErrorNotice error={save.error} title="Could not save" />
-            ) : null}
-            <div className="row-wrap">
-              <Button
-                loading={save.isPending && !pending}
-                disabled={!editable || (vault !== null && !dirty)}
-                onClick={submit}
-              >
-                {vault === null ? 'Encrypt and create vault' : 'Encrypt and save'}
-              </Button>
-              {vault ? (
-                <Button
-                  variant="danger"
-                  disabled={!editable}
-                  onClick={() => setRotateConfirm(true)}
-                >
-                  Rotate the vault key
-                </Button>
               ) : null}
+              <p className="small muted" style={{ margin: 0 }} role="status">
+                {formatBytes(size)} of {formatBytes(MAX_PLAINTEXT_BYTES)} used
+              </p>
+              {showErrors && tooBig ? (
+                <Callout tone="danger" role="alert" title="This is too large to store">
+                  <p>
+                    Shorten the text, or move large files out of the vault and point to them
+                    instead.
+                  </p>
+                </Callout>
+              ) : null}
+              {save.error && !pending ? (
+                <ErrorNotice error={save.error} title="Could not save" />
+              ) : null}
+              <div className="row-wrap">
+                <Button
+                  loading={save.isPending && !pending}
+                  disabled={!editable || (vault !== null && !dirty)}
+                  onClick={submit}
+                >
+                  {vault === null ? 'Encrypt and create vault' : 'Encrypt and save'}
+                </Button>
+                {vault ? (
+                  <Button
+                    variant="danger"
+                    disabled={!editable}
+                    onClick={() => setRotateConfirm(true)}
+                  >
+                    Rotate the vault key
+                  </Button>
+                ) : null}
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <KeyProtectionDialog
-        open={pending !== null}
-        onOpenChange={(open) => {
-          if (!open) setPending(null)
-        }}
-        vaultKey={pending?.key ?? null}
-        title={pending?.mode === 'rotate' ? 'Back up your new vault key' : 'Back up your vault key'}
-        confirmLabel={pending?.mode === 'rotate' ? 'Rotate key and upload' : 'Create vault'}
-        busy={save.isPending}
-        error={pending ? save.error : null}
-        onConfirmed={() => pending && save.mutate({ mode: pending.mode, key: pending.key })}
-      />
+        <KeyProtectionDialog
+          open={pending !== null}
+          onOpenChange={(open) => {
+            if (!open) setPending(null)
+          }}
+          vaultKey={pending?.key ?? null}
+          title={
+            pending?.mode === 'rotate' ? 'Back up your new vault key' : 'Back up your vault key'
+          }
+          confirmLabel={pending?.mode === 'rotate' ? 'Rotate key and upload' : 'Create vault'}
+          busy={save.isPending}
+          error={pending ? save.error : null}
+          onConfirmed={() => pending && save.mutate({ mode: pending.mode, key: pending.key })}
+        />
 
-      <Dialog
-        open={rotateConfirm}
-        onOpenChange={setRotateConfirm}
-        title="Rotate the vault key?"
-        description="Use this if you think the key or a trustee share may have been exposed."
-        footer={
-          <>
-            <DialogClose asChild>
-              <Button variant="secondary">Cancel</Button>
-            </DialogClose>
-            <Button
-              variant="danger"
-              onClick={() => {
-                setRotateConfirm(false)
-                setPending({ mode: 'rotate', key: generateVaultKey() })
-              }}
-            >
-              Rotate the key
-            </Button>
-          </>
-        }
-      >
-        <ul className="stack-2" style={{ margin: 0, paddingLeft: '1.2rem' }}>
-          <li>Your vault is re-encrypted under a brand new key.</li>
-          <li>Every trustee share is wiped, and the switch is disarmed.</li>
-          <li>You must seal new shares to your trustees and arm the switch again.</li>
-          <li>Your old key file stops working.</li>
-        </ul>
-      </Dialog>
-    </div>
+        <Dialog
+          open={rotateConfirm}
+          onOpenChange={setRotateConfirm}
+          title="Rotate the vault key?"
+          description="Use this if you think the key or a trustee share may have been exposed."
+          footer={
+            <>
+              <DialogClose asChild>
+                <Button variant="secondary">Cancel</Button>
+              </DialogClose>
+              <Button
+                variant="danger"
+                onClick={() => {
+                  setRotateConfirm(false)
+                  setPending({ mode: 'rotate', key: generateVaultKey() })
+                }}
+              >
+                Rotate the key
+              </Button>
+            </>
+          }
+        >
+          <ul className="stack-2" style={{ margin: 0, paddingLeft: '1.2rem' }}>
+            <li>Your vault is re-encrypted under a brand new key.</li>
+            <li>Every trustee share is wiped, and the switch is disarmed.</li>
+            <li>You must seal new shares to your trustees and arm the switch again.</li>
+            <li>Your old key file stops working.</li>
+          </ul>
+        </Dialog>
+      </div>
+    </BentoCard>
   )
 }
