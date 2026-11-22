@@ -23,6 +23,7 @@ const WAITING_ON = process.env.WAITING_ON_URL ?? 'http://localhost:5182';
 const CONSENT = process.env.CONSENT_URL ?? 'http://localhost:5183';
 const ASK = process.env.ASK_URL ?? 'http://localhost:5185';
 const MEMBER = process.env.MEMBER_EMAIL ?? 'member@example.test';
+const IDP = process.env.IDP_URL ?? 'http://localhost:9100';
 const RUN = Date.now();
 
 const { chromium } = await import(process.env.PLAYWRIGHT_CORE ?? 'playwright-core');
@@ -50,10 +51,19 @@ async function check(name, fn) {
 const expect = (cond, msg) => {
   if (!cond) throw new Error(msg);
 };
+// The dev identity provider issues a one-time sign-in link bound to the address and sends nothing. The product apps
+// do not display it (the workspace does), so this asks the provider for the same link and opens it, as a user would.
 async function signIn(base) {
-  await page.goto(base + '/', { waitUntil: 'networkidle' });
+  const issued = await (
+    await fetch(`${IDP}/link`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: MEMBER }),
+    })
+  ).json();
+  await page.goto(`${base}/?mode=signIn&oobCode=${encodeURIComponent(issued.code)}`, { waitUntil: 'networkidle' });
   await page.getByLabel('Email').fill(MEMBER);
-  await page.getByRole('button', { name: 'Email me a link' }).click();
+  await page.getByRole('button', { name: 'Finish sign-in' }).click();
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(1200);
 }
