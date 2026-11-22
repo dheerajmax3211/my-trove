@@ -39,20 +39,19 @@ export function Numbers() {
     { value: products.length, label: 'products on one platform' },
     { value: 5, label: 'personas, with access denied by default' },
     { value: permissions.length, label: 'named permissions in the access table' },
-    { value: 10, label: 'minutes a platform token lives', suffix: ' min' },
+    { value: 10, label: 'minutes a platform token lives' },
   ]
   return (
     <>
-      <section className={`st-wrap st-section ${styles.numbers}`} aria-label="The platform in numbers">
+      <section
+        className={`st-wrap st-section ${styles.numbers}`}
+        aria-label="The platform in numbers"
+      >
         <Stagger as="dl" className={styles.grid} interval={0.1} distance={32} duration={0.9}>
           {figures.map((fig) => (
             <div key={fig.label} className={styles.figure}>
               <dd className={styles.value}>
-                <CountUp
-                  value={fig.value}
-                  duration={1.8}
-                  {...(fig.suffix ? { suffix: fig.suffix } : {})}
-                />
+                <CountUp value={fig.value} duration={1.8} format={{ maximumFractionDigits: 0 }} />
               </dd>
               <dt className={styles.label}>{fig.label}</dt>
             </div>

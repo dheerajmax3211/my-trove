@@ -79,13 +79,21 @@ export function ScrollStory() {
       tl.to(q('[data-tick="0"]'), { scaleX: 1, duration: 1 }, 0)
       // 2. They meet the gateway.
       swap(0, 1, '>+=0.3')
-      tl.to(q('[data-gateway]'), { autoAlpha: 1, scale: 1, duration: 0.7, ease: 'back.out(1.6)' }, '<+=0.2')
+      tl.to(
+        q('[data-gateway]'),
+        { autoAlpha: 1, scale: 1, duration: 0.7, ease: 'back.out(1.6)' },
+        '<+=0.2',
+      )
       tl.to(q('[data-in]'), { strokeDashoffset: 0, stagger: 0.1, duration: 0.7 }, '<+=0.1')
       tl.to(q('[data-tick="1"]'), { scaleX: 1, duration: 1 }, '<')
       // 3. You decide.
       swap(1, 2, '>+=0.5')
       tl.to(q('[data-viewer]'), { autoAlpha: 1, x: 0, stagger: 0.12, duration: 0.6 }, '<+=0.3')
-      tl.to(q('[data-out-1], [data-out-2]'), { strokeDashoffset: 0, stagger: 0.12, duration: 0.8 }, '<+=0.3')
+      tl.to(
+        q('[data-out-1], [data-out-2]'),
+        { strokeDashoffset: 0, stagger: 0.12, duration: 0.8 },
+        '<+=0.3',
+      )
       tl.to(q('[data-out-3]'), { strokeDashoffset: 0.72, duration: 0.5 }, '<+=0.2')
       tl.to(q('[data-tick="2"]'), { scaleX: 1, duration: 1 }, '<')
       // 4. And you take it back.
@@ -146,17 +154,14 @@ export function ScrollStory() {
             ))}
 
             {products.map((p, i) => (
-              <g
-                key={p.id}
-                data-product=""
-                transform={`translate(0 ${PRODUCT_Y(i) - 23})`}
-                className={styles.productNode}
-              >
-                <rect width="230" height="46" rx="23" className={styles.pill} />
-                <circle cx="26" cy="23" r="8" fill={`var(--pp-color-product-${p.id})`} />
-                <text x="46" y="28" className={styles.nodeText}>
-                  {p.name}
-                </text>
+              <g key={p.id} transform={`translate(0 ${PRODUCT_Y(i) - 23})`}>
+                <g data-product="" className={styles.productNode}>
+                  <rect width="230" height="46" rx="23" className={styles.pill} />
+                  <circle cx="26" cy="23" r="8" fill={`var(--pp-color-product-${p.id})`} />
+                  <text x="46" y="28" className={styles.nodeText}>
+                    {p.name}
+                  </text>
+                </g>
               </g>
             ))}
 
@@ -175,27 +180,28 @@ export function ScrollStory() {
 
             {[
               { y: VIEWER_Y[0], name: 'You', sub: 'Everything you keep' },
-              { y: VIEWER_Y[1], name: 'Shoe Finder, a sample app', sub: 'Your shoe size, for 30 days' },
+              {
+                y: VIEWER_Y[1],
+                name: 'Shoe Finder, a sample app',
+                sub: 'Your shoe size, for 30 days',
+              },
               { y: VIEWER_Y[2], name: 'Someone else', sub: 'Nothing: not shared' },
             ].map((v, i) => (
-              <g
-                key={v.name}
-                data-viewer=""
-                transform={`translate(770 ${v.y - 30})`}
-                className={styles.viewer}
-              >
-                <rect width="230" height="60" rx="18" className={styles.pill} />
-                <text x="20" y="26" className={styles.nodeText}>
-                  {v.name}
-                </text>
-                <text x="20" y="46" className={styles.subText} data-granted={i}>
-                  {v.sub}
-                </text>
-                {i === 1 ? (
-                  <text x="20" y="46" className={styles.endText} data-ended="">
-                    Access ended
+              <g key={v.name} transform={`translate(770 ${v.y - 30})`}>
+                <g data-viewer="" className={styles.viewer}>
+                  <rect width="230" height="60" rx="18" className={styles.pill} />
+                  <text x="20" y="26" className={styles.nodeText}>
+                    {v.name}
                   </text>
-                ) : null}
+                  <text x="20" y="46" className={styles.subText} data-granted={i}>
+                    {v.sub}
+                  </text>
+                  {i === 1 ? (
+                    <text x="20" y="46" className={styles.endText} data-ended="">
+                      Access ended
+                    </text>
+                  ) : null}
+                </g>
               </g>
             ))}
           </svg>

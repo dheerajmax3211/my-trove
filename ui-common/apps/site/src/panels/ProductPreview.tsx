@@ -20,7 +20,7 @@ import {
   TreeIcon,
   cx,
 } from '@platform/ui'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import { products, type ProductId } from '../content/products'
 import styles from './ProductPreview.module.css'
 
@@ -31,6 +31,11 @@ import styles from './ProductPreview.module.css'
  * are the ones the services implement.
  */
 
+/** Whole numbers only while counting, so the figure never shows a stray decimal. */
+function Big(props: ComponentProps<typeof BigStat>) {
+  return <BigStat format={{ maximumFractionDigits: 0 }} locale="en-US" {...props} />
+}
+
 const POWER = [
   955, 958, 951, 960, 957, 962, 959, 968, 975, 982, 990, 996, 1004, 1011, 1019, 1027, 1034, 1041,
   1049, 1056, 1063,
@@ -40,7 +45,7 @@ function WaitingOn(): ReactNode {
   return (
     <BentoGrid className={styles.grid}>
       <BentoCard span={7} title="Open items" icon={<ClockIcon size={18} />}>
-        <BigStat
+        <Big
           size="md"
           value={7}
           unit="waiting"
@@ -64,7 +69,7 @@ function WaitingOn(): ReactNode {
         />
       </BentoCard>
       <BentoCard span={5} tone="dark" title="Replies" icon={<ActivityIcon size={18} />}>
-        <BigStat size="md" value={9} unit="this month" delta="+3" />
+        <Big size="md" value={9} unit="this month" delta="+3" />
         <BarsChart
           className={styles.chart}
           label="Nudges and replies by month"
@@ -95,7 +100,7 @@ function Consent(): ReactNode {
   return (
     <BentoGrid className={styles.grid}>
       <BentoCard span={7} title="Active grants" icon={<KeyIcon size={18} />}>
-        <BigStat
+        <Big
           size="md"
           value={4}
           unit="apps may read"
@@ -118,8 +123,8 @@ function Consent(): ReactNode {
           ]}
         />
       </BentoCard>
-      <BentoCard span={5} tone="dark" title="Allowed and denied" icon={<ShieldIcon size={18} />}>
-        <BigStat size="md" value={31} unit="reads this week" />
+      <BentoCard span={5} tone="dark" title="Reads logged" icon={<ShieldIcon size={18} />}>
+        <Big size="md" value={31} unit="reads this week" />
         <BarsChart
           className={styles.chart}
           label="Reads allowed and denied by day"
@@ -146,7 +151,7 @@ function HomePulse(): ReactNode {
   return (
     <BentoGrid className={styles.grid}>
       <BentoCard span={12} title="Kitchen fridge" icon={<PulseHomeIcon size={18} />}>
-        <BigStat
+        <Big
           size="md"
           value={1063}
           unit="W running"
@@ -164,10 +169,15 @@ function HomePulse(): ReactNode {
         />
       </BentoCard>
       <BentoCard span={6} tone="dark" title="Warranty" icon={<ShieldIcon size={18} />}>
-        <BigStat size="md" value={5} unit="months left" />
+        <Big size="md" value={5} unit="months left" />
       </BentoCard>
       <BentoCard span={6} title="Power shift" icon={<ActivityIcon size={18} />}>
-        <ProgressStat label="Windows above normal" value={75} tone="lime" caption="3 of the last 4" />
+        <ProgressStat
+          label="Windows above normal"
+          value={75}
+          tone="lime"
+          caption="3 of the last 4"
+        />
       </BentoCard>
     </BentoGrid>
   )
@@ -177,7 +187,7 @@ function AskYourLife(): ReactNode {
   return (
     <BentoGrid className={styles.grid}>
       <BentoCard span={7} title="washing machine warranty" icon={<ChatSparkIcon size={18} />}>
-        <BigStat size="md" value={3} unit="matches" caption="Found in a receipt, a note and an email" />
+        <Big size="md" value={3} unit="matches" caption="Found in a receipt, a note and an email" />
         <BarList
           className={styles.chart}
           label="How well each match fits the question"
@@ -191,7 +201,12 @@ function AskYourLife(): ReactNode {
         />
       </BentoCard>
       <BentoCard span={5} tone="dark" title="Why it ranked first" icon={<ActivityIcon size={18} />}>
-        <BigStat size="md" value="1st" unit="by keyword" caption="2nd by meaning, combined by rank fusion" />
+        <Big
+          size="md"
+          value="1st"
+          unit="by keyword"
+          caption="2nd by meaning, combined by rank fusion"
+        />
       </BentoCard>
       <BentoCard span={12} title="What matched" icon={<ChartIcon size={18} />}>
         <BubbleChart
@@ -211,7 +226,7 @@ function DigitalLegacy(): ReactNode {
   return (
     <BentoGrid className={styles.grid}>
       <BentoCard span={7} title="Trustees" icon={<TreeIcon size={18} />}>
-        <BigStat
+        <Big
           size="md"
           value={2}
           unit="of 5 approved"
@@ -219,12 +234,27 @@ function DigitalLegacy(): ReactNode {
           secondary={[{ label: 'Declined', value: '1' }]}
         />
         <div className={styles.bars}>
-          <ProgressStat label="Toward the quorum" value={67} tone="lilac" caption="2 of 3 approvals" />
-          <ProgressStat label="State of the switch" value={80} tone="ink" caption="Release pending" />
+          <ProgressStat
+            label="Toward the quorum"
+            value={67}
+            tone="lilac"
+            caption="2 of 3 approvals"
+          />
+          <ProgressStat
+            label="State of the switch"
+            value={80}
+            tone="ink"
+            caption="Release pending"
+          />
         </div>
       </BentoCard>
       <BentoCard span={5} tone="dark" title="Cool-off" icon={<ClockIcon size={18} />}>
-        <BigStat size="md" value="1" unit="check-in cancels it" caption="From the owner, in the waiting period" />
+        <Big
+          size="md"
+          value="1"
+          unit="check-in cancels it"
+          caption="From the owner, in the waiting period"
+        />
       </BentoCard>
       <BentoCard span={12} title="Votes so far" icon={<ChartIcon size={18} />}>
         <BubbleChart
@@ -244,7 +274,7 @@ function FamilyTreasury(): ReactNode {
   return (
     <BentoGrid className={styles.grid}>
       <BentoCard span={7} title="Household spending" icon={<CoinsIcon size={18} />}>
-        <BigStat
+        <Big
           size="md"
           value={3120}
           locale="en-GB"
@@ -268,7 +298,7 @@ function FamilyTreasury(): ReactNode {
         />
       </BentoCard>
       <BentoCard span={5} tone="dark" title="Reconciliation" icon={<ShieldIcon size={18} />}>
-        <BigStat size="md" value={4} unit="accounts" delta="No drift" />
+        <Big size="md" value={4} unit="accounts" delta="No drift" />
         <BarsChart
           className={styles.chart}
           label="Debits and credits by month"
@@ -282,7 +312,12 @@ function FamilyTreasury(): ReactNode {
         />
       </BentoCard>
       <BentoCard span={12} title="Waiting for a second person" icon={<ClockIcon size={18} />}>
-        <BigStat size="md" value="1" unit="spend to approve" caption="The school trip is above the household threshold" />
+        <Big
+          size="md"
+          value="1"
+          unit="spend to approve"
+          caption="The school trip is above the household threshold"
+        />
       </BentoCard>
     </BentoGrid>
   )

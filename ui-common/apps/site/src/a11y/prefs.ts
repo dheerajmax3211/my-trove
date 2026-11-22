@@ -101,7 +101,7 @@ export function installMotionPreference(): void {
         if (prop === 'addEventListener') {
           return (type: string, listener: EventListenerOrEventListenerObject, opts?: unknown) => {
             if (type === 'change' && typeof listener === 'function') {
-              motionListeners.add(listener as (event: MediaQueryListEvent) => void)
+              motionListeners.add(listener)
             }
             target.addEventListener(type, listener, opts as AddEventListenerOptions)
           }

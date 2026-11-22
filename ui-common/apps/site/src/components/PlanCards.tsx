@@ -12,7 +12,7 @@ const tones: Record<PlanContent['id'], string> = {
 function Figure({ value, testId }: { value: number; testId?: string }) {
   return (
     <span data-testid={testId}>
-      <CountUp value={value} locale="en-US" duration={1.6} />
+      <CountUp value={value} locale="en-US" duration={1.6} format={{ maximumFractionDigits: 0 }} />
     </span>
   )
 }
@@ -36,14 +36,20 @@ export function PlanCards({ detailed = false }: { detailed?: boolean }) {
             <h3 className={styles.name}>{plan.name}</h3>
             <p className={styles.note}>{plan.note}</p>
             <p className={styles.big}>
-              <Figure value={plan.requestsPerMinute} {...(detailed ? { testId: `${plan.id}-minute` } : {})} />
+              <Figure
+                value={plan.requestsPerMinute}
+                {...(detailed ? { testId: `${plan.id}-minute` } : {})}
+              />
               <span className={styles.unit}>requests a minute</span>
             </p>
             <dl className={cx(styles.facts, detailed && styles.detailed)}>
               <div>
                 <dt>Requests a month</dt>
                 <dd>
-                  <Figure value={plan.requestsPerMonth} {...(detailed ? { testId: `${plan.id}-month` } : {})} />
+                  <Figure
+                    value={plan.requestsPerMonth}
+                    {...(detailed ? { testId: `${plan.id}-month` } : {})}
+                  />
                 </dd>
               </div>
               {detailed ? (
@@ -65,4 +71,3 @@ export function PlanCards({ detailed = false }: { detailed?: boolean }) {
     </Stagger>
   )
 }
-

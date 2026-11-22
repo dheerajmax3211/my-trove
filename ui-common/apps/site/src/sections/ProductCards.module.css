@@ -37,6 +37,15 @@
   color: var(--pp-color-text);
   isolation: isolate;
 }
+/* SpotlightCard wraps children in its own content box: make that box the column and drop its positioning so the sheet anchors to the card. */
+.card > div {
+  position: static;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 /* The product's colour rises from the bottom edge on hover. */
 .card::before {
   content: '';
@@ -170,6 +179,20 @@
     border-radius: var(--pp-radius-full);
     background: var(--pp-color-lime);
     color: var(--pp-color-on-lime);
+    opacity: 0;
+    transition: opacity var(--pp-duration-slower) var(--pp-ease-standard);
+  }
+  .card:hover .go,
+  .card:focus-within .go {
+    opacity: 1;
+  }
+}
+
+/* On a phone the outlined number sits above the name, not behind it. */
+@media (max-width: 47.99rem) {
+  .card {
+    min-height: 0;
+    padding-top: 6.75rem;
   }
 }
 

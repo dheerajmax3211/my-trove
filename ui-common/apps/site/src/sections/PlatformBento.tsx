@@ -35,8 +35,8 @@ export function PlatformBento() {
         <BentoCard span={7} title="One gateway in front" icon={<KeyIcon size={18} />}>
           <p className={styles.text}>
             Five personas, scoped consent for third-party apps and usage metering are built. The
-            products stay simple because who is calling, what they may do and what they have used
-            is settled before they see the call.
+            products stay simple because who is calling, what they may do and what they have used is
+            settled before they see the call.
           </p>
           <Link to="/platform" className={styles.more}>
             How the platform fits together
@@ -50,7 +50,11 @@ export function PlatformBento() {
             built yet.
           </p>
         </BentoCard>
-        <BentoCard span={12} title="Five personas, access denied by default" icon={<UsersIcon size={18} />}>
+        <BentoCard
+          span={12}
+          title="Five personas, access denied by default"
+          icon={<UsersIcon size={18} />}
+        >
           <ul className={styles.personas}>
             {personas.map((persona) => (
               <li key={persona} className={styles.persona}>

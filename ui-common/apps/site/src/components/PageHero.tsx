@@ -18,21 +18,13 @@ export interface PageHeroProps {
 }
 
 /** The opening of every page except the home page: a dark band, a big title that rises word by word, a standfirst. */
-export function PageHero({
-  title,
-  lead,
-  top,
-  actions,
-  aside,
-  accent,
-  className,
-}: PageHeroProps) {
+export function PageHero({ title, lead, top, actions, aside, accent, className }: PageHeroProps) {
   const style = accent
     ? ({ '--hero-accent': `var(--pp-color-product-${accent})` } as CSSProperties)
     : undefined
   return (
     <section
-      className={cx('st-dark', styles.hero, aside && styles.withAside, className)}
+      className={cx('st-dark', styles.hero, aside ? styles.withAside : undefined, className)}
       data-theme="dark"
       aria-labelledby="page-title"
       style={style}

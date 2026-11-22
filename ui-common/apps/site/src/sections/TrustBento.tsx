@@ -75,7 +75,12 @@ export function TrustBento() {
         <BentoCard span={4} title={rls.title} icon={<ShieldIcon size={18} />}>
           <p className={styles.text}>{rls.what}</p>
         </BentoCard>
-        <BentoCard span={4} tone="lilac" title="What is not here" icon={<ArrowRightIcon size={18} />}>
+        <BentoCard
+          span={4}
+          tone="lilac"
+          title="What is not here"
+          icon={<ArrowRightIcon size={18} />}
+        >
           <p className={styles.text}>
             No outside audit, no production deployment, no real payments. The limits are listed as
             plainly as the controls.

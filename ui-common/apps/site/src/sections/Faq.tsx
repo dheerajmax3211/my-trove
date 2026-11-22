@@ -8,7 +8,11 @@ export function Faq() {
   const base = useId()
   const [open, setOpen] = useState<number | null>(null)
   return (
-    <section id="faq" className={`st-wrap st-section ${styles.section}`} aria-labelledby="faq-title">
+    <section
+      id="faq"
+      className={`st-wrap st-section ${styles.section}`}
+      aria-labelledby="faq-title"
+    >
       <Reveal className={styles.head}>
         <h2 id="faq-title" className="st-h2">
           Questions people ask

@@ -2,9 +2,10 @@ import { ProductMark, Section, SectionHeader } from '@platform/ui'
 import { Link, useParams } from 'react-router-dom'
 import { NotYet, Rows, Steps, TechList } from '../components/Blocks'
 import { CtaPair } from '../components/CtaPair'
+import { PageHero } from '../components/PageHero'
 import { getProduct, products, type ProductContent } from '../content/products'
 import { usePageMeta } from '../hooks/usePageMeta'
-import { ProductPanel } from '../panels/Panels'
+import { ProductPreview } from '../panels/ProductPreview'
 import { productPath } from '../routes'
 import { NotFound } from './NotFound'
 import styles from './Product.module.css'
@@ -30,29 +31,21 @@ function ProductPage({ product }: { product: ProductContent }) {
 
   return (
     <div data-product={product.id}>
-      <Section size="md" aria-labelledby="product-title" className={styles.hero}>
-        <nav aria-label="Breadcrumb" className={styles.crumbs}>
-          <Link to="/#products">Products</Link>
-          <span aria-hidden="true">/</span>
-          <span aria-current="page">{product.name}</span>
-        </nav>
-        <div className={styles.heroGrid}>
-          <div className={styles.heroText}>
-            <p className={styles.eyebrow}>
-              <ProductMark product={product.id} size={32} />
-              {product.name}
-            </p>
-            <h1 id="product-title" className={styles.title}>
-              {product.headline}
-            </h1>
-            <p className={styles.lead}>{product.lead}</p>
-            <div className={styles.actions}>
-              <CtaPair size="lg" />
-            </div>
-          </div>
-          <ProductPanel id={product.id} />
-        </div>
-      </Section>
+      <PageHero
+        accent={product.id}
+        title={product.headline}
+        lead={product.lead}
+        top={
+          <nav aria-label="Breadcrumb" className={styles.crumbs}>
+            <Link to="/#products">Products</Link>
+            <span aria-hidden="true">/</span>
+            <ProductMark product={product.id} size={24} />
+            <span aria-current="page">{product.name}</span>
+          </nav>
+        }
+        actions={<CtaPair size="lg" />}
+        aside={<ProductPreview id={product.id} />}
+      />
 
       <Section size="md" aria-labelledby="does-title">
         <div className={styles.twoCol}>
