@@ -107,8 +107,12 @@ export function useDeveloperCall<TData, TVariables>(
         ...(call.body !== undefined ? { body: call.body } : {}),
       })
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ predicate: (query) => isDeveloperQuery(query.queryKey) }),
+    // Not awaited: the screen confirms the change at once, and the refetch lands behind it.
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        predicate: (query) => isDeveloperQuery(query.queryKey),
+      })
+    },
   })
 }
 

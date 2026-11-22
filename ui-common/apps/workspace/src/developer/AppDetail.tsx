@@ -85,7 +85,8 @@ function AppView({ app }: { app: DeveloperApp }) {
 
       <BentoGrid>
         <BentoCard span={7} title="Details" icon={<CodeIcon size={18} />}>
-          <EditApp key={`${app.id}:${app.updatedAt}`} app={app} disabled={!live} />
+          {/* Keyed by the app only: a save refetches the app, and the form must keep its "Saved." message. */}
+          <EditApp key={app.id} app={app} disabled={!live} />
         </BentoCard>
 
         <BentoCard span={5} title="Client secret" icon={<KeyIcon size={18} />}>
