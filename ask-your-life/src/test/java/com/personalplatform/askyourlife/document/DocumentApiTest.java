@@ -15,7 +15,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
+import com.personalplatform.askyourlife.config.IngestProperties;
 import com.personalplatform.askyourlife.support.AbstractIntegrationTest;
+import com.personalplatform.askyourlife.support.TestBeans;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class DocumentApiTest extends AbstractIntegrationTest {
 
     @Autowired MockMvc mvc;
+    @Autowired IngestProperties props;
 
     private static final String ALICE = bearer("alice");
     private static final String BOB = bearer("bob");
@@ -203,6 +206,35 @@ class DocumentApiTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.title").value("Taxes")).andExpect(jsonPath("$.status").value("INDEXED"));
         mvc.perform(get("/v1/search?q=zebra&mode=keyword").header("Authorization", ALICE))
                 .andExpect(jsonPath("$.hits", hasSize(1))).andExpect(jsonPath("$.hits[0].documentId").value(id));
+    }
+
+    @Test
+    void aDocumentThatCannotBeIndexedSaysWhyInTheLibraryAndRetriesAreVisible() throws Exception {
+        String fine = id(postText(ALICE, "text/plain", "this one indexes fine", "?title=Fine"));
+        worker.drain(1000);
+        TestBeans.EMBEDDER.failure.set(new IllegalStateException("model is down"));
+        String stuck = id(postText(ALICE, "text/plain", "this will never embed", "?title=Stuck"));
+
+        worker.drain(1000); // attempt 1 fails: the document stays PENDING, with the reason; the retry is not due yet
+        mvc.perform(get("/v1/documents/" + stuck).header("Authorization", ALICE))
+                .andExpect(jsonPath("$.status").value("PENDING"))
+                .andExpect(jsonPath("$.indexingError").value(containsString("model is down")));
+
+        for (int attempt = 2; attempt <= props.maxAttempts(); attempt++) {
+            TestBeans.CLOCK.advance(props.maxBackoff());
+            worker.drain(1000);
+        }
+        // dead-lettered: the library shows FAILED and the reason, in the single document and in the list
+        mvc.perform(get("/v1/documents/" + stuck).header("Authorization", ALICE))
+                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.indexingError").value(containsString("model is down")));
+        mvc.perform(get("/v1/documents").header("Authorization", ALICE))
+                .andExpect(jsonPath("$[?(@.title == 'Stuck')].indexingError").value(hasSize(1)))
+                .andExpect(jsonPath("$[?(@.title == 'Stuck')].status").value(hasSize(1)));
+        // a document that is indexed has no error at all
+        mvc.perform(get("/v1/documents/" + fine).header("Authorization", ALICE))
+                .andExpect(jsonPath("$.status").value("INDEXED"))
+                .andExpect(jsonPath("$.indexingError").doesNotExist());
     }
 
     @Test

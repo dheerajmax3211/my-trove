@@ -81,7 +81,7 @@ public class DocumentService {
         }
 
         Document doc = new Document(UuidV7.next(), ownerUid, type, externalId, title, x.mimeType(), x.hash(),
-                DocumentStatus.PENDING, 0, now, now, null);
+                DocumentStatus.PENDING, 0, now, now, null, null);
         if (documents.insertIfAbsent(doc, x.text())) {
             jobs.enqueue(ownerUid, doc.id(), doc.contentHash(), props.maxAttempts(), now);
             return new IngestResult(Outcome.CREATED, doc);
