@@ -69,6 +69,21 @@ Owner verdict: UI looks 10-15 years old, static, no animation, basic colours, Wa
 - [ ] M4 Home Pulse, Family Treasury, Household, Digital Legacy polished to the same bar
 - [ ] M5 Owner review in real browser, fixes, push
 
+## Phase 2.6: Make it real (owner audit of pointless things, 2026-11-22)
+Status of the Phase 2.5 agents: the earlier session's agents died on a restart; partial work is on `phase-2.5/site|workspace|products-a|products-b`; fresh agents continue from those branches using `docs/superpowers/briefs/*.md` (also dispatched: H = Home Pulse simulator backend on `phase-2.5/home-pulse-sim`). Agents cannot be resumed across a session restart: always keep briefs in files and commit WIP.
+Audit, things that exist but do nothing useful for a real user (fix order):
+1. Home Pulse needs a physical smart plug; no hardware means an empty product; curl snippet showed a fake host. FIX IN PROGRESS: built-in simulator + real URL + explainer.
+2. Notifications never reach anyone: reminders, follow-up nudges, legacy check-in reminders, trustee invites use a log-only sender. FIX: in-app notification centre (real) + Mailpit (free local SMTP, UI on :8025) so emails visibly send in dev.
+3. Waiting On: reply-by-email address is dead (no inbound email infrastructure); letters are drafts only. FIX: be honest in UI; paste-a-reply flow; Mailpit for sending.
+4. Consent: nothing ever asks for access (only seeded demo clients). FIX: a sample third-party app ("Stride Shoes") that really calls the gateway, plus the developer portal in Phase 3.
+5. Family Treasury / Household: adding a member requires typing a Firebase uid; invites need other real users. FIX: invite by email/code with a copyable link; seeded second user in dev.
+6. Digital Legacy: trustees are other people and invites are never delivered. FIX: invite link flow + local trustee portal walkthrough.
+7. Ask Your Life: "semantic" search is a hashing stand-in, no answers. FIX: Phase 4 (real embeddings + LLM answers).
+8. Feature flags: nothing reads them. FIX: wire two real flags into the workspace or label as developer-only.
+9. DEVELOPER persona has no screens until Phase 3. 
+10. Seven standalone product apps duplicate the workspace; large mock backends duplicate real ones. DECIDE: keep as demo mode or retire.
+11. Promo/decorative cards that promote nothing (being removed by the redesign agents under the NO POINTLESS UI rule).
+
 ## Phase 3: Developer platform
 - [ ] 3.A Developer apps: register OAuth clients (via consent-gateway), scopes catalog, workspaces/teams
 - [ ] 3.B API keys (hashed, scoped, rotatable) accepted by the gateway → `service` platform tokens
