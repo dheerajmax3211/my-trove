@@ -34,6 +34,15 @@ public final class Dtos {
 
     public record ChangeRoleRequest(@NotNull Role role) {}
 
+    public record CreateInviteRequest(@NotNull Role role, @Min(1) @Max(720) Integer ttlHours) {}
+
+    public record AcceptInviteRequest(@NotBlank @Size(max = 200) String code) {}
+
+    /** {@code code} is returned exactly once, at creation; only its hash is stored. */
+    public record InviteCreated(UUID id, String code, Role role, Instant expiresAt) {}
+
+    public record InviteView(UUID id, Role role, String createdByUid, Instant createdAt, Instant expiresAt) {}
+
     public record CreateAccountRequest(
             @NotBlank @Size(max = 160) String code,
             @NotBlank @Size(max = 200) String name,

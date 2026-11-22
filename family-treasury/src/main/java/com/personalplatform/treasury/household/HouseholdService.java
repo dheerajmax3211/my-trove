@@ -3,10 +3,13 @@ package com.personalplatform.treasury.household;
 import static com.personalplatform.sql.jooq.treasury.treasury.Tables.ACCOUNTS;
 import static com.personalplatform.sql.jooq.treasury.treasury.Tables.ACCOUNT_BALANCES;
 import static com.personalplatform.sql.jooq.treasury.treasury.Tables.HOUSEHOLDS;
+import static com.personalplatform.sql.jooq.treasury.treasury.Tables.HOUSEHOLD_INVITES;
 import static com.personalplatform.sql.jooq.treasury.treasury.Tables.HOUSEHOLD_MEMBERS;
 
 import com.personalplatform.sql.UuidV7;
 import com.personalplatform.treasury.household.Dtos.AccountView;
+import com.personalplatform.treasury.household.Dtos.InviteCreated;
+import com.personalplatform.treasury.household.Dtos.InviteView;
 import com.personalplatform.treasury.household.Dtos.AddMemberRequest;
 import com.personalplatform.treasury.household.Dtos.CreateAccountRequest;
 import com.personalplatform.treasury.household.Dtos.CreateHouseholdRequest;
@@ -21,9 +24,15 @@ import com.personalplatform.treasury.ledger.IdempotencyService.Outcome;
 import com.personalplatform.treasury.ledger.IdempotencyService.Result;
 import com.personalplatform.treasury.money.Money;
 import com.personalplatform.treasury.web.ApiException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Base64;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
 import org.jooq.DSLContext;
@@ -281,6 +290,104 @@ public class HouseholdService {
         Money.zero(currency);
         UUID id = insertAccount(householdId, req.ownerUid(), req.code(), req.name(), req.type(), currency, Boolean.TRUE.equals(req.allowNegative()), now());
         return accountView(householdId, id, requireMember(householdId, uid));
+    }
+
+    // ---- invites -------------------------------------------------------------------------------------------
+
+    public static final int DEFAULT_INVITE_HOURS = 168;
+    public static final int MAX_INVITE_HOURS = 720;
+
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    /**
+     * Owner creates a single-use invite code. The code is returned exactly once; only its SHA-256 is stored.
+     * Joining with it gives the invitee the role and a pot of their own, so no one needs another person's member ID.
+     */
+    @Transactional
+    public InviteCreated createInvite(UUID householdId, String uid, Role role, Integer ttlHours) {
+        requireRole(householdId, uid, Role.OWNER);
+        int hours = ttlHours == null ? DEFAULT_INVITE_HOURS : ttlHours;
+        if (hours < 1 || hours > MAX_INVITE_HOURS) {
+            throw ApiException.badRequest("INVITE_TTL", "invite lifetime must be 1 to " + MAX_INVITE_HOURS + " hours");
+        }
+        byte[] raw = new byte[18];
+        RANDOM.nextBytes(raw);
+        String code = Base64.getUrlEncoder().withoutPadding().encodeToString(raw);
+        UUID id = UuidV7.next();
+        OffsetDateTime now = now();
+        OffsetDateTime expires = now.plusHours(hours);
+        dsl.insertInto(HOUSEHOLD_INVITES)
+                .set(HOUSEHOLD_INVITES.ID, id).set(HOUSEHOLD_INVITES.HOUSEHOLD_ID, householdId)
+                .set(HOUSEHOLD_INVITES.CODE_HASH, sha256Hex(code)).set(HOUSEHOLD_INVITES.ROLE, role.name())
+                .set(HOUSEHOLD_INVITES.CREATED_BY_UID, uid).set(HOUSEHOLD_INVITES.CREATED_AT, now)
+                .set(HOUSEHOLD_INVITES.EXPIRES_AT, expires).execute();
+        return new InviteCreated(id, code, role, expires.toInstant());
+    }
+
+    /** Pending (unused, unexpired) invites of a household. Owners only: the list shows who was invited and when. */
+    @Transactional(readOnly = true)
+    public List<InviteView> pendingInvites(UUID householdId, String uid) {
+        requireRole(householdId, uid, Role.OWNER);
+        return dsl.selectFrom(HOUSEHOLD_INVITES)
+                .where(HOUSEHOLD_INVITES.HOUSEHOLD_ID.eq(householdId)
+                        .and(HOUSEHOLD_INVITES.USED_AT.isNull())
+                        .and(HOUSEHOLD_INVITES.EXPIRES_AT.gt(now())))
+                .orderBy(HOUSEHOLD_INVITES.CREATED_AT, HOUSEHOLD_INVITES.ID)
+                .fetch(r -> new InviteView(r.get(HOUSEHOLD_INVITES.ID), Role.valueOf(r.get(HOUSEHOLD_INVITES.ROLE)),
+                        r.get(HOUSEHOLD_INVITES.CREATED_BY_UID), r.get(HOUSEHOLD_INVITES.CREATED_AT).toInstant(),
+                        r.get(HOUSEHOLD_INVITES.EXPIRES_AT).toInstant()));
+    }
+
+    @Transactional
+    public void revokeInvite(UUID householdId, String uid, UUID inviteId) {
+        requireRole(householdId, uid, Role.OWNER);
+        int n = dsl.deleteFrom(HOUSEHOLD_INVITES)
+                .where(HOUSEHOLD_INVITES.ID.eq(inviteId).and(HOUSEHOLD_INVITES.HOUSEHOLD_ID.eq(householdId))
+                        .and(HOUSEHOLD_INVITES.USED_AT.isNull()))
+                .execute();
+        if (n == 0) {
+            throw ApiException.notFound("invite");
+        }
+    }
+
+    /**
+     * Redeems a code. The single UPDATE ... WHERE used_at IS NULL AND expires_at > now is the atomic gate: of two
+     * concurrent redemptions exactly one sees a row. If the redeemer is already a member the transaction rolls back,
+     * so the code is NOT consumed.
+     */
+    @Transactional
+    public HouseholdView acceptInvite(String uid, String displayName, String code) {
+        OffsetDateTime now = now();
+        var redeemed = dsl.update(HOUSEHOLD_INVITES)
+                .set(HOUSEHOLD_INVITES.USED_AT, now).set(HOUSEHOLD_INVITES.USED_BY_UID, uid)
+                .where(HOUSEHOLD_INVITES.CODE_HASH.eq(sha256Hex(code.trim()))
+                        .and(HOUSEHOLD_INVITES.USED_AT.isNull())
+                        .and(HOUSEHOLD_INVITES.EXPIRES_AT.gt(now)))
+                .returning(HOUSEHOLD_INVITES.HOUSEHOLD_ID, HOUSEHOLD_INVITES.ROLE)
+                .fetchOne();
+        if (redeemed == null) {
+            throw ApiException.badRequest("INVITE_INVALID", "This invite code is invalid, already used or expired");
+        }
+        UUID householdId = redeemed.get(HOUSEHOLD_INVITES.HOUSEHOLD_ID);
+        Role role = Role.valueOf(redeemed.get(HOUSEHOLD_INVITES.ROLE));
+        if (dsl.fetchExists(HOUSEHOLD_MEMBERS, HOUSEHOLD_MEMBERS.HOUSEHOLD_ID.eq(householdId).and(HOUSEHOLD_MEMBERS.UID.eq(uid)))) {
+            throw ApiException.conflict("ALREADY_MEMBER", "You are already a member of this household");
+        }
+        HouseholdRow h = household(householdId);
+        try {
+            insertMember(householdId, uid, role, displayName, h.currency(), now);
+        } catch (DuplicateKeyException e) {
+            throw ApiException.conflict("ALREADY_MEMBER", "You are already a member of this household");
+        }
+        return view(householdId, uid);
+    }
+
+    private static String sha256Hex(String value) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is required by every JVM", e);
+        }
     }
 
     private void insertMember(UUID householdId, String uid, Role role, String displayName, String currency, OffsetDateTime now) {
