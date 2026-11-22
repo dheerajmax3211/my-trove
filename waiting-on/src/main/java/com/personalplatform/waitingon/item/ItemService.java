@@ -14,8 +14,10 @@ import com.personalplatform.waitingon.workflow.FollowUpWorkflow;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -36,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ItemService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ItemService.class);
+    private static final DateTimeFormatter TIMELINE_DATE = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH);
 
     private final ItemRepository items;
     private final EventRepository events;
@@ -74,7 +77,7 @@ public class ItemService {
         items.insert(item);
         events.append(id, ownerUid, EventType.CREATED,
                 "Now waiting on " + item.counterparty() + " for: " + item.title(),
-                "Expected by " + item.expectedBy() + ". Nudge after day " + plan.nudgeAfterDays() + ", escalate after day "
+                "Expected by " + TIMELINE_DATE.format(item.expectedBy()) + ". Nudge after day " + plan.nudgeAfterDays() + ", escalate after day "
                         + plan.escalateAfterDays() + (plan.hasFinalNotice()
                                 ? ", final notice after day " + plan.finalNoticeAfterDays() : "")
                         + ", expire after day " + plan.expireAfterDays() + ".",

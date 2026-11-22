@@ -84,14 +84,12 @@ export function FollowUpCard({ item, onRetry }: { item: Item; onRetry: () => voi
           <BigStat
             size="md"
             value={days <= 0 ? 'Today' : days}
-            unit={
-              days <= 0 ? undefined : days === 1 ? 'day to the next step' : 'days to the next step'
-            }
+            unit={days <= 0 ? undefined : days === 1 ? 'day to go' : 'days to go'}
             countUp={days > 0}
           />
         ) : null}
         <StageGauge item={item} size="lg" />
-        <KeyValueList items={rows} dense />
+        <KeyValueList items={rows} layout="stacked" dense />
       </div>
     )
   }

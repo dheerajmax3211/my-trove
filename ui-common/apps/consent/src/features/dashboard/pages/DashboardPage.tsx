@@ -44,9 +44,11 @@ export function DashboardPage() {
     id ? (clients.data?.find((c) => c.clientId === id)?.name ?? id) : 'You'
 
   const data = dashboard.data
-  const description = data
+  const summary = data
     ? homeSummary(data.pendingRequests, data.activeGrants.length)
     : FALLBACK_DESCRIPTION
+  // The product line stays on the first screen for everyone, not only on the empty first run.
+  const description = `${summary} Decide who can read which part of your data, and take it back any time.`
   const firstRun =
     data !== undefined &&
     attributes.data !== undefined &&

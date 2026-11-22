@@ -162,7 +162,7 @@ export function ItemsPage() {
     <>
       <PageHeader
         title="What you are waiting for"
-        description="Everything other people owe you, grouped by how late it is, with the next follow-up for each."
+        description="Track what other people owe you (refunds, claims, approvals) and draft the follow-ups. You send the letters yourself. Grouped by how late each one is."
         actions={addLink}
       />
       <div className="wo-page">

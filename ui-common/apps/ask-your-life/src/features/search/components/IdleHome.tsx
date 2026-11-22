@@ -88,7 +88,10 @@ export function IdleHome({
       <ul className="ayl-tips" aria-label="Search tips">
         <li>Wrap words in &quot;quotes&quot; to match an exact phrase.</li>
         <li>Put - in front of a word to leave it out.</li>
-        <li>Not sure of the exact words? Hybrid and Semantic find similar meanings too.</li>
+        <li>
+          Not sure of the exact words? Hybrid and Semantic also find similar wording (a stand-in for
+          meaning for now).
+        </li>
       </ul>
     </div>
   )

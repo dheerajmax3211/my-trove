@@ -117,7 +117,7 @@ export function ItemDetailPage() {
         <LetterPreview itemId={data.id} />
         <PlanCard item={data} />
         <TimelineCard itemId={data.id} />
-        <ReplyAddressCard item={data} />
+        <ReplyAddressCard />
       </BentoGrid>
     </>
   )

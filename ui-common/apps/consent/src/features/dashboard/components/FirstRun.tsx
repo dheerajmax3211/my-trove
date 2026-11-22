@@ -28,8 +28,9 @@ export function FirstRun() {
           Your data stays in your vault until you say otherwise
         </h2>
         <p className="firstrun-lead">
-          Consent is where you keep facts about yourself, like a shoe size or an allergy, and lend
-          an app one slice of them for a set time. You can take it back whenever you like.
+          Decide who can read which part of your data, and take it back any time. Keep facts about
+          yourself here, like a shoe size or an allergy, and lend an app one slice of them for a set
+          time.
         </p>
         <ol className="firstrun-steps">
           {STEPS.map((step) => (

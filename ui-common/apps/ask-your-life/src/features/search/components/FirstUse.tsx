@@ -12,7 +12,7 @@ const STEPS = [
   {
     id: 'wait',
     title: 'Wait a few seconds',
-    description: 'It is indexed so you can search by words or by meaning.',
+    description: 'It is indexed so you can search by your exact words or by similar wording.',
     icon: <ClockIcon size={14} />,
   },
   {
