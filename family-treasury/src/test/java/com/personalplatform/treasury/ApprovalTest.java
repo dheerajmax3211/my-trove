@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.personalplatform.treasury.approval.ApprovalService;
 import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
@@ -133,6 +134,32 @@ class ApprovalTest extends AbstractIntegrationTest {
         post("/v1/households/" + s.h().id() + "/approvals/" + id + "/approve", s.approver(), key(), null)
                 .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("INSUFFICIENT_FUNDS"));
         get("/v1/households/" + s.h().id() + "/approvals/" + id, s.approver()).andExpect(jsonPath("$.status").value("PENDING_APPROVAL"));
+    }
+
+    /** The dashboard's pending list per role: owners and approvers see every open request, a kid sees only their own. */
+    @Test
+    void thePendingListShowsExactlyTheOpenRequestsEachRoleMayAct() throws Exception {
+        Setup s = setup();
+        String kid = uid("kid");
+        UUID kidPot = addMember(s.h(), kid, "KID"); // a kid only ever spends from their own pot
+        String memberRequest = pendingSpend(s, s.member(), 20_000);
+        MvcResult kidSpend = post("/v1/households/" + s.h().id() + "/spends", kid, key(), spendBody(kidPot, 30_000))
+                .andExpect(status().isAccepted())
+                .andReturn();
+        String kidRequest = read(kidSpend, "$.approval.id");
+
+        String pending = "/v1/households/" + s.h().id() + "/approvals?status=PENDING_APPROVAL";
+        get(pending, s.h().owner()).andExpect(jsonPath("$.length()").value(2));
+        get(pending, s.approver()).andExpect(jsonPath("$.length()").value(2));
+        get(pending, s.member()).andExpect(jsonPath("$.length()").value(2));
+        get(pending, kid).andExpect(jsonPath("$.length()").value(1)).andExpect(jsonPath("$[0].id").value(kidRequest));
+        assertThat(memberRequest).isNotEqualTo(kidRequest);
+
+        // a decided request leaves every role's pending list
+        post("/v1/households/" + s.h().id() + "/approvals/" + memberRequest + "/reject", s.approver(), key(), null)
+                .andExpect(status().isOk());
+        get(pending, s.approver()).andExpect(jsonPath("$.length()").value(1));
+        get(pending, kid).andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test
