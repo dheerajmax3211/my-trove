@@ -81,6 +81,15 @@ describe('accepting an invite', () => {
     const [trustee] = await h.owner.listTrustees()
     expect(trustee?.keyFingerprint).toBe(shown)
 
+    // the key never reaches browser storage or cookies: the device keeps the access token and the trustee id, nothing else
+    const stored = JSON.stringify([{ ...localStorage }, { ...sessionStorage }, document.cookie])
+    expect(stored).not.toMatch(/privateKey|pkcs8|passphrase/i)
+    const session = JSON.parse(localStorage.getItem('dl.trustee.session') ?? '{}') as Record<
+      string,
+      unknown
+    >
+    expect(Object.keys(session).sort()).toEqual(['token', 'trusteeId'])
+
     // what was sent: public key and contacts, never the private key; the file protects it with the passphrase
     const accept = backend.requests.find((q) => q.path === '/v1/legacy/trustee/accept')
     const body = JSON.parse(accept?.body ?? '{}') as Record<string, unknown>
