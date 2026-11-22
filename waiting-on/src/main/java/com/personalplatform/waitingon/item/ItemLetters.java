@@ -26,7 +26,8 @@ public class ItemLetters {
         LocalDate today = LocalDate.now(clock);
         LetterContext ctx = new LetterContext(item.title(), item.counterparty(), item.category(), item.amount(),
                 item.currency(), item.expectedBy(), item.createdAt().atZoneSameInstant(clock.getZone()).toLocalDate(),
-                today, null, addresses.addressFor(item.replyToken()));
+                today, null, null);
+        // No reply-by-email yet: the letter asks for the sender's own address, never the item's unread reply address.
         return engine.draft(tone, ctx);
     }
 
