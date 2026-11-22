@@ -1,13 +1,12 @@
+import type { gsap as Gsap } from 'gsap'
+import type { ScrollTrigger as ScrollTriggerPlugin } from 'gsap/ScrollTrigger'
 import { useEffect, useRef, type RefObject } from 'react'
 import { useReducedMotion } from '../internal/use-reduced-motion'
 import { useScrollSmooth } from './SmoothScroll'
 
-type GsapModule = typeof import('gsap')
-type ScrollTriggerModule = typeof import('gsap/ScrollTrigger')
-
 export interface ScrollStoryKit {
-  gsap: GsapModule['gsap']
-  ScrollTrigger: ScrollTriggerModule['ScrollTrigger']
+  gsap: typeof Gsap
+  ScrollTrigger: typeof ScrollTriggerPlugin
 }
 
 let kit: Promise<ScrollStoryKit> | null = null

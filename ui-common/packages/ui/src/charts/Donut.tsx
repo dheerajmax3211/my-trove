@@ -47,12 +47,11 @@ export function Donut({
   const total = segments.reduce((sum, s) => sum + Math.max(0, s.value), 0)
   const r = (size - thickness) / 2
   const gap = segments.length > 1 ? 1.2 : 0
-  let cursor = 0
+  const shares = segments.map((s) => (total === 0 ? 0 : (Math.max(0, s.value) / total) * 100))
 
   const arcs = segments.map((s, i) => {
-    const share = total === 0 ? 0 : (Math.max(0, s.value) / total) * 100
-    const start = cursor
-    cursor += share
+    const share = shares[i]!
+    const start = shares.slice(0, i).reduce((a, b) => a + b, 0)
     return {
       ...s,
       share,

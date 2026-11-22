@@ -64,7 +64,7 @@ export interface FieldProps extends Omit<HTMLAttributes<HTMLDivElement>, 'childr
   /** When set, the control is marked aria-invalid and the message is announced. */
   error?: ReactNode
   /** Shows a check on the control and, if text, a confirming line ("Looks good"). */
-  success?: ReactNode | boolean
+  success?: ReactNode
   /** Right-aligned note on the label row: "Optional", "0 / 200". */
   hint?: ReactNode
   required?: boolean

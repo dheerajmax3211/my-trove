@@ -116,6 +116,14 @@
     transform var(--pp-duration-slow) var(--pp-ease-emphasized),
     color var(--pp-duration-normal) var(--pp-ease-standard);
 }
+/* Placeholders stay invisible until the label has lifted out of their way. */
+.floating .control :is(input, textarea)::placeholder {
+  opacity: 0;
+  transition: opacity var(--pp-duration-normal) var(--pp-ease-standard);
+}
+.floating .control :is(input, textarea):focus::placeholder {
+  opacity: 0.85;
+}
 /* Lifted: focus, a value, or a native control that always shows one (select, date). */
 .floating .control:has(:is(input, textarea):focus) .floatLabel,
 .floating .control:has(:is(input, textarea):not(:placeholder-shown)) .floatLabel,

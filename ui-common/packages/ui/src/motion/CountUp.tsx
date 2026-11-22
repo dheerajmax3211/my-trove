@@ -40,7 +40,8 @@ export function CountUp({
 }: CountUpProps) {
   const reduced = useReducedMotion()
   const [ref, inView] = useInView<HTMLSpanElement>({ disabled: reduced || !startOnView })
-  const [current, setCurrent] = useState(reduced || !startOnView ? value : from)
+  const [animated, setCurrent] = useState(reduced || !startOnView ? value : from)
+  const current = reduced ? value : animated
   const last = useRef(from)
 
   const formatter = useMemo(
@@ -55,12 +56,7 @@ export function CountUp({
   )
 
   useEffect(() => {
-    if (reduced) {
-      last.current = value
-      setCurrent(value)
-      return
-    }
-    if (!inView) return
+    if (reduced || !inView) return
     const controls = animate(last.current, value, {
       duration,
       ease: [0.16, 1, 0.3, 1],

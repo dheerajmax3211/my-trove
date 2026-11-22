@@ -177,6 +177,7 @@ export function scopeCss(): string {
     ['surface', 'vault-raised'],
     ['surface-sunken', 'vault-sunken'],
     ['surface-overlay', 'vault-raised'],
+    ['surface-raised', 'vault-raised'],
     ['text', 'on-vault'],
     ['text-muted', 'on-vault-muted'],
     ['text-subtle', 'on-vault-subtle'],

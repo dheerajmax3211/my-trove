@@ -611,6 +611,7 @@
   --pp-color-surface: var(--pp-color-vault-raised);
   --pp-color-surface-sunken: var(--pp-color-vault-sunken);
   --pp-color-surface-overlay: var(--pp-color-vault-raised);
+  --pp-color-surface-raised: var(--pp-color-vault-raised);
   --pp-color-text: var(--pp-color-on-vault);
   --pp-color-text-muted: var(--pp-color-on-vault-muted);
   --pp-color-text-subtle: var(--pp-color-on-vault-subtle);

@@ -1,6 +1,9 @@
 .chart {
   position: relative;
   width: 100%;
+  max-width: 26rem;
+  aspect-ratio: 1 / 0.95;
+  margin-inline: auto;
   container-type: inline-size;
 }
 

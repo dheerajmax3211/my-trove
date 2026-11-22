@@ -7,6 +7,7 @@ import {
   SidebarSection,
   Spinner,
   ThemeProvider,
+  ToastProvider,
   useTheme,
   type ThemePreference,
 } from '@platform/ui'
@@ -15,6 +16,10 @@ import { HashRouter, Link, NavLink, Outlet, Route, Routes } from 'react-router-d
 import { Overview } from './pages/Overview'
 import { ComponentPage } from './pages/ComponentPage'
 import { TokensPage } from './pages/TokensPage'
+import { DashboardExample } from './pages/DashboardExample'
+import { FormsPage } from './pages/FormsPage'
+import { MotionPage } from './pages/MotionPage'
+import { SiteDemo } from './pages/SiteDemo'
 import { componentDocs, PreviewShell } from './registry'
 
 // The demo pulls in Firebase and TanStack Query; load it only when its route is visited.
@@ -98,6 +103,12 @@ function GalleryLayout() {
                 </GalleryLink>
               ))}
           </SidebarSection>
+          <SidebarSection title="Patterns">
+            <GalleryLink to="/dashboard">Dashboard</GalleryLink>
+            <GalleryLink to="/forms">Forms</GalleryLink>
+            <GalleryLink to="/motion">Motion and surfaces</GalleryLink>
+            <GalleryLink to="/site">Cinematic site</GalleryLink>
+          </SidebarSection>
           <SidebarSection title="Demo">
             <GalleryLink to="/demo">Signed-in shell</GalleryLink>
           </SidebarSection>
@@ -105,21 +116,26 @@ function GalleryLayout() {
       }
       topbar={<ThemeSelect />}
     >
-      <Outlet />
+      <ToastProvider>
+        <Outlet />
+      </ToastProvider>
     </AppShell>
   )
 }
 
 export function App() {
   return (
-    <ThemeProvider>
+    <ThemeProvider defaultTheme="light">
       <HashRouter>
         <Routes>
           <Route element={<GalleryLayout />}>
             <Route index element={<Overview />} />
             <Route path="tokens" element={<TokensPage />} />
             <Route path="components/:slug" element={<ComponentPage />} />
+            <Route path="motion" element={<MotionPage />} />
+            <Route path="forms" element={<FormsPage />} />
           </Route>
+          <Route path="site" element={<SiteDemo />} />
           <Route
             path="demo/*"
             element={
@@ -128,6 +144,7 @@ export function App() {
               </Suspense>
             }
           />
+          <Route path="dashboard" element={<DashboardExample />} />
           <Route path="preview" element={<PreviewShell />} />
           <Route path="*" element={<GalleryLayout />}>
             <Route path="*" element={<Overview />} />

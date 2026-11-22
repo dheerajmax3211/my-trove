@@ -25,6 +25,8 @@ export interface BigStatProps extends Omit<HTMLAttributes<HTMLDivElement>, 'chil
   size?: 'md' | 'lg'
   /** Intl.NumberFormat options for numeric values. */
   format?: Intl.NumberFormatOptions
+  /** Locale for number formatting. Default: the browser's. */
+  locale?: string
   /** Count up on scroll-in. Default true. */
   countUp?: boolean
 }
@@ -44,6 +46,7 @@ export const BigStat = forwardRef<HTMLDivElement, BigStatProps>(function BigStat
     secondary,
     size = 'lg',
     format,
+    locale,
     countUp = true,
     className,
     ...rest
@@ -58,9 +61,13 @@ export const BigStat = forwardRef<HTMLDivElement, BigStatProps>(function BigStat
         ) : null}
         <p className={styles.figure}>
           {typeof value === 'number' && countUp ? (
-            <CountUp value={value} {...(format ? { format } : {})} />
+            <CountUp
+              value={value}
+              {...(format ? { format } : {})}
+              {...(locale ? { locale } : {})}
+            />
           ) : typeof value === 'number' ? (
-            value.toLocaleString(undefined, format)
+            value.toLocaleString(locale, format)
           ) : (
             value
           )}

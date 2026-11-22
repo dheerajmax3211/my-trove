@@ -8,6 +8,11 @@ import { createDemoRuntime } from './demo/runtime'
 import { ComponentPage } from './pages/ComponentPage'
 import { Overview } from './pages/Overview'
 import { TokensPage } from './pages/TokensPage'
+import { DashboardExample } from './pages/DashboardExample'
+import { FormsPage } from './pages/FormsPage'
+import { MotionPage } from './pages/MotionPage'
+import { SiteDemo } from './pages/SiteDemo'
+import { ToastProvider } from '@platform/ui'
 import { componentDocs } from './registry'
 
 const SLOW = { timeout: 4000 }
@@ -207,5 +212,86 @@ describe('signed-in demo (auth + api packages wired together, stub mode)', () =>
     expect(
       await screen.findByRole('heading', { name: 'Sign in to the demo' }, SLOW),
     ).toBeInTheDocument()
+  })
+})
+
+describe('pattern pages', () => {
+  it('the dashboard example is a full AppFrame with a bento grid of named cards', () => {
+    render(
+      <ThemeProvider storageKey={null}>
+        <MemoryRouter>
+          <DashboardExample />
+        </MemoryRouter>
+      </ThemeProvider>,
+    )
+    expect(screen.getByRole('heading', { level: 1, name: 'Household' })).toBeInTheDocument()
+    for (const name of [
+      'Requests in flight',
+      'Where things stand',
+      'Keys in use',
+      'Household health',
+      'Family spending',
+    ])
+      expect(screen.getByRole('region', { name })).toBeInTheDocument()
+    expect(screen.getAllByRole('progressbar')).toHaveLength(3)
+    expect(screen.getByRole('main')).toBeInTheDocument()
+  })
+
+  it('the forms page validates on blur and on submit with announced, specific errors', async () => {
+    render(
+      <ThemeProvider storageKey={null}>
+        <ToastProvider>
+          <FormsPage />
+        </ToastProvider>
+      </ThemeProvider>,
+    )
+    const form = screen.getByRole('form', { name: 'Lend a document' })
+    await userEvent.type(within(form).getByRole('textbox', { name: /Full name/ }), 'S')
+    await userEvent.tab()
+    expect(
+      await screen.findByText('Enter the name of the person you are lending to.'),
+    ).toBeInTheDocument()
+    await userEvent.click(within(form).getByRole('button', { name: 'Send the key' }))
+    expect(screen.getAllByRole('alert').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByText('Enter an email like name@example.com.')).toBeInTheDocument()
+  })
+
+  it('the motion page renders every demo section', () => {
+    render(
+      <ThemeProvider storageKey={null}>
+        <MotionPage />
+      </ThemeProvider>,
+    )
+    for (const name of ['Reveal and Stagger', 'Marquee', 'Animated list', 'Chart primitives'])
+      expect(screen.getByRole('heading', { name })).toBeInTheDocument()
+  })
+
+  it('the cinematic site demo has a hero heading, a skip-worthy nav and numbered product cards', () => {
+    // Reduced motion keeps GSAP and Lenis from loading in the test environment.
+    const original = window.matchMedia
+    window.matchMedia = (query: string) => ({
+      matches: query.includes('prefers-reduced-motion'),
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })
+    render(
+      <ThemeProvider storageKey={null}>
+        <MemoryRouter>
+          <SiteDemo />
+        </MemoryRouter>
+      </ThemeProvider>,
+    )
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Keep it safe. Lend it with care.' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument()
+    expect(screen.getAllByRole('listitem').length).toBeGreaterThanOrEqual(6)
+    expect(screen.getByRole('button', { name: /Pause motion/ })).toBeInTheDocument()
+    window.matchMedia = original
   })
 })

@@ -70,7 +70,7 @@ export function Overview() {
             headingId="ov-title"
             eyebrow="Design language"
             title="A vault you can lend from"
-            description="My-Trove keeps a household's life data safe and lets you hand out exactly as much as you mean to. The interface is warm, tactile, calm and precise: paper, ink, patina and a little brass."
+            description="My-Trove keeps a household's life data safe and lets you hand out exactly as much as you mean to. The interface is calm, confident and precise: a grey canvas, white cards, one black card, and lime and lilac for what matters."
             actions={
               <>
                 <Button asChild size="lg">
@@ -142,7 +142,7 @@ export function Overview() {
             scale="md"
             headingId="ov-type"
             title="A display serif and a quiet sans"
-            description="Young Serif sets headlines at one weight, so hierarchy comes from size and space. Instrument Sans carries labels, numbers and body. JetBrains Mono is for ids and keys."
+            description="Plus Jakarta Sans carries the whole app, set tight and medium for headlines and figures. Young Serif is the public site's editorial voice. JetBrains Mono is for ids and keys."
           />
         </div>
         <div className="ov-specimen">

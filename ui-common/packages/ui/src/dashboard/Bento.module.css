@@ -40,6 +40,15 @@
   color: var(--pp-color-on-vault);
   border-color: transparent;
 }
+.lime,
+.lilac {
+  /* Buttons placed on a coloured card stay black pills in both themes. */
+  --pp-color-action: #111;
+  --pp-color-action-hover: #2c2c2c;
+  --pp-color-action-active: #000;
+  --pp-color-on-action: #fff;
+  --pp-color-focus-ring: #111;
+}
 .lime {
   background: var(--pp-color-lime);
   color: var(--pp-color-on-lime);

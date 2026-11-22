@@ -1,9 +1,9 @@
 .aurora {
   --_o: 0.55;
   --_c1: var(--pp-color-aurora-lilac);
-  --_c2: var(--pp-color-aurora-lime);
-  --_c3: var(--pp-color-aurora-brass);
-  --_c4: var(--pp-color-aurora-patina);
+  --_c2: var(--pp-color-aurora-patina);
+  --_c3: var(--pp-color-aurora-lime);
+  --_c4: var(--pp-color-aurora-lilac);
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -82,7 +82,7 @@
   top: 8%;
   left: 28%;
   width: 40%;
-  opacity: calc(var(--_o) * 0.7 * var(--_scale, 1));
+  opacity: calc(var(--_o) * 0.42 * var(--_scale, 1));
   animation: drift3 38s ease-in-out infinite alternate;
 }
 .b4 {

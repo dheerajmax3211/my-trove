@@ -18,10 +18,9 @@
   --pp-color-on-action: #fff;
 }
 .art {
-  position: absolute;
-  inset-block-start: var(--pp-space-3);
-  inset-inline-end: var(--pp-space-3);
-  width: 84px;
+  align-self: flex-end;
+  width: 76px;
+  margin: calc(var(--pp-space-2) * -1) calc(var(--pp-space-1) * -1) calc(var(--pp-space-3) * -1) 0;
   pointer-events: none;
 }
 .orb {
@@ -31,7 +30,7 @@
 }
 .title {
   margin: 0;
-  max-width: 9ch;
+  max-width: 12ch;
   font-size: var(--pp-text-h3-size);
   line-height: 1.1;
   font-weight: 650;

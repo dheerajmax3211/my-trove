@@ -34,7 +34,7 @@ export function BentoGrid({
   const cls = cx(styles.grid, styles[`cols${columns}`], className)
   if (!animate) {
     return (
-      <div className={cls} {...(rest as HTMLAttributes<HTMLDivElement>)}>
+      <div className={cls} {...rest}>
         {children}
       </div>
     )

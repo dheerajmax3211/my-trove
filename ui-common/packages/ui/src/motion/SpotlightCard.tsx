@@ -82,14 +82,8 @@ export function SpotlightCard({
     [onPointerLeave, rx, ry],
   )
 
-  const common = {
-    ref,
-    className: cx(styles.card, styles[tone], className),
-    style: { '--pp-spot-radius': `${radius}px`, ...style } as CSSProperties,
-    onPointerMove: move,
-    onPointerLeave: leave,
-    ...rest,
-  }
+  const classes = cx(styles.card, styles[tone], className)
+  const vars = { '--pp-spot-radius': `${radius}px`, ...style } as CSSProperties
 
   const body = (
     <>
@@ -98,22 +92,30 @@ export function SpotlightCard({
     </>
   )
 
-  if (reduced || tilt <= 0) return <div {...common}>{body}</div>
+  if (reduced || tilt <= 0) {
+    return (
+      <div
+        ref={ref}
+        className={classes}
+        style={vars}
+        onPointerMove={move}
+        onPointerLeave={leave}
+        {...rest}
+      >
+        {body}
+      </div>
+    )
+  }
 
-  const { onPointerMove: pm, onPointerLeave: pl, ref: r, ...motionRest } = common
   return (
     <MotionScope>
       <m.div
-        {...(motionRest as Record<string, unknown>)}
-        ref={r}
-        onPointerMove={pm}
-        onPointerLeave={pl}
-        style={{
-          ...(common.style as CSSProperties),
-          rotateX: springRx,
-          rotateY: springRy,
-          transformPerspective: 900,
-        }}
+        {...rest}
+        ref={ref}
+        className={classes}
+        onPointerMove={move}
+        onPointerLeave={leave}
+        style={{ ...vars, rotateX: springRx, rotateY: springRy, transformPerspective: 900 }}
       >
         {body}
       </m.div>

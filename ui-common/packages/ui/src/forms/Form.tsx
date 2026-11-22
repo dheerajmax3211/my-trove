@@ -49,7 +49,7 @@ export function FormSection({
   ...rest
 }: FormSectionProps) {
   const id = useId()
-  const Heading = `h${headingLevel}` as 'h2' | 'h3' | 'h4'
+  const Heading = headingLevel === 2 ? 'h2' : headingLevel === 3 ? 'h3' : 'h4'
   return (
     <section aria-labelledby={id} className={cx(styles.section, className)} {...rest}>
       <div className={styles.intro}>

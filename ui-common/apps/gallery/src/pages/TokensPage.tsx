@@ -166,8 +166,8 @@ export function TokensPage() {
           Type scale
         </h2>
         <p className="pg-muted">
-          Young Serif (display, one weight), Instrument Sans (text, 400 to 700) and JetBrains Mono.
-          Display styles are fluid between a 375px and a 1280px viewport.
+          Plus Jakarta Sans (app display and text, 400 to 800), Young Serif (public site headlines
+          only) and JetBrains Mono. Display styles are fluid between a 375px and a 1280px viewport.
         </p>
         <div className="pg-stack">
           {Object.entries(textStyles).map(([name, t]) => (

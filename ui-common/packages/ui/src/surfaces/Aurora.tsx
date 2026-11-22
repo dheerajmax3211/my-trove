@@ -1,4 +1,4 @@
-import type { CSSProperties, HTMLAttributes } from 'react'
+import type { HTMLAttributes } from 'react'
 import { cx } from '../internal/cx'
 import { useReducedMotion } from '../internal/use-reduced-motion'
 import { useInView } from '../motion/use-in-view'
@@ -46,7 +46,7 @@ export function Aurora({
         className,
       )}
       data-running={animated && inView && !reduced ? 'true' : 'false'}
-      style={style as CSSProperties}
+      style={style}
       {...rest}
     >
       <span className={cx(styles.blob, styles.b1)} />

@@ -1,218 +1,292 @@
 # My-Trove design language
 
-Status: v2, written for the Phase 2 builders of the public site, the workspace and every product. The tokens live in
-`ui-common/packages/tokens`, the components in `ui-common/packages/ui`, and the living reference is the gallery
-(`pnpm --filter @platform/gallery dev`, port 5173 by default). If this page and the gallery disagree, the code wins.
+Status: v3 (Phase 2.5), the visual and motion foundation. Tokens live in `ui-common/packages/tokens`, components in
+`ui-common/packages/ui`, the living reference is the gallery (`pnpm --filter @platform/gallery dev`, port 5173). Open
+`#/dashboard`, `#/forms`, `#/motion` and `#/site` there: they are the patterns to copy. If this page and the gallery disagree,
+the code wins.
 
 ## The idea
 
-My-Trove is **a vault you can lend from**. It keeps a household's life data safe, and it lets you hand out exactly as
-much as you mean to. The interface should feel like the thing it protects: warm, tactile, calm and precise.
+My-Trove is **a vault you can lend from**: it keeps a household's life data safe and lets you hand out exactly as much as you
+mean to. v3 keeps that soul and gives it a modern body:
 
-- **Warm**: stone-green paper, brass, a serif that looks set rather than rendered.
-- **Tactile**: surfaces have an edge, a top catch of light and a soft contact shadow. Controls press into the page.
-- **Calm**: large spacing, one weight of headline, very little motion.
-- **Precise**: tabular numbers, hairlines, one idea per icon, plain specific words.
-
-We are not a blue-gradient dashboard, a grid of identical gray cards, an emoji-and-stock-illustration landing page, or a
-purple-on-white AI product. If a screen could belong to any SaaS, it is not finished.
+- **The app** is calm, confident and playful: a soft grey canvas, white rounded cards, one black card, and lime and lilac for
+  what matters. It sits inside a floating rounded frame, like a well-made object. Big tight numerals, generous radius, almost no
+  shadow. (Reference: the "flux" health dashboard; copy its structure, not its content.)
+- **The public site** is cinematic: dark, generative motion in place of video, huge type, a pinned scroll story, numbered
+  product cards. (Reference: a product site with a hero, a showcase and scroll-driven sections.)
+- **The vault** survives as the dark surface (`data-surface="vault"`): the sidebar, the black bento card, the site. The keyhole
+  survives as the logo. Brass survives as a rare warm accent for what is lent or sealed.
 
 ### The memorable thing
 
-Spend the boldness in one place: **the vault**. A dark ink band (the "vault surface") with a brass key-bit notch and a
-combination-lock dial behind the headline. Everything else stays quiet paper. The three signature elements, all built
-from the same parts, are:
+Spend the boldness in one place per screen. In the app: **the huge number** (a `BigStat` with its lime delta pill) and the one
+black card. On the site: **the hero headline over the aurora**. Everything else stays quiet.
 
-1. **The vault surface** (`<Section tone="vault">`, the sidebar, the logo tile): near-black green, stays dark in both themes.
-2. **Brass**, used sparingly for what is lent or sealed: the owner badge, the active-page tab, the rule under a page title, the keyhole.
-3. **Key bitting** (`<KeyCut />`, the notch before an eyebrow): the repeating cut of a key blade. It is the only decorative pattern.
+## Two themes, equally considered
 
-## Palette
-
-All values are the single source of truth in `packages/tokens/src/colors.ts`; use the CSS variables
-(`var(--pp-color-accent)`), never hex, in product code. Ratios are WCAG 2.x, measured by the tokens test, and the test
-fails the build if any pair drops below AA (4.5:1 text, 3:1 graphics).
+Light is the app default (grey canvas, white cards). Dark is a well-made alternative (ink-black canvas, graphite cards, lime
+actions). The site is always dark: put `data-theme="dark"` on its root. Both themes are in
+`packages/tokens/src/colors.ts`; use CSS variables (`var(--pp-color-accent)`), never hex. The tokens test fails the build if any
+text pair drops below 4.5:1 or any meaningful graphic below 3:1.
 
 ### Core roles
 
-| Role | Light | Dark | Use | Contrast (light / dark) |
-|---|---|---|---|---|
-| `canvas` | `#F0EFE7` | `#101412` | page background | |
-| `surface` | `#FBFAF6` | `#181E1B` | cards, inputs | |
-| `surfaceSunken` | `#E6E5DA` | `#0B0E0D` | wells, table heads | |
-| `surfaceOverlay` | `#FFFFFF` | `#202825` | dialogs, popovers | |
-| `text` | `#15201C` | `#ECE7DC` | body | 14.5 / 15.1 on canvas |
-| `textMuted` | `#3E4944` | `#BCC4BE` | secondary | 8.1 / 10.4 |
-| `textSubtle` | `#55615B` | `#9AA59F` | hints, timestamps | 5.6 / 7.3 |
-| `border` / `hairline` | `#D8D7C9` / `#E3E2D6` | `#2B3430` / `#232B28` | decorative lines | not required |
-| `borderStrong` | `#737D77` | `#7F8A84` | control edges | 3.7 / 5.2 |
-| `accent` (patina) | `#0E5C52` | `#5FC9B5` | actions, links, focus of attention | label on fill 7.5 / 8.5 |
-| `accentText` | `#0E5C52` | `#7ED3C2` | accent used as text | 6.8 / 10.6 |
-| `accentSubtle` | `#D8EAE3` | `#17332E` | tinted fills | |
-| `brass` | `#A97C1F` | `#D9B45F` | graphic: seals, tabs, rules | 3.3 / 8+ |
-| `brassText` | `#6F4F0C` | `#E6C985` | brass as text | 6.5 / 11.5 |
-| `brassSubtle` | `#F1E6C9` | `#35290F` | brass tint | |
-| `focusRing` | `#C2570C` | `#F5A862` | keyboard focus, 2px | 3.9 / 9.4 |
+| Role                                   | Light                             | Dark                              | Use                                                                              |
+| -------------------------------------- | --------------------------------- | --------------------------------- | -------------------------------------------------------------------------------- |
+| `backdrop`                             | `#DCE5B5`                         | `#050505`                         | the soft lime-tinted ground behind the app frame                                 |
+| `canvas`                               | `#E4E4E1`                         | `#0D0D0D`                         | the app page                                                                     |
+| `surface`                              | `#FFFFFF`                         | `#181818`                         | cards, inputs                                                                    |
+| `surfaceSunken`                        | `#EFEFEB`                         | `#090909`                         | wells, tracks, table heads                                                       |
+| `surfaceRaised`                        | `#FFFFFF`                         | `#1F1F1F`                         | top of a raised card, secondary buttons                                          |
+| `text` / `textMuted` / `textSubtle`    | `#111` / `#43433F` / `#5F5F5A`    | `#F2F2EE` / `#BDBDB6` / `#96968F` | ink                                                                              |
+| `border` / `hairline` / `borderStrong` | `#DCDCD6` / `#EDEDE9` / `#7A7A74` | `#2C2C2C` / `#202020` / `#75756F` | lines; `borderStrong` is for control edges                                       |
+| `action`                               | `#111111`                         | `#D9F26B`                         | the primary pill: black on paper, lime on dark. Not re-pointed by `data-product` |
+| `accent`                               | `#111111`                         | `#D9F26B`                         | actions of attention, links, selected state. **Is** re-pointed by `data-product` |
+| `accentSubtle`                         | `#E7F5A6`                         | `#2B3212`                         | the tinted fill (a lime wash)                                                    |
+| `lime` / `onLime`                      | `#D9F26B` / `#1A2000`             | same                              | the signature highlight: deltas, counts, promo cards. Same hue in both themes    |
+| `lilac` / `onLilac`                    | `#BDB4F4` / `#1B1740`             | same                              | the second hue: charts, bubbles, quiet highlight                                 |
+| `brass`                                | `#9A6F14`                         | `#E2BC6A`                         | rare, warm: what is lent or sealed                                               |
+| `focusRing`                            | `#5B49D6`                         | `#BDB4F4`                         | keyboard focus (3px glow via `--pp-shadow-focus`)                                |
 
-Semantic states (`danger`, `success`, `warning`, `info`), each with `*Subtle` and `*Text`, all at 7.8 or better as text on
-surface in light and 9.2 or better in dark. Colour is never the only signal: badges carry words, callouts carry a glyph
-and a title, trends carry an arrow and a spoken "up" or "down".
+Plus `danger`, `success`, `warning`, `info` (each with `*Subtle` and `*Text`), `lilacText`, `limeText`, `brassText`. Colour is
+never the only signal: badges carry words, trends carry an arrow and a spoken "up" or "down", charts print their values.
+
+**Decoration-only roles** (never carry text alone): `auroraLilac`, `auroraLime`, `auroraBrass`, `auroraPatina` (background
+glows and gradient text), `glass`, `glassStrong`, `glassBorder` (frosted surfaces), `spotlight`, `glowAccent`, `glowBrass`.
 
 ### Vault surface (dark in both themes)
 
-`vault #0F1F1B` (dark theme `#0B1613`), `vaultRaised #172E28`, `onVault #EEEBDD` (14.3), `onVaultMuted #B3C4BC` (9.4),
-`vaultAccent #6FD6C2` (9.8), `vaultBrass #DDB968` (9.1). Put `data-surface="vault"` on any element and the semantic roles
-(`text`, `surface`, `accent`, `border`, `focusRing`...) remap to this palette, so any component placed inside is legible with no
-extra work. `Section tone="vault"`, the `AppShell` sidebar and the mobile drawer already do this.
+`vault` is near-black (`#1D1D1D` in light, `#141414` in dark). Put `data-surface="vault"` on any element and the semantic roles
+(`text`, `surface`, `action`, `accent`, `border`...) remap to the dark palette, with **lime** as the action and accent. The app
+sidebar, the drawer and `<BentoCard tone="dark">` do this. On a coloured card (`tone="lime"`, `PromoCard`) buttons stay black
+pills in both themes: those components pin `--pp-color-action` for you.
 
 ### One accent per product
 
-Set `data-product="<id>"` on a wrapper (the workspace does this around each module) and every `--pp-color-accent*` inside
-becomes that product's accent: Buttons, Badges, Tabs, links, focus-of-attention, the lot. Outside a wrapper, use
-`productVar(id, role)` or `<ProductMark product="..." />`, which always carry the product's own colours.
-
-| Product | Accent (light / dark) | Idea | Label on fill (light / dark) | Text on canvas (light / dark) |
-|---|---|---|---|---|
-| `waiting-on` | `#8A5A0A` / `#E3AE55` | ochre, things in flight | 5.7 / 9.3 | 6.3 / 10.9 |
-| `consent` | `#0E5C52` / `#5FC9B5` | the brand's own patina | 7.5 / 9.3 | 6.8 / 10.6 |
-| `home-pulse` | `#2A5C9C` / `#8DB4EE` | harbour blue, sensors | 6.5 / 8.8 | 7.1 / 10.7 |
-| `ask-your-life` | `#5B4AA6` / `#B5A8EE` | iris, the only violet | 6.8 / 8.7 | 7.3 / 10.6 |
-| `digital-legacy` | `#8C2F4C` / `#EE9BB3` | wine, what is handed on | 7.7 / 8.8 | 8.2 / 10.7 |
-| `family-treasury` | `#4D6A1B` / `#A8CC6A` | moss, household money | 5.9 / 10.2 | 6.6 / 12.0 |
-
-Each product also has `-hover`, `-active`, `-subtle`, `-text`, `-on` (all tested). Rules: one product accent per screen; do
-not nest a `data-product` wrapper inside a vault surface (the dark accents are tuned for paper); never use a product accent
-for a semantic state (an error is `danger`, not wine).
+Set `data-product="<id>"` on a wrapper and every `--pp-color-accent*` inside becomes that product's colour (icon chips, selected
+states, links). The primary button stays the action colour. Each product keeps its signature tint (ochre, patina, harbour blue,
+iris, wine, moss; values and contrast in `colors.ts`). Rules: one product accent per screen; never use it for a semantic state;
+do not nest a `data-product` wrapper inside a vault surface.
 
 ## Type
 
-Self-hosted through `@fontsource` packages (no CDN), Latin subsets, loaded lazily by unicode-range.
+Self-hosted through `@fontsource` (no CDN).
 
-- **Display: Young Serif**, one weight (400). A warm, slightly heavy old-style serif that reads as set type. Because it has one
-  weight, hierarchy comes from size and space; never request bold (`font-synthesis-weight: none` stops fake bold).
-- **Text: Instrument Sans (variable, 400 to 700).** Clean, a little condensed, good numerals. Labels run at 550.
-- **Mono: JetBrains Mono (variable).** Ids, keys, hashes, code. Brass-text colour for inline key material.
+- **Plus Jakarta Sans (variable)** carries the whole app: headlines, figures, UI, body. Headlines and numerals are set **tight
+  and medium** (500, tracking -0.035 to -0.055em). Labels are 600.
+- **Young Serif** is the public site's editorial voice only (hero, section titles, big numbers on the site). It never appears in
+  the app. Use `var(--pp-font-editorial)`.
+- **JetBrains Mono** for ids, keys and code.
 
-| Style | Family | Size (375px to 1280px) | Line | Tracking | Use |
-|---|---|---|---|---|---|
-| `hero` | display | 42 to 76px | 1.05 | -0.028em | one per site page, the opener |
-| `displayLg` | display | 36 to 56px | 1.07 | -0.024em | |
-| `display` | display | 32 to 44px | 1.09 | -0.02em | section titles |
-| `h1` | display | 30 to 36px | 1.17 | -0.015em | page titles (`PageHeader`) |
-| `h2` | display | 26px | 34px | -0.01em | dialog and empty-state titles |
-| `h3` / `h4` | sans 600 | 20 / 17px | 28 / 24px | | card and group titles |
-| `lead` | sans | 18 to 20px | 32px | -0.006em | standfirst under a headline |
-| `body` | sans | 16px | 24px | 0 | |
-| `bodySmall` / `label` / `caption` | sans | 14 / 14 / 12px | 20 / 20 / 16px | | UI text |
-| `stat` | display | 32 to 40px | 1.1 | -0.02em | figures in `Stat` |
-| `code` | mono | 13px | 20px | | |
+| Style                                               | Family         | Size (375px to 1280px)           | Tracking           | Use                                         |
+| --------------------------------------------------- | -------------- | -------------------------------- | ------------------ | ------------------------------------------- |
+| `displayXl`                                         | display        | 52 to 112px                      | -0.05em            | site hero, one per page                     |
+| `hero` / `displayLg` / `display`                    | display        | 44 to 84 / 38 to 60 / 32 to 46px | -0.045 to -0.035em | site sections                               |
+| `h1`                                                | display        | 36 to 56px                       | -0.04em            | the app page title (`PageHeader`)           |
+| `figure`                                            | display        | 44 to 64px                       | -0.055em           | the huge number on a bento card (`BigStat`) |
+| `stat`                                              | display        | 32 to 40px                       | -0.04em            | figures in narrower cards                   |
+| `h2` / `h3` / `h4`                                  | display / sans | 28 / 20 / 16px                   |                    | card and group titles                       |
+| `lead` / `body` / `bodySmall` / `label` / `caption` | sans           | 20 / 15 / 14 / 14 / 12px         |                    | UI text                                     |
 
-Display styles are fluid (`clamp`); use `var(--pp-text-hero-size)` and friends, which hold the family, size, line, weight and
-tracking as separate variables. Measure: body under 70 characters (`max-width: 62ch`), standfirsts 54ch, headlines balanced
-(`text-wrap: balance` is on for headings). Sentence case everywhere. **Do not** use all caps for labels, accent a single word
-of a headline in italic or colour, or put an eyebrow over every heading: use an eyebrow only to name a place or a product,
-and let it carry the key-bit notch.
+Numerals are always tabular (`font-variant-numeric: tabular-nums`) so figures never jitter while counting. Measure: body under 70
+characters. Sentence case everywhere. Do not use all caps for labels, accent a single word of a headline, or put an eyebrow over
+every heading.
 
-## Space, shape, elevation
+## Space, shape, depth
 
-- **Spacing** is a 4px grid: `1 4, 2 8, 3 12, 4 16, 5 20, 6 24, 7 28, 8 32, 10 40, 12 48, 14 56, 16 64, 20 80, 24 96, 32 128, 40 160`.
-  Components use 1 to 8; page rhythm uses 10 to 40. `Section` sizes: sm 48px, md 80px, lg 128px, hero 160px (less on phones).
-  Be generous: whitespace is part of the calm.
-- **Radius**: tight on controls, generous on surfaces. `xs 2`, `sm 4`, `md 8` (buttons, inputs), `lg 14` (cards, callouts),
-  `xl 24` (dialogs, hero panels), `2xl 36` (large panels), `full`. Do not use one radius for everything.
-- **Elevation** is paper lifting off paper: a tight contact shadow plus one or two long, low, ink-tinted shadows (`xs sm md lg xl`),
-  and `inset` for carved-in wells. A raised surface also catches light along its top edge:
-  `box-shadow: inset 0 1px 0 var(--pp-color-highlight), var(--pp-shadow-md)`. Never a gray `rgba(0,0,0,.1)` drop shadow.
-- **Layout widths**: `narrow 704px` (reading), `content 1152px` (pages), `wide 1312px` (hero compositions). `Container` owns the
-  gutters (16, 24, 40px). Never set page max-width or side padding elsewhere.
-- **Texture**: `.pp-grain` adds a faint paper tooth (5% noise). `Section tone="paper"` and `"vault"` use it. Do not stack it on
-  small components.
+- **Spacing** is a 4px grid up to 160px. Components use 1 to 8; page rhythm uses 10 to 40. Be generous.
+- **Radius** is large on surfaces, full on controls: `sm 6`, `md 12` (inputs), `lg 18`, `xl 28` (cards, dialogs), `2xl 40` (the
+  app frame, hero panels), `full` (buttons, pills, chips, search). Do not use one radius for everything.
+- **Depth, app:** flat. White on grey is the separation; a hairline at most; `--pp-shadow-sm` on hover. No heavy shadows.
+- **Depth, site and glass:** layered. `GlassPanel` (blur plus hairline plus a catch of light), `--pp-shadow-glow` for lime halos,
+  `Aurora` behind, `Grain` over, `GradientBorder` for one hero card.
+- **Control size**: `sm 36`, `md 44`, `lg 52` px.
+- **Layout widths**: `narrow 704`, `content 1152`, `wide 1312`. The app main column uses `wide`.
+- **Blur** tokens `--pp-blur-sm|md|lg|xl` (8, 16, 28, 48px). Blur is the costliest effect we use; one glass layer per viewport.
+
+## The app frame and the dashboard pattern
+
+```tsx
+<AppFrame brand={<Logo size="sm" title="" />} user={{ name, email }} search={{}} notifications={3}
+          sidebar={<SidebarNav>...<SidebarLink active count={3}>Waiting On</SidebarLink>...</SidebarNav>}
+          promo={<PromoCard title="Share a key" action={<Button size="sm">Create a key</Button>} />}>
+  <PageHeader title="Household" description="..." actions={<PillSelect label="Date range" .../>} />
+  <BentoGrid>
+    <BentoCard span={5} title="Requests in flight" icon={...} onMenu={...}>
+      <BigStat value={24} unit="open today" delta="+5%" secondary={[{ label: 'Avg reply', value: '3 days' }]} />
+      <DotMatrix .../>
+    </BentoCard>
+    <BentoCard span={3} tone="dark" ...><BarsChart .../></BentoCard>
+  </BentoGrid>
+</AppFrame>
+```
+
+Rules for every product dashboard:
+
+1. Use `AppFrame`; do not build another shell. It gives the skip link, drawer, landmarks, the white-pill current page with a
+   lime count, and the header (account chip, search pill, bell).
+2. The page title is the loudest thing: `PageHeader` (56px). Subtitle in muted ink. Date or range control as a `PillSelect` on
+   the right.
+3. Content is a `BentoGrid` of `BentoCard`s: 12 columns, `span` 3 to 6 each, **one `tone="dark"` card and at most one `tone="lime"`
+   card** per screen. Each card has the round icon chip, the title and a three-dot menu.
+4. Each card has one headline number (`BigStat`, with the lime delta pill) and at most one chart. Pick from: `BubbleChart`
+   (up to four overlapping circles), `DotMatrix` (a column per day), `ProgressStat` (thick bar plus a big percent), `BarsChart`
+   (hatched bars with one highlighted lime and lilac pair; made for the dark card), `AreaChart`, `BarList`, `Donut`.
+5. Chart colour order: lilac, ink, lime, brass. Values are always printed.
+6. Mobile: the frame dissolves, the sidebar becomes a drawer, the grid becomes one column.
 
 ## Motion
 
-Motion is tumbler-like: short, decisive, and it settles. It always answers a person's action or announces one arrival.
+Motion makes the product feel alive and explains what changed. It never decorates for its own sake.
 
-- Durations: `fast 120ms` (hover, press), `normal 200ms` (reveal), `slow 360ms`, `slower 560ms` (one hero moment).
-- Easing: `standard` for state changes, `enter` for things arriving, `exit` for leaving, `settle` (a hair of overshoot) only for
-  confirmations: the switch thumb, the dialog arriving. Everything else eases out.
-- Allowed: press travel on buttons, the switch click, dialog and palette arriving, the sparkline drawing in once, the dial
-  turning once on a hero. **Not allowed**: entrance fade-and-slide on every section, hover transitions on every card, looping
-  decoration, parallax.
-- **Reduced motion is respected twice**: the tokens collapse every duration to ~0 under `prefers-reduced-motion: reduce`, and
-  anything JavaScript starts reads `useReducedMotion()` (the sparkline draw-in, the palette's scroll). Test it.
+### What to animate
+
+- **Arrival, once:** a page's first view (staggered cards), a number counting up, a chart drawing in, bars growing, bubbles
+  popping in on a spring. One orchestrated moment per view; children enter 60 to 80ms apart.
+- **Answers to a person's action:** hover lift (1px), press (1px down, scale .985), focus glow, switch thumb, dialog arriving,
+  toast sliding in, a tab pill gliding to the active tab, a list item entering or leaving, an error easing open under a field.
+- **Cinematic (site only):** `Aurora`, a pinned horizontal scroll story, `SplitText` on the hero, `Marquee`, `SmoothScroll`,
+  `Parallax` on one decorative shape, `ScrollProgress`.
+
+### What not to animate
+
+Anything that loops in the app (marquee, aurora, sweeping borders are for the site and the hero only). Body text. Table rows on
+every render. Layout properties (`width`, `height`, `top`, `left`, `margin`). More than one entrance per view. Anything the user
+has to wait for to continue: no entrance may block input, and no animation longer than 1s except a number or chart draw-in.
+Scroll hijacking beyond `SmoothScroll` and one pinned story on the site.
+
+### Durations and easing
+
+| Token                                | Value                        | Use                                             |
+| ------------------------------------ | ---------------------------- | ----------------------------------------------- |
+| `--pp-duration-fast`                 | 120ms                        | hover, press                                    |
+| `--pp-duration-normal`               | 200ms                        | colour and shadow changes                       |
+| `--pp-duration-slow`                 | 360ms                        | a pill gliding, a card lifting                  |
+| `--pp-duration-slower`               | 560ms                        | an element arriving (dialog, toast, drawer)     |
+| `--pp-duration-cinematic`            | 900ms                        | a hero reveal, a chart draw                     |
+| `--pp-ease-standard`                 | `(.2,0,0,1)`                 | state changes                                   |
+| `--pp-ease-enter` / `--pp-ease-exit` | `(0,0,.2,1)` / `(.4,0,1,1)`  | arriving / leaving                              |
+| `--pp-ease-emphasized`               | `(.16,1,.3,1)`               | reveals and page entrances: a long soft landing |
+| `--pp-ease-settle`                   | overshoot `(.34,1.32,.64,1)` | confirmations only: switch, tag landing         |
+| `--pp-ease-spring`                   | CSS `linear()` spring        | bubbles, dots, file icon                        |
+
+JS springs (`motion`): `motion.spring.snappy` (controls), `smooth` (layout, lists), `gentle` (large surfaces), `bouncy`
+(confirmations only), from `@platform/tokens`. Page transitions: 260ms in (rise 10px), 140ms out (drop 6px). Never ease-in on
+arrivals.
+
+### Reduced motion
+
+Respected three times: tokens collapse every duration to ~0 under `prefers-reduced-motion: reduce`; every primitive reads
+`useReducedMotion()` and renders its final state (no stagger, no count, no parallax, no marquee, no pinned story: the
+`useScrollStory` callback is never called); and `SmoothScroll` turns itself off. Static layout must be the default, with motion as
+the enhancement. Test it: every primitive has a reduced-motion test.
+
+### Performance budget
+
+- 60fps: animate **`transform` and `opacity` only** (plus colour and shadow on small controls). Scroll reveals, bars (`scaleX`/
+  `scaleY`), the sliding pill (`translate3d`), `Marquee` (`translate3d`), `Aurora` blobs (radial gradients that translate and
+  scale; no blur filter, no canvas) all follow this. The one exception is `GradientBorder animated` (a custom-property angle):
+  one per screen, off by default.
+- No layout thrash: measure in an observer or an effect, write CSS variables, never read layout during an animation frame loop.
+  `SpotlightCard` writes two custom properties inside `requestAnimationFrame`; React does not re-render per pointer move.
+- `will-change` only while moving (reveals drop it on arrival). Decorative loops pause off-screen (`IntersectionObserver`) and
+  when the user pauses motion.
+- Bundles: `motion` is imported through `m` + `domMax` (tree-shaken); **`gsap` (~45kB gzipped) and `lenis` (~5kB) load lazily**,
+  only when a pinned story or smooth scrolling mounts. App code imports them through `@platform/ui`
+  (`useScrollStory`, `loadScrollStory`, `SmoothScroll`), never directly.
+- Blur: one `backdrop-filter` layer per viewport. Grain is a static tile.
+
+### The primitives
+
+| Need                                       | Use                                                                                 |
+| ------------------------------------------ | ----------------------------------------------------------------------------------- |
+| Fade, slide, scale into view               | `Reveal` (`direction`, `distance`, `delay`, `scale`)                                |
+| Children entering in turn                  | `Stagger` (`BentoGrid` uses it)                                                     |
+| A number that lands                        | `CountUp` (`format`, `locale`, `prefix`, `suffix`)                                  |
+| Drift against the scroll                   | `Parallax`                                                                          |
+| Light that follows the cursor, slight tilt | `SpotlightCard`                                                                     |
+| A button that leans toward the cursor      | `Magnetic`                                                                          |
+| Route transitions                          | `PageTransition routeKey={pathname}` with `useOutlet()`                             |
+| Reading progress                           | `ScrollProgress`                                                                    |
+| Headline reveal by word or line            | `SplitText`                                                                         |
+| Infinite strip                             | `Marquee`                                                                           |
+| Inertial scrolling                         | `SmoothScroll` and `useScrollSmooth()`                                              |
+| Pinned or scrubbed story                   | `useScrollStory(ref, ({ gsap, root }) => ...)`                                      |
+| A pill gliding between items               | `Tabs` and `SidebarNav` (built in), `IndicatorGroup` + `LayoutIndicator` (your own) |
+| Lists that add and remove                  | `AnimatedList` + `AnimatedListItem`                                                 |
+| Loading                                    | `Skeleton` (a light sweeps across)                                                  |
+| In-view state for your own code            | `useInView`                                                                         |
+
+## Backgrounds and surfaces
+
+`Aurora` (palette `brand | warm | cool`, intensity, pauses itself), `GridGlow`, `Grain`, `GlassPanel`, `GradientBorder` and the
+`glow` and `brass` Button variants. Use them on the site, in hero bands and in empty states; **not** on app cards (the app is
+flat). Glass needs something behind it. Gradient text: `background: var(--pp-gradient-text)`, large display type only.
+
+## Forms (the pattern)
+
+The owner called the old form the worst UI they had seen, so this is deliberately complete. See `#/forms`.
+
+- Wrap in `Form`. Group in `FormSection` (explanation left, a white card of fields right; stacks on phones). Lay fields out in
+  `FormGrid` (2 columns, 1 on phones).
+- `Field` has two variants. **`stacked`** (default): label above, optional `hint` on the right of the label row ("Optional",
+  "0 / 200"), description under the control. Use for selects, textareas, long labels. **`floating`**: the label sits inside the
+  control and lifts on focus or value; use for short single-line inputs. Never mix both in one row.
+- Inputs are 44px, 12px radius, a white well on the grey canvas, hairline border, **lilac focus glow**. `Input` takes `leading`
+  (decorative icon) and `trailing` (operable). Put units in `trailing`.
+- Validation: validate on blur and on submit, never on first keystroke. The error is `role="alert"`, eases open (grid-row
+  animation), the control shakes once and turns red. Success draws a lime check, with an optional confirming line ("Looks good").
+  Errors say what to do ("Enter an email like name@example.com."), never "Invalid".
+- `FileDrop`: a real `<input type="file">` covering a styled drop zone; accepts by `accept`, `maxSize`, `multiple`; rejected files
+  explain why; accepted files list with a remove button.
+- `FormActions`: a frosted pill pinned to the bottom, status on the left (unsaved changes, errors to fix), actions on the right
+  (Discard as ghost, then the primary). Pass `visible={dirty}` so it slides up only when there is something to save.
+- Required fields carry `*` and `aria-required`; labels are always real `<label>`s (floating labels are still labels).
 
 ## Logo
 
-`<Logo />` is a vault-green tile with a brass keyhole whose stem is cut like a key bit, plus the wordmark set in Young
-Serif with a brass hyphen. Tones: `color` (default, adapts inside a vault surface), `mono` (one colour, true cut-out keyhole,
-follows `currentColor`), `inverse` (force the on-dark version over photographs). Variants: `full`, `mark`, `wordmark`. Sizes:
-sm 24, md 32, lg 44, xl 64px tall. Clear space: half the tile width on every side. Minimum: `mark` 16px, `full` 24px tall.
-Do not recolour the tile, stretch it, outline it, put it on a busy image, or use the keyhole alone as a decorative pattern.
-Favicon: the mark at 32px (see the gallery `index.html` for an SVG data-URI example).
+`<Logo />` is a near-black tile with a lime keyhole whose stem is cut like a key bit, plus the wordmark in Plus Jakarta Sans 700
+with a lilac hyphen. Tones: `color` (default, adapts on vault surfaces), `mono` (one colour, true cut-out, follows
+`currentColor`), `inverse` (force the on-dark version over photographs). Variants: `full`, `mark`, `wordmark`. Sizes: sm 24, md 32,
+lg 44, xl 64px. Clear space: half the tile width. Do not recolour the tile, stretch it or outline it.
 
-## Illustration and pattern language
+## Illustration, iconography, patterns
 
-- **Ink and tint**: one-weight outlines (1.75px, round joins) in the text colour, flat fills from the page's own palette
-  (`surfaceOverlay`, `surfaceSunken`, `accentSubtle`), **one brass detail per drawing**, a soft floor shadow, dashed ghosts for
-  "what would be here". No gradients, no people, no mascots, no isometric blobs, no emoji.
-- **Six drawings** (`<Illustration name=... />`): `empty` (an open drawer), `search` (a lens that found nothing), `letter`
-  (a sealed letter waiting), `key` (access scoped to a tag), `allClear` (a dial at rest with a tick), `locked` (a padlock in a
-  dashed ring). They recolour with the theme and with the surrounding `data-product`.
-- **Patterns**: `KeyCut` (key bitting strip: dividers, band edges, footers) and `VaultRings` (the dial: hero backdrops, low
-  contrast, one per page). Both are decorative and `aria-hidden`.
-- **Where**: illustrations go in `EmptyState` for a page or main panel (`illustration` prop). Small cards and table empties use
-  the `icon` prop. Every empty state names what belongs there and offers the one next action.
-
-## Iconography
-
-24px grid, 1.75px round strokes, no fills, one idea per glyph, currentColor. Decorative by default (`aria-hidden`); pass `title`
-only when the icon is the sole label (then prefer `IconButton label=`). Add a glyph by using `createIcon` in
-`packages/ui/src/internal/icons.tsx`. Each product has a glyph via `<ProductMark>`: waiting-on hourglass, consent shield,
-home-pulse house with a pulse, ask-your-life chat with a spark, digital-legacy tree, family-treasury coins; `core` is a folder
-and `admin` is the settings sliders.
+Unchanged in spirit: one-weight outlines (1.75px round), flat fills from the page palette, no mascots or emoji, six named
+drawings (`Illustration`), `KeyCut` and `VaultRings` as decorative patterns (site and hero only), 24px round-stroke icons
+(`createIcon`), `ProductMark` per product. `PromoOrb` (a lit sphere with a keyhole) is the one dimensional illustration, for
+`PromoCard`.
 
 ## Component recipes
 
-| You need | Use |
-|---|---|
-| A marketing page band | `Section` (tone, size, pattern) with `SectionHeader`, inside the page; `Container` to align anything outside a section |
-| The hero | `<Section tone="vault" size="hero" pattern="rings">` with `<SectionHeader as="h1" scale="hero" />`, a primary and a secondary `Button size="lg"` |
-| A dashboard group | `Section tone="plain" size="sm" container={false}` or just `Card`s in a grid |
-| A number | `Stat` (with `goodDirection="down"` for errors and latency), `Sparkline` for the shape |
-| Who someone is | `Avatar` + `PersonaBadge` (OWNER brass, ADMIN patina, DEVELOPER blue, MEMBER neutral, AUDITOR ochre) |
-| A product | `ProductMark` + the name; wrap its screens in `data-product` |
-| Onboarding / wizard | `Stepper` |
-| The workspace launcher | `CommandPalette` + `useHotkey('mod+k', ...)` |
-| A message in the page | `Callout` (`note` is brass: "lent or sealed" information) |
-| Facts about a record | `KeyValueList` (`mono` for ids and keys) |
-| History | `Timeline` |
-| Nothing here | `EmptyState` with `illustration` |
-
-Page chrome: `AppShell` gives a vault sidebar (brass tab on the active link), a translucent top bar and a 72rem main. Put
-`<Logo size="sm" />` in `brand`. `PageHeader` gives the h1 in Young Serif with a brass tab on its rule.
+| You need                 | Use                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------- |
+| App chrome               | `AppFrame` (sidebar, header, promo)                                                               |
+| A dashboard              | `PageHeader` + `BentoGrid` of `BentoCard` (see above)                                             |
+| A big number             | `BigStat`; a smaller one with a trend line: `Stat`                                                |
+| A progress bar           | `ProgressStat`                                                                                    |
+| A round control          | `RoundIconButton` (`light                                                                         | dark | lime | plain`, `badge`) |
+| A date or range dropdown | `PillSelect`                                                                                      |
+| A tag or count           | `Badge variant="accent"` (lime), `SidebarCount`, the delta pill in `BigStat`                      |
+| A call to action         | `Button variant="primary"` (black / lime), `glow` (lime highlight), `brass` (what is sealed)      |
+| A hero                   | the site pattern at `#/site`: `Aurora`, `GridGlow`, `Grain`, `SplitText as="h1"`, `Magnetic` CTAs |
+| An announcement          | a time-boxed lime bar (`#/site`)                                                                  |
+| Facts, history, empty    | `KeyValueList`, `Timeline`, `EmptyState`                                                          |
 
 ## Do and do not
 
-Do:
-- Let the page be quiet and spend the vault, brass and key-bit once per screen.
-- Use roles and variables (`var(--pp-color-*)`, `var(--pp-text-*)`), never raw hex or px type sizes.
-- Write plain, specific copy in sentence case; name actions the same way throughout a flow ("Publish" then "Published").
-- Give every screen a purposeful first thing to look at, and every empty state a next step and an illustration.
-- Check light, dark, 375px and keyboard focus before calling a screen done.
+Do: use roles and variables, never raw hex; keep one memorable thing per screen; write plain, specific, sentence-case copy and
+name actions the same way throughout a flow; check light, dark, 390px and keyboard focus before calling a screen done; look at it.
 
-Do not:
-- Use blue gradients, gradient washes as decoration, gray `rgba(0,0,0,.1)` shadows, or the same radius and shadow on every box.
-- Chop a page into identical cards when a list, a table or a plain column would read better.
-- Use emoji, stock illustration, mascots, or all-caps tracked-out labels; accent one word of a headline; number things that are
-  not a sequence; append arrows to every link.
-- Animate sections on scroll, loop motion, or put motion on anything the user did not trigger unless it draws the eye once.
-- Nest `data-product` inside a vault surface, or use a product accent for success, warning or error.
-- Hide meaning in colour alone, remove focus outlines, or skip the reduced-motion check.
+Do not: put a serif in the app; stack gradients, glass or grain on app cards; chop a page into identical cards (vary spans and
+tones); animate for decoration; use emoji or stock art; number things that are not a sequence; hide meaning in colour; remove
+focus outlines; skip the reduced-motion check.
 
 ## Accessibility floor
 
-Every colour pair used for text meets 4.5:1 and every graphic that carries meaning meets 3:1, in both themes (tokens test). Focus
-is a 2px ring (`focusRing`, 9.4:1 on dark, 3.9:1 on light) with 2px offset on everything keyboard-reachable; on vault surfaces it is
-brass. Landmarks and names: one `h1` per page, named regions (`aria-labelledby` on `Section`), a skip link in `AppShell`,
-`aria-current` for the current page and step. Touch targets are at least 40px (`control-md`). Phone width (375px) has no
-horizontal page scroll; `Stepper` and `Section` rhythm adapt below 576px and 768px.
+Every colour pair used for text meets 4.5:1 and every graphic that carries meaning meets 3:1, in both themes (tokens test).
+Focus is a lilac ring and glow on everything keyboard-reachable (brass on vault surfaces). Landmarks and names: one `h1` per page,
+named regions (each `BentoCard` is a region labelled by its title), a skip link in `AppShell`, `aria-current` for the current page.
+Touch targets are at least 44px (`control-md`). Charts are `role="img"` with a spoken summary and a text list of every value, or
+real text. Decorative layers are `aria-hidden`. The 390px layout has no horizontal page scroll.

@@ -27,7 +27,6 @@
   stroke-linejoin: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--_tone) 45%, transparent));
   transition: stroke-dashoffset 1.4s var(--pp-ease-emphasized);
 }
 
@@ -47,6 +46,15 @@
   fill: var(--pp-color-text-subtle);
   font-size: 12px;
   font-family: var(--pp-font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+.axisRow {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--pp-space-2) 2px 0;
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-caption-size);
   font-variant-numeric: tabular-nums;
 }
 

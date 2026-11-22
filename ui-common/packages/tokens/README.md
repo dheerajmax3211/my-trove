@@ -2,9 +2,9 @@
 
 Design tokens for the platform: typed TypeScript objects plus generated CSS custom properties.
 
-**Identity: "vault and brass".** A stone-green paper ground, near-black green ink, a patina accent
-(`#0E5C52`), a rare brass for what is lent or sealed, a dark "vault" surface that stays dark in both themes, and one
-accent per product (six). Headlines are Young Serif, text is Instrument Sans, code is JetBrains Mono, all self-hosted
+**Identity: "a vault you can lend from", v3.** A soft grey canvas with white cards, a black action colour (lime on dark), lime
+and lilac highlights, a rare brass, a near-black "vault" surface that stays dark in both themes, and one accent per product
+(six). New in v3: gradient, glow, blur and spring tokens. The app face is Plus Jakarta Sans, the public site's headlines are Young Serif, code is JetBrains Mono, all self-hosted
 by `@platform/ui` through `@fontsource` packages. The full decisions are in [`docs/design/brand.md`](../../../docs/design/brand.md).
 
 ## Use in CSS
@@ -77,4 +77,4 @@ Nothing in the TS API depends on the DOM or on CSS:
 
 An Expo app imports the same objects and maps them to `StyleSheet` values (pick `themes.light` or
 `themes.dark` from `useColorScheme()`); only `tokens.css` and `vars` are web-specific. Font families are
-CSS stacks on web; in React Native map `fontFamily` to the fonts you ship (Young Serif, Instrument Sans, JetBrains Mono).
+CSS stacks on web; in React Native map `fontFamily` to the fonts you ship (Plus Jakarta Sans, Young Serif, JetBrains Mono).

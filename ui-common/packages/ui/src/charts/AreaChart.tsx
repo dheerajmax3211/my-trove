@@ -1,4 +1,4 @@
-import { useId, useState, type PointerEvent } from 'react'
+import { useEffect, useId, useRef, useState, type PointerEvent } from 'react'
 import { cx } from '../internal/cx'
 import { useReducedMotion } from '../internal/use-reduced-motion'
 import { useInView } from '../motion/use-in-view'
@@ -15,7 +15,7 @@ export interface AreaChartProps {
   data: readonly AreaPoint[]
   /** Accessible name, e.g. "Monthly spending, last 12 months". */
   label: string
-  /** Drawing height in viewBox units (the width is 640). Default 220. */
+  /** Drawing height in px; the width follows the container. Default 220. */
   height?: number
   tone?: ChartTone
   /** Format values in the tooltip and summary. Default: locale number. */
@@ -27,8 +27,7 @@ export interface AreaChartProps {
   className?: string
 }
 
-const W = 640
-const PAD = { top: 16, right: 12, bottom: 30, left: 12 }
+const PAD = { top: 16, right: 6, bottom: 6, left: 6 }
 
 /** Smooth monotone path through the points (no overshoot between samples). */
 export function smoothPath(points: readonly [number, number][]): string {
@@ -78,6 +77,18 @@ export function AreaChart({
   const reduced = useReducedMotion()
   const [ref, inView] = useInView<HTMLDivElement>({ disabled: reduced, amount: 0.25 })
   const [active, setActive] = useState<number | null>(null)
+  const [W, setW] = useState(640)
+  const box = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = box.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(([entry]) => {
+      const w = Math.round(entry?.contentRect.width ?? 0)
+      if (w > 40) setW(w)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
   const gradientId = useId()
 
   const values = data.map((d) => d.value)
@@ -116,6 +127,7 @@ export function AreaChart({
 
   const activePoint = active === null ? null : points[active]
   const color = toneColor(tone)
+  const fillColor = tone === 'ink' ? toneColor('lilac') : color
   const latest = data[data.length - 1]
   const summary = latest
     ? `${label}. ${data.length} points from ${data[0]!.label} to ${latest.label}. Latest ${format(latest.value)}, low ${format(Math.min(...values))}, high ${format(Math.max(...values))}.`
@@ -123,7 +135,10 @@ export function AreaChart({
 
   return (
     <div
-      ref={ref}
+      ref={(node) => {
+        box.current = node
+        ref(node)
+      }}
       className={cx(styles.chart, className)}
       data-revealed={inView ? 'true' : 'false'}
       style={{ ['--_tone' as string]: color }}
@@ -138,8 +153,8 @@ export function AreaChart({
       >
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.34" />
-            <stop offset="100%" stopColor={color} stopOpacity="0" />
+            <stop offset="0%" stopColor={fillColor} stopOpacity="0.55" />
+            <stop offset="100%" stopColor={fillColor} stopOpacity="0" />
           </linearGradient>
         </defs>
         {Array.from({ length: gridLines + 1 }, (_, i) => {
@@ -163,20 +178,14 @@ export function AreaChart({
             <circle cx={activePoint[0]} cy={activePoint[1]} r="4.5" className={styles.dot} />
           </g>
         ) : null}
-        {showAxis && data.length > 1
-          ? [0, Math.floor((data.length - 1) / 2), data.length - 1].map((i, k) => (
-              <text
-                key={i}
-                x={points[i]![0]}
-                y={height - 8}
-                textAnchor={k === 0 ? 'start' : k === 2 ? 'end' : 'middle'}
-                className={styles.axis}
-              >
-                {data[i]!.label}
-              </text>
-            ))
-          : null}
       </svg>
+      {showAxis && data.length > 1 ? (
+        <div className={styles.axisRow} aria-hidden="true">
+          <span>{data[0]!.label}</span>
+          <span>{data[Math.floor((data.length - 1) / 2)]!.label}</span>
+          <span>{data[data.length - 1]!.label}</span>
+        </div>
+      ) : null}
       {active !== null && activePoint ? (
         <div
           className={styles.tooltip}

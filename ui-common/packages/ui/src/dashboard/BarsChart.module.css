@@ -6,7 +6,7 @@
   grid-template-columns: repeat(var(--_n), minmax(0, 1fr));
   align-items: end;
   gap: var(--pp-space-3);
-  height: calc(var(--_h) + 40px);
+  height: calc(var(--_h) + 76px);
 }
 .group {
   position: relative;
@@ -57,7 +57,8 @@
 
 .callout {
   position: absolute;
-  top: calc(100% - var(--_h) - 34px);
+  inset-inline-end: -4px;
+  top: 0;
   padding: 2px 10px;
   border-radius: var(--pp-radius-full);
   background: var(--pp-color-lime);

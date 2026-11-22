@@ -30,6 +30,9 @@
   gap: var(--pp-space-1);
   padding: var(--pp-space-6) var(--pp-space-6) 0;
 }
+.header:last-child {
+  padding-bottom: var(--pp-space-6);
+}
 .title {
   font-size: var(--pp-text-h3-size);
   line-height: var(--pp-text-h3-line);

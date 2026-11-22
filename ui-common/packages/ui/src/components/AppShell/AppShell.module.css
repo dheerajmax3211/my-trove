@@ -7,6 +7,7 @@
   height: 100vh;
   height: 100dvh;
   padding: var(--pp-space-5);
+  overflow: clip;
   background: var(--pp-color-backdrop);
   color: var(--pp-color-text);
 }
@@ -136,6 +137,7 @@
   .shell {
     height: auto;
     min-height: 100dvh;
+    overflow: visible;
     padding: 0;
     background: var(--pp-color-canvas);
   }
@@ -167,7 +169,7 @@
     padding-inline: var(--pp-space-3);
   }
   .topbarContent {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     margin-inline-start: auto;
     gap: var(--pp-space-2);
   }
