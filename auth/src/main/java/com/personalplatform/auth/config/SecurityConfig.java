@@ -1,6 +1,8 @@
 package com.personalplatform.auth.config;
 
 import com.personalplatform.auth.common.ProblemResponses;
+import com.personalplatform.auth.token.ApiKeyBearer;
+import jakarta.servlet.http.HttpServletRequest;
 import com.personalplatform.auth.user.AuthUser;
 import com.personalplatform.auth.user.UserService;
 import java.util.HashSet;
@@ -20,6 +22,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -31,16 +36,22 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http, Converter<Jwt, AbstractAuthenticationToken> converter)
             throws Exception {
         BearerTokenAuthenticationEntryPoint bearerEntryPoint = new BearerTokenAuthenticationEntryPoint();
+        // A pk_ key is not a JWT: the exchange controller verifies it itself, so the resource server must not try.
+        DefaultBearerTokenResolver jwtBearer = new DefaultBearerTokenResolver();
+        BearerTokenResolver bearerResolver = request -> ApiKeyBearer.presented(request).isPresent() ? null : jwtBearer.resolve(request);
+        RequestMatcher apiKeyExchange = (HttpServletRequest request) -> ApiKeyBearer.isApiKeyExchange(request);
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers(HttpMethod.GET, "/.well-known/jwks.json").permitAll()
+                        .requestMatchers(apiKeyExchange).permitAll()
                         // Coarse gate; every admin handler additionally carries its own @PreAuthorize.
                         .requestMatchers(HttpMethod.GET, "/v1/admin/**").hasAnyAuthority("users:read", "audit:read")
                         .requestMatchers("/v1/admin/**").hasAnyAuthority("users:write", "roles:assign", "plans:manage")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(o -> o
+                        .bearerTokenResolver(bearerResolver)
                         .jwt(j -> j.jwtAuthenticationConverter(converter))
                         .authenticationEntryPoint((req, res, ex) -> {
                             bearerEntryPoint.commence(req, res, ex);

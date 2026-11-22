@@ -6,7 +6,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 @ConfigurationProperties(prefix = "app")
-public record AppProperties(Auth auth, @DefaultValue Platform platform) {
+public record AppProperties(Auth auth, @DefaultValue Platform platform, @DefaultValue PlatformService platformService) {
+
+    /**
+     * Where the platform service verifies API keys ({@code app.platform-service.*}). The internal key is the shared
+     * secret of the internal chain ({@code APP_INTERNAL_API_KEY}); it is never printed.
+     */
+    public record PlatformService(@DefaultValue("http://localhost:8089") String url, String internalApiKey) {
+
+        @Override
+        public String toString() {
+            return "PlatformService[url=" + url + ", internalApiKey=<redacted>]";
+        }
+    }
+
 
     public record Auth(List<String> bootstrapAdminEmails) {
         public Auth {

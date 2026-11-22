@@ -26,6 +26,7 @@ public class PlatformTokenIssuer {
 
     public static final String AUDIENCE = "trove-platform";
     public static final String TOKEN_USE = "platform";
+    public static final String SERVICE_TOKEN_USE = "service";
     public static final Duration TTL = Duration.ofSeconds(600);
 
     private final SigningKeyService keys;
@@ -79,6 +80,38 @@ public class PlatformTokenIssuer {
             jwt.sign(key.signer());
         } catch (JOSEException e) {
             throw new IllegalStateException("Could not sign the platform token", e);
+        }
+        return jwt.serialize();
+    }
+
+    /**
+     * A service token for an API key (design 5.3): {@code sub = app:<appId>}, {@code token_use = service}, scopes and
+     * permissions taken from the key alone (never from its owner), the owner's plan for rate limiting.
+     */
+    public String issueService(VerifiedApiKey key, String plan) {
+        Instant now = clock.instant();
+        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                .issuer(props.issuer())
+                .subject("app:" + key.appId())
+                .audience(AUDIENCE)
+                .issueTime(Date.from(now))
+                .notBeforeTime(Date.from(now))
+                .expirationTime(Date.from(now.plus(TTL)))
+                .jwtID(UUID.randomUUID().toString())
+                .claim("token_use", SERVICE_TOKEN_USE)
+                .claim("scopes", sorted(key.scopes()))
+                .claim("permissions", sorted(key.permissions()))
+                .claim("plan", plan)
+                .claim("key_id", key.keyId().toString())
+                .claim("owner_uid", key.ownerUid())
+                .build();
+        SigningKeyService.ActiveKey active = keys.activeKey();
+        SignedJWT jwt = new SignedJWT(
+                new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(active.kid()).type(JOSEObjectType.JWT).build(), claims);
+        try {
+            jwt.sign(active.signer());
+        } catch (JOSEException e) {
+            throw new IllegalStateException("Could not sign the service token", e);
         }
         return jwt.serialize();
     }
