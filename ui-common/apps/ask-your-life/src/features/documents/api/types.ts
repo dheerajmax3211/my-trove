@@ -19,6 +19,8 @@ export interface DocumentResponse {
   createdAt: string
   updatedAt: string
   ingestedAt: string | null
+  /** Why indexing has not succeeded: the last error of the unfinished job. Absent when there is none. */
+  indexingError?: string | null
 }
 
 export type IngestOutcome = 'CREATED' | 'UPDATED' | 'DUPLICATE'

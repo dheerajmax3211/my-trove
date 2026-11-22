@@ -25,6 +25,23 @@ describe('reminders', () => {
     expect(text[3]).toContain('in 20 days')
   })
 
+  it('says which record each reminder comes from, as the service reports it', async () => {
+    await renderApp({ path: '/reminders' })
+    const list = await screen.findByRole('list', { name: 'Reminders by priority' })
+    const items = within(list).getAllByRole('listitem')
+    // the claim window is driven by a live alert; the overdue service by the service date the owner typed
+    const claim = items[2] as HTMLElement
+    const overdue = items[0] as HTMLElement
+    expect(claim.querySelector('[data-source="ALERT"]')).not.toBeNull()
+    expect(within(claim).getByTestId('reminder-source')).toHaveTextContent(
+      'From a live anomaly alert',
+    )
+    expect(overdue.querySelector('[data-source="SERVICE_DATE"]')).not.toBeNull()
+    expect(within(overdue).getByTestId('reminder-source')).toHaveTextContent(
+      'From the next service date you entered',
+    )
+  })
+
   it('links each reminder to its appliance', async () => {
     await renderApp({ path: '/reminders' })
     const link = await screen.findByRole('link', { name: 'Living room AC' })

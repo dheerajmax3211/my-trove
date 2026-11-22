@@ -1,6 +1,7 @@
 package com.personalplatform.askyourlife.document;
 
 import static com.personalplatform.sql.jooq.ask_life.ask_life.Tables.DOCUMENTS;
+import static com.personalplatform.sql.jooq.ask_life.ask_life.Tables.INGESTION_JOBS;
 
 import com.personalplatform.askyourlife.rls.OwnerScope;
 import com.personalplatform.sql.jooq.ask_life.ask_life.tables.records.DocumentsRecord;
@@ -10,7 +11,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.jooq.Condition;
+import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 
 /** All access goes through {@link OwnerScope}; the explicit owner predicates are belt, RLS is the braces. */
@@ -113,11 +116,20 @@ public class DocumentRepository {
                 .execute());
     }
 
+    /** The last error of the document's unfinished indexing job (the job queue is not row-scoped: see V1 notes). */
+    private static final Field<String> INDEXING_ERROR = DSL.field(
+            DSL.select(INGESTION_JOBS.LAST_ERROR)
+                    .from(INGESTION_JOBS)
+                    .where(INGESTION_JOBS.DOCUMENT_ID.eq(DOCUMENTS.ID))
+                    .and(INGESTION_JOBS.STATUS.ne("DONE"))
+                    .orderBy(INGESTION_JOBS.UPDATED_AT.desc())
+                    .limit(1)).as("indexing_error");
+
     private static org.jooq.SelectField<?>[] columns() {
         return new org.jooq.SelectField<?>[] {
             DOCUMENTS.ID, DOCUMENTS.OWNER_UID, DOCUMENTS.SOURCE_TYPE, DOCUMENTS.EXTERNAL_ID, DOCUMENTS.TITLE,
             DOCUMENTS.MIME_TYPE, DOCUMENTS.CONTENT_HASH, DOCUMENTS.STATUS, DOCUMENTS.CHUNK_COUNT,
-            DOCUMENTS.CREATED_AT, DOCUMENTS.UPDATED_AT, DOCUMENTS.INGESTED_AT
+            DOCUMENTS.CREATED_AT, DOCUMENTS.UPDATED_AT, DOCUMENTS.INGESTED_AT, INDEXING_ERROR
         };
     }
 
@@ -134,6 +146,7 @@ public class DocumentRepository {
                 r.get(DOCUMENTS.CHUNK_COUNT),
                 r.get(DOCUMENTS.CREATED_AT).toInstant(),
                 r.get(DOCUMENTS.UPDATED_AT).toInstant(),
-                r.get(DOCUMENTS.INGESTED_AT) == null ? null : r.get(DOCUMENTS.INGESTED_AT).toInstant());
+                r.get(DOCUMENTS.INGESTED_AT) == null ? null : r.get(DOCUMENTS.INGESTED_AT).toInstant(),
+                r.get("indexing_error", String.class));
     }
 }

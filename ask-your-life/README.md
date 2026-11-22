@@ -81,6 +81,19 @@ golden-value test). It is **lexical, not a language model**: it tolerates typos/
 `{data:[{index, embedding}]}`), which batches by `app.embedder.http.batch-size`, validates counts and dimension and normalises.
 The column is `vector(384)`: the application refuses to start if `app.embedder.dimension` is not 384.
 
+**Pointing it at a real model (not installed; needs the owner's yes).** Any server that speaks the OpenAI embeddings
+protocol works. With [Ollama](https://ollama.com) running locally, the endpoint is `http://localhost:11434/v1/embeddings`:
+
+```bash
+EMBEDDER_URL=http://localhost:11434/v1/embeddings EMBEDDER_MODEL=all-minilm ./mvnw -pl ask-your-life spring-boot:run
+```
+
+Only models whose output is **384-dimensional** fit the column (`all-minilm` is 384; `nomic-embed-text` is 768 and the
+service refuses to start with it, see `EmbedderSelectionTest`). Vectors already stored by the hashing embedder are not
+re-embedded when the URL changes. A document is only re-indexed when its text changes (saving the same text is a no-op), and
+there is no bulk re-index yet, so switch the embedder before loading documents. `EmbedderSelectionTest` checks the selection and the
+dimension guard; `HttpEmbedderTest` checks the adapter against a JDK `HttpServer` double (no model needed).
+
 ## Row-level security: what it does and does not give
 
 Set-up (migration `V103`): non-superuser role `ask_life_app` (NOLOGIN, NOBYPASSRLS), `ENABLE` + `FORCE ROW LEVEL SECURITY` on

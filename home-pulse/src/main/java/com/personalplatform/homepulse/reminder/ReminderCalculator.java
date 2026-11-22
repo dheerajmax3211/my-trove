@@ -1,6 +1,7 @@
 package com.personalplatform.homepulse.reminder;
 
 import com.personalplatform.homepulse.appliance.Appliance;
+import com.personalplatform.homepulse.reminder.Reminder.Source;
 import com.personalplatform.homepulse.reminder.Reminder.Type;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -28,22 +29,22 @@ public final class ReminderCalculator {
             if (service != null) {
                 long days = ChronoUnit.DAYS.between(today, service);
                 if (days < 0) {
-                    out.add(new Reminder(a.id(), a.name(), Type.SERVICE_OVERDUE, service, days, alerting,
-                            "Service was due " + (-days) + " day(s) ago" + (alerting ? " and the appliance is showing an anomaly." : ".")));
+                    out.add(new Reminder(a.id(), a.name(), Type.SERVICE_OVERDUE, Source.SERVICE_DATE, service, days,
+                            alerting, "Service was due " + (-days) + " day(s) ago" + (alerting ? " and the appliance is showing an anomaly." : ".")));
                 } else if (days <= horizonDays) {
-                    out.add(new Reminder(a.id(), a.name(), Type.SERVICE_DUE, service, days, alerting,
-                            "Service due in " + days + " day(s)" + (alerting ? " and the appliance is showing an anomaly." : ".")));
+                    out.add(new Reminder(a.id(), a.name(), Type.SERVICE_DUE, Source.SERVICE_DATE, service, days,
+                            alerting, "Service due in " + days + " day(s)" + (alerting ? " and the appliance is showing an anomaly." : ".")));
                 }
             }
             LocalDate warranty = a.warrantyEndDate();
             if (warranty != null) {
                 long days = ChronoUnit.DAYS.between(today, warranty);
                 if (days >= 0 && alerting) {
-                    out.add(new Reminder(a.id(), a.name(), Type.WARRANTY_CLAIM_WINDOW, warranty, days, true,
+                    out.add(new Reminder(a.id(), a.name(), Type.WARRANTY_CLAIM_WINDOW, Source.ALERT, warranty, days, true,
                             "An anomaly was detected while the warranty is still valid (ends in " + days
                                     + " day(s)): get it checked before it expires."));
                 } else if (days >= 0 && days <= horizonDays) {
-                    out.add(new Reminder(a.id(), a.name(), Type.WARRANTY_ENDING, warranty, days, false,
+                    out.add(new Reminder(a.id(), a.name(), Type.WARRANTY_ENDING, Source.WARRANTY_DATE, warranty, days, false,
                             "Warranty ends in " + days + " day(s)."));
                 }
             }

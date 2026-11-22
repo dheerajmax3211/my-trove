@@ -11,6 +11,12 @@ const r = (
   applianceId: name,
   applianceName: name,
   type,
+  source:
+    type === 'WARRANTY_CLAIM_WINDOW'
+      ? 'ALERT'
+      : type.startsWith('SERVICE')
+        ? 'SERVICE_DATE'
+        : 'WARRANTY_DATE',
   dueDate: '2026-12-01',
   daysUntil,
   highPriority,

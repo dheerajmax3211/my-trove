@@ -17,7 +17,7 @@ import { ErrorPanel } from '../../../components/ErrorPanel'
 import { describeIngestError } from '../api/documentsApi'
 import type { DocumentResponse } from '../api/types'
 import { useDocument, useReplaceContent } from '../hooks/useDocuments'
-import { formatDateTime, STATUS_INFO } from '../lib/labels'
+import { formatDateTime, indexingReason, STATUS_INFO } from '../lib/labels'
 
 function ReplaceContentForm({ document }: { document: DocumentResponse }) {
   const { toast } = useToast()
@@ -102,6 +102,7 @@ function Details({ document }: { document: DocumentResponse }) {
         <StatusBadge status={document.status} />
       </div>
       <p className="ayl-muted">{STATUS_INFO[document.status].description}</p>
+      {indexingReason(document) ? <p className="ayl-muted">{indexingReason(document)}</p> : null}
       <KeyValueList dense items={facts(document)} />
       <ReplaceContentForm document={document} />
     </div>

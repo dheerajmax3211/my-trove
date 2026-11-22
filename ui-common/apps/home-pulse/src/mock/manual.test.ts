@@ -20,15 +20,51 @@ describe('parseCsv (mirrors CsvReadings)', () => {
     expect(
       parseCsv('timestamp,watts\n\n2026-11-19T10:00:00Z,100.5\n2026-11-19T11:00:00+01:00,101\n'),
     ).toEqual([
-      { ms: at('10:00:00'), watts: 100.5 },
-      { ms: at('10:00:00'), watts: 101 },
+      { ms: at('10:00:00'), watts: 100.5, intervalMinutes: 0 },
+      { ms: at('10:00:00'), watts: 101, intervalMinutes: 0 },
     ])
+  })
+
+  it('reads kWh rows as the average power over the interval since the previous row', () => {
+    expect(
+      parseCsv(
+        'timestamp,kwh\n2026-11-19T10:00:00Z,0\n2026-11-19T10:30:00Z,0.5\n2026-11-19T10:45:00Z,0.25\n',
+      ),
+    ).toEqual([
+      { ms: at('10:30:00'), watts: 1000, intervalMinutes: 30 },
+      { ms: at('10:45:00'), watts: 1000, intervalMinutes: 15 },
+    ])
+  })
+
+  it('names the columns from the header, in any order, with optional volts and amps', () => {
+    expect(parseCsv('Voltage,Watts,Time\n230,50,2026-11-19T10:00:00Z\n')).toEqual([
+      { ms: at('10:00:00'), watts: 50, intervalMinutes: 0 },
+    ])
+  })
+
+  it('refuses headers it cannot place, with the same messages as the service', () => {
+    expect(() => parseCsv('timestamp,watts,phase\n2026-11-19T10:00:00Z,1,L1\n')).toThrow(
+      "unknown column 'phase'",
+    )
+    expect(() => parseCsv('timestamp,watts,kwh\n2026-11-19T10:00:00Z,1,1\n')).toThrow(
+      'use either watts or kwh, not both',
+    )
+    expect(() => parseCsv('watts\n5\n')).toThrow('The header needs a timestamp column')
+  })
+
+  it('refuses a kWh interval longer than two hours and a kWh row that does not move forward', () => {
+    expect(() =>
+      parseCsv('timestamp,kwh\n2026-11-19T10:00:00Z,0\n2026-11-19T13:00:00Z,1\n'),
+    ).toThrow('line 3: the interval since the previous row is 3 hours')
+    expect(() =>
+      parseCsv('timestamp,kwh\n2026-11-19T10:00:00Z,0\n2026-11-19T10:00:00Z,1\n'),
+    ).toThrow('line 3: kWh rows must be later than the row before')
   })
 
   it('refuses a timestamp with no zone and lists the problems line by line', () => {
     expect(() => parseCsv('2026-11-19T10:00:00,1\n2026-11-19T10:01:00Z,x\n')).toThrow(BadRequest)
     expect(() => parseCsv('2026-11-19T10:00:00,1\n2026-11-19T10:01:00Z,x\n')).toThrow(
-      'line 1: the timestamp must be ISO 8601 with a zone',
+      'line 1: the timestamp has no time zone',
     )
     expect(() => parseCsv('2026-11-19T10:01:00Z,x\n')).toThrow('line 1: watts must be a number')
     expect(() => parseCsv('2026-11-19T10:01:00Z,-3\n')).toThrow(
@@ -83,12 +119,29 @@ describe('recordMeterTotal (mirrors ManualReadingsService)', () => {
 
   it('counts minutes older than the 30 day window as rejected rather than storing them', () => {
     const state = fresh()
-    const start = NOW - 40 * 24 * 60 * MIN
-    recordMeterTotal(state, { kwh: 10, atMs: start }, NOW)
-    const result = recordMeterTotal(state, { kwh: 11, atMs: NOW - 60 * MIN }, NOW)
-    expect(result.minutesRejected).toBeGreaterThan(0)
-    expect(result.minutesStored + result.minutesRejected).toBe(result.intervalMinutes)
-    expect(state.samples.every((s) => s.ms >= NOW - 30 * 24 * 60 * MIN)).toBe(true)
+    const oldest = NOW - 30 * 24 * 60 * MIN
+    recordMeterTotal(state, { kwh: 10, atMs: oldest - 60 * MIN }, NOW)
+    const result = recordMeterTotal(state, { kwh: 10.2, atMs: oldest + 60 * MIN }, NOW)
+    expect(result).toMatchObject({
+      spread: true,
+      intervalMinutes: 120,
+      minutesRejected: 60,
+      minutesStored: 60,
+    })
+    expect(state.samples.every((s) => s.ms >= oldest)).toBe(true)
+  })
+
+  it('keeps a total after a gap of more than two hours but invents no minute readings across it', () => {
+    const state = fresh()
+    recordMeterTotal(state, { kwh: 100, atMs: at('05:00:00') }, NOW)
+    expect(recordMeterTotal(state, { kwh: 110, atMs: at('10:00:00') }, NOW)).toMatchObject({
+      outcome: 'RECORDED',
+      spread: false,
+      intervalMinutes: 300,
+      minutesStored: 0,
+    })
+    expect(state.samples).toHaveLength(0)
+    expect(state.totals).toHaveLength(2)
   })
 })
 
@@ -109,6 +162,19 @@ describe('importCsv (mirrors the import endpoint)', () => {
       rejected: 1,
     })
     expect(state.samples).toHaveLength(2)
+  })
+
+  it('stores a kWh row as one minute reading per minute of its interval', () => {
+    const state = fresh()
+    const csv = 'timestamp,kwh\n2026-11-19T10:00:00Z,0\n2026-11-19T10:30:00Z,0.5\n'
+    expect(importCsv(state, csv, NOW)).toEqual({
+      rows: 1,
+      accepted: 30,
+      duplicates: 0,
+      rejected: 0,
+    })
+    expect(state.samples.every((s) => s.watts === 1000)).toBe(true)
+    expect(state.samples.at(-1)?.ms).toBe(at('10:30:00'))
   })
 })
 

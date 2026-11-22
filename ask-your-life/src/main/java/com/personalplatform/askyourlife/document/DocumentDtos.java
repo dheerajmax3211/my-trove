@@ -33,11 +33,14 @@ public final class DocumentDtos {
             int chunkCount,
             Instant createdAt,
             Instant updatedAt,
-            Instant ingestedAt) {
+            Instant ingestedAt,
+            /** Why it is not indexed yet (FAILED: given up; PENDING: a retry is queued). Absent when there is no error. */
+            String indexingError) {
 
         public static DocumentResponse from(Document d) {
             return new DocumentResponse(d.id(), d.sourceType(), d.externalId(), d.title(), d.mimeType(),
-                    d.contentHash(), d.status(), d.chunkCount(), d.createdAt(), d.updatedAt(), d.ingestedAt());
+                    d.contentHash(), d.status(), d.chunkCount(), d.createdAt(), d.updatedAt(), d.ingestedAt(),
+                    d.indexingError());
         }
     }
 

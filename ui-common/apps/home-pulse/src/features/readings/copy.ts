@@ -27,6 +27,9 @@ export function describeMeterResult(result: MeterReadingResult): string {
   if (result.outcome === 'BASELINE') {
     return 'Saved as the starting point. Enter the total again later: the energy used in between becomes average power.'
   }
+  if (!result.spread) {
+    return `Saved your total. The gap since the last total is more than 2 hours, so the ${formatKwh(result.energyKwh)} used in between is kept as a total only: no minute readings were made up for it.`
+  }
   const minutes = result.minutesStored
   const stored = `Added ${pluralize(minutes, 'minute')} at an average of ${formatWatts(result.averageWatts ?? 0)}`
   const span = `${formatKwh(result.energyKwh)} over ${formatDuration(result.intervalMinutes)}`

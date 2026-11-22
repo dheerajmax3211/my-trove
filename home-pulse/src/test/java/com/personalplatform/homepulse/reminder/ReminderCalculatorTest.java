@@ -1,9 +1,11 @@
 package com.personalplatform.homepulse.reminder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import com.personalplatform.homepulse.appliance.Appliance;
 import com.personalplatform.homepulse.detect.ApplianceType;
+import com.personalplatform.homepulse.reminder.Reminder.Source;
 import com.personalplatform.homepulse.reminder.Reminder.Type;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -63,6 +65,18 @@ class ReminderCalculatorTest {
         assertThat(rs.get(0).type()).isEqualTo(Type.SERVICE_OVERDUE);
         assertThat(rs.get(0).highPriority()).isTrue();
         assertThat(rs.get(0).message()).contains("anomaly");
+    }
+
+    @Test
+    void everyReminderSaysWhichRecordItCameFrom() {
+        var fridge = appliance("fridge", TODAY.plusDays(300), TODAY.plusDays(10));
+        var kettle = appliance("kettle", TODAY.plusDays(20), TODAY.minusDays(2));
+        var rs = ReminderCalculator.compute(List.of(fridge, kettle), Set.of(fridge.id()), TODAY, 60);
+        assertThat(rs).extracting(Reminder::type, Reminder::source).containsExactlyInAnyOrder(
+                tuple(Type.WARRANTY_CLAIM_WINDOW, Source.ALERT),
+                tuple(Type.SERVICE_DUE, Source.SERVICE_DATE),
+                tuple(Type.WARRANTY_ENDING, Source.WARRANTY_DATE),
+                tuple(Type.SERVICE_OVERDUE, Source.SERVICE_DATE));
     }
 
     @Test
