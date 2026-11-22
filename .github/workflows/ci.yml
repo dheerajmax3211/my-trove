@@ -23,6 +23,17 @@ jobs:
           cache: maven
       # Tests start real Postgres, TimescaleDB and pgvector containers; Docker is preinstalled on the runner.
       - run: ./mvnw -B -ntp verify
+      # On failure, keep the surefire/failsafe reports so the exact failing test can be read from the run.
+      - name: Upload test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: |
+            **/target/surefire-reports/
+            **/target/failsafe-reports/
+          if-no-files-found: ignore
+          retention-days: 14
 
   frontend:
     name: Frontend (lint, typecheck, test, build)
