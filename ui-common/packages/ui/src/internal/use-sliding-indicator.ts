@@ -22,7 +22,14 @@ export function useSlidingIndicator(
     let first = true
 
     const measure = () => {
-      const active = root.querySelector<HTMLElement>(activeSelector)
+      const all = Array.from(root.querySelectorAll<HTMLElement>(activeSelector))
+      // The pill follows the first active item. Any further active items (for example the current page
+      // of a second list in the same sidebar) get a static pill so they never end up as dark text on dark.
+      root
+        .querySelectorAll('[data-pill-extra]')
+        .forEach((el) => el.removeAttribute('data-pill-extra'))
+      all.slice(1).forEach((el) => el.setAttribute('data-pill-extra', ''))
+      const active = all[0] ?? null
       if (!active) {
         root.removeAttribute('data-indicator')
         return

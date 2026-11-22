@@ -302,6 +302,9 @@
   background: transparent;
   color: var(--pp-color-vault);
 }
+.link[aria-current='page'][data-pill-extra] {
+  background: var(--pp-color-on-vault);
+}
 .nav:not([data-indicator]) .link[aria-current='page'] {
   background: var(--pp-color-on-vault);
 }
