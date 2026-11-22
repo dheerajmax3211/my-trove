@@ -27,7 +27,8 @@ public record GatewayProperties(
         Exchange exchange,
         Internal internal,
         RateLimit rateLimit,
-        Metering metering) {
+        Metering metering,
+        List<ApiKeyRoute> apiKeyRoutes) {
 
     public static final String PRODUCTS_USE = "products:use";
 
@@ -45,6 +46,22 @@ public record GatewayProperties(
     public record Service(String uri) {}
 
     public record Route(String requiredPermission) {}
+
+    /**
+     * A route an API key may call, and the permission its service token must hold. Routes not listed here are closed
+     * to API keys (deny by default), whatever permissions the key carries.
+     *
+     * @param service    route id (the service the path belongs to)
+     * @param methods    HTTP methods; empty means any
+     * @param path       pattern matched against the downstream path (after {@code /api/<service>})
+     * @param permission the permission the key's token must carry, e.g. usage:read:self (the scope catalogue maps it)
+     */
+    public record ApiKeyRoute(String service, List<String> methods, String path, String permission) {
+
+        public ApiKeyRoute {
+            methods = methods == null ? List.of() : List.copyOf(methods);
+        }
+    }
 
     /**
      * @param service       route id the rule applies to
@@ -149,6 +166,7 @@ public record GatewayProperties(
         }
         services = Map.copyOf(merged);
         routes = routes == null ? Map.of() : Map.copyOf(routes);
+        apiKeyRoutes = apiKeyRoutes == null ? List.of() : List.copyOf(apiKeyRoutes);
         passthrough = passthrough == null ? List.of() : List.copyOf(passthrough);
         blocked = blocked == null || blocked.isEmpty() ? List.of("/internal/**", "/actuator/**") : List.copyOf(blocked);
         cors = cors == null ? new Cors(null) : cors;
@@ -159,7 +177,7 @@ public record GatewayProperties(
     }
 
     public static GatewayProperties defaults() {
-        return new GatewayProperties(null, null, null, null, null, null, null, null, null);
+        return new GatewayProperties(null, null, null, null, null, null, null, null, null, null);
     }
 
     /** Permission a caller must hold to use this route, from configuration or the built-in default. */

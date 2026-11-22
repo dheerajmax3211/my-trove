@@ -49,12 +49,20 @@ public final class TestJwt {
     }
 
     public static String serviceToken(String appId, String plan) {
+        return serviceToken(appId, plan, null);
+    }
+
+    /** A service token as auth issues for an API key: sub = app:<appId>, permissions from the key (null for none). */
+    public static String serviceToken(String appId, String plan, List<String> permissions) {
         Map<String, Object> claims = new LinkedHashMap<>();
+        claims.put("iss", "http://localhost:8081");
         claims.put("aud", "trove-platform");
         claims.put("token_use", "service");
         claims.put("sub", "app:" + appId);
         claims.put("scopes", List.of("data:read"));
+        claims.put("permissions", permissions == null ? List.of() : permissions);
         claims.put("plan", plan);
+        claims.put("iat", Instant.now().getEpochSecond());
         claims.put("exp", Instant.now().getEpochSecond() + 600);
         return mint(claims);
     }

@@ -65,3 +65,10 @@ gateway:
       methods: [GET]
       path: /.well-known/jwks.json
       description: public platform JWKS
+  # API keys (pk_...): only the routes below are open to a key, each needs the permission it names (the scope
+  # catalogue in platform-service maps scopes to these permissions). Every other route is refused for keys.
+  api-key-routes:
+    - service: platform
+      methods: [GET]
+      path: /v1/usage/me
+      permission: usage:read:self

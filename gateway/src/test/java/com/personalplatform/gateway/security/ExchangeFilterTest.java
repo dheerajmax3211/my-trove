@@ -127,7 +127,10 @@ class ExchangeFilterTest extends GatewayTestBase {
                 .exchange()
                 .expectStatus().isOk();
 
-        assertThat(backends.service(service).last().header("authorization")).startsWith("Bearer ey");
+        // select by path: the plan refresh also calls this stub, without a credential, and may land last
+        var forwarded = backends.service(service).received().stream().filter(r -> r.path().equals("/v1/ping")).reduce((a, b) -> b);
+        assertThat(forwarded).isPresent();
+        assertThat(forwarded.get().header("authorization")).startsWith("Bearer ey");
     }
 
     @Test
@@ -138,10 +141,11 @@ class ExchangeFilterTest extends GatewayTestBase {
                 // service tokens carry scopes, not products:use, so a product route refuses them
                 .expectStatus().isForbidden();
 
+        // API keys reach only the routes listed in gateway.api-key-routes (W4); ping is not one of them
         client.get().uri("/api/platform/v1/ping")
                 .header(HttpHeaders.AUTHORIZATION, bearer("svc|reports|PRO"))
                 .exchange()
-                .expectStatus().isOk();
+                .expectStatus().isForbidden();
     }
 
     @ParameterizedTest
