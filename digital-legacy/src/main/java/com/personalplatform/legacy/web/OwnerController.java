@@ -105,7 +105,7 @@ public class OwnerController {
     @PostMapping("/trustees")
     @ResponseStatus(HttpStatus.CREATED)
     InviteResponse invite(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody InviteRequest req) {
-        return trustees.invite(jwt.getSubject(), req.label());
+        return trustees.invite(jwt.getSubject(), req.label(), req.email());
     }
 
     @GetMapping("/trustees")

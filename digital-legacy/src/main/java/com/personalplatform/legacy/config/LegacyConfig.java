@@ -2,7 +2,9 @@ package com.personalplatform.legacy.config;
 
 import com.personalplatform.legacy.notify.LoggingNotificationChannel;
 import com.personalplatform.legacy.notify.NotificationChannel;
+import com.personalplatform.legacy.notify.OutboxEmailChannel;
 import com.personalplatform.legacy.protocol.ChannelType;
+import com.personalplatform.notify.NotificationOutbox;
 import com.personalplatform.legacy.protocol.SwitchMachine;
 import java.time.Clock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -31,8 +33,9 @@ public class LegacyConfig {
     }
 
     /*
-     * Default delivery is log-only. A real gateway is just another NotificationChannel bean for the same type with
-     * a higher precedence (@Order); the registry picks the first channel per type.
+     * Default delivery: email goes through the shared outbox (platform-notify, delivered by shared-service); push and
+     * SMS are log-only. A real gateway is just another NotificationChannel bean for the same type with a higher
+     * precedence (@Order); the registry picks the first channel per type.
      */
     @Bean
     @Order(Ordered.LOWEST_PRECEDENCE)
@@ -42,8 +45,8 @@ public class LegacyConfig {
 
     @Bean
     @Order(Ordered.LOWEST_PRECEDENCE)
-    NotificationChannel loggingEmail() {
-        return new LoggingNotificationChannel(ChannelType.EMAIL);
+    NotificationChannel outboxEmail(NotificationOutbox outbox) {
+        return new OutboxEmailChannel(outbox);
     }
 
     @Bean

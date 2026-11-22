@@ -53,6 +53,13 @@ public class TestInfrastructure {
         return new MutableClock(START);
     }
 
+    /** The shared notifications table is not part of this database: writes are recorded instead. */
+    @Bean
+    @Primary
+    RecordingNotificationOutbox recordingNotificationOutbox() {
+        return new RecordingNotificationOutbox();
+    }
+
     @Bean
     RecordingChannels recordingChannels() {
         return new RecordingChannels();
