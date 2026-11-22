@@ -34,8 +34,7 @@ class DeveloperAppsTest extends AbstractPlatformTest {
 
     @BeforeEach
     void emptyApps() {
-        dsl.execute("delete from platform.developer_app_redirect_uris");
-        dsl.execute("delete from platform.developer_apps");
+        DeveloperTables.wipe(dsl);
     }
 
     static RequestPostProcessor developer(String uid) {

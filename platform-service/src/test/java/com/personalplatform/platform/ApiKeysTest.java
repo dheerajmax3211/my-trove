@@ -36,10 +36,7 @@ class ApiKeysTest extends AbstractPlatformTest {
 
     @BeforeEach
     void empty() {
-        dsl.execute("delete from platform.api_key_scopes");
-        dsl.execute("delete from platform.api_keys");
-        dsl.execute("delete from platform.developer_app_redirect_uris");
-        dsl.execute("delete from platform.developer_apps");
+        DeveloperTables.wipe(dsl);
     }
 
     static RequestPostProcessor developerOn(String uid, String plan) {

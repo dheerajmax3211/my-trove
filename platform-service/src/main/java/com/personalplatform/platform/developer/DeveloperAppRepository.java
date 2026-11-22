@@ -14,10 +14,10 @@ import org.jooq.Record;
 import org.springframework.stereotype.Repository;
 
 @Repository
-class DeveloperAppRepository {
+public class DeveloperAppRepository {
 
     /** One app with its redirect URIs. The secret digest itself never leaves the repository. */
-    record Row(UUID id, String ownerUid, String name, String description, String clientId, boolean hasClientSecret,
+    public record Row(UUID id, String ownerUid, String name, String description, String clientId, boolean hasClientSecret,
                OffsetDateTime secretRotatedAt, OffsetDateTime createdAt, OffsetDateTime updatedAt,
                OffsetDateTime revokedAt, List<String> redirectUris) {}
 
@@ -76,7 +76,7 @@ class DeveloperAppRepository {
         return withRedirectUris(rows);
     }
 
-    Optional<Row> findOwned(String ownerUid, UUID id) {
+    public Optional<Row> findOwned(String ownerUid, UUID id) {
         return dsl.selectFrom(DEVELOPER_APPS)
                 .where(DEVELOPER_APPS.ID.eq(id), DEVELOPER_APPS.OWNER_UID.eq(ownerUid))
                 .fetchOptional()

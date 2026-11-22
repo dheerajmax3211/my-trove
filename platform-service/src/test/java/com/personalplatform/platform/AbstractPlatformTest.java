@@ -37,7 +37,8 @@ import tools.jackson.databind.json.JsonMapper;
 @TestPropertySource(properties = {
         "app.internal.api-key=test-internal-key",
         "app.usage.retry-initial=100ms",
-        "app.usage.retry-max=300ms"})
+        "app.usage.retry-max=300ms",
+        "app.webhooks.worker-enabled=false"})
 abstract class AbstractPlatformTest {
 
     static final PostgreSQLContainer TIMESCALE = new PostgreSQLContainer(

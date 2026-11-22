@@ -10,7 +10,7 @@ import java.util.Locale;
 import java.util.Set;
 
 /** Redirect targets an app may register: https anywhere, plain http only for a loopback host (local development). */
-final class RedirectUris {
+public final class RedirectUris {
 
     static final int MAX = 10;
     private static final Set<String> LOOPBACK = Set.of("localhost", "127.0.0.1");
@@ -18,7 +18,7 @@ final class RedirectUris {
     private RedirectUris() {}
 
     /** Distinct, in the order given. Throws {@link BadRequestException} for anything not allowed. */
-    static List<String> validate(List<String> uris) {
+    public static List<String> validate(List<String> uris) {
         if (uris == null || uris.isEmpty()) {
             return List.of();
         }
