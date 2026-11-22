@@ -30,18 +30,31 @@ export function SignInPage({
 }) {
   const auth = useAuth()
   const [email, setEmail] = useState('')
-  const [busy, setBusy] = useState<'google' | 'email' | null>(null)
+  const [busy, setBusy] = useState<'google' | 'email' | 'dev' | null>(null)
   const [sentTo, setSentTo] = useState<string | null>(null)
+  const [devLink, setDevLink] = useState<string | null>(null)
+  const [choosing, setChoosing] = useState(false)
   usePageTitle('Sign in')
 
   // An email link opened on a device that does not know the address asks for it again.
   const confirming = auth.emailLinkPending
-  const implicitDemo = runtime.mode === 'demo'
+  // Set only with the local dev identity provider: no Google, a chooser of seeded accounts, and links shown on screen.
+  const dev = auth.dev
   const products = modules.filter(isProduct)
 
   const google = async () => {
+    if (dev) {
+      setChoosing((open) => !open)
+      return
+    }
     setBusy('google')
     await auth.signInWithGoogle()
+    setBusy(null)
+  }
+
+  const pickDevAccount = async (address: string) => {
+    setBusy('dev')
+    await auth.signInAsDevAccount(address)
     setBusy(null)
   }
 
@@ -54,7 +67,10 @@ export function SignInPage({
       ? await auth.completeEmailLinkSignIn(address)
       : await auth.sendEmailLink(address, { url: window.location.origin })
     setBusy(null)
-    if (ok && !confirming) setSentTo(address)
+    if (ok && !confirming) {
+      setSentTo(address)
+      setDevLink(dev?.lastEmailLink() ?? null)
+    }
   }
 
   return (
@@ -98,10 +114,10 @@ export function SignInPage({
             {confirming ? 'One last step.' : 'Welcome back. Your workspace is where you left it.'}
           </p>
 
-          {implicitDemo ? (
-            <Callout variant="note" title="Demo build">
-              No sign-in service is set up here, so you will be signed in as a demo user with sample
-              data.
+          {dev && !confirming ? (
+            <Callout variant="note" title="Development sign-in">
+              This build uses the local identity provider instead of Google, so no Google account
+              and no password are involved, and no email is sent. Pick one of the seeded accounts.
             </Callout>
           ) : null}
 
@@ -114,43 +130,88 @@ export function SignInPage({
           {sentTo ? (
             <Callout variant="success" title="Check your inbox">
               We sent a sign-in link to {sentTo}. Open it on this device to finish.
+              {dev ? (
+                <>
+                  {' '}
+                  This is a development build, so nothing was emailed:{' '}
+                  {devLink ? (
+                    <>
+                      <a href={devLink}>open the sign-in link</a>, or copy it into another browser
+                      to test signing in on another device.
+                    </>
+                  ) : (
+                    'the link was not issued.'
+                  )}
+                </>
+              ) : null}
             </Callout>
           ) : null}
 
           {!confirming ? (
-            <Button size="lg" fullWidth loading={busy === 'google'} onClick={() => void google()}>
+            <Button
+              size="lg"
+              fullWidth
+              loading={busy === 'google'}
+              aria-expanded={dev ? choosing : undefined}
+              onClick={() => void google()}
+            >
               Continue with Google
             </Button>
           ) : null}
 
-          {!implicitDemo || confirming ? (
-            <>
-              {!confirming ? (
-                <p className={styles.or}>
-                  <span>or use your email</span>
-                </p>
-              ) : (
-                <p className={styles.muted}>
-                  You opened a sign-in link on a new device. Type the address it was sent to.
-                </p>
-              )}
-              <form onSubmit={(event) => void submitEmail(event)} className={styles.emailForm}>
-                <Field label="Email address">
-                  <Input
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="you@example.com"
-                    required
-                  />
-                </Field>
-                <Button type="submit" variant="secondary" fullWidth loading={busy === 'email'}>
-                  {confirming ? 'Finish signing in' : 'Email me a sign-in link'}
-                </Button>
-              </form>
-            </>
+          {dev && choosing && !confirming ? (
+            <section className={styles.accounts} aria-labelledby="dev-accounts-title">
+              <h3 id="dev-accounts-title" className={styles.accountsTitle}>
+                Choose a development account
+              </h3>
+              <ul className={styles.accountList}>
+                {dev.accounts.map((account) => (
+                  <li key={account.email}>
+                    <button
+                      type="button"
+                      className={styles.account}
+                      disabled={busy !== null}
+                      aria-label={`Sign in as ${account.label}, ${account.email}`}
+                      onClick={() => void pickDevAccount(account.email)}
+                    >
+                      <span>
+                        <strong>{account.label}</strong>{' '}
+                        <span className={styles.accountEmail}>{account.email}</span>
+                      </span>
+                      <span className={styles.muted}>
+                        Seeded roles: {account.roles}. {account.summary}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ) : null}
+
+          {!confirming ? (
+            <p className={styles.or}>
+              <span>or use your email</span>
+            </p>
+          ) : (
+            <p className={styles.muted}>
+              You opened a sign-in link on a new device. Type the address it was sent to.
+            </p>
+          )}
+          <form onSubmit={(event) => void submitEmail(event)} className={styles.emailForm}>
+            <Field label="Email address">
+              <Input
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+            </Field>
+            <Button type="submit" variant="secondary" fullWidth loading={busy === 'email'}>
+              {confirming ? 'Finish signing in' : 'Email me a sign-in link'}
+            </Button>
+          </form>
 
           <div className={styles.demo}>
             <div>

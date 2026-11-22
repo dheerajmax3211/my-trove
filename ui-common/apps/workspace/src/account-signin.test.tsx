@@ -127,14 +127,61 @@ describe('sign-in page', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument()
   })
 
-  it('in a build with no sign-in service, says so and offers the demo user only', async () => {
+  it('in a build with no sign-in service, says so on the sign-in page and never signs in as demo', async () => {
     const runtime = createRuntime(
       {},
       { search: '', storage: memoryStorages(), retryQueries: false },
     )
-    mountApp(runtime, modules(), '/')
-    expect(await screen.findByText('Demo build')).toBeInTheDocument()
-    expect(screen.queryByLabelText('Email address')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeInTheDocument()
+    const { user } = mountApp(runtime, modules(), '/')
+    expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Continue with Google' }))
+    expect(await screen.findByText(/Sign-in is not set up in this build/)).toBeInTheDocument()
+    expect(screen.queryByText('Demo build')).not.toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Workspace' })).not.toBeInTheDocument()
+  })
+
+  it('with the dev identity provider, Google becomes a chooser of the five seeded accounts', async () => {
+    const auth = createTestAuth(null)
+    const signInAs = vi.fn(() => Promise.resolve())
+    Object.assign(auth, {
+      dev: {
+        accounts: [
+          {
+            email: 'dev@example.test',
+            persona: 'OWNER',
+            label: 'Owner',
+            roles: 'Owner, Admin, Member',
+            summary: 'x',
+          },
+          {
+            email: 'member@example.test',
+            persona: 'MEMBER',
+            label: 'Member',
+            roles: 'Member',
+            summary: 'y',
+          },
+        ],
+        signInAs,
+        lastEmailLink: () => null,
+      },
+    })
+    const storage = memoryStorages()
+    storage.local?.setItem(onboardingKey('me-1'), JSON.stringify({ status: 'done', pinned: [] }))
+    const live = createLiveRuntime({ auth, storage })
+    const { user } = mountApp(live.runtime, modules(), '/')
+
+    expect(await screen.findByText('Development sign-in')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Continue with Google' }))
+    const chooser = screen.getByRole('region', { name: 'Choose a development account' })
+    expect(
+      within(chooser).getByRole('button', { name: 'Sign in as Owner, dev@example.test' }),
+    ).toBeInTheDocument()
+    expect(
+      within(chooser).getByRole('button', { name: 'Sign in as Member, member@example.test' }),
+    ).toBeInTheDocument()
+    await user.click(
+      within(chooser).getByRole('button', { name: 'Sign in as Member, member@example.test' }),
+    )
+    expect(signInAs).toHaveBeenCalledWith('member@example.test')
   })
 })

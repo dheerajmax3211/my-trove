@@ -10,7 +10,13 @@ import {
 } from 'react'
 import type { FirebaseAuthConfig } from './config'
 import { createFirebaseAuthClient } from './firebaseClient'
-import { AuthClientError, type AuthClient, type AuthStatus, type AuthUser } from './types'
+import {
+  AuthClientError,
+  type AuthClient,
+  type AuthStatus,
+  type AuthUser,
+  type DevSignIn,
+} from './types'
 
 export interface AuthContextValue {
   status: AuthStatus
@@ -19,6 +25,10 @@ export interface AuthContextValue {
   error: Error | null
   /** An email-link sign-in was opened on a device that does not know the email; ask for it, then call `completeEmailLinkSignIn(email)`. */
   emailLinkPending: boolean
+  /** Set only with the local dev identity provider: show its account chooser instead of Google. */
+  dev: DevSignIn | null
+  /** Dev only: sign in as one of `dev.accounts`. */
+  signInAsDevAccount: (email: string) => Promise<boolean>
   /** The action functions never throw: they resolve `true` on success, or `false` and set `error`. */
   signInWithGoogle: () => Promise<boolean>
   sendEmailLink: (email: string, options?: { url?: string }) => Promise<boolean>
@@ -131,6 +141,12 @@ export function AuthProvider({
       user,
       error,
       emailLinkPending,
+      dev: client.dev ?? null,
+      signInAsDevAccount: (email) =>
+        run(async () => {
+          if (!client.dev) throw new AuthClientError('auth/not-dev', 'Dev accounts are not in use.')
+          await client.dev.signInAs(email)
+        }),
       signInWithGoogle: () => run(() => client.signInWithGoogle()),
       sendEmailLink: (email, options) => run(() => client.sendEmailLink(email, options)),
       completeEmailLinkSignIn,

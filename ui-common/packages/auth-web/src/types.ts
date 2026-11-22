@@ -20,11 +20,33 @@ export class AuthClientError extends Error {
   }
 }
 
+/** A seeded development account the local identity provider can sign in as. */
+export interface DevAccount {
+  email: string
+  /** The persona it is seeded as (OWNER, ADMIN, DEVELOPER, MEMBER, AUDITOR). */
+  persona: string
+  label: string
+  /** The roles the seed grants, in words. The live roles come from the platform once signed in. */
+  roles: string
+  summary: string
+}
+
+/** Present only with the local dev identity provider: the chooser that stands in for Google, and the dev sign-in link. */
+export interface DevSignIn {
+  accounts: readonly DevAccount[]
+  /** Sign in as one account. Rejects if the identity provider cannot issue a token for it. */
+  signInAs: (email: string) => Promise<void>
+  /** The sign-in link issued by the last `sendEmailLink`. No email is sent in development, so the page shows it. */
+  lastEmailLink: () => string | null
+}
+
 /**
  * The seam between React and an auth backend. `createFirebaseAuthClient` implements it with the
  * Firebase JS SDK; `createStubAuthClient` implements it in memory for demos and tests.
  */
 export interface AuthClient {
+  /** Set only for the dev identity provider (see `DevSignIn`). */
+  dev?: DevSignIn
   /** Fires once with the initial state, then on every sign-in / sign-out. */
   onAuthStateChanged: (
     next: (user: AuthUser | null) => void,
