@@ -11,6 +11,12 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(GatewayProperties.class)
 public class GatewayConfig {
 
+    /** Picked up by Spring Cloud Gateway's observation filter in place of the default, which tags the query string. */
+    @Bean
+    PathOnlyGatewayObservationConvention gatewayObservationConvention() {
+        return new PathOnlyGatewayObservationConvention();
+    }
+
     @Bean
     Clock gatewayClock() {
         return Clock.systemUTC();
