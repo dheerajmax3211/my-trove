@@ -64,6 +64,9 @@ export TEMPORAL_ENABLED="${TEMPORAL_ENABLED:-true}"   # the compose file starts 
 
 # Management (actuator/prometheus) port is main port + 1000; every service exports traces to the local Jaeger.
 export OTLP_TRACES_ENDPOINT="${OTLP_TRACES_ENDPOINT:-http://localhost:4318/v1/traces}"
+# Dev only: publish http_server_requests_seconds_bucket so the Grafana p95 panel has data. Boot does not publish
+# histogram buckets by default; whether production does is the owner's decision, so no application config is changed.
+export MANAGEMENT_METRICS_DISTRIBUTION_PERCENTILES_HISTOGRAM_HTTP_SERVER_REQUESTS=true
 
 wanted=("$@")
 for entry in "${ALL[@]}"; do
