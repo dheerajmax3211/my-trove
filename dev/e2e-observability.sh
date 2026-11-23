@@ -20,7 +20,7 @@ series_count() {
 
 echo "== sending 40 requests through the gateway ($GATEWAY)"
 for i in $(seq 1 40); do
-  if ! curl -s -o /dev/null --max-time 5 "$GATEWAY/.well-known/jwks.json"; then
+  if ! curl -s -o /dev/null --max-time 5 "$GATEWAY/api/auth/.well-known/jwks.json"; then
     fail "gateway request $i to $GATEWAY did not connect (is dev/up.sh running?)"
     echo "RESULT: FAIL ($fails failed)"; exit 1
   fi
