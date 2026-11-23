@@ -1,6 +1,9 @@
 spring:
   application:
     name: gateway
+  reactor:
+    # Carries the trace context across reactive hops so the traceId reaches the log MDC.
+    context-propagation: auto
   cloud:
     # Spring Cloud 2026.0.0 declares Boot 4.2.x as its supported line and refuses to start on the repo's Boot 4.1.2.
     # The artifacts do run on 4.1.2 (covered by this module's tests); re-enable once the repo moves to Boot 4.2.
@@ -8,11 +11,26 @@ spring:
       enabled: false
 server:
   port: 8080
+# Actuator is served on a private management port (default: main port + 1000), never on the public one.
 management:
+  server:
+    port: ${MANAGEMENT_PORT:9080}
   endpoints:
     web:
+      base-path: /actuator
       exposure:
         include: health,info,prometheus
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING:1.0}
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+logging:
+  pattern:
+    correlation: "[${spring.application.name:-},%X{traceId:-},%X{spanId:-}]"
 
 gateway:
   # Base URIs default to http://localhost:<port> (auth 8081, shared 8082, waiting-on 8083, consent 8084,

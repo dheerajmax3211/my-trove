@@ -25,7 +25,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /** Boots the gateway on a random port against {@link Backends}; metering is off unless a test turns it on. */
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"gateway.metering.enabled=false"})
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"gateway.metering.enabled=false", "management.server.port=0"})
 @Import(GatewayTestBase.ClockConfig.class)
 public abstract class GatewayTestBase {
 

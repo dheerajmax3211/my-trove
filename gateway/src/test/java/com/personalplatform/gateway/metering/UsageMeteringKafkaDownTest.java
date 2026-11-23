@@ -21,7 +21,7 @@ import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /** Review Focus 3: metering must never block or fail a request, even with Kafka gone. */
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"gateway.metering.enabled=true"})
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"gateway.metering.enabled=true", "management.server.port=0"})
 class UsageMeteringKafkaDownTest extends GatewayTestBase {
 
     private static final String CRED = "u|perf|DEVELOPER|products:use";

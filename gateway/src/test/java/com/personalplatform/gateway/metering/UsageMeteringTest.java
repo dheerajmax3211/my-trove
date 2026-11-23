@@ -22,7 +22,7 @@ import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"gateway.metering.enabled=true"})
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"gateway.metering.enabled=true", "management.server.port=0"})
 class UsageMeteringTest extends GatewayTestBase {
 
     static final KafkaContainer KAFKA = new KafkaContainer(DockerImageName.parse("apache/kafka:latest"));
