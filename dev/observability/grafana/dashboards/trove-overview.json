@@ -35,7 +35,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (application) (rate(http_server_requests_seconds_count[1m])) or vector(0)",
+          "expr": "sum by (application) (rate(http_server_requests_seconds_count[1m]))",
           "legendFormat": "{{application}}"
         }
       ]
@@ -63,7 +63,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(0.95, sum by (application, le) (rate(http_server_requests_seconds_bucket[1m]))) or vector(0)",
+          "expr": "histogram_quantile(0.95, sum by (application, le) (rate(http_server_requests_seconds_bucket[1m])))",
           "legendFormat": "{{application}}"
         }
       ]
@@ -147,7 +147,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (application) (jvm_memory_used_bytes{area=\"heap\"}) or vector(0)",
+          "expr": "sum by (application) (jvm_memory_used_bytes{area=\"heap\"})",
           "legendFormat": "{{application}}"
         }
       ]
@@ -175,7 +175,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (application) (hikaricp_connections_active{application!=\"gateway\"}) or vector(0)",
+          "expr": "sum by (application) (hikaricp_connections_active{application!=\"gateway\"})",
           "legendFormat": "{{application}}"
         }
       ]

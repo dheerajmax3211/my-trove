@@ -35,12 +35,14 @@ if curl -sf --max-time 10 "$JAEGER/api/services" | python3 -c 'import json,sys; 
   pass "Jaeger lists the gateway service"; else fail "Jaeger ($JAEGER) does not list gateway"; fi
 
 # Dashboard panels. The 429 panel is checked after the rate-limit probe (Task 5), so it is skipped here.
-# The Hikari panel's query already excludes the gateway (no pool), so every panel must return at least one series.
+# Only the 5xx and 429 panels fall back to zero (`or vector(0)`); every other panel must return a real series, so a
+# missing metric fails here and names the panel. The p95 panel needs http_server_requests_seconds_bucket series
+# (percentile histograms); without them it FAILs. The Hikari query excludes the gateway (no pool).
 checked=0
 while IFS=$'\t' read -r title expr; do
   checked=$((checked+1))
   n=$(series_count "$expr")
-  if [ -n "$n" ] && [ "$n" -gt 0 ]; then pass "panel '$title' ($n series)"; else fail "panel '$title' returned no data: $expr"; fi
+  if [ -n "$n" ] && [ "$n" -gt 0 ]; then pass "panel '$title' ($n series)"; else fail "panel '$title' returned no data (empty result): $expr"; fi
 done < <(python3 -I -c '
 import json,sys
 for p in json.load(open(sys.argv[1]))["panels"]:
