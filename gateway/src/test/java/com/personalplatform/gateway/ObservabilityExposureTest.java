@@ -47,6 +47,10 @@ class ObservabilityExposureTest extends GatewayTestBase {
         String scrape = new String(management().get().uri("/actuator/prometheus").exchange()
                 .expectStatus().isOk().expectBody().returnResult().getResponseBody());
         assertThat(scrape).contains("http_server_requests");
+        // The routed request itself was instrumented: a gateway series exists for the shared route (routes have no
+        // path template, so the route id is the label that names what was served).
+        assertThat(scrape).containsPattern(
+                "(?m)^http_client_requests_seconds_count\\{[^}]*http_status_code=\"200\"[^}]*spring_cloud_gateway_route_id=\"shared\"[^}]*\\} [1-9]");
         assertThat(scrape).doesNotContainPattern("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}");
     }
 

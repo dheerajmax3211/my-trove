@@ -62,6 +62,8 @@ class ObservabilityExposureTest extends AbstractPlatformTest {
                         .authorities(new SimpleGrantedAuthority("apps:manage"))));
         String scrape = fetch(managementPort, "/actuator/prometheus", null).body();
         assertThat(scrape).contains("http_server_requests");
+        // The series for the request just made carries the route template; without it the UUID check below proves nothing.
+        assertThat(scrape).contains("uri=\"/v1/developer/apps/{id}\"");
         assertThat(scrape).doesNotContainPattern("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}");
     }
 
