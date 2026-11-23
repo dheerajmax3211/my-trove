@@ -45,7 +45,10 @@ const all = {
   },
 };
 const only = __ENV.SCENARIO;
-const scenarios = only && all[only] ? { [only]: all[only] } : all;
+if (only && !Object.prototype.hasOwnProperty.call(all, only)) {
+  throw new Error(`SCENARIO must be unset, "steady" or "probe"; got "${only}"`);
+}
+const scenarios = only ? { [only]: all[only] } : all;
 
 const thresholds = {};
 if (scenarios.steady) {
@@ -62,6 +65,9 @@ if (scenarios.probe) {
     'rate_limited_responses{scenario:probe}': ['count>=1'],
     'retry_after_on_429{scenario:probe}': ['rate==1'],
     'server_error_responses{scenario:probe}': ['count==0'],
+    // Anything but 200/429 (status 0 from a timeout or reset, 401, 5xx) fails the probe, so a
+    // broken batch cannot pass on its 429 count alone. Sign-in failures count here too.
+    'http_req_failed{scenario:probe}': ['rate==0'],
   });
 }
 thresholds['server_error_responses'] = ['count==0'];
@@ -116,7 +122,7 @@ export function probe(data) {
   const requests = [];
   for (let i = 0; i < 200; i++) {
     requests.push(['GET', `${BASE_URL}${READ_PATHS[0]}`, null,
-      { headers: { Authorization: `Bearer ${t}` }, tags: { endpoint: 'gateway' } }]);
+      { headers: { Authorization: `Bearer ${t}` }, tags: { endpoint: 'gateway' }, timeout: '20s' }]);
   }
   http.batch(requests).forEach(record);
 }

@@ -14,7 +14,7 @@ The FREE plan allows **120 requests per minute per user** (gateway `PlanLimits.S
 ## Thresholds
 
 - steady: `http_req_duration{endpoint:gateway}` p(95) < 300 ms; `http_req_failed` rate < 1%; `rate_limited_responses` count == 0.
-- probe: `rate_limited_responses` count >= 1; `retry_after_on_429` rate == 1; `server_error_responses` count == 0.
+- probe: `rate_limited_responses` count >= 1; `retry_after_on_429` rate == 1; `server_error_responses` count == 0; `http_req_failed` rate == 0 (catches timeouts, resets, 401, 5xx; each probe request has a 20s timeout).
 - all: `server_error_responses` count == 0.
 
 ## Prerequisites
@@ -45,6 +45,6 @@ docker run --rm --add-host host.docker.internal:host-gateway -v "$PWD/dev/load:/
   grafana/k6 run /load/gateway.js
 ```
 
-With no `SCENARIO`, both scenarios run in one go: the probe has `startTime` 2m30s, after steady ends. To run one alone, add `-e SCENARIO=steady` or `-e SCENARIO=probe` (the chosen scenario then starts at 0s). Do not use `--vus`/`--duration`; they override the scenarios.
+With no `SCENARIO`, both scenarios run in one go: the probe has `startTime` 2m30s, after steady ends. To run one alone, add `-e SCENARIO=steady` or `-e SCENARIO=probe` (the chosen scenario then starts at 0s). Any other `SCENARIO` value aborts with an error. Do not use `--vus`/`--duration`; they override the scenarios.
 
 The gateway's rate-limit buckets are in memory and fixed-window. If you re-run the probe within a minute using the same `RUN_ID`, the user's bucket is already empty; by default `RUN_ID` is the start time, so every run uses fresh users.
