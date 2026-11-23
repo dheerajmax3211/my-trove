@@ -1,0 +1,50 @@
+package com.personalplatform.consent.config;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.personalplatform.consent.token.GatewayTokenConverter;
+import com.personalplatform.consent.keys.SigningKeyService;
+import java.time.Clock;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/** Runs without Docker: only the security chains, no database. */
+@WebMvcTest(controllers = ActuatorChainTest.Probe.class, properties = {"management.server.port=0"})
+@Import(SecurityConfig.class)
+class ActuatorChainTest {
+
+    @Autowired MockMvc mvc;
+    @MockitoBean @Qualifier("firebase") JwtDecoder firebaseDecoder;
+    @MockitoBean @Qualifier("gateway") JwtDecoder gatewayDecoder;
+
+    @MockitoBean GatewayTokenConverter converter;
+    @MockitoBean SigningKeyService keys;
+    @MockitoBean ConsentProperties props;
+    @MockitoBean Clock clock;
+    @Test
+    void theMainPortStillRefusesPrometheusWithoutAToken() throws Exception {
+        mvc.perform(get("/actuator/prometheus")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void theApiStillNeedsAToken() throws Exception {
+        mvc.perform(get("/v1/probe")).andExpect(status().isUnauthorized());
+    }
+
+    @RestController
+    static class Probe {
+        @GetMapping("/v1/probe")
+        String probe() {
+            return "ok";
+        }
+    }
+}

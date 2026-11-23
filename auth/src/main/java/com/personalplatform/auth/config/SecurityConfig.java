@@ -8,8 +8,10 @@ import com.personalplatform.auth.user.UserService;
 import java.util.HashSet;
 import java.util.Set;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -78,5 +80,20 @@ public class SecurityConfig {
             }
             return new JwtAuthenticationToken(jwt, authorities, jwt.getSubject());
         };
+    }
+
+    /**
+     * Actuator endpoints for the private management port (Prometheus scrape, health). {@link EndpointRequest} only
+     * matches in the management context when the management port differs from the main one, so the main port never
+     * serves these paths and its own chains still answer 401 for them. The management port must stay private.
+     */
+    @Bean
+    @Order(0)
+    SecurityFilterChain actuatorChain(HttpSecurity http) throws Exception {
+        http.securityMatcher(EndpointRequest.toAnyEndpoint())
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
     }
 }
