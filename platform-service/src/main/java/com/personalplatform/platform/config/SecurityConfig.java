@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -20,7 +21,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * Two stateless chains, both answering errors with RFC 9457 problem bodies:
+ * Three stateless chains (the actuator one at order 0, see {@link #actuatorChain}), both answering errors with RFC 9457 problem bodies:
  * <ol>
  *   <li><b>order 1, {@code /internal/**}</b>: service-to-service, shared secret in {@code X-Internal-Key}
  *       ({@code app.internal.api-key}); no JWT is looked at, wrong or missing key is 401.</li>
@@ -44,6 +45,21 @@ class SecurityConfig {
                 .addFilterBefore(new InternalApiKeyFilter(internalKey), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(e -> e.authenticationEntryPoint(unauthorized("Missing or invalid internal key"))
                         .accessDeniedHandler(forbidden()));
+        return http.build();
+    }
+
+    /**
+     * Actuator endpoints for the private management port (Prometheus scrape, health). {@link EndpointRequest} only
+     * matches in the management context when the management port differs from the main one, so the main port never
+     * serves these paths and its apiChain still answers 401 for them. The management port must stay private.
+     */
+    @Bean
+    @Order(0)
+    SecurityFilterChain actuatorChain(HttpSecurity http) throws Exception {
+        http.securityMatcher(EndpointRequest.toAnyEndpoint())
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
 
