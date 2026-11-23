@@ -49,5 +49,35 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+  # Observability (opt-in): docker compose -f dev/docker-compose.yml --profile observability up -d
+  # Prometheus http://localhost:9090, Jaeger UI http://localhost:16686, Grafana http://localhost:3000 (admin/admin).
+  # Services run on the host; Prometheus reaches their management ports through host.docker.internal.
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    profiles: ["observability"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  jaeger:
+    image: jaegertracing/all-in-one:1.76.0
+    profiles: ["observability"]
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+  grafana:
+    image: grafana/grafana:12.2.0
+    profiles: ["observability"]
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+      - jaeger
 volumes:
   dev-pgdata:

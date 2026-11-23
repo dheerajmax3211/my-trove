@@ -62,9 +62,13 @@ export MAIL_PORT="${MAIL_PORT:-1025}"
 export MAIL_PUBLIC_BASE_URL="${MAIL_PUBLIC_BASE_URL:-http://localhost:5190}"
 export TEMPORAL_ENABLED="${TEMPORAL_ENABLED:-true}"   # the compose file starts a Temporal dev server on :7233; set false to run without
 
+# Management (actuator/prometheus) port is main port + 1000; every service exports traces to the local Jaeger.
+export OTLP_TRACES_ENDPOINT="${OTLP_TRACES_ENDPOINT:-http://localhost:4318/v1/traces}"
+
 wanted=("$@")
 for entry in "${ALL[@]}"; do
   name="${entry%%:*}"
+  export MANAGEMENT_PORT=$(( ${entry##*:} + 1000 ))
   if [ ${#wanted[@]} -gt 0 ] && [[ ! " ${wanted[*]} " =~ " $name " ]]; then continue; fi
   jar="$(ls "$ROOT/$name"/target/*-SNAPSHOT.jar 2>/dev/null | head -1 || true)"
   [ -n "$jar" ] || { echo "no jar for $name: run ./mvnw -DskipTests package" >&2; exit 1; }

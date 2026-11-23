@@ -1,0 +1,66 @@
+# Scrapes each service's management port. Services run on the host, so targets go through host.docker.internal.
+# The `application` label is set here (Boot does not add it by default) so dashboards can group by service.
+global:
+  scrape_interval: 5s
+  evaluation_interval: 15s
+scrape_configs:
+  - job_name: gateway
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:9080"]
+        labels:
+          application: gateway
+  - job_name: auth
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:9081"]
+        labels:
+          application: auth
+  - job_name: shared-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:9082"]
+        labels:
+          application: shared-service
+  - job_name: waiting-on
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:9083"]
+        labels:
+          application: waiting-on
+  - job_name: consent-gateway
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:9084"]
+        labels:
+          application: consent-gateway
+  - job_name: home-pulse
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:9085"]
+        labels:
+          application: home-pulse
+  - job_name: ask-your-life
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:9086"]
+        labels:
+          application: ask-your-life
+  - job_name: digital-legacy
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:9087"]
+        labels:
+          application: digital-legacy
+  - job_name: family-treasury
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:9088"]
+        labels:
+          application: family-treasury
+  - job_name: platform-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:9089"]
+        labels:
+          application: platform-service
