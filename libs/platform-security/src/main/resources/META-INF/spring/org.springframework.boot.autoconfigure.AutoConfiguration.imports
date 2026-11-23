@@ -1,1 +1,2 @@
 com.personalplatform.security.PlatformSecurityAutoConfiguration
+com.personalplatform.security.ActuatorSecurityAutoConfiguration
