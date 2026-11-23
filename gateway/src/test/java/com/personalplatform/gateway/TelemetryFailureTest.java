@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.micrometer.tracing.opentelemetry.autoconfigure.otlp.OtlpTracingProperties;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -17,8 +19,17 @@ class TelemetryFailureTest extends GatewayTestBase {
 
     @DynamicPropertySource
     static void closedTraceBackend(DynamicPropertyRegistry registry) {
-        registry.add("management.otlp.tracing.endpoint", () -> "http://localhost:1/v1/traces");
+        registry.add("management.opentelemetry.tracing.export.otlp.endpoint", () -> "http://localhost:1/v1/traces");
         registry.add("management.tracing.sampling.probability", () -> "1.0");
+    }
+
+    @Autowired
+    private OtlpTracingProperties otlpTracing;
+
+    @Test
+    void theExporterIsPointedAtTheClosedPort() {
+        // Fails if the property key is renamed again: an ignored override would leave the default endpoint here.
+        assertThat(otlpTracing.getEndpoint()).isEqualTo("http://localhost:1/v1/traces");
     }
 
     @Test
