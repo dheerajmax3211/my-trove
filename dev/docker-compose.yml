@@ -61,7 +61,7 @@ services:
     volumes:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
   jaeger:
-    image: jaegertracing/all-in-one:1.76.0
+    image: jaegertracing/jaeger:2.23.0
     profiles: ["observability"]
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
