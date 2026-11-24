@@ -21,7 +21,7 @@ The FREE plan allows **120 requests per minute per user** (gateway `PlanLimits.S
 
 The stack must be up (`dev/up.sh`): gateway on `localhost:8080`, dev identity provider on `localhost:9100`.
 
-**The k6 image `grafana/k6` has not been verified (tag, digest, availability), and nothing has been pulled. The owner must approve the pull before the first run.** The commands use the untagged name; pin a tag once one is chosen.
+The k6 image is pinned to `grafana/k6:1.8.3` (tag verified on Docker Hub, pulled with owner approval on 2026-11-24).
 
 ## Running
 
@@ -33,7 +33,7 @@ macOS (Docker Desktop; `--network host` does not reach the host's localhost, so 
 docker run --rm -v "$PWD/dev/load:/load" \
   -e BASE_URL=http://host.docker.internal:8080 \
   -e IDP_URL=http://host.docker.internal:9100 \
-  grafana/k6 run /load/gateway.js
+  grafana/k6:1.8.3 run /load/gateway.js
 ```
 
 Linux:
@@ -42,7 +42,7 @@ Linux:
 docker run --rm --add-host host.docker.internal:host-gateway -v "$PWD/dev/load:/load" \
   -e BASE_URL=http://host.docker.internal:8080 \
   -e IDP_URL=http://host.docker.internal:9100 \
-  grafana/k6 run /load/gateway.js
+  grafana/k6:1.8.3 run /load/gateway.js
 ```
 
 With no `SCENARIO`, both scenarios run in one go: the probe has `startTime` 2m30s, after steady ends. To run one alone, add `-e SCENARIO=steady` or `-e SCENARIO=probe` (the chosen scenario then starts at 0s). Any other `SCENARIO` value aborts with an error. Do not use `--vus`/`--duration`; they override the scenarios.
