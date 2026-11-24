@@ -31,7 +31,7 @@ echo "== waiting 20s for scrape and export"; sleep 20
 n=$(series_count 'http_server_requests_seconds_count{application="gateway"}')
 if [ -n "$n" ] && [ "$n" -gt 0 ]; then pass "Prometheus has gateway request metrics ($n series)"; else fail "Prometheus ($PROM) has no http_server_requests_seconds_count for gateway"; fi
 
-if curl -sf --max-time 10 "$JAEGER/api/services" | python3 -c 'import json,sys; sys.exit(0 if "gateway" in json.load(sys.stdin).get("data",[]) else 1)' 2>/dev/null; then
+if curl -sf --max-time 10 "$JAEGER/api/v3/services" | python3 -c 'import json,sys; sys.exit(0 if "gateway" in json.load(sys.stdin).get("services",[]) else 1)' 2>/dev/null; then
   pass "Jaeger lists the gateway service"; else fail "Jaeger ($JAEGER) does not list gateway"; fi
 
 # Dashboard panels. The 429 panel is checked after the rate-limit probe (Task 5), so it is skipped here.
