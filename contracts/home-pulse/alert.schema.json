@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Home Pulse alert (AlertResponse)",
+  "description": "GET /v1/alerts/{id}; also the body of acknowledge; an element of the alert list and of health.activeAlerts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "applianceId", "applianceName", "kind", "severity", "status", "message", "evidence", "openedAt", "updatedAt",
+    "acknowledgedAt", "resolvedAt", "underWarranty", "warrantyEndDate", "daysToWarrantyEnd", "lastServiceDate",
+    "nextServiceDate", "serviceOverdue", "simulated"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "applianceId": { "type": "string" },
+    "applianceName": { "type": "string" },
+    "kind": { "enum": ["POWER_SHIFT", "DUTY_CYCLE_DRIFT", "STUCK_ON", "STOPPED", "NO_DATA"] },
+    "severity": { "enum": ["INFO", "WARNING", "CRITICAL"] },
+    "status": { "enum": ["OPEN", "ACKNOWLEDGED", "RESOLVED"] },
+    "message": { "type": "string" },
+    "evidence": { "type": "object" },
+    "openedAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "acknowledgedAt": { "type": ["string", "null"], "format": "date-time" },
+    "resolvedAt": { "type": ["string", "null"], "format": "date-time" },
+    "underWarranty": { "type": "boolean" },
+    "warrantyEndDate": { "type": ["string", "null"], "format": "date" },
+    "daysToWarrantyEnd": { "type": ["integer", "null"] },
+    "lastServiceDate": { "type": ["string", "null"], "format": "date" },
+    "nextServiceDate": { "type": ["string", "null"], "format": "date" },
+    "serviceOverdue": { "type": "boolean" },
+    "simulated": { "type": "boolean" }
+  }
+}

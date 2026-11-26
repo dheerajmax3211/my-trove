@@ -23,6 +23,8 @@ export interface AlertDto {
   lastServiceDate: string | null
   nextServiceDate: string | null
   serviceOverdue: boolean
+  /** Opened by the built-in simulator rather than a real device. */
+  simulated: boolean
 }
 
 /** What the inbox shows. `ACTIVE` is the service default (open and acknowledged, no history). */

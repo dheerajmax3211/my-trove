@@ -173,6 +173,8 @@ export function createMockApi(options: MockApiOptions): MockApi {
       lastServiceDate: owner.lastServiceDate,
       nextServiceDate: owner.nextServiceDate,
       serviceOverdue: w.serviceOverdue,
+      // The service always sends the flag; stored seed alerts leave it out when false.
+      simulated: a.simulated === true,
     }
   }
 

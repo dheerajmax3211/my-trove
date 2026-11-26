@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Home Pulse alert list",
+  "description": "GET /v1/alerts (home page, Today feed).",
+  "type": "array",
+  "items": { "$ref": "alert.schema.json" }
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Home Pulse appliance (ApplianceResponse)",
+  "description": "GET /v1/appliances/{id}; also the body of create and update.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "name", "type", "location", "purchaseDate", "warrantyEndDate", "lastServiceDate", "nextServiceDate", "notes",
+    "underWarranty", "daysToWarrantyEnd", "serviceOverdue", "daysToNextService", "createdAt", "updatedAt"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "type": { "enum": ["FRIDGE", "AIR_CONDITIONER", "WATER_PUMP", "WASHING_MACHINE", "OTHER"] },
+    "location": { "type": ["string", "null"] },
+    "purchaseDate": { "type": ["string", "null"], "format": "date" },
+    "warrantyEndDate": { "type": ["string", "null"], "format": "date" },
+    "lastServiceDate": { "type": ["string", "null"], "format": "date" },
+    "nextServiceDate": { "type": ["string", "null"], "format": "date" },
+    "notes": { "type": ["string", "null"] },
+    "underWarranty": { "type": "boolean" },
+    "daysToWarrantyEnd": { "type": ["integer", "null"] },
+    "serviceOverdue": { "type": "boolean" },
+    "daysToNextService": { "type": ["integer", "null"] },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  }
+}

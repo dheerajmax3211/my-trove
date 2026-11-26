@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Home Pulse appliance list",
+  "description": "GET /v1/appliances (the product's home page).",
+  "type": "array",
+  "items": { "$ref": "appliance.schema.json" }
+}

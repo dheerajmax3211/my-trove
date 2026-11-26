@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Home Pulse reading series (ReadingsService.Series)",
+  "description": "GET /v1/appliances/{id}/readings?from=&to=&resolution= (the appliance chart).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["applianceId", "from", "to", "resolution", "source", "simulated", "points"],
+  "properties": {
+    "applianceId": { "type": "string" },
+    "from": { "type": "string", "format": "date-time" },
+    "to": { "type": "string", "format": "date-time" },
+    "resolution": { "enum": ["RAW", "ONE_MINUTE", "ONE_HOUR", "ONE_DAY"] },
+    "source": { "enum": ["DEVICE", "MANUAL", "SIMULATED", null] },
+    "simulated": { "type": "boolean" },
+    "points": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ts", "avgWatts", "minWatts", "maxWatts", "avgVolts", "avgAmps", "samples"],
+        "properties": {
+          "ts": { "type": "string", "format": "date-time" },
+          "avgWatts": { "type": "number" },
+          "minWatts": { "type": "number" },
+          "maxWatts": { "type": "number" },
+          "avgVolts": { "type": ["number", "null"] },
+          "avgAmps": { "type": ["number", "null"] },
+          "samples": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

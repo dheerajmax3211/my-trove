@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Home Pulse appliance health (ApplianceHealth)",
+  "description": "GET /v1/appliances/{id}/health (the appliance page).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "applianceId", "name", "status", "baselineStatus", "baselineLearnedAt", "baseline", "lastReadingAt", "last24h",
+    "activeAlerts", "service", "simulated", "source"
+  ],
+  "properties": {
+    "applianceId": { "type": "string" },
+    "name": { "type": "string" },
+    "status": { "enum": ["HEALTHY", "WARNING", "CRITICAL", "LEARNING", "NO_DEVICE"] },
+    "baselineStatus": { "enum": ["NONE", "LEARNING", "READY"] },
+    "baselineLearnedAt": { "type": ["string", "null"], "format": "date-time" },
+    "baseline": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": [
+        "standbyWatts", "peakWatts", "onThresholdWatts", "switching", "onLevelMedian", "onLevelSpread", "dutyMedian",
+        "dutySpread", "cycleMinutesMedian", "cycleMinutesSpread", "maxOnRunMinutes", "maxOffRunMinutes", "windowsUsed",
+        "learnedFrom", "learnedTo"
+      ],
+      "properties": {
+        "standbyWatts": { "type": "number" },
+        "peakWatts": { "type": "number" },
+        "onThresholdWatts": { "type": "number" },
+        "switching": { "type": "boolean" },
+        "onLevelMedian": { "type": "number" },
+        "onLevelSpread": { "type": "number" },
+        "dutyMedian": { "type": "number" },
+        "dutySpread": { "type": "number" },
+        "cycleMinutesMedian": { "type": "number" },
+        "cycleMinutesSpread": { "type": "number" },
+        "maxOnRunMinutes": { "type": "number" },
+        "maxOffRunMinutes": { "type": "number" },
+        "windowsUsed": { "type": "integer" },
+        "learnedFrom": { "type": "string", "format": "date-time" },
+        "learnedTo": { "type": "string", "format": "date-time" }
+      }
+    },
+    "lastReadingAt": { "type": ["string", "null"], "format": "date-time" },
+    "last24h": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["avgWatts", "maxWatts", "energyKwh", "dutyPct", "minutesWithData"],
+      "properties": {
+        "avgWatts": { "type": "number" },
+        "maxWatts": { "type": "number" },
+        "energyKwh": { "type": "number" },
+        "dutyPct": { "type": ["number", "null"] },
+        "minutesWithData": { "type": "integer" }
+      }
+    },
+    "activeAlerts": { "type": "array", "items": { "$ref": "alert.schema.json" } },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "underWarranty", "warrantyEndDate", "daysToWarrantyEnd", "lastServiceDate", "nextServiceDate", "serviceOverdue",
+        "daysToNextService"
+      ],
+      "properties": {
+        "underWarranty": { "type": "boolean" },
+        "warrantyEndDate": { "type": ["string", "null"], "format": "date" },
+        "daysToWarrantyEnd": { "type": ["integer", "null"] },
+        "lastServiceDate": { "type": ["string", "null"], "format": "date" },
+        "nextServiceDate": { "type": ["string", "null"], "format": "date" },
+        "serviceOverdue": { "type": "boolean" },
+        "daysToNextService": { "type": ["integer", "null"] }
+      }
+    },
+    "simulated": { "type": "boolean" },
+    "source": { "enum": ["DEVICE", "MANUAL", "SIMULATED", null] }
+  }
+}

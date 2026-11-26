@@ -6,6 +6,7 @@
 import type { ProductModule } from '@platform/workspace-kit'
 import { describe, expect, it } from 'vitest'
 import { productModule as consent } from '@platform/consent/module'
+import { productModule as homePulse } from '@platform/home-pulse/module'
 import { productModule as waitingOn } from '@platform/waiting-on/module'
 import { validate, type Schema } from './validate'
 
@@ -148,5 +149,42 @@ describe('consent demo API', () => {
     c('grant.schema.json', grant)
     c('request.schema.json', await call('POST', `/v1/owner/requests/${pending[1]!.id}/deny`, {}))
     c('grant.schema.json', await call('POST', `/v1/owner/grants/${grant.id}/revoke`))
+  })
+})
+
+describe('home-pulse demo API', () => {
+  const call = client(homePulse)
+  const c = (file: string, body: unknown) => expectContract('home-pulse', file, body)
+
+  it('home and Today: appliances, alerts, reminders; then each appliance page', async () => {
+    const appliances = (await call('GET', '/v1/appliances')) as { id: string }[]
+    c('appliance-list.schema.json', appliances)
+    c('alert-list.schema.json', await call('GET', '/v1/alerts'))
+    c('alert-list.schema.json', await call('GET', '/v1/alerts?status=OPEN'))
+    c('reminder-list.schema.json', await call('GET', '/v1/reminders'))
+    const now = Date.now()
+    const from = new Date(now - 24 * 3600_000).toISOString()
+    const to = new Date(now).toISOString()
+    for (const { id } of appliances) {
+      c('appliance.schema.json', await call('GET', `/v1/appliances/${id}`))
+      c('health.schema.json', await call('GET', `/v1/appliances/${id}/health`))
+      c(
+        'readings.schema.json',
+        await call(
+          'GET',
+          `/v1/appliances/${id}/readings?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&resolution=ONE_HOUR`,
+        ),
+      )
+    }
+  })
+
+  it('writes: create an appliance and acknowledge an alert', async () => {
+    c(
+      'appliance.schema.json',
+      await call('POST', '/v1/appliances', { name: 'Contract fridge', type: 'FRIDGE' }),
+    )
+    const alerts = (await call('GET', '/v1/alerts?status=OPEN')) as { id: string }[]
+    c('alert.schema.json', await call('GET', `/v1/alerts/${alerts[0]!.id}`))
+    c('alert.schema.json', await call('POST', `/v1/alerts/${alerts[0]!.id}/ack`))
   })
 })

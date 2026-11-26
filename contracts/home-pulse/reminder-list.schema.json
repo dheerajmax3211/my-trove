@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Home Pulse reminders (Reminder[])",
+  "description": "GET /v1/reminders (home page, Today feed).",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["applianceId", "applianceName", "type", "source", "dueDate", "daysUntil", "highPriority", "message"],
+    "properties": {
+      "applianceId": { "type": "string" },
+      "applianceName": { "type": "string" },
+      "type": { "enum": ["SERVICE_OVERDUE", "SERVICE_DUE", "WARRANTY_ENDING", "WARRANTY_CLAIM_WINDOW"] },
+      "source": { "enum": ["SERVICE_DATE", "WARRANTY_DATE", "ALERT"] },
+      "dueDate": { "type": "string", "format": "date" },
+      "daysUntil": { "type": "integer" },
+      "highPriority": { "type": "boolean" },
+      "message": { "type": "string" }
+    }
+  }
+}
