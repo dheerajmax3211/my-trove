@@ -1,0 +1,21 @@
+# Keep build contexts small and free of secrets. The service image only needs <module>/target/*.jar;
+# the web image only needs ui-common/ sources and deploy/docker/nginx-spa.conf.
+.git
+.claude
+.superpowers
+**/node_modules
+**/dist
+**/coverage
+**/.env
+**/.env.local
+**/.env.*.local
+dev/.state
+data
+docs
+**/src/test
+**/target/classes
+**/target/test-classes
+**/target/generated-*
+**/target/surefire-reports
+**/target/failsafe-reports
+**/target/*.original
