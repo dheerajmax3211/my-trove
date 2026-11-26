@@ -20,7 +20,7 @@ No service account key, no billing and no Firestore are needed. Do not paste ser
 FIREBASE_PROJECT_ID=your-project-id \
 FIREBASE_API_KEY=AIza... \
 FIREBASE_APP_ID=1:1234567890:web:abcdef \
-dev/use-firebase.sh                       # rewrites ui-common/apps/*/.env.local
+dev/use-firebase.sh                       # rewrites the workspace's and site's .env.local
 
 dev/down.sh
 REAL_FIREBASE=1 FIREBASE_PROJECT_ID=your-project-id \
@@ -33,7 +33,7 @@ Restart the `pnpm ... dev` servers after changing `.env.local`. To go back: `dev
 
 ## 3. Check it
 
-- Open http://localhost:5181, Continue with Google, pick your account. The header should show your email and the
+- Open http://localhost:5190 (the workspace), Continue with Google, pick your account. The header should show your email and the
   Admin link should work (roles come from Postgres via the auth service).
 - A 401 from a service with a valid sign-in almost always means `FIREBASE_PROJECT_ID` differs between the apps'
   `.env.local` and the services. `dev/.state/logs/<service>.log` shows the rejection reason.

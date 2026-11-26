@@ -4,7 +4,7 @@
 // product's main flow in a real browser and asserts what the user sees. Complements dev/e2e-waiting-consent-ask.sh,
 // which proves the same flows through the API.
 //
-//   dev/web.sh all                                  # start the product apps (5182, 5183, 5185 among them)
+//   dev/web.sh                                      # the workspace (5190); every product is a module inside it
 //   PLAYWRIGHT_CORE=/path/to/playwright-core/index.mjs node dev/e2e-waiting-consent-ask-ui.mjs
 //
 // Needs the playwright-core package (not a repo dependency) and a Chromium: set CHROME_PATH to an installed
@@ -19,9 +19,10 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const SHOTS = resolve(HERE, '.state', 'e2e-shots');
 mkdirSync(SHOTS, { recursive: true });
 
-const WAITING_ON = process.env.WAITING_ON_URL ?? 'http://localhost:5182';
-const CONSENT = process.env.CONSENT_URL ?? 'http://localhost:5183';
-const ASK = process.env.ASK_URL ?? 'http://localhost:5185';
+const WS = (process.env.WORKSPACE_URL ?? 'http://localhost:5190').replace(/\/+$/, '');
+const WAITING_ON = `${WS}/app/waiting-on`;
+const CONSENT = `${WS}/app/consent`;
+const ASK = `${WS}/app/ask-your-life`;
 const MEMBER = process.env.MEMBER_EMAIL ?? 'member@example.test';
 const IDP = process.env.IDP_URL ?? 'http://localhost:9100';
 const RUN = Date.now();
@@ -51,27 +52,24 @@ async function check(name, fn) {
 const expect = (cond, msg) => {
   if (!cond) throw new Error(msg);
 };
-// The dev identity provider issues a one-time sign-in link bound to the address and sends nothing. The product apps
-// do not display it (the workspace does), so this asks the provider for the same link and opens it, as a user would.
+// Signs in to the workspace through its dev account chooser (the same path a person takes with the dev identity
+// provider), as the seeded member, and skips the first-run wizard if it shows.
 async function signIn(base) {
-  const issued = await (
-    await fetch(`${IDP}/link`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email: MEMBER }),
-    })
-  ).json();
-  await page.goto(`${base}/?mode=signIn&oobCode=${encodeURIComponent(issued.code)}`, { waitUntil: 'networkidle' });
-  await page.getByLabel('Email').fill(MEMBER);
-  await page.getByRole('button', { name: 'Finish sign-in' }).click();
+  await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+  const google = page.getByRole('button', { name: 'Continue with Google' });
+  if (!(await google.count())) return; // already signed in
+  await google.first().click();
+  await page.getByRole('button', { name: new RegExp(`^Sign in as Member, ${MEMBER}$`) }).click();
   await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(1200);
+  const skip = page.getByRole('button', { name: 'Skip for now' });
+  await skip.first().waitFor({ state: 'visible', timeout: 6000 }).then(() => skip.first().click()).catch(() => {});
+  await page.waitForTimeout(800);
 }
 const mainText = async () => page.locator('main').innerText();
 const shot = (name) => page.screenshot({ path: resolve(SHOTS, `${name}.png`), fullPage: true });
 
 console.log('== Waiting On');
-await signIn(WAITING_ON);
+await signIn(WS);
 await check('the first screen says what it does and that you send the letters', async () => {
   await page.goto(WAITING_ON + '/', { waitUntil: 'networkidle' });
   expect((await mainText()).includes('letters'), 'home does not mention letters');
@@ -108,7 +106,7 @@ await check('the paid reply closes the item through the follow-up workflow', asy
 });
 
 console.log('== Consent');
-await signIn(CONSENT);
+// already signed in to the workspace
 await check('the overview says what Consent does, in one sentence', async () => {
   await page.goto(CONSENT + '/', { waitUntil: 'networkidle' });
   expect((await mainText()).includes('take it back any time'), 'overview does not state the product line');
@@ -133,7 +131,7 @@ await check('the access history and audit pages load', async () => {
 });
 
 console.log('== Ask Your Life');
-await signIn(ASK);
+// already signed in to the workspace
 const phrase = `Nonna's lasagne (e2e ${RUN}): three layers, a bechamel white sauce.`;
 await check('add a note and see it indexed', async () => {
   await page.goto(ASK + '/add', { waitUntil: 'networkidle' });
@@ -144,15 +142,17 @@ await check('add a note and see it indexed', async () => {
 });
 await check('find it by what you remember, and say why', async () => {
   await page.goto(ASK + '/', { waitUntil: 'networkidle' });
-  const box = page.getByRole('searchbox').first();
+  // the product's own box, not the workspace header's command search
+  const box = page.getByLabel('Search your notes, documents and receipts');
   await box.fill('that pasta recipe with the white sauce');
   await box.press('Enter');
   await page.getByText(`Lasagne e2e ${RUN}`).first().waitFor({ timeout: 15000 });
   await shot('ask-results');
 });
-await check('the semantic and hybrid modes say they are a stand-in', async () => {
+await check('semantic search says honestly what it is: a small local model', async () => {
   const text = await mainText();
-  expect(text.includes('stand-in') || text.includes('Stand-in'), 'search modes do not say they are a stand-in');
+  expect(text.includes('small local model'), 'the semantic mode does not explain its model');
+  expect(!text.includes('stand-in'), 'the page still calls semantic search a stand-in');
 });
 
 await browser.close();

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Point every web app at a real Firebase project, or back at the local dev identity provider.
+# Point the web apps (workspace and public site) at a real Firebase project, or back at the local dev identity provider.
 #   FIREBASE_PROJECT_ID=my-proj FIREBASE_API_KEY=AIza... FIREBASE_APP_ID=1:123:web:abc dev/use-firebase.sh
 #   dev/use-firebase.sh --dev-idp        # switch back to the local identity provider
-# Optional: FIREBASE_AUTH_DOMAIN (default <project>.firebaseapp.com). Rewrites ui-common/apps/*/.env.local.
+# Optional: FIREBASE_AUTH_DOMAIN (default <project>.firebaseapp.com). Rewrites ui-common/apps/{workspace,site}/.env.local.
 # These values are Firebase *web config* identifiers, not secrets. Service account keys are never needed here.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APPS=(workspace site hub waiting-on consent home-pulse ask-your-life digital-legacy family-treasury)
+APPS=(workspace site)   # the products live inside the workspace; they have no app of their own
 
 if [ "${1:-}" = "--dev-idp" ]; then
   body=$'# Local dev against the real services: run dev/up.sh at the repo root first (see dev/README.md).\nVITE_DEV_IDP_URL=http://localhost:9100\n'
@@ -21,11 +21,9 @@ VITE_FIREBASE_APP_ID=$FIREBASE_APP_ID
 "
 fi
 for app in "${APPS[@]}"; do
-  # Every app talks to the gateway: /api/<service>/v1/... (the hub calls several services, so it takes the bare /api)
   case "$app" in
-    hub|workspace) api="http://localhost:8080/api" ;;   # these call several services through the gateway
-    site)          api="" ;;                             # the public site calls no API
-    *)             api="http://localhost:8080/api/$app" ;;
+    workspace) api="http://localhost:8080/api" ;;   # every product module calls the gateway under /api/<service>
+    site)      api="" ;;                            # the public site calls no API
   esac
   if [ -n "$api" ]; then printf '%sVITE_API_BASE_URL=%s\n' "$body" "$api" > "$ROOT/ui-common/apps/$app/.env.local"
   else printf '%s' "$body" > "$ROOT/ui-common/apps/$app/.env.local"; fi

@@ -67,8 +67,8 @@ export function FirstUse() {
         <p className="wo-detail-note" style={{ maxWidth: '70ch' }}>
           Waiting On does not email anyone for you. It prepares each letter on its day and keeps it
           ready to copy. You send it yourself, then mark the item resolved when the money or the
-          approval arrives. Replies that reach Waiting On by email are read and move the follow-up; a
-          reply that lands in your own inbox can be pasted on the item.
+          approval arrives. Replies that reach Waiting On by email are read and move the follow-up;
+          a reply that lands in your own inbox can be pasted on the item.
         </p>
       </BentoCard>
     </BentoGrid>

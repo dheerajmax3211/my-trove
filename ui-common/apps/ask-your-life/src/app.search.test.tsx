@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { appReady, renderApp, runSearch, searchBox } from './test/renderApp'
 
@@ -9,7 +9,8 @@ describe('search home', () => {
     renderApp()
     await appReady()
     expect(screen.getByRole('heading', { level: 1, name: 'Ask your life' })).toBeInTheDocument()
-    expect(searchBox()).toHaveFocus()
+    // the field focuses itself just after mount; wait for it rather than racing it
+    await waitFor(() => expect(searchBox()).toHaveFocus())
     expect(screen.getByRole('search', { name: 'Search your library' })).toBeInTheDocument()
     const modes = screen.getByRole('group', { name: 'Search mode' })
     expect(within(modes).getByRole('radio', { name: /Hybrid/ })).toBeChecked()
