@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Digital Legacy trustee as the owner sees it (OwnerDtos.TrusteeView)",
+  "description": "An element of GET /v1/legacy/vault/trustees; also the body of PUT /v1/legacy/vault/trustees/{id}/share.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "label", "status", "keyAlgorithm", "publicKey", "keyFingerprint", "shareUploaded", "shareVaultVersion",
+    "shareCurrent", "shareConfirmed", "acceptedAt", "inviteExpiresAt"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "label": { "type": "string" },
+    "status": { "enum": ["INVITED", "ACCEPTED", "SHARE_UPLOADED", "CONFIRMED", "REVOKED"] },
+    "keyAlgorithm": { "type": ["string", "null"] },
+    "publicKey": { "type": ["string", "null"] },
+    "keyFingerprint": { "type": ["string", "null"] },
+    "shareUploaded": { "type": "boolean" },
+    "shareVaultVersion": { "type": ["integer", "null"] },
+    "shareCurrent": { "type": "boolean" },
+    "shareConfirmed": { "type": "boolean" },
+    "acceptedAt": { "type": ["string", "null"], "format": "date-time" },
+    "inviteExpiresAt": { "type": ["string", "null"], "format": "date-time" }
+  }
+}

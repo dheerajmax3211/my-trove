@@ -148,7 +148,7 @@ const absentSummary = (): VaultSummary => ({
   contentRevision: 0,
   ciphertextBytes: 0,
   ciphertextSha256: null,
-  metadata: null,
+  metadata: {}, // the service sends an empty map (OwnerDtos.absent), never null
   hasPolicy: false,
   createdAt: null,
   updatedAt: null,
@@ -156,7 +156,7 @@ const absentSummary = (): VaultSummary => ({
 
 const absentCiphertext = (): CiphertextView => ({
   ciphertext: null,
-  metadata: null,
+  metadata: {}, // the service sends an empty map (OwnerDtos.absent), never null
   vaultVersion: 0,
   sha256: null,
 })

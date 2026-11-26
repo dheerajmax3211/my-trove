@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Digital Legacy audit chain check (OwnerDtos.ChainView)",
+  "description": "GET /v1/legacy/vault/audit/verify.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["intact", "length", "headHash", "firstBadSeq"],
+  "properties": {
+    "intact": { "type": "boolean" },
+    "length": { "type": "integer" },
+    "headHash": { "type": ["string", "null"] },
+    "firstBadSeq": { "type": ["integer", "null"] }
+  }
+}

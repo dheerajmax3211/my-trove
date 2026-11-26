@@ -35,7 +35,7 @@ export async function saveVault(
 /** Downloads the owner's own ciphertext and decrypts it locally. Throws `wrong-key` for a wrong key. */
 export async function openVault(api: OwnerApi, key: Uint8Array): Promise<VaultDocument> {
   const blob = await api.getCiphertext()
-  if (blob.ciphertext === null || blob.metadata === null)
+  if (blob.ciphertext === null)
     throw new Error('There is no vault to open yet')
   return parseDocument(await decryptVault(key, blob.ciphertext, blob.metadata))
 }

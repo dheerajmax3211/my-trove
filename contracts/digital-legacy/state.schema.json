@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Digital Legacy switch state (OwnerDtos.StateView)",
+  "description": "GET /v1/legacy/vault/state (the product's home page and Today feed); also the body of policy, arm, disarm, checkin, pause and resume.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "state", "armed", "epoch", "lastCheckInAt", "nextDueAt", "pausedUntil", "stateEnteredAt", "nextActionAt",
+    "releasedAt", "escalation", "quorum", "pause", "readiness", "policy"
+  ],
+  "properties": {
+    "state": { "enum": ["NONE", "ACTIVE", "GRACE", "ESCALATING", "RELEASE_PENDING", "RELEASED"] },
+    "armed": { "type": "boolean" },
+    "epoch": { "type": "integer" },
+    "lastCheckInAt": { "type": ["string", "null"], "format": "date-time" },
+    "nextDueAt": { "type": ["string", "null"], "format": "date-time" },
+    "pausedUntil": { "type": ["string", "null"], "format": "date-time" },
+    "stateEnteredAt": { "type": ["string", "null"], "format": "date-time" },
+    "nextActionAt": { "type": ["string", "null"], "format": "date-time" },
+    "releasedAt": { "type": ["string", "null"], "format": "date-time" },
+    "escalation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stepsExecuted", "totalSteps"],
+      "properties": { "stepsExecuted": { "type": "integer" }, "totalSteps": { "type": "integer" } }
+    },
+    "quorum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required", "approved", "declined", "trusteesActive", "trusteesHoldingShare", "quorumReachedAt", "releaseNotBefore"
+      ],
+      "properties": {
+        "required": { "type": "integer" },
+        "approved": { "type": "integer" },
+        "declined": { "type": "integer" },
+        "trusteesActive": { "type": "integer" },
+        "trusteesHoldingShare": { "type": "integer" },
+        "quorumReachedAt": { "type": ["string", "null"], "format": "date-time" },
+        "releaseNotBefore": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "pause": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["usedSeconds", "yearlyBudgetSeconds", "maxSingleSeconds"],
+      "properties": {
+        "usedSeconds": { "type": "integer" },
+        "yearlyBudgetSeconds": { "type": "integer" },
+        "maxSingleSeconds": { "type": "integer" }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["armable", "problems"],
+      "properties": {
+        "armable": { "type": "boolean" },
+        "problems": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "policy": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": [
+        "checkInIntervalSeconds", "graceSeconds", "escalationDurationSeconds", "steps", "coolOffSeconds", "quorum",
+        "maxPauseSeconds", "ownerContacts"
+      ],
+      "properties": {
+        "checkInIntervalSeconds": { "type": "integer" },
+        "graceSeconds": { "type": "integer" },
+        "escalationDurationSeconds": { "type": "integer" },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["offsetSeconds", "urgency", "audience", "channels"],
+            "properties": {
+              "offsetSeconds": { "type": "integer" },
+              "urgency": { "enum": ["NOTICE", "WARNING", "URGENT", "FINAL"] },
+              "audience": { "enum": ["OWNER", "TRUSTEES", "ALL"] },
+              "channels": { "type": "array", "items": { "enum": ["PUSH", "EMAIL", "SMS"] } }
+            }
+          }
+        },
+        "coolOffSeconds": { "type": "integer" },
+        "quorum": { "type": "integer" },
+        "maxPauseSeconds": { "type": "integer" },
+        "ownerContacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["channel", "address"],
+            "properties": { "channel": { "enum": ["PUSH", "EMAIL", "SMS"] }, "address": { "type": "string" } }
+          }
+        }
+      }
+    }
+  }
+}

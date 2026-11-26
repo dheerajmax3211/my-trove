@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Digital Legacy vault summary (OwnerDtos.VaultSummary)",
+  "description": "GET /v1/legacy/vault; also the body of create and update. exists=false (state NONE, nulls) when there is no vault yet.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "exists", "state", "armed", "vaultVersion", "contentRevision", "ciphertextBytes", "ciphertextSha256",
+    "metadata", "hasPolicy", "createdAt", "updatedAt"
+  ],
+  "properties": {
+    "id": { "type": ["string", "null"] },
+    "exists": { "type": "boolean" },
+    "state": { "enum": ["NONE", "ACTIVE", "GRACE", "ESCALATING", "RELEASE_PENDING", "RELEASED"] },
+    "armed": { "type": "boolean" },
+    "vaultVersion": { "type": "integer" },
+    "contentRevision": { "type": "integer" },
+    "ciphertextBytes": { "type": "integer" },
+    "ciphertextSha256": { "type": ["string", "null"] },
+    "metadata": { "type": "object" },
+    "hasPolicy": { "type": "boolean" },
+    "createdAt": { "type": ["string", "null"], "format": "date-time" },
+    "updatedAt": { "type": ["string", "null"], "format": "date-time" }
+  }
+}

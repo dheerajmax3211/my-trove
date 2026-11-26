@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Digital Legacy vault ciphertext (OwnerDtos.CiphertextView)",
+  "description": "GET /v1/legacy/vault/ciphertext.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["ciphertext", "metadata", "vaultVersion", "sha256"],
+  "properties": {
+    "ciphertext": { "type": ["string", "null"] },
+    "metadata": { "type": "object" },
+    "vaultVersion": { "type": "integer" },
+    "sha256": { "type": ["string", "null"] }
+  }
+}

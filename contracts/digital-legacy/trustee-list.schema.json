@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Digital Legacy trustee list",
+  "description": "GET /v1/legacy/vault/trustees.",
+  "type": "array",
+  "items": { "$ref": "trustee.schema.json" }
+}

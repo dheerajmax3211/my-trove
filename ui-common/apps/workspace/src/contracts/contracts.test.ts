@@ -7,6 +7,8 @@ import type { ProductModule } from '@platform/workspace-kit'
 import { describe, expect, it } from 'vitest'
 import { productModule as askYourLife } from '@platform/ask-your-life/module'
 import { productModule as consent } from '@platform/consent/module'
+import { productModule as digitalLegacy } from '@platform/digital-legacy/module'
+import { armedScenario } from '@platform/digital-legacy/testing/scenario'
 import { productModule as homePulse } from '@platform/home-pulse/module'
 import { productModule as waitingOn } from '@platform/waiting-on/module'
 import { validate, type Schema } from './validate'
@@ -229,5 +231,41 @@ describe('ask-your-life demo API', () => {
       'ingest.schema.json',
       await call('PUT', `/v1/documents/${created.document.id}`, { text: 'Serviced in April.' }),
     )
+  })
+})
+
+describe('digital-legacy demo API', () => {
+  const c = (file: string, body: unknown) => expectContract('digital-legacy', file, body)
+
+  it('before a vault exists (a new demo session)', async () => {
+    const call = client(digitalLegacy)
+    c('vault.schema.json', await call('GET', '/v1/legacy/vault'))
+    c('state.schema.json', await call('GET', '/v1/legacy/vault/state'))
+    c('ciphertext.schema.json', await call('GET', '/v1/legacy/vault/ciphertext'))
+    c('chain.schema.json', await call('GET', '/v1/legacy/vault/audit/verify'))
+  })
+
+  it('an armed vault with three trustees holding shares (the same mock, set up like its own tests)', async () => {
+    const { h } = await armedScenario()
+    const call = async (method: string, path: string, body?: unknown) => {
+      const response = await h.backend.fetch(`/api${path}`, {
+        method,
+        headers: { authorization: 'Bearer stub-token-1', 'content-type': 'application/json' },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      })
+      if (!response.ok) throw new Error(`${method} ${path}: ${response.status}`)
+      return (await response.json()) as unknown
+    }
+    c('vault.schema.json', await call('GET', '/v1/legacy/vault'))
+    c('state.schema.json', await call('GET', '/v1/legacy/vault/state'))
+    c('state.schema.json', await call('POST', '/v1/legacy/vault/checkin'))
+    c('state.schema.json', await call('POST', '/v1/legacy/vault/pause', { durationSeconds: 3600 }))
+    c('state.schema.json', await call('POST', '/v1/legacy/vault/resume'))
+    c('ciphertext.schema.json', await call('GET', '/v1/legacy/vault/ciphertext'))
+    c('timeline.schema.json', await call('GET', '/v1/legacy/vault/timeline'))
+    c('chain.schema.json', await call('GET', '/v1/legacy/vault/audit/verify'))
+    c('trustee-list.schema.json', await call('GET', '/v1/legacy/vault/trustees'))
+    c('invite.schema.json', await call('POST', '/v1/legacy/vault/trustees', { label: 'Dee' }))
+    c('trustee-list.schema.json', await call('GET', '/v1/legacy/vault/trustees')) // with an INVITED one
   })
 })

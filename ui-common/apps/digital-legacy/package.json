@@ -19,6 +19,7 @@
   },
   "exports": {
     "./module": "./src/module.tsx",
-    "./trustee": "./src/trustee.tsx"
+    "./trustee": "./src/trustee.tsx",
+    "./testing/scenario": "./src/testing/scenario.ts"
   }
 }

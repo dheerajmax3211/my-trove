@@ -42,6 +42,9 @@ export interface VaultMetadata {
   nonce: string
 }
 
+/** What the service sends as `metadata` while no vault exists: an empty map. */
+export type NoMetadata = Record<string, never>
+
 /** The state an owner reads while no vault exists yet (the API answers 200 with this, never 404). */
 export const NO_VAULT_STATE = 'NONE' as const
 
@@ -55,7 +58,8 @@ export interface VaultSummary {
   contentRevision: number
   ciphertextBytes: number
   ciphertextSha256: string | null
-  metadata: VaultMetadata | null
+  /** An empty object (never null) when no vault exists. */
+  metadata: VaultMetadata | NoMetadata
   hasPolicy: boolean
   createdAt: string | null
   updatedAt: string | null
@@ -71,9 +75,9 @@ export interface UpdateVaultRequest extends CreateVaultRequest {
 }
 
 export interface CiphertextView {
-  /** Null (with metadata and sha256) when no vault exists. */
+  /** Null (with sha256; metadata is then empty) when no vault exists. */
   ciphertext: string | null
-  metadata: VaultMetadata | null
+  metadata: VaultMetadata | NoMetadata
   vaultVersion: number
   sha256: string | null
 }

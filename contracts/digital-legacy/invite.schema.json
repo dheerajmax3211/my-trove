@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Digital Legacy trustee invite (OwnerDtos.InviteResponse)",
+  "description": "POST /v1/legacy/vault/trustees.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["trusteeId", "label", "inviteToken", "inviteExpiresAt"],
+  "properties": {
+    "trusteeId": { "type": "string" },
+    "label": { "type": "string" },
+    "inviteToken": { "type": "string" },
+    "inviteExpiresAt": { "type": "string", "format": "date-time" }
+  }
+}
