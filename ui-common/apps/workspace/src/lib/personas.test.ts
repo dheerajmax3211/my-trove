@@ -41,6 +41,14 @@ describe('persona permissions (design 5.2)', () => {
     expect(PERSONA_PERMISSIONS.ADMIN).toContain('support:impersonate')
   })
 
+  it('gives mcp:use (the Trove Assistant and MCP) to DEVELOPER, ADMIN and OWNER only, as auth does', () => {
+    expect(PERSONA_PERMISSIONS.DEVELOPER).toContain('mcp:use')
+    expect(PERSONA_PERMISSIONS.ADMIN).toContain('mcp:use')
+    expect(PERSONA_PERMISSIONS.OWNER).toContain('mcp:use')
+    expect(PERSONA_PERMISSIONS.MEMBER).not.toContain('mcp:use')
+    expect(PERSONA_PERMISSIONS.AUDITOR).not.toContain('mcp:use')
+  })
+
   it('gives OWNER every permission', () => {
     expect([...PERSONA_PERMISSIONS.OWNER].sort()).toEqual([...ALL_PERMISSIONS].sort())
   })

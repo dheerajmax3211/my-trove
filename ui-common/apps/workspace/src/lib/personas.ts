@@ -11,6 +11,7 @@ export const ALL_PERMISSIONS = [
   'sandbox:use',
   'logs:read:own',
   'workspaces:manage',
+  'mcp:use',
   'usage:read:all',
   'apps:read:all',
   'users:read',
@@ -36,6 +37,7 @@ export const PERSONA_PERMISSIONS: Record<Persona, readonly string[]> = {
     'sandbox:use',
     'logs:read:own',
     'workspaces:manage',
+    'mcp:use',
   ],
   AUDITOR: ['usage:read:all', 'users:read', 'audit:read', 'apps:read:all'],
   ADMIN: [
@@ -48,6 +50,7 @@ export const PERSONA_PERMISSIONS: Record<Persona, readonly string[]> = {
     'audit:read',
     'apps:read:all',
     'support:impersonate',
+    'mcp:use',
   ],
   OWNER: ALL_PERMISSIONS,
 }
@@ -95,6 +98,7 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'products:use': 'Use the products',
   'usage:read:self': 'See your own usage',
   'connections:manage': 'Manage apps connected to your data',
+  'mcp:use': 'Ask the Trove Assistant and connect AI agents (MCP)',
   'apps:manage': 'Create and manage developer apps',
   'keys:manage': 'Create and revoke API keys',
   'webhooks:manage': 'Manage webhooks',
@@ -121,7 +125,7 @@ export interface PermissionGroup {
 export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   {
     title: 'Products and your data',
-    permissions: ['products:use', 'usage:read:self', 'connections:manage'],
+    permissions: ['products:use', 'usage:read:self', 'connections:manage', 'mcp:use'],
   },
   {
     title: 'Developer tools',
