@@ -13,6 +13,7 @@ import { AccountPage } from './pages/account/AccountPage'
 import { DeveloperArea } from './developer/DeveloperArea'
 import { HomePage } from './pages/home/HomePage'
 import { SignInPage } from './pages/signin/SignInPage'
+import { TrusteePortalPage } from './pages/trustee/TrusteePortalPage'
 import { NotFoundPage } from './pages/StatusPages'
 import { createRuntime, type Runtime } from './runtime'
 import { WorkspaceShell } from './shell/WorkspaceShell'
@@ -66,7 +67,7 @@ function Gate({ runtime, modules }: { runtime: Runtime; modules: readonly Produc
 }
 
 /**
- * The workspace. Mount it inside a Router. Pass a `runtime` to control auth and transport and
+ * The workspace: the public trustee portal at `/trustee/*`, everything else behind sign-in. Mount it inside a Router. Pass a `runtime` to control auth and transport and
  * `modules` to host something other than the real registry (tests do both).
  */
 export function App({
@@ -80,9 +81,21 @@ export function App({
   return (
     <ThemeProvider>
       <ToastProvider>
-        <AuthProvider client={runtime.authClient}>
-          <Gate runtime={runtime} modules={modules} />
-        </AuthProvider>
+        <Routes>
+          {/* Public: trustees open their Digital Legacy invite here, with no account. */}
+          <Route
+            path="trustee/*"
+            element={<TrusteePortalPage runtime={runtime} modules={modules} />}
+          />
+          <Route
+            path="*"
+            element={
+              <AuthProvider client={runtime.authClient}>
+                <Gate runtime={runtime} modules={modules} />
+              </AuthProvider>
+            }
+          />
+        </Routes>
       </ToastProvider>
     </ThemeProvider>
   )

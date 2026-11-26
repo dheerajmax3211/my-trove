@@ -8,7 +8,8 @@ import { VaultKeyProvider } from './features/vault/VaultKeyContext'
 /**
  * What Digital Legacy exposes to the workspace: the owner's pages only (overview, vault, trustees, check-in
  * policy, timeline). The trustee portal signs in with trustee access tokens rather than the owner's session,
- * so it stays a feature of the standalone app.
+ * so it is a separate export (`@platform/digital-legacy/trustee`) that the workspace serves at `/trustee`,
+ * outside its sign-in.
  *
  * `Providers` holds the in-memory vault key. Leaving the module, signing out or closing the tab unmounts it,
  * and the provider zero-fills the key on the way out. Nothing here writes a key or a plaintext anywhere.

@@ -65,7 +65,7 @@ describe('vault editor', () => {
     const r = renderApp('/vault', { mock: s.h.backend })
 
     expect(await screen.findByRole('heading', { name: 'Unlock your vault' })).toBeInTheDocument()
-    expect(screen.getByText('Vault key locked')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Lock vault' })).not.toBeInTheDocument()
     expect(screen.queryByText(SECRET_BODY)).not.toBeInTheDocument()
 
     await r.user.click(screen.getByLabelText(/Vault key file: or paste/))
@@ -81,7 +81,7 @@ describe('vault editor', () => {
     await r.user.click(screen.getByRole('button', { name: 'Unlock vault' }))
     expect(await screen.findByDisplayValue(SECRET_TITLE, undefined, SLOW)).toBeInTheDocument()
     expect(screen.getByDisplayValue(SECRET_BODY)).toBeInTheDocument()
-    expect(screen.getByText('Vault key unlocked')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Lock vault' })).toBeInTheDocument()
   }, 20000)
 
   it("rejects a key file that is not this vault's key, and a file that is not a key file", async () => {

@@ -132,23 +132,12 @@ describe('accepting an invite', () => {
 })
 
 describe('trustee sign-in and routing', () => {
-  it('needs no owner account, and the owner app asks for sign-in', async () => {
+  it('needs no owner account', async () => {
     renderApp('/trustee', { signedIn: false })
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Trustee portal' }),
     ).toBeInTheDocument()
-    expect(screen.queryByText('Sign in to Digital Legacy')).not.toBeInTheDocument()
-  })
-
-  it('shows the owner sign-in page at the root when signed out', async () => {
-    renderApp('/', { signedIn: false })
-    expect(
-      await screen.findByRole('heading', { name: 'Sign in to Digital Legacy' }),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Use the trustee portal' })).toHaveAttribute(
-      'href',
-      '/trustee',
-    )
+    expect(screen.queryByText('Signed out')).not.toBeInTheDocument()
   })
 
   it('sends you home from the portal when you are not signed in as a trustee', async () => {

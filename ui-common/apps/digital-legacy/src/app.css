@@ -30,15 +30,6 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
-.signin {
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  padding: var(--pp-space-4);
-}
-.signin-card {
-  width: min(28rem, 100%);
-}
 .mono {
   font-family: var(--pp-font-mono);
   font-size: var(--pp-text-code-size);
@@ -295,13 +286,4 @@
     grid-template-columns: minmax(0, 1fr);
     gap: var(--pp-space-1);
   }
-}
-.demo-controls {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pp-space-2);
-  padding: var(--pp-space-3);
-  border: 1px dashed var(--pp-color-border-strong);
-  border-radius: var(--pp-radius-md);
-  font-size: var(--pp-text-caption-size);
 }

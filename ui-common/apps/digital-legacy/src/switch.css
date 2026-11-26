@@ -324,31 +324,6 @@
   font-weight: var(--pp-weight-semibold);
 }
 
-/* standalone sign-in and brand */
-.signin {
-  align-content: center;
-  row-gap: var(--pp-space-6);
-}
-.signin-intro {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--pp-space-3);
-  max-width: 28rem;
-  text-align: center;
-  color: var(--pp-color-text-muted);
-}
-.signin-intro p {
-  margin: 0;
-}
-.brand-lockup {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--pp-space-2);
-  font-family: var(--pp-font-display);
-  font-size: var(--pp-text-h4-size);
-}
-
 @media (max-width: 35.99rem) {
   .switch-hero-rings {
     top: auto;
@@ -356,13 +331,6 @@
     inset-inline-end: -11rem;
     transform: none;
     opacity: 0.3;
-  }
-  /* the top bar is full on a phone: the drawer (a vault surface) keeps the lockup */
-  .brand-lockup {
-    display: none;
-  }
-  [data-surface='vault'] .brand-lockup {
-    display: inline-flex;
   }
 }
 
@@ -690,13 +658,6 @@
 .dl-events ol > li,
 .dl-events ul > li {
   margin-bottom: var(--pp-space-2);
-}
-.demo-controls {
-  border-color: rgb(255 255 255 / 0.25);
-  color: rgb(255 255 255 / 0.85);
-}
-.demo-controls .muted {
-  color: rgb(255 255 255 / 0.6);
 }
 .first-run-hero-grid {
   grid-template-columns: minmax(0, 1fr) auto;

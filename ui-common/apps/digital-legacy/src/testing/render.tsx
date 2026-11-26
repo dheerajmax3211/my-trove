@@ -1,10 +1,22 @@
+import { ApiProvider, createApiClient } from '@platform/api-client'
+import { AuthProvider, DEMO_USER, RequireAuth, createStubAuthClient } from '@platform/auth-web'
+import { ThemeProvider, ToastProvider } from '@platform/ui'
+import {
+  ModuleBaseProvider,
+  ModuleNavLink,
+  WorkspaceSessionProvider,
+  createSession,
+} from '@platform/workspace-kit'
+import { QueryClient } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { Fragment } from 'react'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, vi } from 'vitest'
-import { App } from '../App'
+import { ClockProvider } from '../lib/clock'
 import { MockBackend } from '../mock/backend'
-import { createRuntime, type Runtime } from '../runtime'
+import { productModule } from '../module'
+import { TrusteePortal } from '../trustee'
 
 export interface Download {
   name: string
@@ -46,23 +58,87 @@ export function setupBrowserStubs(): { downloads: Download[] } {
 }
 
 export interface Rendered {
-  runtime: Runtime
   mock: MockBackend
   user: ReturnType<typeof userEvent.setup>
 }
 
-/** Renders the whole app at `route`, signed in as the demo owner unless `signedIn` is false. */
+/**
+ * Renders what the workspace serves at `route`, against one in-memory backend: the public trustee portal
+ * at `/trustee/*`, and otherwise the owner module (mounted at the root), signed in as the demo owner
+ * unless `signedIn` is false. Both use the mock's clock, so `mock.advance` moves countdowns too.
+ */
 export function renderApp(
   route = '/',
   options: { mock?: MockBackend; signedIn?: boolean } = {},
 ): Rendered & ReturnType<typeof render> {
   const mock = options.mock ?? new MockBackend()
-  const runtime = createRuntime({ env: {}, latencyMs: 0, signedIn: options.signedIn ?? true, mock })
+  const authClient = createStubAuthClient(
+    options.signedIn === false ? {} : { initialUser: DEMO_USER },
+  )
+  const ownerClient = createApiClient({
+    baseUrl: '/api',
+    getToken: (force) => authClient.getIdToken(force),
+    fetch: mock.fetch,
+    onUnauthorized: () => void authClient.signOut(),
+  })
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
+  const session = createSession({
+    uid: DEMO_USER.uid,
+    email: DEMO_USER.email,
+    displayName: DEMO_USER.displayName,
+    roles: [],
+    permissions: ['products:use'],
+    plan: 'FREE',
+    isDemo: false,
+  })
+  const now = () => mock.now()
+  const { Providers = Fragment, Routes: ModuleRoutes } = productModule
   const user = userEvent.setup()
   const view = render(
     <MemoryRouter initialEntries={[route]}>
-      <App runtime={runtime} />
+      <ThemeProvider storageKey={null}>
+        <ToastProvider>
+          <ClockProvider now={now}>
+            <Routes>
+              <Route
+                path="/trustee/*"
+                element={<TrusteePortal apiBaseUrl="/api" fetch={mock.fetch} now={now} />}
+              />
+              <Route
+                path="*"
+                element={
+                  <AuthProvider client={authClient}>
+                    <RequireAuth loading={null} fallback={<p>Signed out</p>}>
+                      <WorkspaceSessionProvider value={session}>
+                        <ApiProvider client={ownerClient} queryClient={queryClient}>
+                          <ModuleBaseProvider base="">
+                            <Providers>
+                              {/* the workspace sidebar: one link per nav item */}
+                              <nav aria-label="Workspace">
+                                {productModule.nav.map((item) => (
+                                  <ModuleNavLink key={item.to} to={item.to} end={item.end ?? false}>
+                                    {item.label}
+                                  </ModuleNavLink>
+                                ))}
+                              </nav>
+                              <main>
+                                <ModuleRoutes />
+                              </main>
+                            </Providers>
+                          </ModuleBaseProvider>
+                        </ApiProvider>
+                      </WorkspaceSessionProvider>
+                    </RequireAuth>
+                  </AuthProvider>
+                }
+              />
+            </Routes>
+          </ClockProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </MemoryRouter>,
   )
-  return { ...view, runtime, mock, user }
+  return { ...view, mock, user }
 }

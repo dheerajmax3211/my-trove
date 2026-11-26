@@ -1,7 +1,6 @@
-import { ApiProvider, createApiQueryClient } from '@platform/api-client'
+import { ApiProvider, createApiQueryClient, type ApiClient } from '@platform/api-client'
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import { createTrusteeApi, type TrusteeApi } from '../../api/trusteeApi'
-import type { Runtime } from '../../runtime'
 import type { UnsealedShare } from './trusteeService'
 
 const STORAGE_KEY = 'dl.trustee.session'
@@ -52,17 +51,18 @@ function writeSession(session: Session | null): void {
  * access token is remembered on this device; the private key and any opened share stay in memory.
  */
 export function TrusteeSessionProvider({
-  runtime,
+  createClient,
   children,
 }: {
-  runtime: Runtime
+  /** A trustee-token API client for `token` (null before the invite is accepted). */
+  createClient: (token: string | null) => ApiClient
   children: ReactNode
 }) {
   const [session, setSession] = useState<Session | null>(readSession)
   const [myShare, setMyShare] = useState<UnsealedShare | null>(null)
   const token = session?.token ?? null
 
-  const client = useMemo(() => runtime.createTrusteeClient(token), [runtime, token])
+  const client = useMemo(() => createClient(token), [createClient, token])
   const api = useMemo(() => createTrusteeApi(client), [client])
   // a fresh query cache per token, so one trustee's data can never be shown to another
   const queryClient = useMemo(() => {
@@ -82,10 +82,10 @@ export function TrusteeSessionProvider({
   const signInWithToken = useCallback(
     async (candidate: string) => {
       const trimmed = candidate.trim()
-      const me = await createTrusteeApi(runtime.createTrusteeClient(trimmed)).me()
+      const me = await createTrusteeApi(createClient(trimmed)).me()
       remember({ token: trimmed, trusteeId: me.trusteeId })
     },
-    [runtime, remember],
+    [createClient, remember],
   )
 
   const value = useMemo(

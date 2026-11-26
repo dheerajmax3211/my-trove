@@ -48,7 +48,7 @@ async function unlockThroughUi(r: Rendered, keyFile: string) {
   await r.user.paste(keyFile)
   await r.user.type(screen.getByLabelText(/^Passphrase/), PASSPHRASE)
   await r.user.click(screen.getByRole('button', { name: 'Unlock vault' }))
-  await screen.findByText('Vault key unlocked', undefined, SLOW)
+  await screen.findByRole('button', { name: 'Lock vault' }, SLOW)
   await r.user.click(screen.getByRole('link', { name: 'Trustees' }))
 }
 

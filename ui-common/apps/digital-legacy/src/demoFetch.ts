@@ -11,8 +11,8 @@ function toServicePath(input: Parameters<typeof fetch>[0]): string {
 
 /**
  * An in-memory Digital Legacy server for the workspace's demo mode. It never touches the network. Each
- * call makes a fresh backend, so one demo session never sees another's vault. The same mock also backs
- * the standalone app's demo mode and every test.
+ * call makes a fresh backend, so one demo session never sees another's vault. The same mock backs every
+ * test. In the workspace's demo mode the trustee portal shares this backend with the owner's pages.
  */
 export function createDemoFetch(): typeof fetch {
   const mock = new MockBackend()
