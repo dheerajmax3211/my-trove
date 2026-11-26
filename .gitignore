@@ -42,3 +42,6 @@ HELP.md
 .settings/
 .springBeans
 .sts4-cache
+
+# Local SBOM and vulnerability scan output
+.sbom/

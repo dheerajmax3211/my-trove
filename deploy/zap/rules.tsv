@@ -1,4 +1,4 @@
 # ZAP baseline rule overrides: <rule id>	<IGNORE|WARN|FAIL>	<note>. Unlisted rules stay WARN (reported, not fatal).
 10020	FAIL	Anti-clickjacking header missing (nginx sets X-Frame-Options DENY)
 10021	FAIL	X-Content-Type-Options header missing (nginx and Spring Security set nosniff)
-10038	WARN	Content Security Policy header not set (no CSP yet: see docs/security/threat-model.md)
+10038	FAIL	Content Security Policy header not set (built per app by deploy/docker/csp.mjs)

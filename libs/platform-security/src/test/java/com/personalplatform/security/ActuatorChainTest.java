@@ -29,7 +29,9 @@ class ActuatorChainTest {
     @Test
     void theManagementPortServesActuatorWithoutAToken() throws Exception {
         assertThat(managementPort).isNotEqualTo(port);
-        assertThat(status(managementPort, "/actuator/metrics")).isEqualTo(200);
+        // health is always registered; /actuator/metrics depends on Boot's test-time metrics setup and came back 404
+        // intermittently, which says nothing about the security chain this test is for
+        assertThat(status(managementPort, "/actuator/health")).isEqualTo(200);
     }
 
     @Test

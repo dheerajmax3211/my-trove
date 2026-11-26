@@ -30,6 +30,8 @@ COPY ui-common/ ./
 RUN rm -f apps/*/.env.local apps/*/.env \
  && pnpm install --frozen-lockfile \
  && pnpm --filter "@platform/${APP}..." build
+COPY deploy/docker/csp.mjs /tmp/csp.mjs
+RUN node /tmp/csp.mjs "apps/${APP}/dist" /src/csp.conf
 
 FROM nginxinc/nginx-unprivileged:1.31.7-alpine3.24
 ARG APP
@@ -39,6 +41,7 @@ RUN apk upgrade --no-cache
 USER 101
 COPY deploy/docker/nginx-spa.conf /etc/nginx/conf.d/default.conf
 COPY deploy/docker/nginx-security-headers.conf /etc/nginx/snippets/security-headers.conf
+COPY --from=build /src/csp.conf /etc/nginx/snippets/csp.conf
 COPY --from=build /src/apps/${APP}/dist/ /usr/share/nginx/html/
 # nginx-unprivileged listens on 8080 as uid 101.
 EXPOSE 8080

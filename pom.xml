@@ -53,6 +53,25 @@
 				<artifactId>platform-notify</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<!-- Security pins for transitive dependencies (found by OSV-Scanner on the images; CI's Trivy gate failed on
+			     them). Remove a pin once the dependency that brings it in ships the fixed version itself. -->
+			<!-- kafka-clients 4.x brings lz4-java 1.11.2 and snappy-java 1.1.10.7 (HIGH: GHSA-343h-94h5-c4wr, GHSA-gwq9-9ffj-mvrv) -->
+			<dependency>
+				<groupId>at.yawk.lz4</groupId>
+				<artifactId>lz4-java</artifactId>
+				<version>1.11.4</version>
+			</dependency>
+			<dependency>
+				<groupId>org.xerial.snappy</groupId>
+				<artifactId>snappy-java</artifactId>
+				<version>1.1.10.9</version>
+			</dependency>
+			<!-- temporal-sdk brings guava 33.4.8-android (HIGH: GHSA-xxph-c9ww-hj94) -->
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>33.7.2-android</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 </project>
