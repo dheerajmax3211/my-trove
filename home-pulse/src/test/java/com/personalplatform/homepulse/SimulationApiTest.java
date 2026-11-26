@@ -103,7 +103,8 @@ class SimulationApiTest extends AbstractIntegrationTest {
 
         getAs(ALICE, "/v1/alerts").andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].kind", hasItem("STUCK_ON")))
-                .andExpect(jsonPath("$[0].simulated").value(true));
+                .andExpect(jsonPath("$[0].simulated").value(true))
+                .andExpect(jsonPath("$[0].decidedBy").value("MAD"));     // no ML_SERVICE_URL: built-in detector
         getAs(ALICE, "/v1/appliances/" + fridge + "/health")
                 .andExpect(jsonPath("$.simulated").value(true))
                 .andExpect(jsonPath("$.activeAlerts[0].simulated").value(true));
