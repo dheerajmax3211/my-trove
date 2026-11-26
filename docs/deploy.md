@@ -54,6 +54,7 @@ The rest of this guide covers the chart.
 | Temporal | A frontend address and namespace. Set `temporal.enabled=false` to run without durable follow-ups. | waiting-on |
 | Firebase project | Firebase Authentication with Google and email-link sign-in. The project id goes in `common.firebaseProjectId`; the web config goes into the web image build. | sign-in |
 | SMTP relay | Optional (`mail.enabled`). Any relay with a login works (free tiers of Brevo or SES, or Gmail with an app password): set `mail.host`, `mail.port` (587), `mail.username`, `mail.starttls: true` and the optional `MAIL_PASSWORD` Secret key. STARTTLS is required when enabled, never opportunistic. Without a relay, emails are not sent. | shared-service |
+| Inbound mail (MX) | Optional (`inboundEmail.enabled`). Lets Waiting On's reply addresses receive real email, see "Inbound email" below. | waiting-on |
 | OTLP collector | Optional. Traces go to `common.otlpTracesEndpoint`; an unreachable collector never slows requests (tested). | every backend |
 | Prometheus | Optional. Scrapes each pod's management port (annotations `prometheus.io/*`) from the `monitoring` namespace. | metrics |
 
@@ -168,6 +169,34 @@ Add the workspace origin to the Firebase project's authorised domains.
   (ADR 0003). Backends are stateless apart from shared-service's file volume, which needs a ReadWriteMany claim
   before it runs more than one replica.
 
+### Inbound email (Waiting On reply addresses)
+
+Each Waiting On item has a reply address `waiting+<token>@<replyDomain>`. With `inboundEmail.enabled: true`
+Waiting On runs a receive-only SMTP listener (SubEthaSMTP, container port 2525) and the chart adds a Service
+`waiting-on-smtp` (type `inboundEmail.service.type`, default `LoadBalancer`, port 25 -> 2525) and a NetworkPolicy
+that admits the SMTP port from anywhere. Compose: add `deploy/compose/compose.inbound-email.yaml` (publishes host 25).
+
+1. Pick a domain for replies only, e.g. `reply.example.com`, and set `inboundEmail.replyDomain` (Compose:
+   `REPLY_DOMAIN`). Addresses already issued keep the old domain, so choose it before real use.
+2. DNS: `reply.example.com. MX 10 mx.example.com.` and an `A` record for `mx.example.com` pointing at the
+   Service's external IP (or the Compose host). Inbound port 25 must be open; many home and some cloud networks
+   block it.
+3. Check: `swaks --to waiting+<token>@reply.example.com --server mx.example.com` (or `dev/e2e-inbound-email.sh`
+   with `SMTP_HOST`/`SMTP_PORT`) and watch the item's timeline.
+
+What the listener does: it accepts a recipient only if it is exactly an open item's reply address on the configured
+domain; anything else gets 550 at RCPT TO, so it is never a relay. One recipient per message, 512 KB maximum
+(`maxMessageSize`), per-IP limits (3 concurrent, 30 connections a minute, 60 messages an hour), 5 messages per
+connection, the connection is dropped after 3 refused recipients, 60 s idle timeout. Accepted mail goes through the
+same pipeline as the webhook (classification, `REPLY_RECEIVED`, workflow signal); if that fails (Temporal down) the
+sender gets 451 and retries.
+
+What it does not do: no STARTTLS (senders fall back to plaintext SMTP, which most still do; for TLS put a relay
+that terminates it in front, such as Postfix or a provider's inbound route, and forward to the Service), no
+SPF/DKIM/DMARC checks (anyone who knows an address can send to it, the same trust as the webhook), and the per-IP
+limits are per replica and need the real client IP (`externalTrafficPolicy: Local`; behind Docker's userland
+proxy or a TCP relay every sender can share one IP, which turns them into global limits).
+
 ## 6. Verified and not verified
 
 Verified on 2026-11-26 (Apple silicon laptop, Colima):
@@ -193,3 +222,6 @@ Not verified yet:
   have not run until this branch is pushed.
 - No install on a real cloud cluster, and no managed database, Kafka or Temporal has been tried.
 - Email delivery through a real SMTP relay (dev uses Mailpit).
+- Inbound email from the internet: the SMTP listener is tested over real SMTP on loopback (`InboundSmtpTest`) and
+  live against the dev database and Temporal (`dev/e2e-inbound-email.sh`, 6/6 on 2026-11-26), and the chart and
+  Compose overlay render; no MX record, LoadBalancer or Compose deployment with port 25 has been tried.

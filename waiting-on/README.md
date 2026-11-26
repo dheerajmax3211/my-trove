@@ -46,7 +46,8 @@ notices at its next activity, because every activity first reads the item and st
 | `reply` | `ReplyClassifier` interface, `RuleBasedReplyClassifier`, `ReplyOutcome` |
 | `workflow` | `FollowUpWorkflow` (+Impl), `FollowUpActivities` (+Impl), `FollowUpScheduler` port |
 | `temporal` | client/worker wiring, `TemporalFollowUpScheduler`, `NoopFollowUpScheduler`, startup failure analyzer |
-| `inbound` | webhook controller, shared-secret filter, plus-address parsing |
+| `inbound` | webhook controller, shared-secret filter, plus-address parsing, `InboundEmailService` (the one reply pipeline), raw-message parser (`InboundMessageParser`, `QuotedReplyStripper`, `HtmlText`) |
+| `inbound.smtp` | the optional SMTP listener (SubEthaSMTP): `InboundSmtpServer`, `ReplyMessageHandler`, `SmtpLimits` |
 | `notify` | `NotificationPort` + logging implementation |
 
 ## The heavy-tech piece: Temporal, and why it is justified
@@ -137,6 +138,38 @@ X-Webhook-Secret: <app.inbound.secret>
 * Provider payloads differ (Postmark, SendGrid, SES...): map them to the JSON above with a thin adapter, or add a second
   controller. Not shipped.
 
+### Inbound email over SMTP (the reply address is real)
+
+With `INBOUND_SMTP_ENABLED=true` (off by default; `dev/up.sh` turns it on) the service runs a receive-only SMTP
+listener (SubEthaSMTP 7.2.2) on `INBOUND_SMTP_PORT` (2525). A counterparty's reply to `waiting+<token>@<REPLY_DOMAIN>`
+arrives as real mail:
+
+```
+ sending MTA ──SMTP──► InboundSmtpServer ─► ReplyMessageHandler ─► InboundMessageParser ─► InboundEmailService.handle
+                        (limits at connect,   (RCPT: open item's       (text/plain, else HTML   (the webhook's path:
+                         MAIL, RCPT, DATA)     address only, else 550)   to text; quotes cut)     classify, timeline, signal)
+```
+
+* **Never a relay.** A recipient is accepted only if it is exactly `waiting+<20 hex>@<REPLY_DOMAIN>` (case-insensitive)
+  *and* the item exists and is not closed. Anything else (another domain, another local part, an unknown token, a
+  resolved/cancelled/expired item) is refused at RCPT TO with `550 5.1.1`. One recipient per message (`452` for a second).
+* **Limits:** max message size 512 KB (`552`, declared `SIZE` refused at MAIL FROM; an oversize DATA is drained so the
+  session stays in sync), per IP: 3 concurrent connections, 30 new connections a minute, 60 messages an hour (`421`);
+  per connection: 5 messages, and the connection is dropped after 3 refused recipients (slows address guessing on top
+  of the 80-bit token); 60 s idle timeout; 50 connections in total. All configurable (table below).
+* **Parsing** (Jakarta Mail, already on the classpath through `platform-notify`): first non-attachment `text/plain`
+  part, else the first `text/html` converted to text (regex converter in the style of Ask Your Life's
+  `HtmlTextExtractor`, plus removal of `<blockquote>` history; no new library). Then quoted history is cut: Gmail/Apple
+  `On ... wrote:` (also wrapped over two lines, French/German variants), Outlook `-----Original Message-----`, the
+  `From:` + `Sent:`/`Date:` header block, `____` separators, forwarded-message markers, `-- ` signatures, "Sent from my
+  iPhone" / "Get Outlook for ..." footers, and `>` lines. Capped at 10,000 characters. A body that is all quote is kept.
+* **Same pipeline as the webhook:** `InboundEmailService.handle` (the `to` is the envelope recipient). The `Message-ID`
+  dedupes resends; a failure to signal the workflow (Temporal down) rolls the event back and answers `451` so the
+  sending server retries.
+* **No STARTTLS** and no SPF/DKIM checks. In production put the listener behind an MX/relay that does TLS (see
+  `docs/deploy.md`, "Inbound email"), or accept plaintext SMTP. The per-IP limits are in memory per replica and need
+  the real client IP.
+
 ### Reply classification
 
 `ReplyClassifier` is an interface; the default `RuleBasedReplyClassifier` is deterministic and offline: ordered regex
@@ -191,6 +224,14 @@ interface Javadoc). Not implemented here.
 | `app.temporal.connect-timeout` | `TEMPORAL_CONNECT_TIMEOUT` | `10s` |
 | `app.inbound.secret` | `INBOUND_WEBHOOK_SECRET` | blank = webhook disabled |
 | `app.inbound.reply-domain` | `REPLY_DOMAIN` | `reply.waiting-on.local` |
+| `app.inbound.smtp.enabled` | `INBOUND_SMTP_ENABLED` | `false` (true: SMTP listener for the reply addresses) |
+| `app.inbound.smtp.port` | `INBOUND_SMTP_PORT` | `2525` |
+| `app.inbound.smtp.bind-address` | `INBOUND_SMTP_BIND_ADDRESS` | `127.0.0.1` (containers: `0.0.0.0`) |
+| `app.inbound.smtp.max-message-size` | `INBOUND_SMTP_MAX_MESSAGE_SIZE` | `512KB` |
+| `app.inbound.smtp.connection-timeout` | `INBOUND_SMTP_CONNECTION_TIMEOUT` | `60s` |
+| `app.inbound.smtp.max-connections` | `INBOUND_SMTP_MAX_CONNECTIONS` | `50` |
+| `app.inbound.smtp.max-concurrent-per-ip` / `max-connections-per-ip-per-minute` / `max-messages-per-ip-per-hour` | `INBOUND_SMTP_MAX_CONCURRENT_PER_IP` ... | `3` / `30` / `60` |
+| `app.inbound.smtp.max-messages-per-connection` / `max-refused-recipients-per-connection` | `INBOUND_SMTP_MAX_MESSAGES_PER_CONNECTION` ... | `5` / `3` |
 | `spring.datasource.*` | `DB_URL`, `DB_USER`, `DB_PASSWORD` | local platform Postgres |
 | `app.firebase.project-id` | `FIREBASE_PROJECT_ID` | required at runtime |
 
@@ -206,6 +247,16 @@ interface Javadoc). Not implemented here.
   duplicate message id; **cross-user isolation** on every endpoint; validation).
 * `WaitingOnSchemaTest` (in `sql-jooq`): migrations on real Postgres, generated classes match, **UPDATE/DELETE/TRUNCATE on
   the timeline are rejected**, dedupe key, FK and check constraints.
+* `InboundSmtpTest` (8): the listener on a random port, real SMTP: a Jakarta Mail client sends a Gmail-shaped
+  multipart reply and the item is RESOLVED with the quote stripped from the timeline; a plain-socket REJECTED reply
+  escalates and its resend (same Message-ID) is not applied twice; refusals with exact codes (relay attempt, wrong
+  domain, unknown token, closed item, wrong local part, postmaster: 550; second recipient: 452; declared and actual
+  oversize: 552, session still in sync); drop after 3 refused recipients; 421 after the per-connection message limit;
+  4th concurrent connection from one IP refused. `QuotedReplyStripperTest` (12) and `InboundMessageParserTest` (6):
+  Gmail, Outlook desktop/web, Apple, plain, HTML-only, attachments, unknown charsets. `WindowCounterTest`,
+  `InboundSmtpConfigTest` (off by default, property binding).
+* Live: `dev/e2e-inbound-email.sh` (item -> `smtplib` reply to localhost:2525 -> REPLY_RECEIVED, RESOLVED; relay and
+  closed item refused).
 * `TemporalWiringTest` (unreachable server gives a clear startup failure; disabled property skips the connection),
   `WaitingOnTemporalDisabledTest`, `WaitingOnReplyAddressesTest`, `RealTemporalServerTest` (opt-in, skipped by default).
 
@@ -218,6 +269,9 @@ interface Javadoc). Not implemented here.
   2011/83/EU, Insurance Act 2015, ICOBS...) and are jurisdiction-neutral; the preview response carries a reminder. The
   sender name is a placeholder (`[Your name]`) because this service has no user profile. Escalation letters are stored
   and the owner is notified; the user sends them.
+* **Inbound SMTP has no TLS and no sender authentication**; production needs an MX/relay in front for TLS. Letters
+  still do not print the reply address (`ItemLetters`), because a default reply domain has no MX; showing it once a
+  deployment has one is a next step.
 * **Inbound trust**: anyone who learns an item's reply address can post a reply to it (spoofing). For production, have the
   provider verify SPF/DKIM/DMARC and pass the verdict, and consider matching the sender against `counterpartyEmail`.
   Auto-resolving on a PAID classification is a heuristic; the timeline shows why it happened and the user can see it.
@@ -229,4 +283,4 @@ interface Javadoc). Not implemented here.
   deployed workflow.
 * Temporal Cloud auth (API key / mTLS) and Temporal metrics are not wired; `app.temporal.tls` only turns TLS on.
 * No pagination metadata, no item editing, no attachments, no recurring items.
-* The webhook accepts a provider-agnostic JSON shape only.
+* The webhook accepts a provider-agnostic JSON shape only (and does not run the quote stripper; the SMTP path does).
