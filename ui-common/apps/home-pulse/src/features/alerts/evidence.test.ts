@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { alertContext, describeAlert } from './evidence'
+import { alertContext, decidedByLine, describeAlert } from './evidence'
 import type { AlertDto } from './types'
 
 type Input = Pick<AlertDto, 'kind' | 'applianceName' | 'message' | 'evidence'>
@@ -30,6 +30,21 @@ describe('describeAlert', () => {
       expect(e.facts[0]).toBe('Normal running power: 120 W. Recently: 137 W.')
       expect(e.facts[1]).toContain('3 of the last 4 comparison periods of 6 hours each')
       expect(e.suggestion).toMatch(/early sign of wear/)
+    })
+
+    it('describes the learned model’s sustained hours instead of comparison periods', () => {
+      const ml = {
+        baselineWatts: 120,
+        currentWatts: 136.8,
+        changePct: 14,
+        windowHours: 6,
+        hoursSustained: 3,
+        model: 'seasonal-robust-z/1',
+      }
+      const e = describeAlert(alert('POWER_SHIFT', ml))
+      expect(e.facts[1]).toBe(
+        'Seen in each of the last 3 hours, compared with what is normal at this time of day.',
+      )
     })
 
     it('says "less" for a drop and gives different advice', () => {
@@ -200,5 +215,16 @@ describe('alertContext', () => {
   it('mentions an overdue service', () => {
     const lines = alertContext({ ...base, serviceOverdue: true, nextServiceDate: '2026-11-07' })
     expect(lines).toEqual([expect.stringContaining('Its service was due on')])
+  })
+})
+
+describe('decidedByLine', () => {
+  it('names the learned model for ML decisions', () => {
+    expect(decidedByLine({ decidedBy: 'ML' })).toMatch(/^Detected by the learned model/)
+  })
+
+  it('names the built-in rules for MAD decisions and for servers that do not send the field', () => {
+    expect(decidedByLine({ decidedBy: 'MAD' })).toMatch(/^Detected by the built-in rules/)
+    expect(decidedByLine({})).toMatch(/^Detected by the built-in rules/)
   })
 })

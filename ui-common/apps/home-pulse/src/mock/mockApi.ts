@@ -48,6 +48,7 @@ export interface MockApi {
     message: string
     evidence: Record<string, unknown>
     status?: AlertStatus
+    decidedBy?: 'MAD' | 'ML'
   }) => string
   appliances: () => readonly StoredAppliance[]
   /** Makes the next request that matches `method path` fail with this status, once. */
@@ -167,6 +168,7 @@ export function createMockApi(options: MockApiOptions): MockApi {
     return {
       ...a,
       applianceName: owner.name,
+      decidedBy: a.decidedBy ?? 'MAD',
       underWarranty: w.underWarranty,
       warrantyEndDate: owner.warrantyEndDate,
       daysToWarrantyEnd: w.daysToWarrantyEnd,
@@ -697,6 +699,7 @@ export function createMockApi(options: MockApiOptions): MockApi {
         updatedAt: nowIso(),
         acknowledgedAt: status === 'ACKNOWLEDGED' ? nowIso() : null,
         resolvedAt: status === 'RESOLVED' ? nowIso() : null,
+        decidedBy: alert.decidedBy,
       })
       return id
     },

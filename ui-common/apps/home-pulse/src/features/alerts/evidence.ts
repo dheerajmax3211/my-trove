@@ -21,6 +21,13 @@ export const STATUS_LABELS: Record<AlertStatus, string> = {
   RESOLVED: 'Resolved',
 }
 
+/** One sentence on which model raised the alert, for the alert detail. */
+export function decidedByLine(alert: Pick<AlertDto, 'decidedBy'>): string {
+  return alert.decidedBy === 'ML'
+    ? 'Detected by the learned model, which compares each hour with what is normal for that time of day.'
+    : 'Detected by the built-in rules, which compare the last day with the learned normal.'
+}
+
 export interface AlertExplanation {
   /** One sentence: what changed, in everyday words. */
   headline: string
@@ -75,6 +82,7 @@ export function describeAlert(
       const change = num(ev, 'changePct') ?? rel(current, baseline)
       const higher = change > 0
       const windows = num(ev, 'windowsDeviating')
+      const sustained = num(ev, 'hoursSustained')
       return {
         headline: `${name} draws ${pct(change)} ${higher ? 'more' : 'less'} power than its normal while running.`,
         facts: [
@@ -83,7 +91,11 @@ export function describeAlert(
             ? [
                 `Seen in ${windows} of the last 4 comparison periods${periodLength(num(ev, 'windowHours'))}, so it is not a one-off.`,
               ]
-            : []),
+            : sustained !== undefined
+              ? [
+                  `Seen in each of the last ${sustained} hours, compared with what is normal at this time of day.`,
+                ]
+              : []),
         ],
         suggestion: higher
           ? 'A rising draw is often an early sign of wear. Check ventilation, coils and filters, and book a service if it keeps climbing.'

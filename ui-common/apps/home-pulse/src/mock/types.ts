@@ -47,4 +47,6 @@ export interface StoredAlert {
   resolvedAt: string | null
   /** Opened by the simulator; removed or closed when the simulation is. */
   simulated?: boolean
+  /** Which model decided (the service default is MAD). */
+  decidedBy?: 'MAD' | 'ML'
 }

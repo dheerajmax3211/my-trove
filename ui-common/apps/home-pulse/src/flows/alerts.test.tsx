@@ -32,8 +32,10 @@ describe('alerts inbox', () => {
       within(card).getByText('Normal running power: 120 W. Recently: 137 W.'),
     ).toBeInTheDocument()
     expect(
-      within(card).getByText(/3 of the last 4 comparison periods of 6 hours each/),
+      within(card).getByText(/Seen in each of the last 3 hours, compared with what is normal/),
     ).toBeInTheDocument()
+    // the seeded power alert was decided by ml-service; the alert detail says so
+    expect(within(card).getByText(/Detected by the learned model/)).toBeInTheDocument()
     expect(within(card).getByText(/What to do/)).toBeInTheDocument()
     expect(
       within(card).getByText(/Still under warranty until .* \(85 days left\)/),
