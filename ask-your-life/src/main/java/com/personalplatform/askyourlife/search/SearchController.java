@@ -30,6 +30,7 @@ public class SearchController {
      * @param from       ISO-8601 instant, inclusive lower bound on document creation time
      * @param to         ISO-8601 instant, exclusive upper bound
      * @param debug      include per-list ranks and scores for every hit
+     * @param answer     include an extractive, cited answer quoted from the top hits (default true)
      */
     @GetMapping
     public SearchService.Response search(
@@ -40,8 +41,9 @@ public class SearchController {
             @RequestParam(required = false) Set<SourceType> sourceType,
             @RequestParam(required = false) Instant from,
             @RequestParam(required = false) Instant to,
-            @RequestParam(defaultValue = "false") boolean debug) {
-        return run(jwt, q, k, mode, sourceType, from, to, debug);
+            @RequestParam(defaultValue = "false") boolean debug,
+            @RequestParam(defaultValue = "true") boolean answer) {
+        return run(jwt, q, k, mode, sourceType, from, to, debug, answer);
     }
 
     /** Same search, always with the per-list rank / score breakdown. */
@@ -54,15 +56,15 @@ public class SearchController {
             @RequestParam(required = false) Set<SourceType> sourceType,
             @RequestParam(required = false) Instant from,
             @RequestParam(required = false) Instant to) {
-        return run(jwt, q, k, mode, sourceType, from, to, true);
+        return run(jwt, q, k, mode, sourceType, from, to, true, true);
     }
 
     private SearchService.Response run(Jwt jwt, String q, int k, String mode, Set<SourceType> types, Instant from,
-            Instant to, boolean debug) {
+            Instant to, boolean debug, boolean answer) {
         if (from != null && to != null && !from.isBefore(to)) {
             throw new IllegalArgumentException("'from' must be before 'to'");
         }
         return service.search(jwt.getSubject(),
-                new SearchQuery(q.strip(), k, SearchMode.parse(mode), types, from, to), debug);
+                new SearchQuery(q.strip(), k, SearchMode.parse(mode), types, from, to), debug, answer);
     }
 }

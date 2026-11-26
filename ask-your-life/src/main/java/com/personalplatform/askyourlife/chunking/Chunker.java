@@ -94,6 +94,20 @@ public final class Chunker {
         return out;
     }
 
+    /**
+     * The sentences of {@code text} exactly as the chunker splits them (terminators, closers, line breaks, CJK
+     * full stops), each a verbatim trimmed slice. Used to pick answer sentences out of a chunk.
+     */
+    public static List<String> sentences(String text) {
+        if (text == null || text.isBlank()) {
+            return List.of();
+        }
+        return new Chunker(Integer.MAX_VALUE, 0).segment(text).stream()
+                .map(seg -> text.substring(seg.start, seg.end).strip())
+                .filter(t -> !t.isEmpty())
+                .toList();
+    }
+
     /** Token count using the same rules the chunker applies. */
     public static int countTokens(String text) {
         return tokenSpans(text, 0, text.length()).size();

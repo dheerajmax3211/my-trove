@@ -13,4 +13,6 @@ public record SearchProperties(
         /** Semantic hits with cosine similarity below this are dropped. 0 disables (embedder specific). */
         @DefaultValue("0.0") double minSemanticSimilarity,
         /** pgvector hnsw.ef_search for the query's transaction. */
-        @DefaultValue("40") int hnswEfSearch) {}
+        @DefaultValue("40") int hnswEfSearch,
+        /** Extractive answer: the best sentence must score at least this (cosine + overlap bonus), else no answer. */
+        @DefaultValue("0.45") double answerMinScore) {}

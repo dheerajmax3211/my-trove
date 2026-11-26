@@ -56,5 +56,29 @@ class SearchQualityTest extends AbstractIntegrationTest {
         // hybrid (the default mode) gains too, and is at least as good as keyword alone
         assertThat(m2v.get("hybrid").recallAt3()).isGreaterThanOrEqualTo(hashing.get("hybrid").recallAt3() + 0.3);
         assertThat(m2v.get("hybrid").mrr()).isGreaterThanOrEqualTo(m2v.get("keyword").mrr());
+
+        // extractive answers (documents still embedded by model2vec): how often the quoted sentence comes from the
+        // gold passage, and how often there is no answer at all
+        int fromGold = 0;
+        int none = 0;
+        int top1 = 0;
+        for (GoldSet.Pair p : GoldSet.PAIRS) {
+            SearchService.Response r = search.search("alice",
+                    new SearchQuery(p.query(), 10, SearchMode.HYBRID, Set.of(), null, null), false, true);
+            Answer a = r.answer();
+            if (!r.hits().isEmpty() && r.hits().get(0).title().equals(p.title())) {
+                top1++;
+            }
+            if (a == null) {
+                none++;
+            } else if (a.sentences().get(0).title().equals(p.title())) {
+                fromGold++;
+            }
+            System.out.println("[gold-set, answer] " + p.query() + " -> " + (a == null ? "(none)" : a.score() + " " + a.text()));
+        }
+        System.out.println("[gold-set, answer] from gold passage " + fromGold + "/" + GoldSet.PAIRS.size() + ", none " + none
+                + ", top-1 hit is the gold passage " + top1);
+        // the answer is a quote from the top results, so it can be right about as often as the top hit is
+        assertThat(fromGold).isGreaterThanOrEqualTo(top1 - 2).isGreaterThanOrEqualTo(14);
     }
 }
