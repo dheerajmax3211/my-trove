@@ -1,16 +1,12 @@
-import { QueryClient } from '@tanstack/react-query'
-import { render, screen, waitFor, within } from '@testing-library/react'
-import userEvent, { type UserEvent } from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
-import { App } from '../App'
-import { introKey } from '../features/household/components/FirstUseNotice'
-import { DEMO_HOUSEHOLD, PERSONAS } from '../mock/seed'
+import { screen, waitFor, within } from '@testing-library/react'
+import type { UserEvent } from '@testing-library/user-event'
+import { PERSONAS } from '../mock/seed'
 import type { MockBackend } from '../mock/mockBackend'
-import { createDemoRuntime, type Runtime } from '../runtime'
-import { fixedClock, type Clock } from './fixtures'
+import { renderModule } from './renderModule'
+import type { Clock } from './fixtures'
 
 export interface RenderOptions {
-  /** Who is signed in. `null` shows the sign-in screen. Default Maya (owner). */
+  /** Who is signed in. Default Maya (owner). */
   uid?: string | null
   /** Route to open, relative to the Okafor household unless it starts with "/". Default: dashboard. */
   path?: string
@@ -23,41 +19,17 @@ export interface RenderOptions {
   prepare?: (backend: MockBackend, householdId: string) => void
 }
 
-export interface Rendered {
-  user: UserEvent
-  backend: MockBackend
-  runtime: Runtime
-  householdId: string
-  clock: Clock
-  queryClient: QueryClient
-}
+let current: ReturnType<typeof renderModule> | null = null
 
-/** Boots the whole app against the in-memory mock, deterministic clock, no latency, no retries. */
-export function renderApp(options: RenderOptions = {}): Rendered {
-  const { uid = 'u-maya', path = '', firstUse = false, seed = true, prepare } = options
-  const clock = options.clock ?? fixedClock()
-  window.localStorage.clear()
-  if (!firstUse) for (const p of PERSONAS) window.localStorage.setItem(introKey(p.uid), 'yes')
-
-  const runtime = createDemoRuntime({ initialUid: uid, now: clock.now, seed })
-  const backend = runtime.demo!.backend
-  const householdId = seed ? backend.householdByName(DEMO_HOUSEHOLD).id : ''
-  prepare?.(backend, householdId)
-
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, refetchOnWindowFocus: false },
-      mutations: { retry: false },
-    },
+/** Mounts the module at the root against the in-memory mock, deterministic clock, no latency, no retries. */
+export function renderApp(options: RenderOptions = {}) {
+  const { path = '', ...rest } = options
+  current = renderModule({
+    ...rest,
+    mounted: false,
+    path: (id) => (path.startsWith('/') ? path : `/h/${id}${path ? `/${path}` : ''}`),
   })
-  const route = path.startsWith('/') ? path : `/h/${householdId}${path ? `/${path}` : ''}`
-  const user = userEvent.setup()
-  render(
-    <MemoryRouter initialEntries={[route]}>
-      <App runtime={runtime} queryClient={queryClient} themeStorageKey={null} />
-    </MemoryRouter>,
-  )
-  return { user, backend, runtime, householdId, clock, queryClient }
+  return current
 }
 
 export const main = () => screen.getByRole('main')
@@ -67,8 +39,11 @@ export async function waitForHeading(name: string | RegExp, level = 1) {
   return screen.findByRole('heading', { level, name })
 }
 
-export async function switchPersona(user: UserEvent, name: string) {
-  await user.selectOptions(screen.getByRole('combobox', { name: 'Acting as' }), name)
+/** Signs in as another household member, by display name (the workspace session would change the same way). */
+export async function switchPersona(_user: UserEvent, name: string) {
+  const persona = PERSONAS.find((p) => p.name === name)
+  if (!persona || !current) throw new Error(`no persona ${name}`)
+  await current.switchTo(persona.uid)
 }
 
 export { screen, waitFor, within }

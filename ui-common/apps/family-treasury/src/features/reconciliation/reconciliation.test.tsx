@@ -53,15 +53,6 @@ describe('reconciliation', () => {
     expect(await screen.findByText('Everything adds up.')).toBeInTheDocument()
   })
 
-  it('lets the demo simulate drift so the report can be seen', async () => {
-    const { user } = renderApp({ path: 'reconciliation' })
-    await user.click(
-      await screen.findByRole('button', { name: 'Simulate drift in the pool balance' }),
-    )
-    await user.click(screen.getByRole('button', { name: 'Run the check' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('Drift found in 1 account')
-  })
-
   it('is for the owner only', async () => {
     const { backend } = renderApp({ uid: 'u-dev', path: 'reconciliation' })
     expect(await screen.findByText('Not available for your role')).toBeInTheDocument()

@@ -43,15 +43,6 @@
   place-items: center;
   padding: var(--pp-space-4);
 }
-.ft-signin {
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  padding: var(--pp-space-4);
-}
-.ft-signin-card {
-  width: min(32rem, 100%);
-}
 
 .ft-stack {
   display: flex;
@@ -215,37 +206,8 @@ span:has(> .ft-inline-select) {
   width: auto;
   max-width: 12rem;
 }
-.ft-user {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--pp-space-2);
-  font-size: var(--pp-text-body-small-size);
-  color: var(--pp-color-text-muted);
-  min-width: 0;
-}
-.ft-avatar {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--pp-radius-full);
-  background: var(--pp-color-accent);
-  color: var(--pp-color-on-accent);
-  font-weight: var(--pp-weight-semibold);
-  font-size: var(--pp-text-caption-size);
-}
-.ft-footnote {
-  margin: 0;
-  padding: var(--pp-space-3) var(--pp-space-4);
-  font-size: var(--pp-text-caption-size);
-  color: var(--pp-color-text-muted);
-}
 
 @media (max-width: 639.98px) {
-  .ft-hide-sm {
-    display: none !important;
-  }
   .ft-inline-select {
     max-width: 6rem;
   }
@@ -253,14 +215,6 @@ span:has(> .ft-inline-select) {
 
 /* ---- module chrome: household bar, in-module sections, bookkeeping reminder ---- */
 
-.ft-root {
-  min-height: 100dvh;
-}
-.ft-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--pp-space-2);
-}
 .ft-module {
   display: flex;
   flex-direction: column;
@@ -554,12 +508,6 @@ span:has(> .ft-inline-select) {
 
 /* ---- bento dashboard ---- */
 
-.ft-promo-note {
-  margin: 0;
-  padding: var(--pp-space-3) var(--pp-space-2);
-  font-size: var(--pp-text-caption-size);
-  color: rgb(255 255 255 / 0.7);
-}
 .ft-pot-body {
   display: flex;
   flex-direction: column;

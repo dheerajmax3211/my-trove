@@ -1,55 +1,13 @@
 import type { ApiError } from '@platform/api-client'
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  DataTable,
-  PageHeader,
-  type DataTableColumn,
-} from '@platform/ui'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Badge, Button, DataTable, PageHeader, type DataTableColumn } from '@platform/ui'
+import { useMutation } from '@tanstack/react-query'
 import { useTreasuryApi } from '../../../api/hooks'
-import { treasuryKeys } from '../../../api/keys'
 import type { Drift, ReconciliationReport } from '../../../api/types'
 import { AccessNotice } from '../../../components/AccessNotice'
 import { ErrorNotice } from '../../../components/ErrorNotice'
 import { MoneyText } from '../../../components/MoneyText'
 import { formatDateTime } from '../../../lib/dates'
-import { useDemoParts } from '../../../runtimeContext'
 import { useHousehold } from '../../household/hooks/useHousehold'
-
-function DemoTools({ householdId }: { householdId: string }) {
-  const demo = useDemoParts()
-  const queryClient = useQueryClient()
-  if (!demo) return null
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle as="h2">Demo tools</CardTitle>
-        <CardDescription>
-          Only in demo mode. The real service keeps its balance table in step with the ledger inside
-          one transaction, so drift should never happen. This button corrupts the mock&apos;s
-          balance table so you can see how drift is reported.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Button
-          variant="secondary"
-          onClick={() => {
-            demo.backend.injectDrift(householdId, 'POOL', 500)
-            void queryClient.invalidateQueries({ queryKey: treasuryKeys.household(householdId) })
-          }}
-        >
-          Simulate drift in the pool balance
-        </Button>
-      </CardContent>
-    </Card>
-  )
-}
 
 export function ReconciliationPage() {
   const h = useHousehold()
@@ -159,7 +117,6 @@ export function ReconciliationPage() {
           Nothing has been checked in this visit yet. The check is safe to run any time.
         </p>
       )}
-      <DemoTools householdId={h.household.id} />
     </>
   )
 }

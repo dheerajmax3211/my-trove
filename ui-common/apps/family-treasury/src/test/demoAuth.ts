@@ -1,5 +1,5 @@
 import { AuthClientError, type AuthClient, type AuthUser } from '@platform/auth-web'
-import type { Persona } from '../../mock/seed'
+import type { Persona } from '../mock/seed'
 
 export interface DemoAuthClient extends AuthClient {
   /** Sign in as (or switch to) one of the demo personas. */

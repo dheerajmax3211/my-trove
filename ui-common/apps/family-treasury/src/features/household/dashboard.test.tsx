@@ -9,13 +9,7 @@ import {
   within,
 } from '../../test/renderApp'
 
-describe('sign-in and first use', () => {
-  it('lets you pick a demo persona with no setup, then lands on the household dashboard', async () => {
-    const { user } = renderApp({ uid: null, path: '/' })
-    await user.click(await screen.findByRole('button', { name: /continue as maya okafor/i }))
-    expect(await waitForHeading('Okafor family')).toBeInTheDocument()
-  })
-
+describe('first use', () => {
   it('says on first use that no real money moves, and remembers the acknowledgement', async () => {
     const { user } = renderApp({ firstUse: true })
     const dialog = await screen.findByRole('dialog', { name: /this is bookkeeping, not a bank/i })
@@ -23,7 +17,6 @@ describe('sign-in and first use', () => {
     await user.click(within(dialog).getByRole('button', { name: 'I understand' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(window.localStorage.getItem('ft:intro-seen:u-maya')).toBe('yes')
-    expect(screen.getByText(/no real money ever moves/i)).toBeInTheDocument()
   })
 })
 
