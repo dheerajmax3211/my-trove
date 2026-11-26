@@ -10,10 +10,7 @@ import { WhyDialog } from './WhyDialog'
 function matchedBy(hit: SearchHit, mode: SearchMode): string[] {
   const keyword = mode !== 'semantic' && hit.explain?.ftsRank != null
   const meaning = mode !== 'keyword' && hit.explain?.semanticRank != null
-  return [
-    ...(keyword ? ['Has your words'] : []),
-    ...(meaning ? ['Similar meaning'] : []),
-  ]
+  return [...(keyword ? ['Has your words'] : []), ...(meaning ? ['Similar meaning'] : [])]
 }
 
 export function ResultCard({

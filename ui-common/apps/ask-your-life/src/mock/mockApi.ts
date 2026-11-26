@@ -379,7 +379,7 @@ export function createMockApi(options: MockApiOptions = {}): MockApi {
           text,
           documentId: passage.documentId,
           title: doc?.title ?? '',
-          sourceType: doc?.sourceType ?? ('NOTE' as SourceType),
+          sourceType: doc?.sourceType ?? ('NOTE'),
           chunkId: `${passage.documentId}:${passage.ordinal}`,
           chunkOrdinal: passage.ordinal,
         }

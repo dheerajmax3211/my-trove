@@ -119,7 +119,9 @@ describe('mock API honours the backend contract', () => {
     const body = response.body as unknown as {
       answer?: { text: string; sentences: { title: string; chunkOrdinal: number; text: string }[] }
     }
-    expect(body.answer?.sentences[0]?.text).toBe('Monthly rent is $1,850, due on the first of the month.')
+    expect(body.answer?.sentences[0]?.text).toBe(
+      'Monthly rent is $1,850, due on the first of the month.',
+    )
     expect(body.answer?.sentences[0]?.title).toBe('Apartment lease: 14 Elm Street')
     expect(body.answer?.text).toContain('Monthly rent is $1,850')
     const off = (await call('/v1/search?q=when+is+the+rent+due&answer=false')).body as unknown as {

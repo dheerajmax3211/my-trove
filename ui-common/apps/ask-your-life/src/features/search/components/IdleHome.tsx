@@ -89,8 +89,8 @@ export function IdleHome({
         <li>Wrap words in &quot;quotes&quot; to match an exact phrase.</li>
         <li>Put - in front of a word to leave it out.</li>
         <li>
-          Not sure of the exact words? Hybrid and Semantic also find passages with a similar meaning,
-          even when they use other words.
+          Not sure of the exact words? Hybrid and Semantic also find passages with a similar
+          meaning, even when they use other words.
         </li>
       </ul>
     </div>
