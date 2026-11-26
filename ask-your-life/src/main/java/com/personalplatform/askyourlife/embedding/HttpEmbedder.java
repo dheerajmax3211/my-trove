@@ -55,6 +55,11 @@ public final class HttpEmbedder implements Embedder {
     }
 
     @Override
+    public String id() {
+        return "http:" + (model == null || model.isBlank() ? url.getHost() : model) + ":" + dimension;
+    }
+
+    @Override
     public List<float[]> embedAll(List<String> texts) {
         List<float[]> out = new ArrayList<>(texts.size());
         for (List<String> batch : Embedder.partition(texts, batchSize)) {

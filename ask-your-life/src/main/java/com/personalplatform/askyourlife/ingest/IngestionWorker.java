@@ -100,7 +100,8 @@ public class IngestionWorker {
         }
         Instant now = clock.instant();
         scope.run(job.ownerUid(), dsl -> {
-            chunkRepository.replaceChunks(job.ownerUid(), job.documentId(), job.contentHash(), chunks, vectors, now);
+            chunkRepository.replaceChunks(job.ownerUid(), job.documentId(), job.contentHash(), chunks, vectors, now,
+                    embedder.id());
             jobs.complete(job.id(), now); // stale or not, this job is finished
         });
     }

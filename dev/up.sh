@@ -69,6 +69,13 @@ export OTLP_TRACES_ENDPOINT="${OTLP_TRACES_ENDPOINT:-http://localhost:4318/v1/tr
 # PERCENTILESHISTOGRAM). Whether production does is the owner's decision, so no application config is changed.
 export MANAGEMENT_METRICS_DISTRIBUTION_PERCENTILESHISTOGRAM_HTTP_SERVER_REQUESTS=true
 
+# Ask Your Life's local embedding model (pinned, checksum-verified, fetched once; see ask-your-life/model/fetch-model.sh).
+# Without it the service still starts, on the lexical hashing fallback (WARN in its log and /actuator/health).
+if [ "${#@}" -eq 0 ] || [[ " $* " =~ " ask-your-life " ]]; then
+  "$ROOT/ask-your-life/model/fetch-model.sh" || echo "warning: could not fetch the Ask Your Life model; it will fall back to hashing" >&2
+fi
+export EMBEDDER_MODEL_DIR="${EMBEDDER_MODEL_DIR:-$ROOT/ask-your-life/model/potion-base-2M}"
+
 wanted=("$@")
 for entry in "${ALL[@]}"; do
   name="${entry%%:*}"

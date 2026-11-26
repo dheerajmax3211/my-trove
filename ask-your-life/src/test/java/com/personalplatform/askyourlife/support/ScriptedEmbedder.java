@@ -14,7 +14,10 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ScriptedEmbedder implements Embedder {
 
-    private final HashingEmbedder delegate = new HashingEmbedder(384);
+    private static final Embedder HASHING = new HashingEmbedder(384);
+    private volatile Embedder delegate = HASHING;
+    /** What {@link #id()} reports; tests change it to simulate switching models. */
+    public volatile String id = "scripted:384";
     private final Map<String, float[]> fixed = new ConcurrentHashMap<>();
     public final Map<String, AtomicInteger> calls = new ConcurrentHashMap<>();
     public final AtomicInteger totalCalls = new AtomicInteger();
@@ -31,6 +34,18 @@ public class ScriptedEmbedder implements Embedder {
         totalCalls.set(0);
         failure.set(null);
         failuresLeft = 0;
+        delegate = HASHING;
+        id = "scripted:384";
+    }
+
+    /** Embed unregistered texts with {@code e} instead of the hashing embedder (e.g. the real Model2Vec model). */
+    public void delegateTo(Embedder e) {
+        delegate = e;
+    }
+
+    @Override
+    public String id() {
+        return id;
     }
 
     @Override

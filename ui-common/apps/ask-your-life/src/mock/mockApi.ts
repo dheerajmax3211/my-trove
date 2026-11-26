@@ -12,9 +12,9 @@ import type {
   SourceType,
 } from '../features/documents/api/types'
 import { SOURCE_TYPES } from '../features/documents/api/types'
-import type { SearchHit, SearchResponse } from '../features/search/api/types'
+import type { SearchAnswer, SearchHit, SearchResponse } from '../features/search/api/types'
 import { SEED_DOCUMENTS, type SeedDocument } from './seed'
-import { rank, snippetFor, type Mode, type Passage } from './searchEngine'
+import { answerFor, rank, snippetFor, type Mode, type Passage } from './searchEngine'
 import { baseType, chunkText, extractText, fingerprint, isSupportedType, titleFor } from './text'
 
 export interface MockApiOptions {
@@ -340,12 +340,14 @@ export function createMockApi(options: MockApiOptions = {}): MockApi {
 
     const seen = new Set<string>()
     const hits: SearchHit[] = []
+    const hitPassages: Passage[] = []
     for (const candidate of rank(passages, q, mode)) {
       const id = candidate.passage.documentId
       if (seen.has(id)) continue
       seen.add(id)
       const doc = store.get(id)?.doc
       if (!doc) continue
+      hitPassages.push(candidate.passage)
       hits.push({
         documentId: id,
         chunkId: `${id}:${candidate.passage.ordinal}`,
@@ -368,10 +370,27 @@ export function createMockApi(options: MockApiOptions = {}): MockApi {
       })
       if (hits.length === k) break
     }
+    let answer: SearchAnswer | undefined
+    const found = params.get('answer') === 'false' ? null : answerFor(q, hitPassages)
+    if (found) {
+      const sentences = found.sentences.map(({ text, passage }) => {
+        const doc = store.get(passage.documentId)?.doc
+        return {
+          text,
+          documentId: passage.documentId,
+          title: doc?.title ?? '',
+          sourceType: doc?.sourceType ?? ('NOTE' as SourceType),
+          chunkId: `${passage.documentId}:${passage.ordinal}`,
+          chunkOrdinal: passage.ordinal,
+        }
+      })
+      answer = { text: sentences.map((c) => c.text).join(' '), sentences, score: found.score }
+    }
     const body: SearchResponse = {
       query: q,
       mode: mode.toUpperCase(),
       k,
+      ...(answer ? { answer } : {}),
       hits,
       debug: debug
         ? {

@@ -14,10 +14,10 @@ describe('search home', () => {
     const modes = screen.getByRole('group', { name: 'Search mode' })
     expect(within(modes).getByRole('radio', { name: /Hybrid/ })).toBeChecked()
     expect(
-      within(modes).getByText(/matches your exact words and similar wording/),
+      within(modes).getByText(/matches your exact words and passages with a similar meaning/),
     ).toBeInTheDocument()
     expect(within(modes).getByText(/Only passages containing your words/)).toBeInTheDocument()
-    expect(within(modes).getByText(/read like your question/)).toBeInTheDocument()
+    expect(within(modes).getByText(/mean something close to your question/)).toBeInTheDocument()
     expect(screen.getByText(/Only you can see what you add/)).toBeInTheDocument()
   })
 
@@ -142,6 +142,19 @@ describe('search home', () => {
     expect(
       await screen.findByRole('heading', { level: 3, name: 'Car insurance policy summary' }),
     ).toBeInTheDocument()
+  })
+
+  it('shows the cited, quoted answer above the results', async () => {
+    const { user } = renderApp()
+    await appReady()
+    await runSearch(user, 'when is the rent due')
+    const answer = await screen.findByRole('region', { name: 'From your documents' })
+    expect(
+      within(answer).getByText('Monthly rent is $1,850, due on the first of the month.'),
+    ).toBeInTheDocument()
+    const source = within(answer).getByRole('link', { name: 'Apartment lease: 14 Elm Street' })
+    expect(source.getAttribute('href')).toContain('/library?open=')
+    expect(within(answer).getByText(/not written by an AI/)).toBeInTheDocument()
   })
 
   it('does nothing for an empty query and keeps focus in the field', async () => {

@@ -57,7 +57,10 @@ class ObservabilityExposureTest extends AbstractIntegrationTest {
     @Test
     void metricsAreServedOnTheManagementPortOnly() throws Exception {
         assertThat(fetch(managementPort, "/actuator/prometheus", null).statusCode()).isEqualTo(200);
-        assertThat(fetch(managementPort, "/actuator/health", null).statusCode()).isEqualTo(200);
+        HttpResponse<String> health = fetch(managementPort, "/actuator/health", null);
+        assertThat(health.statusCode()).isEqualTo(200);
+        // the embedder component says what runs and whether it is a fallback (management port only)
+        assertThat(health.body()).contains("\"embedder\"").contains("\"fallback\"");
         assertThat(managementPort).isNotEqualTo(port);
         assertThat(fetch(port, "/actuator/prometheus", null).statusCode()).isIn(401, 403, 404);
     }

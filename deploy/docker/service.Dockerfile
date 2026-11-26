@@ -15,6 +15,13 @@ COPY ${MODULE}/target/*-SNAPSHOT.jar app.jar
 # Split the fat jar into layers (dependencies change rarely, application classes often) so image pulls are small.
 RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination extracted
 
+# ask-your-life embeds with a local Model2Vec model (about 8 MB). It is fetched here, pinned to one Hugging Face
+# revision and checksum-verified, so the image runs offline. Other modules get an empty /model.
+FROM ${JRE_IMAGE} AS model
+ARG MODULE
+COPY ask-your-life/model/fetch-model.sh /fetch-model.sh
+RUN mkdir -p /model && if [ "$MODULE" = "ask-your-life" ]; then sh /fetch-model.sh /model/potion-base-2M; fi
+
 FROM ${JRE_IMAGE}
 ARG MODULE
 LABEL org.opencontainers.image.source="https://github.com/dheerajmax3211/my-trove" \
@@ -29,6 +36,8 @@ COPY --from=extract /build/extracted/dependencies/ ./
 COPY --from=extract /build/extracted/spring-boot-loader/ ./
 COPY --from=extract /build/extracted/snapshot-dependencies/ ./
 COPY --from=extract /build/extracted/application/ ./
+# ask-your-life reads it from model/potion-base-2M relative to /app (EMBEDDER_MODEL_DIR overrides)
+COPY --from=model /model/ ./model/
 USER 10001:10001
 # Size the heap from the container's memory limit and exit (so the orchestrator restarts) on OutOfMemoryError.
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError -Djava.io.tmpdir=/tmp"

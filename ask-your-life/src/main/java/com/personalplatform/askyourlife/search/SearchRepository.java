@@ -49,6 +49,18 @@ public class SearchRepository {
         });
     }
 
+    /** Full text of the given chunks (owner-scoped; other owners' ids return nothing). */
+    public java.util.Map<UUID, String> chunkTexts(String ownerUid, java.util.Collection<UUID> chunkIds) {
+        if (chunkIds.isEmpty()) {
+            return java.util.Map.of();
+        }
+        var chunks = com.personalplatform.sql.jooq.ask_life.ask_life.Tables.CHUNKS;
+        return scope.call(ownerUid, dsl -> dsl.select(chunks.ID, chunks.CONTENT)
+                .from(chunks)
+                .where(chunks.OWNER_UID.eq(ownerUid).and(chunks.ID.in(chunkIds)))
+                .fetchMap(chunks.ID, chunks.CONTENT));
+    }
+
     /** EXPLAIN of exactly the statement {@link #search} runs (used to verify index usage). */
     public String explain(String ownerUid, SearchQuery q, float[] queryVector, boolean disableSeqScan) {
         return scope.call(ownerUid, dsl -> {

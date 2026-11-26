@@ -52,6 +52,12 @@ public class ChunkRepository {
      */
     public boolean replaceChunks(String ownerUid, UUID documentId, String expectedHash, List<TextChunk> chunks,
             List<float[]> vectors, Instant now) {
+        return replaceChunks(ownerUid, documentId, expectedHash, chunks, vectors, now, null);
+    }
+
+    /** As above, and records {@code embedderId} (see {@code Embedder#id()}) on the document. */
+    public boolean replaceChunks(String ownerUid, UUID documentId, String expectedHash, List<TextChunk> chunks,
+            List<float[]> vectors, Instant now, String embedderId) {
         if (chunks.size() != vectors.size()) {
             throw new IllegalArgumentException("one vector per chunk required");
         }
@@ -85,6 +91,7 @@ public class ChunkRepository {
                     .set(DOCUMENTS.STATUS, DocumentStatus.INDEXED.name())
                     .set(DOCUMENTS.CHUNK_COUNT, chunks.size())
                     .set(DOCUMENTS.INGESTED_AT, now.atOffset(ZoneOffset.UTC))
+                    .set(DOCUMENTS.EMBEDDER, embedderId)
                     .where(DOCUMENTS.ID.eq(documentId))
                     .execute();
             return true;

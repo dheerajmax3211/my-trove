@@ -101,5 +101,5 @@ install of the real images passes the end-to-end scripts through the gateway). T
 image push run in GitHub Actions and have not run yet. Nothing is deployed publicly. Details in `docs/deploy.md`.
 
 Known gaps: email goes to Mailpit in dev and needs an SMTP relay in production; MQTT ingestion is off by default; Ask
-Your Life uses a deterministic local embedder unless `EMBEDDER_URL` points at a real one, so semantic search is
-approximate; nothing has run against real devices; rate limits are per gateway replica.
+Your Life's semantic search runs a tiny local model (Model2Vec potion-base-2M, static embeddings, English-centric) and
+answers by quoting sentences, not by generating text; nothing has run against real devices; rate limits are per gateway replica.

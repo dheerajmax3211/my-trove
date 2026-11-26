@@ -45,3 +45,6 @@ HELP.md
 
 # Local SBOM and vulnerability scan output
 .sbom/
+
+# Ask Your Life model files (fetched by ask-your-life/model/fetch-model.sh, never committed)
+ask-your-life/model/potion-base-2M/

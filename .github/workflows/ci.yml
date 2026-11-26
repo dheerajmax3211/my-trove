@@ -22,7 +22,9 @@ jobs:
           java-version: 21
           cache: maven
       # Tests start real Postgres, TimescaleDB and pgvector containers; Docker is preinstalled on the runner.
-      - run: ./mvnw -B -ntp verify
+      # -Dfetch-model: fetch Ask Your Life's pinned embedding model (8 MB, checksum-verified) and require it, so the
+      # model-quality tests run instead of being skipped.
+      - run: ./mvnw -B -ntp verify -Dfetch-model
       # On failure, keep the surefire/failsafe reports so the exact failing test can be read from the run.
       - name: Upload test reports on failure
         if: failure()

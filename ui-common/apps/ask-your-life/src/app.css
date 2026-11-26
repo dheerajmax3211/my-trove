@@ -373,6 +373,57 @@ kbd,
   gap: var(--pp-space-3);
 }
 
+/* ---- extractive answer: quoted sentences with their source ---- */
+.ayl-answer {
+  margin-bottom: var(--pp-space-6);
+  padding: var(--pp-space-6) var(--pp-space-7);
+  border-radius: var(--pp-radius-xl);
+  background: var(--pp-color-surface);
+  border-inline-start: 4px solid var(--pp-color-brass);
+}
+
+.ayl-answer-heading {
+  margin: 0 0 var(--pp-space-3);
+  font-size: var(--pp-text-body-small-size);
+  font-weight: var(--pp-weight-semibold);
+  color: var(--pp-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ayl-answer-quotes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pp-space-3);
+}
+
+.ayl-answer-quote {
+  margin: 0;
+  max-width: 68ch;
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-h3-size, 1.25rem);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ayl-answer-quote p {
+  margin: 0;
+}
+
+.ayl-answer-cite,
+.ayl-answer-note {
+  margin: var(--pp-space-1) 0 0;
+  color: var(--pp-color-text-subtle);
+  font-size: var(--pp-text-body-small-size);
+}
+
+.ayl-answer-note {
+  margin-top: var(--pp-space-3);
+}
+
 /* ---- results: the passage is the point ---- */
 .ayl-results-heading {
   font-size: var(--pp-text-body-size);

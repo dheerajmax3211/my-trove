@@ -62,7 +62,7 @@ describe('why this result', () => {
     })
     await user.click(trigger)
     const dialog = await screen.findByRole('dialog', { name: 'Why this result' })
-    expect(within(dialog).getByText(/Found by similar wording only/)).toBeInTheDocument()
+    expect(within(dialog).getByText(/Found by similar meaning only/)).toBeInTheDocument()
     expect(within(dialog).getByText('Keyword rank').nextSibling).toHaveTextContent('Not listed')
     expect(within(dialog).getByText('Meaning rank').nextSibling).toHaveTextContent(/#\d/)
     expect(within(dialog).getByText(/1\/\(60 \+ \d+\)/)).toBeInTheDocument()
@@ -80,7 +80,7 @@ describe('why this result', () => {
     )
     const dialog = await screen.findByRole('dialog', { name: 'Why this result' })
     expect(
-      within(dialog).getByText(/both your exact words and similar wording/),
+      within(dialog).getByText(/both your exact words and similar meaning/),
     ).toBeInTheDocument()
     expect(within(dialog).getByText('Keyword rank').nextSibling).toHaveTextContent(/#\d/)
     expect(within(dialog).getByText('Meaning rank').nextSibling).toHaveTextContent(/#\d/)

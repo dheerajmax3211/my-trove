@@ -45,6 +45,11 @@ public final class HashingEmbedder implements Embedder {
     }
 
     @Override
+    public String id() {
+        return "hashing-v1:" + dimension;
+    }
+
+    @Override
     public List<float[]> embedAll(List<String> texts) {
         return texts.stream().map(this::embedOne).toList();
     }

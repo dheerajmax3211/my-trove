@@ -304,6 +304,10 @@ export const products: readonly ProductContent[] = [
         title: 'Can explain a ranking',
         text: 'An explain view shows the keyword rank, the similarity rank and how they were combined.',
       },
+      {
+        title: 'Quotes the answer',
+        text: 'Above the results it quotes the sentence from your documents that best answers the question, with the document it came from. It quotes; it does not write.',
+      },
     ],
     steps: [
       {
@@ -335,13 +339,18 @@ export const products: readonly ProductContent[] = [
         why: 'A forgotten WHERE clause in a future query returns an empty page instead of someone else’s notes.',
       },
       {
+        name: 'A tiny embedding model, in plain Java',
+        what: 'Model2Vec potion-base-2M (MIT licence, about 8 MB) is loaded and run inside the service: no GPU, no native code, no network.',
+        why: 'It knows that fridge and refrigerator are related. On a 30-question paraphrase test it finds the right document in the top three 87% of the time, against 30% for the word-hashing method it replaces.',
+      },
+      {
         name: 'A queue that cannot lose work',
         what: 'Jobs are claimed with SKIP LOCKED, leased, retried with backoff and moved aside after repeated failure.',
         why: 'Embedding is slow and must not run inside the upload request or hold locks.',
       },
     ],
     notYet: [
-      'The default embedder is lexical. It tolerates typos and word endings but does not know that car and automobile are related. A real model can be plugged in; none has been tried.',
+      'The model is small and static: one vector per word piece, averaged, so word order and negation are lost and it works best in English. There is no generative model, so answers are quotes, never summaries.',
       'There is no PDF or image text extraction. A PDF upload is refused with a clear message.',
       'Row-level security guards against application bugs. It does not protect against someone with database access, and your text is stored in the database as plain text.',
       'Stemming is English only.',

@@ -19,3 +19,4 @@ docs
 **/target/surefire-reports
 **/target/failsafe-reports
 **/target/*.original
+ask-your-life/model/potion-base-2M

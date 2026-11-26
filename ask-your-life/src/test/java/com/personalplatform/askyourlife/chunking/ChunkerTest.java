@@ -174,4 +174,13 @@ class ChunkerTest {
         assertThatThrownBy(() -> new Chunker(10, 10)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new Chunker(10, -1)).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void sentencesAreSplitLikeTheChunkerSplitsThem() {
+        org.assertj.core.api.Assertions.assertThat(Chunker.sentences(
+                "Rent is 950. Due on the 1st!\nPaid by card (see \"note\"). Rate 3.1 percent.\n\nNew paragraph"))
+                .containsExactly("Rent is 950.", "Due on the 1st!", "Paid by card (see \"note\").", "Rate 3.1 percent.",
+                        "New paragraph");
+        org.assertj.core.api.Assertions.assertThat(Chunker.sentences("  ")).isEmpty();
+    }
 }
