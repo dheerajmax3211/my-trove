@@ -91,7 +91,7 @@ async function api(method, path, { token, body } = {}) {
 
 /** The admin API's view of one account, found by email. */
 async function adminUser(ownerToken, email) {
-  const r = await api("GET", `/api/auth/v1/admin/users?query=${encodeURIComponent(email)}`, { token: ownerToken });
+  const r = await api("GET", `/api/auth/v1/admin/users?q=${encodeURIComponent(email)}`, { token: ownerToken });
   if (r.status !== 200) throw new Error(`user search answered ${r.status}`);
   const items = Array.isArray(r.data) ? r.data : (r.data?.items ?? r.data?.content ?? []);
   const user = items.find((u) => u.email === email);
@@ -141,7 +141,10 @@ await section("member", async () => {
   console.log("== Member: adds a Waiting On item and sees it on Today");
   const { page, context, errors } = await as("member");
   const title = `Persona suite refund ${RUN}`;
-  const tomorrow = new Date(Date.now() + 24 * 3600 * 1000).toISOString().slice(0, 10);
+  // The UI counts days in the browser's local time zone, so "tomorrow" must be the local calendar date, not UTC's
+  // (in India after midnight, UTC's tomorrow is already today).
+  const local = new Date(Date.now() + 24 * 3600 * 1000);
+  const tomorrow = `${local.getFullYear()}-${String(local.getMonth() + 1).padStart(2, "0")}-${String(local.getDate()).padStart(2, "0")}`;
 
   await check("creates a Waiting On item through the form", async () => {
     await page.goto(`${WS}/app/waiting-on/new`, { waitUntil: "networkidle" });
@@ -232,12 +235,22 @@ await section("developer", async () => {
   await check("issues an API key for that app; the list shows only its prefix", async () => {
     await sections.getByRole("link", { name: "API keys" }).click();
     const issue = page.getByRole("form", { name: "Issue a key" });
+    // Fill only once the page has finished loading its apps, keys and plan: values typed during that first render
+    // were lost (the form re-rendered underneath them).
+    await page.waitForLoadState("networkidle");
+    await issue.locator("option", { hasText: appName }).waitFor({ state: "attached" });
+    await page.waitForTimeout(500);
     await issue.getByLabel(/^App/).selectOption({ label: appName });
     await issue.getByLabel(/^Key name/).fill(keyName);
     await issue.getByRole("checkbox", { name: "usage:read" }).check();
     await issue.getByRole("button", { name: "Issue key" }).click();
     const ready = page.getByRole("dialog", { name: `Key ${keyName} is ready` });
-    await ready.waitFor();
+    await ready.waitFor().catch(async (error) => {
+      // Say what the page shows instead of only "timed out": a validation message, a refusal or a plan limit.
+      await shot(page, "developer-key-not-issued");
+      const said = (await page.getByRole("alert").allInnerTexts()).join(" | ") || (await issue.innerText()).slice(0, 400);
+      throw new Error(`no key dialog; the page says: ${said}`);
+    });
     keyValue = await ready.getByTestId("secret-value").innerText();
     await ready.getByRole("button", { name: "I have copied it" }).click();
     const row = page.getByRole("row").filter({ hasText: keyName });

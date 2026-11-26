@@ -101,6 +101,12 @@ check "an unknown key is refused"                       401 "$(call GET "pk_0000
 check "the API is metered with principal API_KEY"       1 "$(sleep 6; psql_one "select count(*) > 0 from platform.usage_events where principal_type = 'API_KEY' and ts > now() - interval '10 minutes'" | sed 's/t/1/;s/f/0/')"
 
 echo "== Webhooks (webhooks:manage), receiver on loopback"
+# The FREE plan allows one active webhook per developer: remove any left by an earlier run so this one can be created.
+for app_id in $(call GET "$DEV_T" /api/platform/v1/developer/apps >/dev/null; python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d=d.get("items",d) if isinstance(d,dict) else d; print(" ".join(a["id"] for a in d))' "$LAST"); do
+  for hook_id in $(call GET "$DEV_T" /api/platform/v1/developer/apps/$app_id/webhooks >/dev/null; python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d=d.get("items",d) if isinstance(d,dict) else d; print(" ".join(h["id"] for h in d))' "$LAST" 2>/dev/null); do
+    call DELETE "$DEV_T" /api/platform/v1/developer/webhooks/$hook_id >/dev/null
+  done
+done
 RECV_PORT=$(python3 -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()')
 python3 -I "$WORK/receiver.py" "$RECV_PORT" "$RECEIVED" >/dev/null 2>&1 &
 RECEIVER_PID=$!
@@ -159,6 +165,9 @@ check "developer revokes the key"               204 "$(call DELETE "$DEV_T" /api
 echo "  waiting 61 s for the gateway's exchange cache to expire"
 sleep 61
 check "the revoked key is refused"              401 "$(call GET "$KEY" /api/platform/v1/usage/me)"
+
+# Leave no active webhook behind, so the next run (FREE plan: one active endpoint) starts clean.
+[ -n "${HOOK:-}" ] && call DELETE "$DEV_T" /api/platform/v1/developer/webhooks/$HOOK >/dev/null
 
 echo
 echo "passed: $pass   failed: $fail"
