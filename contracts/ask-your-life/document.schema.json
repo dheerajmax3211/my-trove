@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ask Your Life document (DocumentDtos.DocumentResponse)",
+  "description": "GET /v1/documents/{id}. The service omits null fields (spring.jackson.default-property-inclusion=non_null), so externalId, ingestedAt and indexingError are absent rather than null.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "sourceType", "title", "mimeType", "contentHash", "status", "chunkCount", "createdAt", "updatedAt"],
+  "properties": {
+    "id": { "type": "string" },
+    "sourceType": { "enum": ["NOTE", "FILE", "EMAIL", "RECEIPT"] },
+    "externalId": { "type": "string" },
+    "title": { "type": "string" },
+    "mimeType": { "type": "string" },
+    "contentHash": { "type": "string" },
+    "status": { "enum": ["PENDING", "INDEXED", "FAILED"] },
+    "chunkCount": { "type": "integer" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "ingestedAt": { "type": "string", "format": "date-time" },
+    "indexingError": { "type": "string" }
+  }
+}

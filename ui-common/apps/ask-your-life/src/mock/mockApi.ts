@@ -46,8 +46,16 @@ const TITLE_MAX = 500
 const EXTERNAL_ID_MAX = 256
 const FAIL_MARKER = 'FAIL-INDEXING'
 
+/**
+ * The service writes JSON with `spring.jackson.default-property-inclusion=non_null`: a null property is left out,
+ * never sent as `null`. Do the same so demo mode returns the service's shapes (`contracts/ask-your-life`).
+ */
+function omitNullProperties(this: unknown, _key: string, value: unknown): unknown {
+  return value === null && !Array.isArray(this) ? undefined : value
+}
+
 function respond(status: number, body: unknown, headers: Record<string, string> = {}): Response {
-  return new Response(body === undefined ? null : JSON.stringify(body), {
+  return new Response(body === undefined ? null : JSON.stringify(body, omitNullProperties), {
     status,
     headers: { 'content-type': 'application/json', ...headers },
   })

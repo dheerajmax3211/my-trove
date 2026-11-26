@@ -5,6 +5,7 @@
  */
 import type { ProductModule } from '@platform/workspace-kit'
 import { describe, expect, it } from 'vitest'
+import { productModule as askYourLife } from '@platform/ask-your-life/module'
 import { productModule as consent } from '@platform/consent/module'
 import { productModule as homePulse } from '@platform/home-pulse/module'
 import { productModule as waitingOn } from '@platform/waiting-on/module'
@@ -186,5 +187,47 @@ describe('home-pulse demo API', () => {
     const alerts = (await call('GET', '/v1/alerts?status=OPEN')) as { id: string }[]
     c('alert.schema.json', await call('GET', `/v1/alerts/${alerts[0]!.id}`))
     c('alert.schema.json', await call('POST', `/v1/alerts/${alerts[0]!.id}/ack`))
+  })
+})
+
+describe('ask-your-life demo API', () => {
+  const call = client(askYourLife)
+  const c = (file: string, body: unknown) => expectContract('ask-your-life', file, body)
+
+  it('library and each document', async () => {
+    const documents = (await call('GET', '/v1/documents')) as { id: string }[]
+    c('document-list.schema.json', documents)
+    c('document.schema.json', await call('GET', `/v1/documents/${documents[0]!.id}`))
+  })
+
+  it('search: answer and hits, keyword only, and the explain variant', async () => {
+    const hybrid = (await call('GET', '/v1/search?q=deposit&k=5')) as { hits: unknown[] }
+    expect(hybrid.hits.length).toBeGreaterThan(0)
+    c('search.schema.json', hybrid)
+    c('search.schema.json', await call('GET', '/v1/search?q=deposit&mode=keyword&debug=true'))
+    c('search.schema.json', await call('GET', '/v1/search/explain?q=deposit'))
+  })
+
+  it('writes: add a note, re-post it unchanged, update it', async () => {
+    const created = (await call('POST', '/v1/documents', {
+      title: 'Contract note',
+      text: 'The boiler was serviced in March.',
+      sourceType: 'NOTE',
+      externalId: 'contract-1',
+    })) as { document: { id: string } }
+    c('ingest.schema.json', created)
+    c(
+      'ingest.schema.json',
+      await call('POST', '/v1/documents', {
+        title: 'Contract note',
+        text: 'The boiler was serviced in March.',
+        sourceType: 'NOTE',
+        externalId: 'contract-1',
+      }),
+    )
+    c(
+      'ingest.schema.json',
+      await call('PUT', `/v1/documents/${created.document.id}`, { text: 'Serviced in April.' }),
+    )
   })
 })

@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ask Your Life document list",
+  "description": "GET /v1/documents (the library, the product's home page).",
+  "type": "array",
+  "items": { "$ref": "document.schema.json" }
+}

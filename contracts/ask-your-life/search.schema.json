@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ask Your Life search response (SearchService.Response)",
+  "description": "GET /v1/search?q=... and GET /v1/search/explain. Null fields are omitted: answer when no sentence matches, debug and explain unless asked for, and explain's ranks when a passage is not in that list.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["query", "mode", "k", "hits"],
+  "properties": {
+    "query": { "type": "string" },
+    "mode": { "enum": ["HYBRID", "KEYWORD", "SEMANTIC"] },
+    "k": { "type": "integer" },
+    "answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "sentences", "score"],
+      "properties": {
+        "text": { "type": "string" },
+        "sentences": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["text", "documentId", "title", "sourceType", "chunkId", "chunkOrdinal"],
+            "properties": {
+              "text": { "type": "string" },
+              "documentId": { "type": "string" },
+              "title": { "type": "string" },
+              "sourceType": { "enum": ["NOTE", "FILE", "EMAIL", "RECEIPT"] },
+              "chunkId": { "type": "string" },
+              "chunkOrdinal": { "type": "integer" }
+            }
+          }
+        },
+        "score": { "type": "number" }
+      }
+    },
+    "hits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["documentId", "chunkId", "title", "sourceType", "createdAt", "chunkOrdinal", "snippet", "score"],
+        "properties": {
+          "documentId": { "type": "string" },
+          "chunkId": { "type": "string" },
+          "title": { "type": "string" },
+          "sourceType": { "enum": ["NOTE", "FILE", "EMAIL", "RECEIPT"] },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "chunkOrdinal": { "type": "integer" },
+          "snippet": { "type": "string" },
+          "score": { "type": "number" },
+          "explain": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ftsRank": { "type": "integer" },
+              "semanticRank": { "type": "integer" },
+              "ftsScore": { "type": "number" },
+              "semanticSimilarity": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "debug": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rrfK", "fusion", "candidatePool"],
+      "properties": {
+        "rrfK": { "type": "integer" },
+        "fusion": { "type": "string" },
+        "candidatePool": { "type": "integer" }
+      }
+    }
+  }
+}

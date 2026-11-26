@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ask Your Life ingest result (DocumentDtos.IngestResponse)",
+  "description": "POST /v1/documents (JSON, raw text or multipart) and PUT /v1/documents/{id}.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["outcome", "document"],
+  "properties": {
+    "outcome": { "enum": ["CREATED", "UPDATED", "DUPLICATE"] },
+    "document": { "$ref": "document.schema.json" }
+  }
+}
