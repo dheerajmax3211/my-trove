@@ -48,3 +48,6 @@ HELP.md
 
 # Ask Your Life model files (fetched by ask-your-life/model/fetch-model.sh, never committed)
 ask-your-life/model/potion-base-2M/
+
+# ml-service evaluation output (scenario exports and results; the published numbers live in ml-service/MODEL_CARD.md)
+ml-service/eval/out/

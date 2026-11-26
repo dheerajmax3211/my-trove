@@ -38,7 +38,17 @@ Port `8085`, Postgres schema `home_pulse`, Spring Boot 4.1.2 / Java 21 / jOOQ / 
                                                         '--> BaselineLearner (pure): robust statistics (median / MAD)
 ```
 
-Package map: `detect` (pure domain: learner, detector, reconciler, no Spring), `ingest` (HTTP + MQTT ingestion),
+**Optional trained model.** With `ML_SERVICE_URL` set, `ml.MlAnomalyModel` (behind the `detect.AnomalyModel` seam)
+asks [`ml-service`](../ml-service/README.md) (Python, seasonal time-of-day baseline, calibrated residual z-score) to
+decide `POWER_SHIFT` and `DUTY_CYCLE_DRIFT`. The built-in detector below always runs: it decides `STUCK_ON`, `STOPPED`
+and `NO_DATA`, and it is the fallback for every case ml-service cannot answer (timeout, connection error, 5xx,
+unreadable answer, a kind it could not judge, a model not trained yet). An untrained or stale model (ml-service
+restarted without its volume, or the baseline was re-learned) is trained at once from the baseline's learning window
+and scored again; a failed training is retried after 10 minutes. Every alert records **`decidedBy`** (`MAD` / `ML`,
+column `alerts.decided_by`, updated on refresh), shown in the API and the alert card. Numbers (simulator only):
+[`ml-service/MODEL_CARD.md`](../ml-service/MODEL_CARD.md).
+
+Package map: `detect` (pure domain: learner, detector, reconciler, no Spring), `ml` (ml-service client and fallback), `ingest` (HTTP + MQTT ingestion),
 `device`, `appliance`, `reading` (queries + continuous aggregate handles), `alert`, `eval` (scheduled evaluation),
 `health`, `reminder` (pure calculator + endpoint), `config` (security chains, properties, clock), `web` (errors).
 
@@ -168,6 +178,8 @@ Flyway creates the schema, the hypertable, aggregates and policies on first star
 | `LEARN_DAYS` (`app.evaluation.learn-days`) | `7` | Learning period |
 | `app.evaluation.resolve-after-clear-runs` | `3` | Clean runs before auto-resolve |
 | `app.ingest.max-batch-size` / `max-future-skew` / `max-age` | `1000` / `PT5M` / `P30D` | Ingestion limits |
+| `ML_SERVICE_URL` (`app.ml.url`) | empty | ml-service base URL; empty = built-in detector only (the default outside dev; `dev/up.sh` sets `http://localhost:8095` when it could start the container) |
+| `ML_SERVICE_TIMEOUT` (`app.ml.timeout`), `app.ml.train-timeout`, `app.ml.retrain-backoff` | `PT2S`, `PT30S`, `PT10M` | Score timeout (inside every evaluation), training timeout, wait after a failed training |
 
 ## Tests (`./mvnw -pl home-pulse -am verify`, needs Docker; image `timescale/timescaledb:2.32.0-pg16`)
 
@@ -181,6 +193,11 @@ Flyway creates the schema, the hypertable, aggregates and policies on first star
   **cross-owner isolation** (user B gets 404 / empty lists for everything of user A).
 * `EvaluationIntegrationTest`: simulator -> hypertable -> real-time aggregate -> evaluation job -> alerts -> API, with a manual clock.
 * `MqttIngestHandlerTest`: message handling and idempotency without a broker.
+* `ml/MlAnomalyModelTest` (stubbed ml-service over real HTTP): ML finding with evidence, an ML "normal" overrides the
+  built-in finding of that kind, a kind ML could not judge keeps the built-in decision, hysteresis request, fallback on
+  500 / timeout / refused connection / unreadable answer, untrained and stale models retrained then scored, failed
+  training backed off. `MlServiceIntegrationTest`: simulator -> evaluation -> stub -> alert row -> API (`decidedBy`).
+* `sim/MlEvaluationExportTest` is skipped unless `-Dml.eval.out=<dir>`: it is the first half of ml-service's evaluation.
 * `sql-jooq/.../HomePulseSchemaTest` (timescale image): hypertable, both continuous aggregates, compression / retention /
   refresh policies exist; rollup buckets are exactly as expected before and after materialization; generated jOOQ classes match
   Postgres; idempotent insert also on a compressed chunk.
@@ -205,4 +222,6 @@ Flyway creates the schema, the hypertable, aggregates and policies on first star
   power shift for "other"), not cycle analysis.
 * Inserting into compressed chunks with `ON CONFLICT DO NOTHING` works on this Timescale version (tested) but decompresses batches; keep the
   compression delay above the longest expected backfill.
+* ml-service calls run inside the per-appliance evaluation transaction (bounded by the 2 s timeout; training up to 30 s
+  once per learning window). ml-service has no authentication of its own; it relies on network isolation.
 * The repo-level `docker-compose.yml` runs plain `postgres:16`; use `dev/docker-compose.yml` (TimescaleDB, pgvector and Temporal in one stack).

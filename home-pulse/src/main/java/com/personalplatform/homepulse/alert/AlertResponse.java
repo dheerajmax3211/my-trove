@@ -1,6 +1,7 @@
 package com.personalplatform.homepulse.alert;
 
 import com.personalplatform.homepulse.detect.AlertKind;
+import com.personalplatform.homepulse.detect.DecidedBy;
 import com.personalplatform.homepulse.detect.Severity;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -28,7 +29,9 @@ public record AlertResponse(
         LocalDate lastServiceDate,
         LocalDate nextServiceDate,
         boolean serviceOverdue,
-        boolean simulated) {
+        boolean simulated,
+        // which model made the latest decision: MAD (built-in detector) or ML (ml-service)
+        DecidedBy decidedBy) {
 
     public static AlertResponse from(Alert a, LocalDate today) {
         boolean warranty = a.warrantyEndDate() != null && !a.warrantyEndDate().isBefore(today);
@@ -36,6 +39,7 @@ public record AlertResponse(
         boolean overdue = a.nextServiceDate() != null && a.nextServiceDate().isBefore(today);
         return new AlertResponse(a.id(), a.applianceId(), a.applianceName(), a.kind(), a.severity(), a.status(),
                 a.message(), a.evidence(), a.openedAt(), a.updatedAt(), a.acknowledgedAt(), a.resolvedAt(),
-                warranty, a.warrantyEndDate(), days, a.lastServiceDate(), a.nextServiceDate(), overdue, a.simulated());
+                warranty, a.warrantyEndDate(), days, a.lastServiceDate(), a.nextServiceDate(), overdue, a.simulated(),
+                a.decidedBy());
     }
 }

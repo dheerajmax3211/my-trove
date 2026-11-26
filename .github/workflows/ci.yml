@@ -41,6 +41,18 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+  ml-service:
+    name: ML service (pytest in Docker)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      # The test stage installs the pinned test dependencies and runs pytest while building; a failing test fails
+      # the build. Nothing Python is installed on the runner.
+      - run: docker build --target test -t ml-service:test ml-service
+      # The runtime image builds too (what release.yml ships).
+      - run: docker build -t ml-service:ci ml-service
+
   frontend:
     name: Frontend (lint, typecheck, test, build)
     runs-on: ubuntu-latest

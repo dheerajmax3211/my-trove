@@ -97,6 +97,10 @@ helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 # API-key callers act for their owner via auth's /internal/v1/token/delegate (APP_INTERNAL_API_KEY is set above).
 - { name: AUTH_URL, value: "http://auth:8081" }
 {{- end }}
+{{- if and (eq .name "home-pulse") $v.mlService.enabled }}
+# Trained model for power shift / duty drift; home-pulse falls back to its built-in detector when it does not answer.
+- { name: ML_SERVICE_URL, value: "http://ml-service:{{ $v.mlService.port }}" }
+{{- end }}
 {{- if eq .name "digital-legacy" }}
 - { name: LEGACY_TRUSTEE_PORTAL_URL, value: {{ $v.urls.workspace | quote }} }
 {{- end }}

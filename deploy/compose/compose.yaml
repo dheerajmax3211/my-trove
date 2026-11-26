@@ -150,7 +150,17 @@ services:
   home-pulse:
     <<: *backend
     image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/home-pulse:${TAG:?set TAG}
-    environment: { <<: *backend-env, MANAGEMENT_PORT: "9085" }
+    environment: { <<: *backend-env, MANAGEMENT_PORT: "9085", ML_SERVICE_URL: "http://ml-service:8095" }
+  # Home Pulse's trained model. Internal only (no published port); home-pulse falls back to its built-in detector
+  # whenever it does not answer. Models are kept in the mlmodels volume across restarts.
+  ml-service:
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/ml-service:${TAG:?set TAG}
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    volumes: [mlmodels:/var/lib/ml-service]
   ask-your-life:
     <<: *backend
     image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/ask-your-life:${TAG:?set TAG}
@@ -197,3 +207,4 @@ volumes:
   kafkadata: {}
   temporaldata: {}
   files: {}
+  mlmodels: {}

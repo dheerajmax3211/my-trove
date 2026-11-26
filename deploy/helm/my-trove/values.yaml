@@ -97,6 +97,18 @@ services:
   platform-service: { module: platform-service, port: 8089, managementPort: 9089, replicas: 1, env: {} }
   mcp-server:       { module: mcp-server,       port: 8090, managementPort: 9090, replicas: 1, env: {} }
 
+# Home Pulse's ML service (Python, ml-service/). Off by default: home-pulse then uses its built-in detector only.
+# Reachable only from home-pulse (and the monitoring namespace for /metrics). Without a claim the trained models live
+# in an emptyDir: a restarted pod forgets them and home-pulse retrains each appliance on its next evaluation.
+mlService:
+  enabled: false
+  port: 8095
+  replicas: 1
+  persistentVolumeClaim: ""
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 256Mi }
+
 resources:
   backend:
     requests: { cpu: 100m, memory: 512Mi }

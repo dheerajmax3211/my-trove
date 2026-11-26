@@ -77,6 +77,7 @@ jobs:
           - { name: digital-legacy, kind: service }
           - { name: family-treasury, kind: service }
           - { name: mcp-server, kind: service }
+          - { name: ml-service, kind: python }
           - { name: workspace, kind: web }
           - { name: site, kind: web }
     steps:
@@ -89,6 +90,9 @@ jobs:
           IMAGE="$REGISTRY/${{ matrix.name }}:${{ github.sha }}"
           if [ "${{ matrix.kind }}" = service ]; then
             docker build -f deploy/docker/service.Dockerfile --build-arg MODULE=${{ matrix.name }} -t "$IMAGE" .
+          elif [ "${{ matrix.kind }}" = python ]; then
+            # ml-service: its own Dockerfile; the default (last) stage is the runtime image, tests excluded
+            docker build -t "$IMAGE" ml-service
           else
             # Production web builds get their URLs from repository variables (Settings > Variables).
             docker build -f deploy/docker/web.Dockerfile --build-arg APP=${{ matrix.name }} \

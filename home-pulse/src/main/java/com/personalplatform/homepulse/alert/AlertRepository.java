@@ -5,6 +5,7 @@ import static com.personalplatform.sql.jooq.home_pulse.home_pulse.Tables.APPLIAN
 
 import com.personalplatform.homepulse.detect.AlertKind;
 import com.personalplatform.homepulse.detect.AlertReconciler.LiveAlert;
+import com.personalplatform.homepulse.detect.DecidedBy;
 import com.personalplatform.homepulse.detect.Finding;
 import com.personalplatform.homepulse.detect.Severity;
 import com.personalplatform.sql.UuidV7;
@@ -57,6 +58,7 @@ public class AlertRepository {
                 .set(ALERTS.OPENED_AT, t)
                 .set(ALERTS.UPDATED_AT, t)
                 .set(ALERTS.SIMULATED, simulated)
+                .set(ALERTS.DECIDED_BY, f.decidedBy().name())
                 // the partial unique index (appliance, kind) where live is the dedup backstop for concurrent runs
                 .onConflictDoNothing()
                 .execute();
@@ -69,6 +71,7 @@ public class AlertRepository {
                 .set(ALERTS.SEVERITY, f.severity().name())
                 .set(ALERTS.MESSAGE, trim(f.message()))
                 .set(ALERTS.EVIDENCE, evidence(f))
+                .set(ALERTS.DECIDED_BY, f.decidedBy().name())
                 .set(ALERTS.CLEAR_STREAK, 0)
                 .set(ALERTS.UPDATED_AT, now.atOffset(ZoneOffset.UTC))
                 .where(ALERTS.ID.eq(id), ALERTS.STATUS.in("OPEN", "ACKNOWLEDGED"))
@@ -163,7 +166,7 @@ public class AlertRepository {
                 r.get(ALERTS.ACKNOWLEDGED_AT) == null ? null : r.get(ALERTS.ACKNOWLEDGED_AT).toInstant(),
                 r.get(ALERTS.RESOLVED_AT) == null ? null : r.get(ALERTS.RESOLVED_AT).toInstant(),
                 r.get(APPLIANCES.WARRANTY_END_DATE), r.get(APPLIANCES.LAST_SERVICE_DATE), r.get(APPLIANCES.NEXT_SERVICE_DATE),
-                r.get(ALERTS.SIMULATED));
+                r.get(ALERTS.SIMULATED), DecidedBy.valueOf(r.get(ALERTS.DECIDED_BY)));
     }
 
     private static String trim(String s) {

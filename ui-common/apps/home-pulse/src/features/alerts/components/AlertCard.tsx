@@ -12,7 +12,7 @@ import { ModuleLink } from '@platform/workspace-kit'
 import { useClock } from '../../../lib/clock'
 import { errorMessage } from '../../../lib/errors'
 import { formatRelative } from '../../../lib/format'
-import { alertContext, describeAlert, KIND_LABELS } from '../evidence'
+import { alertContext, decidedByLine, describeAlert, KIND_LABELS } from '../evidence'
 import { useAcknowledgeAlert } from '../hooks'
 import type { AlertDto } from '../types'
 import { AlertStatusBadge, SeverityBadge } from './AlertBadges'
@@ -103,6 +103,9 @@ export function AlertCard({ alert, showAppliance = true, headingAs = 'h2' }: Ale
               ? `, resolved ${formatRelative(alert.resolvedAt, now).toLowerCase()}`
               : ''}
             .
+          </p>
+          <p className="hp-muted hp-small" data-decided-by={alert.decidedBy ?? 'MAD'}>
+            {decidedByLine(alert)}
           </p>
           <details className="hp-technical">
             <summary>Technical details</summary>

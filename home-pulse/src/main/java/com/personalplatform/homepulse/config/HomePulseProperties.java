@@ -9,7 +9,27 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 public record HomePulseProperties(
         @DefaultValue Mqtt mqtt,
         @DefaultValue Evaluation evaluation,
-        @DefaultValue Ingest ingest) {
+        @DefaultValue Ingest ingest,
+        @DefaultValue Ml ml) {
+
+    /**
+     * ml-service (trained seasonal model). Empty {@code url} = the built-in detector only (the default).
+     *
+     * @param url            base URL, e.g. {@code http://localhost:8095}
+     * @param timeout        connect and read timeout of a score call (it runs inside every evaluation)
+     * @param trainTimeout   read timeout of a training call (a week of minute samples)
+     * @param retrainBackoff after a failed training, wait this long before trying again
+     */
+    public record Ml(
+            String url,
+            @DefaultValue("PT2S") Duration timeout,
+            @DefaultValue("PT30S") Duration trainTimeout,
+            @DefaultValue("PT10M") Duration retrainBackoff) {
+
+        public boolean enabled() {
+            return url != null && !url.isBlank();
+        }
+    }
 
     /** MQTT subscriber adapter. Off by default: no broker is needed to run the service. */
     public record Mqtt(

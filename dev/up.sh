@@ -79,6 +79,27 @@ if [ "${#@}" -eq 0 ] || [[ " $* " =~ " ask-your-life " ]]; then
 fi
 export EMBEDDER_MODEL_DIR="${EMBEDDER_MODEL_DIR:-$ROOT/ask-your-life/model/potion-base-2M}"
 
+# Home Pulse's ML service (Python, only ever run in Docker): built from ml-service/ and started on :8095 when Docker is
+# up; home-pulse then asks it first and falls back to its built-in detector whenever it does not answer. Models live in
+# the my-trove-ml-models volume, so they survive restarts. ML_SERVICE=0 skips it (home-pulse then uses MAD only).
+if { [ "${#@}" -eq 0 ] || [[ " $* " =~ " home-pulse " ]]; } && [ "${ML_SERVICE:-1}" = 1 ] && docker info >/dev/null 2>&1; then
+  if [ -z "$(docker ps -q --filter name=^my-trove-ml-service$)" ]; then
+    docker rm -f my-trove-ml-service >/dev/null 2>&1 || true
+    if docker build -q -t my-trove/ml-service:dev "$ROOT/ml-service" >/dev/null \
+        && docker run -d --name my-trove-ml-service -p 127.0.0.1:8095:8095 -v my-trove-ml-models:/var/lib/ml-service \
+           my-trove/ml-service:dev >/dev/null; then
+      echo "started ml-service (container my-trove-ml-service, :8095)"
+    else
+      echo "warning: could not start ml-service; home-pulse uses its built-in detector" >&2
+    fi
+  else
+    echo "ml-service already running"
+  fi
+  if [ -n "$(docker ps -q --filter name=^my-trove-ml-service$)" ]; then
+    export ML_SERVICE_URL="${ML_SERVICE_URL:-http://localhost:8095}"
+  fi
+fi
+
 wanted=("$@")
 for entry in "${ALL[@]}"; do
   name="${entry%%:*}"
