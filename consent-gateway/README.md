@@ -114,7 +114,7 @@ Client / public API:
 | POST | `/v1/oauth/revoke` | client id + secret | RFC 7009, own tokens only |
 | GET | `/.well-known/jwks.json` | none | public keys (active + still-verifiable retired keys) |
 | POST | `/v1/gateway/requests` | client token | create an access request |
-| GET | `/v1/gateway/requests/{id}` | client token | poll status / `grantId` |
+| GET | `/v1/gateway/requests/{id}` | client token | poll status / `grantId`; `expiresAt` is when an undecided request stops being approvable (null once decided). Owner request views carry the same field |
 | POST | `/v1/gateway/grants/{grantId}/token` | client token | exchange grant for access token |
 | GET | `/v1/gateway/data[?path=&purpose=]` | access token | read approved attributes; denial = 403 ProblemDetail with `reason` |
 | GET | `/actuator/health` | none | health |
@@ -147,7 +147,7 @@ Outside the `dev` profile you must provide a real key: `export CONSENT_KEY_ENCRY
 | `app.consent.audience` | `consent-gateway` | `aud` of gateway tokens |
 | `app.consent.access-token-ttl` / `client-token-ttl` | `PT5M` | token lifetimes |
 | `app.consent.clock-skew` | `PT30S` | tolerated skew; tokens stay valid this long past `exp` |
-| `app.consent.request-ttl` | `P7D` | a pending request older than this cannot be approved |
+| `app.consent.request-ttl` | `P7D` | a pending request older than this cannot be approved; request views report the deadline as `expiresAt` so clients never hard-code it |
 | `app.consent.max-grant-duration` | `P365D` | upper bound on requested duration |
 | `app.consent.key-rotation-interval` | `P30D` | hourly job rotates the active key once it is this old |
 | `app.consent.auto-rotate-keys` | `true` | disable the scheduled rotation |

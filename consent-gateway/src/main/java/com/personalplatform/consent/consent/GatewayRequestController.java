@@ -54,7 +54,7 @@ public class GatewayRequestController {
         AccessRequestRow row = consent.createRequest(client, new ConsentService.NewRequest(
                 body.scopes(), body.purpose(), body.durationSeconds(), body.maxReads(),
                 body.allowedHours() == null ? null : body.allowedHours().toWindow()));
-        return ResponseEntity.status(HttpStatus.CREATED).body(ConsentViews.RequestView.of(row, false, null));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ConsentViews.RequestView.of(row, false, null, consent.expiresAt(row)));
     }
 
     /** Poll for the owner's decision; once approved, {@code grantId} is what you exchange for an access token. */
@@ -62,7 +62,8 @@ public class GatewayRequestController {
     public ConsentViews.RequestView get(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
         ClientRecord client = clients.requireActive(jwt.getSubject());
         AccessRequestRow row = consent.requestForClient(client, id);
-        return ConsentViews.RequestView.of(row, consent.isExpired(row), consent.grantIdForRequest(id).orElse(null));
+        return ConsentViews.RequestView.of(row, consent.isExpired(row), consent.grantIdForRequest(id).orElse(null),
+                consent.expiresAt(row));
     }
 
     @PostMapping("/grants/{grantId}/token")
