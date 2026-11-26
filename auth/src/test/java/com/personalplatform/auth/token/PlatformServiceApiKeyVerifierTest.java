@@ -21,6 +21,7 @@ class PlatformServiceApiKeyVerifierTest {
     static final String OWNER = "0190f0a0-0000-7000-8000-000000000001";
     static final String APP = "0190f0a0-0000-7000-8000-000000000002";
     static final String KEY_ID = "0190f0a0-0000-7000-8000-000000000003";
+    static final String BOOM_KEY_ID = "0190f0a0-0000-7000-8000-000000000004";
 
     private HttpServer server;
     private final AtomicReference<String> lastInternalKey = new AtomicReference<>();
@@ -41,6 +42,19 @@ class PlatformServiceApiKeyVerifierTest {
                 respond(exchange, 500, "{\"title\":\"boom\"}");
             } else {
                 respond(exchange, 401, "{\"status\":401,\"detail\":\"The API key is invalid, expired or revoked\"}");
+            }
+        });
+        server.createContext("/internal/v1/api-keys/status", exchange -> {
+            lastInternalKey.set(exchange.getRequestHeaders().getFirst("X-Internal-Key"));
+            lastBody.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            String body = lastBody.get();
+            if (body.contains(KEY_ID)) {
+                respond(exchange, 200, "{\"keyId\":\"" + KEY_ID + "\",\"appId\":\"" + APP + "\",\"ownerUid\":\"" + OWNER
+                        + "\",\"state\":\"REVOKED\",\"permissions\":[\"mcp:use\",\"products:use\"]}");
+            } else if (body.contains(BOOM_KEY_ID)) {
+                respond(exchange, 500, "{\"title\":\"boom\"}");
+            } else {
+                respond(exchange, 404, "{\"status\":404}");
             }
         });
         server.start();
@@ -89,6 +103,24 @@ class PlatformServiceApiKeyVerifierTest {
     void anUnreachablePlatformServiceBecomesAnOutage() {
         server.stop(0);
         assertThatThrownBy(() -> verifier.verify("pk_good0000_secret"))
+                .isInstanceOf(ApiKeyServiceUnavailableException.class);
+    }
+
+    @Test
+    void statusSendsTheInternalKeyAndMapsTheState() {
+        ApiKeyStatus s = verifier.status(java.util.UUID.fromString(KEY_ID));
+        assertThat(lastInternalKey.get()).isEqualTo(INTERNAL);
+        assertThat(lastBody.get()).contains("\"keyId\":\"" + KEY_ID + "\"");
+        assertThat(s.state()).isEqualTo(ApiKeyStatus.State.REVOKED);
+        assertThat(s.appId().toString()).isEqualTo(APP);
+        assertThat(s.ownerUid()).isEqualTo(OWNER);
+        assertThat(s.permissions()).containsExactly("mcp:use", "products:use");
+    }
+
+    @Test
+    void statusOfAnUnknownKeyIsInvalidAndAnErrorIsAnOutage() {
+        assertThatThrownBy(() -> verifier.status(java.util.UUID.randomUUID())).isInstanceOf(InvalidApiKeyException.class);
+        assertThatThrownBy(() -> verifier.status(java.util.UUID.fromString(BOOM_KEY_ID)))
                 .isInstanceOf(ApiKeyServiceUnavailableException.class);
     }
 }

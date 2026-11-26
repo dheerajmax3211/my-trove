@@ -78,6 +78,8 @@ class ApiKeyExchangeTest {
         assertThat(c.getClaim("roles")).as("a service token carries no roles").isNull();
         assertThat(c.getStringClaim("key_id")).isEqualTo(keyId.toString());
         assertThat(c.getStringClaim("owner_uid")).isEqualTo(owner.id().toString());
+        assertThat(c.getJSONObjectClaim("act")).as("RFC 8693 actor names the owner the key acts for")
+                .containsExactly(java.util.Map.entry("sub", owner.id().toString()));
         assertThat(c.getStringClaim("plan")).isEqualTo("FREE");
         assertThat(c.getExpirationTime().getTime() - c.getIssueTime().getTime()).isEqualTo(600_000L);
     }

@@ -19,6 +19,7 @@ import org.springframework.web.client.RestClientResponseException;
 public class PlatformServiceApiKeyVerifier implements ApiKeyVerifier {
 
     static final String VERIFY_PATH = "/internal/v1/api-keys/verify";
+    static final String STATUS_PATH = "/internal/v1/api-keys/status";
     static final String INTERNAL_KEY_HEADER = "X-Internal-Key";
 
     /** The platform service's answer for a valid key. */
@@ -61,5 +62,42 @@ public class PlatformServiceApiKeyVerifier implements ApiKeyVerifier {
             throw new ApiKeyServiceUnavailableException("unreadable verification answer");
         }
         return new VerifiedApiKey(r.keyId(), r.appId(), r.ownerUid(), r.scopes(), r.permissions());
+    }
+
+    /** The platform service's answer for {@code POST /internal/v1/api-keys/status}. */
+    record StatusResponse(UUID keyId, UUID appId, String ownerUid, String state, List<String> permissions) {}
+
+    @Override
+    public ApiKeyStatus status(UUID keyId) {
+        if (internalKey.isBlank()) {
+            throw new ApiKeyServiceUnavailableException("no internal API key is configured");
+        }
+        StatusResponse r;
+        try {
+            r = client.post()
+                    .uri(STATUS_PATH)
+                    .header(INTERNAL_KEY_HEADER, internalKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("keyId", keyId.toString()))
+                    .retrieve()
+                    .body(StatusResponse.class);
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode().value() == 404) {
+                throw new InvalidApiKeyException();
+            }
+            throw new ApiKeyServiceUnavailableException("platform service answered " + e.getStatusCode().value());
+        } catch (RestClientException e) {
+            throw new ApiKeyServiceUnavailableException(e.getClass().getSimpleName());
+        }
+        if (r == null || r.keyId() == null || r.appId() == null || r.ownerUid() == null || r.state() == null) {
+            throw new ApiKeyServiceUnavailableException("unreadable status answer");
+        }
+        ApiKeyStatus.State state;
+        try {
+            state = ApiKeyStatus.State.valueOf(r.state());
+        } catch (IllegalArgumentException e) {
+            throw new ApiKeyServiceUnavailableException("unknown key state " + r.state());
+        }
+        return new ApiKeyStatus(r.keyId(), r.appId(), r.ownerUid(), state, r.permissions());
     }
 }

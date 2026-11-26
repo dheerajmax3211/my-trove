@@ -28,6 +28,7 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenResolv
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableMethodSecurity
@@ -66,8 +67,31 @@ public class SecurityConfig {
     }
 
     /**
+     * {@code /internal/**}: service-to-service only, shared secret in {@code X-Internal-Key}
+     * ({@code app.platform-service.internal-api-key}, env {@code APP_INTERNAL_API_KEY}); no JWT is looked at, and a
+     * wrong or missing key is 401. The gateway blocks {@code /internal/**} on every route.
+     */
+    @Bean
+    @Order(1)
+    SecurityFilterChain internalChain(HttpSecurity http, AppProperties props) throws Exception {
+        http.securityMatcher("/internal/**")
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("INTERNAL"))
+                .addFilterBefore(new InternalApiKeyFilter(props.platformService().internalApiKey()),
+                        UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((req, res, ex) -> ProblemResponses.write(res, HttpStatus.UNAUTHORIZED,
+                                "UNAUTHENTICATED", "Missing or invalid internal key"))
+                        .accessDeniedHandler((req, res, ex) -> ProblemResponses.write(res, HttpStatus.FORBIDDEN,
+                                "FORBIDDEN", "You do not have permission to do this")));
+        return http.build();
+    }
+
+    /**
      * Roles and permissions live in Postgres (source of truth); the token only proves who the caller is. A suspended
-     * user is authenticated but holds no authority at all.
+     * user is authenticated but holds no authority at all. A token that acts for someone (an {@code act} object, as
+     * on a delegated API-key token) never gets more than the permissions it carries, and no roles.
      */
     @Bean
     Converter<Jwt, AbstractAuthenticationToken> jwtToAuthentication(UserService users) {
@@ -75,8 +99,17 @@ public class SecurityConfig {
             AuthUser user = users.resolve(jwt);
             Set<GrantedAuthority> authorities = new HashSet<>();
             if (!user.suspended()) {
-                user.roles().forEach(r -> authorities.add(new SimpleGrantedAuthority("ROLE_" + r)));
-                user.permissions().forEach(p -> authorities.add(new SimpleGrantedAuthority(p)));
+                if (jwt.getClaims().get("act") instanceof java.util.Map<?, ?>) {
+                    Set<String> carried = new HashSet<>();
+                    if (jwt.getClaims().get("permissions") instanceof java.util.Collection<?> items) {
+                        items.forEach(i -> carried.add(String.valueOf(i)));
+                    }
+                    user.permissions().stream().filter(carried::contains)
+                            .forEach(p -> authorities.add(new SimpleGrantedAuthority(p)));
+                } else {
+                    user.roles().forEach(r -> authorities.add(new SimpleGrantedAuthority("ROLE_" + r)));
+                    user.permissions().forEach(p -> authorities.add(new SimpleGrantedAuthority(p)));
+                }
             }
             return new JwtAuthenticationToken(jwt, authorities, jwt.getSubject());
         };
