@@ -25,7 +25,11 @@ jobs:
       # -Dfetch-model: fetch Ask Your Life's pinned embedding model (8 MB, checksum-verified) and require it, so the
       # model-quality tests run instead of being skipped.
       - run: ./mvnw -B -ntp verify -Dfetch-model
-      # On failure, keep the surefire/failsafe reports so the exact failing test can be read from the run.
+      # On failure, name each failing test in a public annotation (logs need a sign-in; annotations do not)...
+      - name: Annotate failing tests
+        if: failure()
+        run: python3 .github/scripts/annotate-test-failures.py
+      # ...and keep the surefire/failsafe reports so the exact failing test can be read from the run.
       - name: Upload test reports on failure
         if: failure()
         uses: actions/upload-artifact@v4
