@@ -20,13 +20,15 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 /**
  * The real service's responses match {@code contracts/waiting-on/*.schema.json}, the same files the workspace's
- * demo-mode mock API is checked against. Same context as {@link WaitingOnApiTest} (real Postgres, Temporal test
+ * demo-mode mock API is checked against. Same setup as {@link WaitingOnApiTest} (real Postgres, Temporal test
  * server), so {@code followUp} and {@code nextStep} are filled from a running workflow.
  */
 @Import({TestcontainersConfiguration.class, StubJwtConfig.class, TestTemporalConfig.class})
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource(properties = "app.inbound.secret=test-secret")
+// Its own context (the extra property): a cached context shared with WaitingOnApiTest is paused between classes, and
+// Temporal's WorkerFactory cannot be started again after that ("attempted to start WorkerFactory while in Shutdown").
+@TestPropertySource(properties = {"app.inbound.secret=test-secret", "contract-test.context=own"})
 class WaitingOnContractTest {
 
     @Autowired MockMvc mvc;

@@ -60,7 +60,8 @@ function client(module: ProductModule) {
 
 /** Validates and, for lists, refuses an empty array: an empty list would prove nothing about the element shape. */
 function expectContract(service: string, file: string, body: unknown) {
-  if (Array.isArray(body)) expect(body.length, `${file}: empty list proves nothing`).toBeGreaterThan(0)
+  if (Array.isArray(body))
+    expect(body.length, `${file}: empty list proves nothing`).toBeGreaterThan(0)
   expect(validate(folder(service), file, body)).toEqual([])
 }
 
@@ -80,7 +81,11 @@ describe('waiting-on demo API', () => {
     expectContract('waiting-on', 'item-list.schema.json', closed)
     const first = items[0]!
     expectContract('waiting-on', 'item.schema.json', await call('GET', `/v1/items/${first.id}`))
-    expectContract('waiting-on', 'timeline.schema.json', await call('GET', `/v1/items/${first.id}/timeline`))
+    expectContract(
+      'waiting-on',
+      'timeline.schema.json',
+      await call('GET', `/v1/items/${first.id}/timeline`),
+    )
     expectContract(
       'waiting-on',
       'draft.schema.json',
@@ -150,7 +155,10 @@ describe('consent demo API', () => {
     )
     c(
       'client-with-secret.schema.json',
-      await call('POST', '/v1/owner/clients', { name: 'Contract app', allowedScopes: ['profile:read'] }),
+      await call('POST', '/v1/owner/clients', {
+        name: 'Contract app',
+        allowedScopes: ['profile:read'],
+      }),
     )
     const pending = (await call('GET', '/v1/owner/requests?status=PENDING')) as { id: string }[]
     expect(pending.length).toBeGreaterThan(1)
@@ -298,7 +306,10 @@ describe('family-treasury demo API', () => {
     c('schedule-list.schema.json', await call('GET', `${h}/allowance-schedules`))
     c('reconciliation.schema.json', await call('GET', `${h}/reconciliation`))
     const asset = accounts.find((a) => a.type === 'ASSET')!
-    c('statement.schema.json', await call('GET', `${h}/accounts/${asset.id}/statement?page=0&size=20`))
+    c(
+      'statement.schema.json',
+      await call('GET', `${h}/accounts/${asset.id}/statement?page=0&size=20`),
+    )
   })
 
   it('writes: deposit, a small spend that posts, a large one that waits for approval, an invite', async () => {
@@ -309,11 +320,21 @@ describe('family-treasury demo API', () => {
     const key = (k: string) => ({ 'Idempotency-Key': `contract-${k}-${Math.random()}` })
     c(
       'entry.schema.json',
-      await call('POST', `${h}/deposits`, { toAccountId: pot.id, amountMinor: 500000, description: 'Pay' }, key('d')),
+      await call(
+        'POST',
+        `${h}/deposits`,
+        { toAccountId: pot.id, amountMinor: 500000, description: 'Pay' },
+        key('d'),
+      ),
     )
     c(
       'spend-result.schema.json',
-      await call('POST', `${h}/spends`, { fromAccountId: pot.id, amountMinor: 100, description: 'Milk' }, key('s')),
+      await call(
+        'POST',
+        `${h}/spends`,
+        { fromAccountId: pot.id, amountMinor: 100, description: 'Milk' },
+        key('s'),
+      ),
     )
     c(
       'spend-result.schema.json',
@@ -341,7 +362,10 @@ describe('household (shared service) demo API', () => {
     c('reminder-list.schema.json', await call('GET', '/v1/reminders'))
     const files = (await call('GET', '/v1/files')) as { id: string }[]
     c('file-list.schema.json', files)
-    c('download-link.schema.json', await call('POST', `/v1/files/${files[0]!.id}/download-link`, {}))
+    c(
+      'download-link.schema.json',
+      await call('POST', `/v1/files/${files[0]!.id}/download-link`, {}),
+    )
     c('audit-page.schema.json', await call('GET', '/v1/audit?page=0&size=20'))
   })
 
@@ -362,7 +386,10 @@ describe('household (shared service) demo API', () => {
       }),
     )
     c('reminder.schema.json', await call('POST', `/v1/reminders/${created.id}/cancel`))
-    c('invite-created.schema.json', await call('POST', `/v1/households/${owned.id}/invites`, { role: 'MEMBER' }))
+    c(
+      'invite-created.schema.json',
+      await call('POST', `/v1/households/${owned.id}/invites`, { role: 'MEMBER' }),
+    )
     c('invite-list.schema.json', await call('GET', `/v1/households/${owned.id}/invites`))
   })
 })

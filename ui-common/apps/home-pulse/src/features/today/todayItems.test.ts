@@ -38,6 +38,7 @@ const alert = (over: Partial<AlertDto> & { id: string }): AlertDto => ({
   lastServiceDate: null,
   nextServiceDate: null,
   serviceOverdue: false,
+  simulated: false,
   ...over,
 })
 

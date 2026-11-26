@@ -70,7 +70,11 @@ export function validate(folder: SchemaFolder, file: string, value: unknown): st
   return errors
 }
 
-function resolve(folder: SchemaFolder, root: Schema, ref: string): { root: Schema; schema: Schema } {
+function resolve(
+  folder: SchemaFolder,
+  root: Schema,
+  ref: string,
+): { root: Schema; schema: Schema } {
   const [file, pointer] = ref.split('#')
   const doc = file ? folder.get(file) : root
   if (!doc) throw new Error(`Unresolvable $ref ${ref}`)
@@ -108,7 +112,9 @@ function check(
       return found
     })
     if (!failures.some((found) => found.length === 0))
-      errors.push(`${path}: matches none of anyOf (${failures.map((f) => f.join('; ')).join(' | ')})`)
+      errors.push(
+        `${path}: matches none of anyOf (${failures.map((f) => f.join('; ')).join(' | ')})`,
+      )
   }
 
   if (schema.type !== undefined) {
@@ -142,7 +148,8 @@ function check(
     }
     for (const [key, child] of Object.entries(value)) {
       const propertySchema = properties[key]
-      if (isSchema(propertySchema)) check(folder, root, propertySchema, child, `${path}.${key}`, errors)
+      if (isSchema(propertySchema))
+        check(folder, root, propertySchema, child, `${path}.${key}`, errors)
       else if (schema.additionalProperties === false)
         errors.push(`${path}: unexpected property "${key}"`)
       else if (isSchema(schema.additionalProperties))
@@ -152,6 +159,8 @@ function check(
 
   if (Array.isArray(value) && isSchema(schema.items)) {
     const items = schema.items
-    value.forEach((element, index) => check(folder, root, items, element, `${path}[${index}]`, errors))
+    value.forEach((element, index) =>
+      check(folder, root, items, element, `${path}[${index}]`, errors),
+    )
   }
 }

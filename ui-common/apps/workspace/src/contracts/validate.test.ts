@@ -79,6 +79,8 @@ describe('contract validator', () => {
 
   it('refuses keywords it does not implement instead of ignoring them', () => {
     const loose = folder({ 'a.schema.json': { type: 'string', minLength: 3 } })
-    expect(() => validate(loose, 'a.schema.json', 'ab')).toThrow(/Unsupported schema keyword "minLength"/)
+    expect(() => validate(loose, 'a.schema.json', 'ab')).toThrow(
+      /Unsupported schema keyword "minLength"/,
+    )
   })
 })
