@@ -13,7 +13,7 @@ async function openInbox(options: Parameters<typeof renderApp>[0] = {}) {
 const card = (name: string) => screen.findByRole('group', { name })
 
 describe('requests inbox', () => {
-  it('lists pending requests with client, purpose, scopes and duration, and badges the nav', async () => {
+  it('lists pending requests with client, purpose, scopes and duration', async () => {
     await openInbox()
     const stride = await card('Stride Shoes')
     expect(within(stride).getByText('Recommend shoes and jackets that fit')).toBeInTheDocument()
@@ -23,7 +23,6 @@ describe('requests inbox', () => {
     const meals = await card('Meal Planner')
     expect(within(meals).getByText('No limit')).toBeInTheDocument()
     expect(within(meals).getByText('30 days')).toBeInTheDocument()
-    expect(await screen.findByRole('link', { name: /Requests\s*2 pending/ })).toBeInTheDocument()
   })
 
   it('shows an empty state when nothing is waiting', async () => {

@@ -28,7 +28,7 @@ function NotFound() {
 
 /**
  * Every Consent screen, with paths relative to wherever the module is mounted. No providers, no auth,
- * no layout: the standalone app (`App.tsx`) and the workspace both wrap this.
+ * no layout: the workspace wraps this.
  */
 export function ConsentRoutes() {
   return (

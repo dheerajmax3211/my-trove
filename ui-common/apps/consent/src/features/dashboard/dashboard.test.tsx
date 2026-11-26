@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { createMockBackend } from '../../mock/backend'
 import { callsTo, dialog, pageHeading, renderApp } from '../../test/utils'
@@ -126,13 +126,13 @@ describe('dashboard', () => {
     expect(await screen.findByLabelText('Attributes by sensitivity')).toBeInTheDocument()
   })
 
-  it('updates the pending count and nav badge when an app asks for access', async () => {
-    const { user } = await openDashboard()
-    await user.click(screen.getByRole('button', { name: 'Simulate an access request' }))
+  it('updates the pending count when an app asks for access', async () => {
+    const { backend, runtime } = await openDashboard()
+    backend.simulateAccessRequest()
+    await act(() => runtime.queryClient.invalidateQueries())
     await waitFor(async () =>
       expect(within(await stat('Waiting for you')).getByText('3')).toBeInTheDocument(),
     )
-    expect(await screen.findByRole('link', { name: /Requests\s*3 pending/ })).toBeInTheDocument()
   })
 
   it('shows an error with retry when the dashboard cannot load', async () => {

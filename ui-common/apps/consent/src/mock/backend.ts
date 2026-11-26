@@ -714,7 +714,7 @@ export function createMockBackend(options: MockBackendOptions = {}): MockBackend
       'http://localhost',
     )
     const method = (init?.method ?? 'GET').toUpperCase()
-    // Standalone: `/api/v1/...`. In the workspace the client is bound to `<gateway>/api/consent`.
+    // Tests call `/api/v1/...`. In the workspace the client is bound to `<gateway>/api/consent`.
     const path = url.pathname.replace(/^\/api(\/consent)?(?=\/)/, '')
     const token = new Headers(init?.headers).get('authorization')?.replace(/^Bearer /, '')
     const query = Object.fromEntries(url.searchParams)

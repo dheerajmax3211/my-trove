@@ -1,10 +1,10 @@
 import { createMockBackend } from './mock/backend'
 
 /**
- * A fresh in-memory Consent gateway for the workspace's demo mode: the same seeded vault, apps, pending
- * requests and history as the standalone demo, answering at `<gateway>/api/consent/v1/owner/...`.
+ * A fresh in-memory Consent gateway for the workspace's demo mode: the seeded vault, apps, pending
+ * requests and history the tests also use, answering at `<gateway>/api/consent/v1/owner/...`.
  *
- * The mock refuses calls without a bearer token (so the standalone app can show its 401 handling). The
+ * The mock refuses calls without a bearer token (as the real gateway does). The
  * workspace's demo identity may not attach one, so a missing token is filled in here: in demo mode every
  * visitor is the demo owner.
  */

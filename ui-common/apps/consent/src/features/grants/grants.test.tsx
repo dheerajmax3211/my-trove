@@ -61,7 +61,7 @@ describe('grants', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 
     expect(backend.simulateRead(grant?.id).eventType).toBe('DATA_DENIED')
-    await user.click(screen.getByRole('link', { name: 'Access history' }))
+    await user.click(screen.getByRole('link', { name: 'History' }))
     await pageHeading('Access history')
     const table = await screen.findByRole('table', { name: 'Access history' })
     expect(within(table).getByText('Refused: grant was revoked')).toBeInTheDocument()

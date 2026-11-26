@@ -47,13 +47,6 @@ describe('audit chain verification', () => {
     expect(screen.queryByText('Audit log intact')).not.toBeInTheDocument()
   })
 
-  it('catches the demo tamper button end to end', async () => {
-    const { user } = await openAudit()
-    await user.click(screen.getByRole('button', { name: 'Tamper with the audit log' }))
-    await user.click(screen.getByRole('button', { name: 'Verify chain' }))
-    expect(await screen.findByText('Audit log broken')).toBeInTheDocument()
-  })
-
   it('shows an error with retry when verification fails to run', async () => {
     const backend = createMockBackend()
     const { user } = await openAudit({ backend })
