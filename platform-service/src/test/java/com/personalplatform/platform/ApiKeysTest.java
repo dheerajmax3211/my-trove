@@ -216,7 +216,16 @@ class ApiKeysTest extends AbstractPlatformTest {
         mvc.perform(get("/v1/developer/scopes").with(developerOn(OWNER, "FREE")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("usage:read"))
-                .andExpect(jsonPath("$[0].permissions[0]").value("usage:read:self"));
+                .andExpect(jsonPath("$[0].permissions[0]").value("usage:read:self"))
+                .andExpect(jsonPath("$[1].name").value("mcp:use"))
+                .andExpect(jsonPath("$[1].permissions[0]").value("mcp:use"));
+    }
+
+    @Test
+    void anMcpKeyCarriesMcpUseAndNothingElse() throws Exception {
+        String key = issueKey(createApp(OWNER), "[\"mcp:use\"]");
+        String body = verifyBody(key);
+        assertThat(JsonPath.<List<String>>read(body, "$.permissions")).containsExactly("mcp:use");
     }
 
     /** The verify response for a key that must be valid. */

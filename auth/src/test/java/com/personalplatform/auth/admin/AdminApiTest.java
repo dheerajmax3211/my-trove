@@ -462,10 +462,10 @@ class AdminApiTest {
         for (var role : roles) {
             int expected = switch ((String) role.get("name")) {
                 case "MEMBER" -> 3;
-                case "DEVELOPER" -> 9;
+                case "DEVELOPER" -> 10;   // incl. mcp:use (auth V5)
                 case "AUDITOR" -> 4;
-                case "ADMIN" -> 11;
-                default -> 19;
+                case "ADMIN" -> 12;
+                default -> 20;
             };
             assertThat((List<?>) role.get("permissions")).as((String) role.get("name")).hasSize(expected);
         }

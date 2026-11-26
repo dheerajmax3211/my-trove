@@ -14,7 +14,10 @@ final class ScopeCatalogue {
     record Scope(String name, String description, List<String> permissions) {}
 
     static final List<Scope> ALL = List.of(
-            new Scope("usage:read", "Read your own usage and request counts (GET /v1/usage/me)", List.of("usage:read:self")));
+            new Scope("usage:read", "Read your own usage and request counts (GET /v1/usage/me)", List.of("usage:read:self")),
+            // Opens POST /api/mcp/mcp to the key (initialize, tools/list). Tools that read personal product data also
+            // need products:use, which no scope grants: a key's token does not act as its owner (see mcp-server README).
+            new Scope("mcp:use", "Connect an AI agent to the MCP server (POST /api/mcp/mcp)", List.of("mcp:use")));
 
     private ScopeCatalogue() {}
 
