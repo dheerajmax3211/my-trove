@@ -67,7 +67,19 @@ class HomePulseSchemaTest {
         List<String> versions = inDsl(dsl -> dsl.fetch(
                 "select version from home_pulse.flyway_schema_history where success and version is not null order by installed_rank")
                 .getValues(0, String.class));
-        assertThat(versions).containsExactly("1", "2", "3", "100", "101", "102");
+        assertThat(versions).containsExactly("1", "2", "3", "4", "100", "101", "102");
+    }
+
+    @Test
+    void alertsRecordWhichModelDecidedDefaultingToMad() throws Exception {
+        inDsl(dsl -> {
+            assertThat(count(dsl, "select count(*) from information_schema.columns where table_schema = 'home_pulse' "
+                    + "and table_name = 'alerts' and column_name = 'decided_by' and is_nullable = 'NO' "
+                    + "and column_default like '''MAD''%'")).isEqualTo(1);
+            assertThat(count(dsl, "select count(*) from information_schema.check_constraints "
+                    + "where constraint_schema = 'home_pulse' and constraint_name = 'alerts_decided_by_check'")).isEqualTo(1);
+            return null;
+        });
     }
 
     @Test
