@@ -29,6 +29,7 @@
 		<module>digital-legacy</module>
 		<module>family-treasury</module>
 		<module>platform-service</module>
+		<module>mcp-server</module>
 		<module>gateway</module>
 	</modules>
 
