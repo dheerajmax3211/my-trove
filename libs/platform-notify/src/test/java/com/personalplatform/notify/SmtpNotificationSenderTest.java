@@ -34,7 +34,7 @@ class SmtpNotificationSenderTest {
 
     private NotifyProperties props(int smtpPort) {
         return new NotifyProperties(true, MAILPIT.getHost(), smtpPort, "My-Trove <no-reply@platform.test>",
-                "http://localhost:5190");
+                "http://localhost:5190", null, null, false);
     }
 
     private JsonNode mailpit(String path) throws Exception {
@@ -67,8 +67,36 @@ class SmtpNotificationSenderTest {
     @Test
     void anUnreachableServerIsAFailureTheRelayCanRetry() {
         SmtpNotificationSender sender = new SmtpNotificationSender(
-                new NotifyProperties(true, "127.0.0.1", 1, "no-reply@platform.test", "http://localhost:5190"));
+                new NotifyProperties(true, "127.0.0.1", 1, "no-reply@platform.test", "http://localhost:5190", null, null, false));
         assertThatThrownBy(() -> sender.send(new Message(UUID.randomUUID(), "REMINDER", "u", "x@example.test",
                 "t", "b", null, null, 1))).isInstanceOf(Exception.class);
+    }
+
+    @Test
+    void anAuthenticatedRelayUsesLoginAndRequiredStarttls() {
+        SmtpNotificationSender sender = new SmtpNotificationSender(new NotifyProperties(true, "smtp-relay.example",
+                587, "no-reply@platform.test", "http://localhost:5190", "apikey", "s3cret-value", true));
+        var mailer = sender.mailer();
+        assertThat(mailer.getUsername()).isEqualTo("apikey");
+        assertThat(mailer.getPassword()).isEqualTo("s3cret-value");
+        assertThat(mailer.getJavaMailProperties()).containsEntry("mail.smtp.auth", "true")
+                .containsEntry("mail.smtp.starttls.enable", "true")
+                .containsEntry("mail.smtp.starttls.required", "true");
+    }
+
+    @Test
+    void aLocalRelayNeedsNoLoginAndNoTls() {
+        var mailer = new SmtpNotificationSender(new NotifyProperties(true, "localhost", 1025, "a@b.test",
+                "http://localhost:5190", null, null, false)).mailer();
+        assertThat(mailer.getUsername()).isNull();
+        assertThat(mailer.getJavaMailProperties()).doesNotContainKey("mail.smtp.auth")
+                .doesNotContainKey("mail.smtp.starttls.enable");
+    }
+
+    @Test
+    void thePasswordNeverAppearsInTheSettingsAsText() {
+        NotifyProperties props = new NotifyProperties(true, "smtp-relay.example", 587, "a@b.test",
+                "http://localhost:5190", "apikey", "s3cret-value", true);
+        assertThat(props.toString()).doesNotContain("s3cret-value").contains("[redacted]");
     }
 }

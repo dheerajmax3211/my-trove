@@ -45,9 +45,12 @@ bootstrapAdminEmails: ""
 
 mail:
   enabled: false
-  host: smtp
-  port: 25   # unauthenticated relay only: the sender has no SMTP auth or STARTTLS settings yet
+  host: smtp-relay.example.com
+  port: 587
   from: "My-Trove <no-reply@example.com>"
+  # SMTP login for a real relay. The password is the optional MAIL_PASSWORD key of the Secret.
+  username: ""
+  starttls: true
 
 temporal:
   enabled: true

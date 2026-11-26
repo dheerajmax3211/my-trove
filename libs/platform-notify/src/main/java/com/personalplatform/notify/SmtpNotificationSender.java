@@ -21,6 +21,21 @@ public class SmtpNotificationSender implements NotificationSender {
         this.mailer.getJavaMailProperties().setProperty("mail.smtp.connectiontimeout", "5000");
         this.mailer.getJavaMailProperties().setProperty("mail.smtp.timeout", "10000");
         this.mailer.getJavaMailProperties().setProperty("mail.smtp.writetimeout", "10000");
+        if (props.starttls()) {
+            // Required, not opportunistic: never send credentials or mail in clear to a relay that drops TLS.
+            this.mailer.getJavaMailProperties().setProperty("mail.smtp.starttls.enable", "true");
+            this.mailer.getJavaMailProperties().setProperty("mail.smtp.starttls.required", "true");
+        }
+        if (props.authenticates()) {
+            this.mailer.setUsername(props.username());
+            this.mailer.setPassword(props.password());
+            this.mailer.getJavaMailProperties().setProperty("mail.smtp.auth", "true");
+        }
+    }
+
+    /** The configured mailer (tests). */
+    JavaMailSenderImpl mailer() {
+        return mailer;
     }
 
     @Override

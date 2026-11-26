@@ -10,6 +10,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param port          SMTP port (Mailpit in dev: 1025)
  * @param from          the From header
  * @param publicBaseUrl where links in emails point, for example http://localhost:5190
+ * @param username      SMTP login; blank means the relay accepts mail without authentication (Mailpit, a local relay)
+ * @param password      SMTP password; never logged ({@link #toString()} redacts it)
+ * @param starttls      require STARTTLS before authenticating (port 587 relays such as Brevo, SES, Gmail)
  */
 @ConfigurationProperties("app.mail")
 public record NotifyProperties(
@@ -17,12 +20,28 @@ public record NotifyProperties(
         String host,
         int port,
         String from,
-        String publicBaseUrl) {
+        String publicBaseUrl,
+        String username,
+        String password,
+        boolean starttls) {
 
     public NotifyProperties {
         host = host == null || host.isBlank() ? "localhost" : host;
         port = port <= 0 ? 1025 : port;
         from = from == null || from.isBlank() ? "My-Trove <no-reply@localhost>" : from;
         publicBaseUrl = publicBaseUrl == null || publicBaseUrl.isBlank() ? "http://localhost:5190" : publicBaseUrl;
+        username = username == null || username.isBlank() ? null : username;
+        password = password == null || password.isEmpty() ? null : password;
+    }
+
+    public boolean authenticates() {
+        return username != null;
+    }
+
+    @Override
+    public String toString() {
+        return "NotifyProperties[enabled=" + enabled + ", host=" + host + ", port=" + port + ", from=" + from
+                + ", publicBaseUrl=" + publicBaseUrl + ", username=" + username
+                + ", password=" + (password == null ? "none" : "[redacted]") + ", starttls=" + starttls + "]";
     }
 }

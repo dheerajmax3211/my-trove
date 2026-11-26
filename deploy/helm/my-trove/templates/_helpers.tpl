@@ -62,6 +62,10 @@ helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 - { name: MAIL_HOST, value: {{ $v.mail.host | quote }} }
 - { name: MAIL_PORT, value: {{ $v.mail.port | quote }} }
 - { name: MAIL_FROM, value: {{ $v.mail.from | quote }} }
+- { name: MAIL_USERNAME, value: {{ $v.mail.username | quote }} }
+- { name: MAIL_STARTTLS, value: {{ $v.mail.starttls | quote }} }
+- name: MAIL_PASSWORD
+  valueFrom: { secretKeyRef: { name: {{ $secret }}, key: MAIL_PASSWORD, optional: true } }
 - { name: MAIL_PUBLIC_BASE_URL, value: {{ $v.urls.workspace | quote }} }
 {{- end }}
 {{- if eq .name "waiting-on" }}

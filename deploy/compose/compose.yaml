@@ -120,7 +120,10 @@ services:
       FILES_ROOT: /data/blobs
       MAIL_ENABLED: ${MAIL_ENABLED:-false}
       MAIL_HOST: ${MAIL_HOST:-localhost}
-      MAIL_PORT: ${MAIL_PORT:-25}   # unauthenticated relay only (no SMTP auth settings yet)
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-true}
       MAIL_PUBLIC_BASE_URL: ${WORKSPACE_URL:-http://localhost:5190}
     volumes: [files:/data/blobs]
   waiting-on:
