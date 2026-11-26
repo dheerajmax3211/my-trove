@@ -22,6 +22,26 @@ export interface CountUpProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'chi
   startOnView?: boolean
 }
 
+/** Decimal places in a number as written (0.25 -> 2, 1200 -> 0), capped at 6. */
+function decimalsOf(n: number): number {
+  if (!Number.isFinite(n) || Number.isInteger(n)) return 0
+  const text = String(n)
+  const exp = text.match(/e-(\d+)$/)
+  if (exp) return Math.min(6, Number(exp[1]))
+  const dot = text.indexOf('.')
+  return dot === -1 ? 0 : Math.min(6, text.length - dot - 1)
+}
+
+/**
+ * The figure to show for one animation frame: rounded to the decimals of the target (or start), so a count to 12 never
+ * flickers through "3.317" on its way there. Exported for tests.
+ */
+export function frameValue(current: number, target: number, from: number): number {
+  if (current === target) return target
+  const factor = 10 ** Math.max(decimalsOf(target), decimalsOf(from))
+  return Math.round(current * factor) / factor
+}
+
 /**
  * An animated figure. Digits are tabular so the width never jitters; assistive tech reads the
  * final value once instead of every frame; reduced motion shows the final value immediately.
@@ -68,7 +88,7 @@ export function CountUp({
     return () => controls.stop()
   }, [value, inView, reduced, duration])
 
-  const text = `${prefix}${formatter(current)}${suffix}`
+  const text = `${prefix}${formatter(frameValue(current, value, from))}${suffix}`
   const finalText = `${prefix}${formatter(value)}${suffix}`
   return (
     <span ref={ref} className={cx(styles.countUp, className)} {...rest}>

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mockIntersectionObserver, mockReducedMotion } from '../internal/test-utils'
 import { AnimatedList, AnimatedListItem } from './AnimatedList'
-import { CountUp } from './CountUp'
+import { CountUp, frameValue } from './CountUp'
 import { IndicatorGroup, LayoutIndicator } from './LayoutIndicator'
 import { Magnetic } from './Magnetic'
 import { Marquee } from './Marquee'
@@ -123,6 +123,17 @@ describe('CountUp', () => {
     await waitFor(() =>
       expect(document.querySelector('[aria-hidden="true"]')).toHaveTextContent('50'),
     )
+  })
+
+  it('never shows more decimals mid-count than the target has', () => {
+    // A whole-number target counts in whole numbers (the bug: "1,393.19 of 10,000 requests").
+    expect(frameValue(1393.1937, 1393, 0)).toBe(1393)
+    expect(frameValue(0.1142, 2, 0)).toBe(0)
+    // A target with decimals keeps exactly its own precision.
+    expect(frameValue(2.4637, 2.5, 0)).toBe(2.5)
+    expect(frameValue(0.03317, 0.25, 0)).toBe(0.03)
+    // The landing frame is the target itself.
+    expect(frameValue(12, 12, 0)).toBe(12)
   })
 })
 
