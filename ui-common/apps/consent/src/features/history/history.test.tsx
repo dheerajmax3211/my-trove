@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { createMockBackend } from '../../mock/backend'
 import { callsTo, pageHeading, renderApp } from '../../test/utils'
@@ -17,8 +17,9 @@ const bodyRows = async () => {
 describe('access history', () => {
   it('lists the newest entries first, with readable events and details', async () => {
     await openHistory()
+    // the table shows placeholder rows while the first page loads
+    await waitFor(async () => expect(await bodyRows()).toHaveLength(20))
     const rows = await bodyRows()
-    expect(rows).toHaveLength(20)
     expect(within(rows[0] as HTMLElement).getByText('21')).toBeInTheDocument()
     const table = screen.getByRole('table', { name: 'Access history' })
     expect(within(table).getAllByText('Data read').length).toBe(3)
