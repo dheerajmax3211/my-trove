@@ -4,7 +4,6 @@ import { useClock } from '../../../lib/clock'
 import { formatDate, parseCalendarDate } from '../../../lib/dates'
 import { isTerminal, type Item } from '../api/types'
 import { CATEGORY_LABEL, NEXT_ACTION_LABEL, formatAmount } from '../logic/labels'
-import { estimateNextStep } from '../logic/schedule'
 import type { GroupKey } from '../logic/groups'
 import { DueIndicator } from './DueIndicator'
 import { StageGauge } from './StageGauge'
@@ -25,16 +24,27 @@ function Closing({ item }: { item: Item }) {
   )
 }
 
+/** The service's next step. A plan-based one (the workflow did not answer) is marked as an estimate. */
 function NextStep({ item }: { item: Item }) {
   const now = useClock()()
-  const next = estimateNextStep(item, now)
+  const next = item.nextStep
   if (!next) return null
+  const at = new Date(next.at)
   // A step whose date has passed is about to run (the follow-up service picks it up), never "next" in the past.
-  const due = next.at.getTime() <= now.getTime()
+  const due = at.getTime() <= now.getTime()
+  const estimated = next.source === 'PLAN'
   return (
     <p className="wo-card-next">
       Next: <strong>{NEXT_ACTION_LABEL[next.action].toLowerCase()}</strong>{' '}
-      {due ? 'due now' : <time dateTime={next.at.toISOString()}>around {formatDate(next.at)}</time>}
+      {due ? (
+        'due now'
+      ) : (
+        <time dateTime={next.at}>
+          {estimated ? 'around ' : 'on '}
+          {formatDate(at)}
+        </time>
+      )}
+      {estimated && !due ? <span className="wo-muted"> (estimated from the plan)</span> : null}
     </p>
   )
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Item } from '../api/types'
-import { buildSchedule, defaultPlan, dueState, estimateNextStep, validatePlan } from './schedule'
+import { buildSchedule, defaultPlan, dueState, validatePlan } from './schedule'
 
 const item = (over: Partial<Item> = {}): Item => ({
   id: 'x',
@@ -19,6 +19,7 @@ const item = (over: Partial<Item> = {}): Item => ({
   updatedAt: '2026-11-01T12:00:00.000Z',
   closedAt: null,
   followUp: null,
+  nextStep: null,
   ...over,
 })
 
@@ -94,37 +95,6 @@ describe('buildSchedule', () => {
   function ok() {
     return item().plan
   }
-})
-
-describe('estimateNextStep', () => {
-  const now = new Date('2026-11-19T12:00:00Z')
-
-  it('follows the plan for the current status', () => {
-    expect(estimateNextStep(item({ status: 'OPEN' }), now)?.action).toBe('NUDGE')
-    expect(estimateNextStep(item({ status: 'NUDGED' }), now)?.action).toBe('ESCALATE')
-  })
-
-  it('moves from final notice to expiry once the final notice date has passed', () => {
-    const escalated = item({ status: 'ESCALATED' })
-    expect(estimateNextStep(escalated, new Date('2026-11-20T00:00:00Z'))?.action).toBe(
-      'FINAL_NOTICE',
-    )
-    expect(estimateNextStep(escalated, new Date('2026-12-30T00:00:00Z'))?.action).toBe('EXPIRE')
-  })
-
-  it('goes straight to expiry when there is no final notice', () => {
-    const plan = {
-      nudgeAfterDays: 5,
-      escalateAfterDays: 14,
-      finalNoticeAfterDays: 0,
-      expireAfterDays: 45,
-    }
-    expect(estimateNextStep(item({ status: 'ESCALATED', plan }), now)?.action).toBe('EXPIRE')
-  })
-
-  it('has nothing for closed items', () => {
-    expect(estimateNextStep(item({ status: 'RESOLVED' }), now)).toBeNull()
-  })
 })
 
 describe('dueState', () => {

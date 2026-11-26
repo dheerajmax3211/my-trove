@@ -325,6 +325,24 @@ describe('failures', () => {
     await user.click(screen.getByRole('button', { name: 'Resolve' }))
     expect(await screen.findByRole('dialog', { name: 'Mark as resolved' })).toBeInTheDocument()
   })
+
+  it('shows the service plan-based next step when the workflow did not answer', async () => {
+    renderApp({
+      route: open(JACKET),
+      intercept: async (r, passThrough) => {
+        if (r.path !== `/api/v1/items/${JACKET}`) return undefined
+        const item = (await (await passThrough()).json()) as object
+        return Response.json({
+          ...item,
+          followUp: null,
+          nextStep: { action: 'FINAL_NOTICE', at: '2026-12-24T09:00:00Z', source: 'PLAN' },
+        })
+      },
+    })
+    const note = await screen.findByText(/By the plan, the next step is final notice around/)
+    expect(note).toHaveTextContent('This estimate does not include snoozes.')
+    expect(note.querySelector('time')).toHaveAttribute('dateTime', '2026-12-24T09:00:00Z')
+  })
 })
 
 describe('shell', () => {

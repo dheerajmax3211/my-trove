@@ -50,6 +50,39 @@ describe('home', () => {
     }
   })
 
+  it('shows the next step the service sent, and marks a plan-based one as an estimate', async () => {
+    const steps: Record<string, object> = {
+      'Visa renewal decision': {
+        action: 'ESCALATE',
+        at: '2027-01-15T09:00:00Z',
+        source: 'WORKFLOW',
+      },
+      'Conference travel expenses': {
+        action: 'NUDGE',
+        at: '2027-01-20T09:00:00Z',
+        source: 'PLAN',
+      },
+    }
+    renderApp({
+      intercept: async (r, passThrough) => {
+        if (r.method !== 'GET' || r.path.split('?')[0] !== '/api/v1/items') return undefined
+        const rows = (await (await passThrough()).json()) as { title: string }[]
+        return Response.json(
+          rows.map((row) => (steps[row.title] ? { ...row, nextStep: steps[row.title] } : row)),
+        )
+      },
+    })
+    const card = (title: string) =>
+      screen.getByRole('link', { name: title }).closest('li')!.querySelector('.wo-card-next')!
+    await screen.findByRole('link', { name: 'Visa renewal decision' })
+    const live = card('Visa renewal decision')
+    expect(live).toHaveTextContent(/^Next: formal escalation letter on /)
+    expect(live).not.toHaveTextContent('estimated')
+    expect(live.querySelector('time')).toHaveAttribute('dateTime', '2027-01-15T09:00:00Z')
+    const planned = card('Conference travel expenses')
+    expect(planned).toHaveTextContent(/^Next: friendly nudge around .*\(estimated from the plan\)$/)
+  })
+
   it('shows the all-clear state when nothing is open but earlier items exist', async () => {
     const closedOnly = demoSeed(NOW).filter((e) =>
       ['RESOLVED', 'EXPIRED', 'CANCELLED'].includes(e.item.status),
