@@ -202,7 +202,7 @@ describe('library', () => {
   })
 })
 
-describe('first use and account', () => {
+describe('first use and navigation', () => {
   it('explains privacy and points to adding content when the library is empty', async () => {
     const { user } = renderApp({ mock: { seed: false } })
     const heading = await screen.findByRole('heading', { name: 'Only you can see this' })
@@ -214,28 +214,6 @@ describe('first use and account', () => {
     ).toBeInTheDocument()
   })
 
-  it('signs out to the sign-in page and back in', async () => {
-    const { user } = renderApp()
-    await appReady()
-    await user.click(screen.getByRole('button', { name: 'Sign out' }))
-    expect(
-      await screen.findByRole('heading', { name: 'Sign in to Ask your life' }),
-    ).toBeInTheDocument()
-    expect(screen.getByText('Demo mode')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Continue with Google' }))
-    expect(
-      await screen.findByRole('heading', { level: 1, name: 'Ask your life' }),
-    ).toBeInTheDocument()
-  })
-
-  it('starts at the sign-in page when signed out', async () => {
-    renderApp({ signedIn: false })
-    expect(
-      await screen.findByRole('heading', { name: 'Sign in to Ask your life' }),
-    ).toBeInTheDocument()
-    expect(screen.queryByRole('navigation', { name: 'Main' })).not.toBeInTheDocument()
-  })
-
   it('has landmarks and navigates between the three screens', async () => {
     const { user } = renderApp()
     await appReady()
@@ -244,7 +222,7 @@ describe('first use and account', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Library' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Library' })).toHaveAttribute('aria-current', 'page')
     await user.click(
-      within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', {
+      within(screen.getByRole('navigation', { name: 'Workspace' })).getByRole('link', {
         name: 'Add content',
       }),
     )

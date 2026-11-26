@@ -111,7 +111,7 @@ function stripExtension(name: string): string | undefined {
 }
 
 /**
- * The service path of a request. The standalone app calls `/api/v1/...`; inside the workspace the
+ * The service path of a request. Tests call `/api/v1/...`; inside the workspace the
  * client is bound to the gateway route, `<gateway>/api/ask-your-life/v1/...`. Both reach the same handlers.
  */
 function apiPath(url: URL): string {

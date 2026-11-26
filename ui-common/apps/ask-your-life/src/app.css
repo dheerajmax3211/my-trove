@@ -4,10 +4,6 @@
  * Everything under it stays quiet paper.
  */
 
-.ayl-root {
-  display: contents;
-}
-
 .ayl-stack {
   display: flex;
   flex-direction: column;
@@ -28,48 +24,6 @@
   line-height: var(--pp-text-h3-line);
   font-weight: var(--pp-text-h3-weight);
   margin: 0 0 var(--pp-space-3);
-}
-
-.ayl-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--pp-space-3);
-  color: inherit;
-  text-decoration: none;
-  font-family: var(--pp-font-display);
-  font-size: var(--pp-text-h4-size);
-}
-
-.ayl-navicon {
-  display: inline-flex;
-}
-
-.ayl-user {
-  font-size: var(--pp-text-body-small-size);
-  color: var(--pp-color-text-muted);
-}
-
-.ayl-theme {
-  width: auto;
-}
-
-@media (max-width: 640px) {
-  .ayl-user {
-    display: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .ayl-theme {
-    max-width: 5.75rem;
-  }
-  .ayl-brand {
-    font-size: var(--pp-text-body-size);
-    gap: var(--pp-space-2);
-  }
-  .ayl-brand [data-product-mark] {
-    display: none;
-  }
 }
 
 .ayl-link {
@@ -999,23 +953,4 @@ mark {
 .ayl-detail-badges {
   display: flex;
   gap: var(--pp-space-2);
-}
-
-/* ---- sign in ---- */
-.ayl-signin {
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  padding: var(--pp-space-4);
-  background: var(--pp-color-backdrop);
-}
-
-.ayl-signin-card {
-  width: min(28rem, 100%);
-}
-
-.ayl-signin-art {
-  display: flex;
-  justify-content: center;
-  padding-top: var(--pp-space-4);
 }

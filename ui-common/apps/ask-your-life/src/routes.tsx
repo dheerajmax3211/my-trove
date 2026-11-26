@@ -23,9 +23,9 @@ function SlashToSearch() {
 }
 
 /**
- * The product's three screens. Every path is relative to wherever the product is mounted: at the root
- * in the standalone app, under `/app/ask-your-life` in the workspace. It brings no providers, sign-in
- * or page frame, so both hosts can wrap it as they need.
+ * The product's three screens. Every path is relative to wherever the product is mounted
+ * (`/app/ask-your-life` in the workspace). It brings no providers, sign-in or page frame: the
+ * workspace supplies them.
  */
 export function ProductRoutes() {
   const home = useModulePath()('/')

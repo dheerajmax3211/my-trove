@@ -56,8 +56,8 @@ describe('productModule metadata', () => {
     const f = productModule.createDemoFetch?.()
     expect(f).toBeDefined()
     const headers = { authorization: 'Bearer demo' }
-    const standalone = await f?.('http://localhost/api/v1/documents?limit=3', { headers })
-    expect(standalone?.status).toBe(200)
+    const direct = await f?.('http://localhost/api/v1/documents?limit=3', { headers })
+    expect(direct?.status).toBe(200)
     const viaGateway = await f?.('http://localhost:8080/api/ask-your-life/v1/documents?limit=3', {
       headers,
     })
