@@ -426,6 +426,44 @@
 							</generator>
 						</configuration>
 					</execution>
+					<execution>
+						<id>generate-mcp</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<generator>
+								<database>
+									<name>org.jooq.meta.extensions.ddl.DDLDatabase</name>
+									<includes>.*</includes>
+									<excludes>flyway_schema_history</excludes>
+									<properties>
+										<property>
+											<key>scripts</key>
+											<value>src/main/resources/db/migration/mcp/*.sql</value>
+										</property>
+										<property>
+											<key>sort</key>
+											<value>flyway</value>
+										</property>
+										<property>
+											<key>unqualifiedSchema</key>
+											<value>none</value>
+										</property>
+										<property>
+											<key>defaultNameCase</key>
+											<value>lower</value>
+										</property>
+									</properties>
+								</database>
+								<target>
+									<packageName>com.personalplatform.sql.jooq.mcp</packageName>
+									<directory>target/generated-sources/jooq/mcp</directory>
+								</target>
+							</generator>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
@@ -449,6 +487,7 @@
 								<source>target/generated-sources/jooq/legacy</source>
 								<source>target/generated-sources/jooq/treasury</source>
 								<source>target/generated-sources/jooq/platform</source>
+								<source>target/generated-sources/jooq/mcp</source>
 							</sources>
 						</configuration>
 					</execution>

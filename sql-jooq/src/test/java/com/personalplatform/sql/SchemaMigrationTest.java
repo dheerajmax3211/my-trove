@@ -84,13 +84,18 @@ class SchemaMigrationTest {
     void seedsPermissionCatalogueAndRoleMatrix() throws Exception {
         try (Connection c = dataSource.getConnection()) {
             DSLContext dsl = dsl(c, new ArrayList<>());
-            assertThat(dsl.fetchCount(Tables.PERMISSIONS)).isEqualTo(19);
+            assertThat(dsl.fetchCount(Tables.PERMISSIONS)).isEqualTo(20);
             assertThat(dsl.select(Tables.ROLE_PERMISSIONS.PERMISSION_NAME).from(Tables.ROLE_PERMISSIONS)
                             .where(Tables.ROLE_PERMISSIONS.ROLE_NAME.eq("MEMBER"))
                             .fetch(Tables.ROLE_PERMISSIONS.PERMISSION_NAME))
                     .containsExactlyInAnyOrder("products:use", "usage:read:self", "connections:manage");
             assertThat(dsl.fetchCount(Tables.ROLE_PERMISSIONS, Tables.ROLE_PERMISSIONS.ROLE_NAME.eq("OWNER")))
-                    .isEqualTo(19);
+                    .isEqualTo(20);
+            // mcp:use (V5): DEVELOPER, ADMIN and OWNER; not MEMBER or AUDITOR.
+            assertThat(dsl.select(Tables.ROLE_PERMISSIONS.ROLE_NAME).from(Tables.ROLE_PERMISSIONS)
+                            .where(Tables.ROLE_PERMISSIONS.PERMISSION_NAME.eq("mcp:use"))
+                            .fetch(Tables.ROLE_PERMISSIONS.ROLE_NAME))
+                    .containsExactlyInAnyOrder("DEVELOPER", "ADMIN", "OWNER");
         }
     }
 

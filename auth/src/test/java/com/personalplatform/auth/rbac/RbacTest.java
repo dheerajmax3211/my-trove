@@ -20,17 +20,17 @@ class RbacTest {
     private static final Set<String> MEMBER = Set.of("products:use", "usage:read:self", "connections:manage");
     private static final Set<String> DEVELOPER = Set.of(
             "products:use", "usage:read:self", "connections:manage",
-            "apps:manage", "keys:manage", "webhooks:manage", "sandbox:use", "logs:read:own", "workspaces:manage");
+            "apps:manage", "keys:manage", "webhooks:manage", "sandbox:use", "logs:read:own", "workspaces:manage", "mcp:use");
     private static final Set<String> AUDITOR = Set.of("usage:read:all", "users:read", "audit:read", "apps:read:all");
     private static final Set<String> ADMIN = Set.of(
             "products:use", "usage:read:self", "connections:manage",
             "users:read", "users:write", "roles:assign", "usage:read:all", "flags:manage", "audit:read",
-            "apps:read:all", "support:impersonate");
+            "apps:read:all", "support:impersonate", "mcp:use");
     private static final Set<String> EVERY_PERMISSION = Set.of(
             "products:use", "usage:read:self", "usage:read:all", "connections:manage",
             "apps:manage", "apps:read:all", "keys:manage", "webhooks:manage", "sandbox:use", "logs:read:own",
             "workspaces:manage", "users:read", "users:write", "roles:assign", "roles:assign:privileged",
-            "plans:manage", "flags:manage", "audit:read", "support:impersonate");
+            "plans:manage", "flags:manage", "audit:read", "support:impersonate", "mcp:use");
 
     @Autowired RbacService rbac;
     @Autowired MockMvc mvc;
