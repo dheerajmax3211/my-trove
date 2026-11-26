@@ -39,6 +39,7 @@ TypeScript · Vite · TanStack Query · Vitest
 ├── digital-legacy/          Dead-man's switch, Shamir secret sharing, end-to-end encrypted       :8087
 ├── family-treasury/         Double-entry household ledger                                        :8088
 ├── mcp-server/              MCP tools for AI agents: consent-scoped, audited, read-only          :8090
+├── ml-service/              Home Pulse's trained model (Python/FastAPI, Docker only); MAD fallback :8095
 ├── ui-common/               Frontend monorepo: tokens, UI kit, auth-web, api-client; the workspace (:5190, every product as a module), the public site (:5191), the gallery
 ├── deploy/                  Container images, Helm chart, single-host Compose, kind smoke test, ZAP rules
 ├── dev/                     Local stack: compose (Postgres+Timescale+pgvector, Temporal), dev identity provider, scripts

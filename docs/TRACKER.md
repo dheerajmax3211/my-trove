@@ -101,7 +101,7 @@ Audit, things that exist but do nothing useful for a real user (fix order):
 - [ ] 4.A Embedder + LLM provider interface in Ask Your Life; Ollama provider; streaming answers with citations
 - [ ] 4.B RAG evaluation harness (gold set; recall@k, MRR, faithfulness check) with published numbers
 - [ ] 4.C Trove Assistant in workspace using MCP tools, consent and audit
-- [ ] 4.D `ml-service` (Python/FastAPI): trained seasonal forecast + anomaly model for Home Pulse; model card; integration + fallback to MAD
+- [x] 4.D `ml-service` (Python/FastAPI, Docker only, :8095): seasonal time-of-day baseline + calibrated residual z-score, 24 h forecast, train/score/forecast/health/metrics; home-pulse `AnomalyModel` seam with MAD fallback, `decidedBy` on alerts (API + UI). Held-out simulator eval (90 episodes): ML precision 0.982 / recall 0.786 vs MAD 1.000 / 0.571 (`ml-service/MODEL_CARD.md`). Simulated data only. Helm `mlService.enabled` rendered, not deployed; CI/release jobs NOT YET RUN (need push); frontend checks not run in the worktree
 - [ ] 4.E Tests for all of the above; honest limits written down
 
 ## Phase 5: Hardening and presence
