@@ -125,6 +125,15 @@ Walked every product as owner and member (browser), plus persona walk, layout ch
 - [x] CI vulnerability gate: lz4-java, snappy-java (Kafka client) and guava (Temporal SDK) pinned to fixed versions; flaky first-scrape test hardened; GHCR push retries.
 - [ ] Ask Your Life semantic search still uses the local stand-in embedder (real embeddings need Ollama: ask before installing).
 
+## Backend weight (2026-11-26): owner asked why the frontend outweighs the backend
+Briefs 80-85 in `docs/superpowers/briefs/` (reports 81-85 alongside). Agents in worktrees; merged and verified on main.
+- [x] 81 Server owns derived logic: Waiting On next step (workflow state, else stored plan), Consent request deadline (`expiresAt`), Home Pulse day counts; client guesses deleted. Audit table in 81-report.
+- [x] 82 `mcp-server` (:8090): MCP over the official Java SDK, four read-only tools (Waiting On, Ask Your Life, Home Pulse, Family Treasury), `mcp:use` permission (DEVELOPER/ADMIN/OWNER), append-only audit in schema `mcp`; live `dev/e2e-mcp.sh` 12/12. OPEN: API keys can connect but read no product data (service tokens never act as their owner; needs an auth token-model change).
+- [x] 83 Ask Your Life semantic search on Model2Vec potion-base-2M (MIT, ~8 MB, pure Java, 64-d zero-padded to 384), re-embeds on model change, cited extractive answers. Gold set (30 paraphrase pairs): recall@3 0.867 / MRR 0.723 vs hashing 0.300 / 0.233. CI downloads the pinned model (`-Dfetch-model`).
+- [x] 84 Inbound email: SMTP listener in waiting-on (SubEthaSMTP 7.2.2, off by default, on in dev :2525), refuses relaying and closed items, quoted-history stripping, same pipeline as the webhook; live `dev/e2e-inbound-email.sh` 6/6 through the gateway.
+- [x] 85 Standalone product app shells retired (workspace mounts every product; demo-mode mock APIs kept for `?demo=1`; trustee portal moved into the workspace at `/trustee/*`). UI e2e for Waiting On/Consent/Ask now runs through the workspace (10/10).
+- Size after: Java main 33.6k (was 30.5k), test 27.5k; TS non-test 72.6k (was 76.1k), of which 9.2k is demo-mode mock APIs.
+
 ## Decisions log
 - 2026-11-21: Gateway + platform token chosen over library-only RBAC and over a service mesh (design doc §4).
 - 2026-11-21: Workspace app hosts products as modules (not micro-frontends).
