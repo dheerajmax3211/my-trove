@@ -24,7 +24,7 @@ audit chain, uploaded files, and usage data.
 |---|---|---|---|---|---|
 | 1 | 1 | Spoofing | Forged or replayed sign-in | Firebase ID token verified, then exchanged at auth for a short-lived platform token (RS256, JWKS, `permissions_version`) | auth tests, `dev/e2e-phase1.sh` |
 | 2 | 1 | Elevation | Member calls an admin API | Permissions in the platform token, checked at the gateway route and again by `@PreAuthorize` in the service | `AdminApiTest` permission matrix (27 cases) |
-| 3 | 1 | Denial of service | One user floods the API | Per-plan rate limit (Bucket4j) and monthly quota at the gateway, 429 with `Retry-After` | k6 probe: 80/80 429s carried `Retry-After`, 0 5xx |
+| 3 | 1 | Denial of service | One caller floods the API | API keys: per-plan rate limit and monthly quota; signed-in people: a 600-a-minute fair-use ceiling (ADR 0007); anonymous: per-address limit. 429 with `Retry-After` | `RateLimitTest`; k6 probe (baseline: every 429 carried `Retry-After`, 0 5xx) |
 | 4 | 1 | Info disclosure | Actuator or internal endpoints reachable from outside | Actuator only on a private management port (startup guard refuses equal or blank ports); `/internal/**` and `/actuator/**` blocked at the gateway; NetworkPolicy limits management ports to the monitoring namespace | `ObservabilityExposureTest` (every service), `ManagementPortGuardTest`, kind smoke check 3 |
 | 5 | 2 | Spoofing | A pod inside the cluster calls a backend directly with no token | Every backend verifies the platform token itself (no trust in network position); NetworkPolicy admits backend ports only from other backends | service security tests |
 | 6 | 2 | Tampering | Internal calls between the gateway and platform-service forged | Shared `APP_INTERNAL_API_KEY`, kept in a Secret | platform-service tests |
@@ -34,15 +34,15 @@ audit chain, uploaded files, and usage data.
 | 10 | 4 | Info disclosure | Cross-user reads in search | Row-level security in ask-your-life (`ask_life_app` role, policies per user) | ask-your-life isolation tests |
 | 11 | 4 | Tampering | Ledger corrupted by concurrent writes | Double-entry invariants enforced in the database, idempotency keys | family-treasury tests |
 | 12 | 4 | Info disclosure | Database dump exposes signing keys | Signing keys encrypted at rest with a 32-byte key-encryption key held only in a Secret | `KeyCipher` tests |
-| 13 | 1 | Tampering | Clickjacking or content sniffing on the web apps | nginx sends `X-Frame-Options: DENY`, `nosniff`, a strict referrer policy and a permissions policy; ZAP baseline fails CI if the first two go missing | `deploy/zap/rules.tsv` |
+| 13 | 1 | Tampering | Script injection, clickjacking or content sniffing on the web apps | A Content-Security-Policy built per image (`deploy/docker/csp.mjs`): scripts only from the app's origin plus the hash of its one inline script, connections only to the API and sign-in hosts, no framing. Plus `X-Frame-Options: DENY`, `nosniff`, referrer and permissions policies. ZAP fails CI if CSP, framing or nosniff headers go missing | persona walk against the CSP image (45 routes, 0 violations); `deploy/zap/rules.tsv` |
 | 14 | 5 | Elevation | A compromised container escalates | Non-root users, read-only root filesystem, all capabilities dropped, no service-account token mounted, seccomp RuntimeDefault | chart templates, kubeconform |
 | 15 | supply chain | Tampering | A vulnerable or malicious dependency ships | Trivy blocks fixable HIGH and CRITICAL findings; CycloneDX SBOM per image; Dependabot for Maven, npm, Actions and Docker; base images pinned to exact tags | `release.yml` |
 
 ## Known gaps
 
-- **No Content-Security-Policy** on the web apps yet; ZAP reports it as a warning. Next step: a CSP that allows the
-  Firebase auth domains and the API origin.
-- **Rate limits are per gateway replica** (in memory), so N replicas allow up to N times the plan limit (ADR 0003).
+- **Rate limits are per gateway replica** (in memory), so N replicas allow up to N times the limit (ADR 0003).
+- **`style-src` allows inline styles** (React and the motion library set style attributes). Styles cannot run code, but
+  CSS injection could still restyle a page.
 - **Management ports are open inside the pod network** to the monitoring namespace with no authentication. Metrics
   hold no personal data (labels use route templates, never ids: tested), but they do reveal traffic shape.
 - **Key-encryption keys cannot be rotated** without re-encrypting stored signing keys; there is no tool for that yet.

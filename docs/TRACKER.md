@@ -115,6 +115,16 @@ Audit, things that exist but do nothing useful for a real user (fix order):
 ## Deployment readiness (2026-11-26)
 Backend `./mvnw verify` 1,325 tests, 0 failures; frontend 2,240 tests, lint/typecheck/build green. Fixed in this pass: nine services' observability tests (metrics export is off in Spring Boot tests; health moved to the management port), dev IdP bind address (`DEV_IDP_HOST`). Everything is committed locally on `main`, NOT pushed: the kind smoke, ZAP, Trivy-in-CI and GHCR push all start on the first push.
 
+## Product pass (2026-11-26): tested as a user, then fixed what did not make sense
+Walked every product as owner and member (browser), plus persona walk, layout check (390/1440, light/dark), persona UI e2e 31/31, e2e-phase1 35/35, notifications 9/9.
+- [x] People in the workspace were rate-limited and quota-capped like API traffic (429 while browsing; 10k/month gone in days). Now: plans limit API keys; people get a 600/min fair-use ceiling and no monthly quota (ADR 0007). Plan card shows activity, not a quota.
+- [x] Waiting On follow-ups stopped forever when Temporal lost a workflow (dev server restart). Reconciler resumes them at the item's real stage and dates; 9 resumed live. Overdue next step reads "due now", never a past date.
+- [x] Animated numbers flickered decimals mid-count ("1,393.19 requests").
+- [x] Content-Security-Policy on both web images (hash of the one inline script, API and sign-in origins only); 0 violations across 45 routes. ZAP now fails CI without it.
+- [x] Email works with real relays: SMTP login and required STARTTLS (chart, Compose, docs); password redacted from settings text.
+- [x] CI vulnerability gate: lz4-java, snappy-java (Kafka client) and guava (Temporal SDK) pinned to fixed versions; flaky first-scrape test hardened; GHCR push retries.
+- [ ] Ask Your Life semantic search still uses the local stand-in embedder (real embeddings need Ollama: ask before installing).
+
 ## Decisions log
 - 2026-11-21: Gateway + platform token chosen over library-only RBAC and over a service mesh (design doc §4).
 - 2026-11-21: Workspace app hosts products as modules (not micro-frontends).

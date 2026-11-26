@@ -102,5 +102,4 @@ image push run in GitHub Actions and have not run yet. Nothing is deployed publi
 
 Known gaps: email goes to Mailpit in dev and needs an SMTP relay in production; MQTT ingestion is off by default; Ask
 Your Life uses a deterministic local embedder unless `EMBEDDER_URL` points at a real one, so semantic search is
-approximate; nothing has run against real devices; rate limits are per gateway replica; there is no
-Content-Security-Policy on the web apps yet.
+approximate; nothing has run against real devices; rate limits are per gateway replica.

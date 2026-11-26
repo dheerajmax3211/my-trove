@@ -53,7 +53,7 @@ The rest of this guide covers the chart.
 | Kafka | One bootstrap address. Topic `platform.usage.v1` is auto-created, or create it yourself. | gateway (produces), platform-service (consumes) |
 | Temporal | A frontend address and namespace. Set `temporal.enabled=false` to run without durable follow-ups. | waiting-on |
 | Firebase project | Firebase Authentication with Google and email-link sign-in. The project id goes in `common.firebaseProjectId`; the web config goes into the web image build. | sign-in |
-| SMTP relay | Optional (`mail.enabled`). The sender has no username, password or STARTTLS settings yet, so it needs a relay that accepts unauthenticated mail from the cluster (for example a local Postfix that relays onward). Without it, emails are not sent. | shared-service |
+| SMTP relay | Optional (`mail.enabled`). Any relay with a login works (free tiers of Brevo or SES, or Gmail with an app password): set `mail.host`, `mail.port` (587), `mail.username`, `mail.starttls: true` and the optional `MAIL_PASSWORD` Secret key. STARTTLS is required when enabled, never opportunistic. Without a relay, emails are not sent. | shared-service |
 | OTLP collector | Optional. Traces go to `common.otlpTracesEndpoint`; an unreachable collector never slows requests (tested). | every backend |
 | Prometheus | Optional. Scrapes each pod's management port (annotations `prometheus.io/*`) from the `monitoring` namespace. | metrics |
 
@@ -108,6 +108,8 @@ docker build -f deploy/docker/web.Dockerfile --build-arg APP=workspace \
 ```
 
 Service images run as uid 10001 on a read-only root filesystem; web images run unprivileged nginx on port 8080.
+Each web image carries a Content-Security-Policy generated at build time from its `index.html` and the API and
+Firebase origins you build it with (`deploy/docker/csp.mjs`), so rebuild the web images when the API origin changes.
 GHCR packages are private by default: make them public, or add an `imagePullSecrets` entry.
 
 ## 4. Install
