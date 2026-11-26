@@ -11,6 +11,14 @@ public interface Embedder {
 
     int dimension();
 
+    /**
+     * Stable identity of the vector space this embedder produces (kind, model, dimension). It is stored on every
+     * indexed document; documents indexed under another id are re-embedded at startup (see {@code ReembedOnStartup}).
+     */
+    default String id() {
+        return getClass().getSimpleName() + ":" + dimension();
+    }
+
     /** Embeds all texts, preserving order. Implementations may split into several backend requests. */
     List<float[]> embedAll(List<String> texts);
 
