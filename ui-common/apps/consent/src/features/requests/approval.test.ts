@@ -22,6 +22,7 @@ const request: AccessRequest = {
   decidedAt: null,
   decisionNote: null,
   grantId: null,
+  expiresAt: '2026-11-26T00:00:00Z',
 }
 
 const draft = (patch: Partial<ApprovalDraft> = {}): ApprovalDraft => ({

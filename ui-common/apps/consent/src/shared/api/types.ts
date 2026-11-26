@@ -69,6 +69,8 @@ export interface AccessRequest {
   decidedAt: string | null
   decisionNote: string | null
   grantId: string | null
+  /** When an undecided request expires on its own (the gateway's `request-ttl`); null once decided. */
+  expiresAt: string | null
 }
 
 export interface ApproveBody {

@@ -206,6 +206,11 @@ export function createMockBackend(options: MockBackendOptions = {}): MockBackend
     decidedAt: r.decidedAt,
     decisionNote: r.decisionNote,
     grantId: grants.find((g) => g.requestId === r.id)?.id ?? null,
+    // the gateway reports its own deadline (createdAt + request-ttl) while the request is undecided
+    expiresAt:
+      r.status === 'PENDING'
+        ? new Date(Date.parse(r.createdAt) + REQUEST_TTL_MS).toISOString()
+        : null,
   })
   const listGrants = (includeInactive: boolean) =>
     grants
