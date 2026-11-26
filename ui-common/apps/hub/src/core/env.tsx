@@ -8,12 +8,11 @@ import { getDemoTransport } from './demoTransport'
  * What the Household pages need from whoever hosts them, and nothing more: a clock, a way to turn a signed
  * download link into a URL and save it, and names for the people the service only knows by uid.
  *
- * Standalone, the hub app supplies these from its runtime (the mock clock, the demo users). Inside the
- * workspace `CoreProviders` does, so the module works with no wiring beyond the providers the workspace
- * already gives every module.
+ * Inside the workspace `CoreProviders` supplies these, so the module works with no wiring beyond the
+ * providers the workspace already gives every module. Tests provide their own (the mock clock, the demo cast).
  */
 export interface CoreEnv {
-  /** Epoch milliseconds. The mock backend's clock in the standalone demo, the real one otherwise. */
+  /** Epoch milliseconds. The mock backend's clock in tests, the real one otherwise. */
   now: () => number
   /** Turns the path in a signed link (`/v1/files/download?token=...`) into a URL the browser can open. */
   downloadUrl: (servicePath: string) => string
@@ -59,7 +58,7 @@ export async function saveFromTransport(
 
 const trimSlash = (value: string) => value.replace(/\/+$/, '')
 
-/** Used when the gateway root is not configured: the standalone Vite proxy, and the workspace's default gateway. */
+/** Used when the gateway root is not configured: a same-origin `/api` outside a module base, and the workspace's default gateway. */
 export const STANDALONE_API_ROOT = '/api'
 export const WORKSPACE_API_ROOT = 'http://localhost:8080/api'
 

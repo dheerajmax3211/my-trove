@@ -285,14 +285,7 @@ function OtherHouseholds({
 }
 
 /** The module's home: who you share with, what is shared, and the one thing to do next. */
-export function OverviewPage({
-  footer,
-  header,
-}: {
-  footer?: ReactNode
-  /** Replaces the title and standfirst (the standalone hub greets the signed-in person). */
-  header?: { title: string; description: ReactNode }
-}) {
+export function OverviewPage() {
   usePageTitle('Overview')
   const { now } = useCoreEnv()
   const people = usePeople()
@@ -306,20 +299,18 @@ export function OverviewPage({
   if (households.isPending)
     return (
       <>
-        <PageHeader {...(header ?? DEFAULT_HEADER)} />
+        <PageHeader {...DEFAULT_HEADER} />
         <div className={styles.page}>
           <Loading />
-          {footer}
         </div>
       </>
     )
   if (households.isError)
     return (
       <>
-        <PageHeader {...(header ?? DEFAULT_HEADER)} />
+        <PageHeader {...DEFAULT_HEADER} />
         <div className={styles.page}>
           <ErrorState error={households.error} onRetry={() => void households.refetch()} />
-          {footer}
         </div>
       </>
     )
@@ -327,14 +318,11 @@ export function OverviewPage({
     return (
       <>
         <PageHeader
-          {...(header ?? {
-            title: 'Welcome',
-            description: 'Households, reminders and files, shared with the people you choose.',
-          })}
+          title="Welcome"
+          description="Households, reminders and files, shared with the people you choose."
         />
         <div className={styles.page}>
           <FirstRun />
-          {footer}
         </div>
       </>
     )
@@ -370,10 +358,8 @@ export function OverviewPage({
   return (
     <>
       <PageHeader
-        {...(header ?? {
-          title: list.length > 1 ? 'Your households' : 'Your household',
-          description: DEFAULT_HEADER.description,
-        })}
+        title={list.length > 1 ? 'Your households' : 'Your household'}
+        description={DEFAULT_HEADER.description}
         actions={
           <Button variant="secondary" asChild>
             <ModuleLink to="/households">All households</ModuleLink>
@@ -434,7 +420,6 @@ export function OverviewPage({
           <ComingUp reminders={allReminders} households={list} loading={reminders.isPending} />
           <Lately household={primary} />
         </BentoGrid>
-        {footer}
       </div>
     </>
   )

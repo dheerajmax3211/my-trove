@@ -1,7 +1,7 @@
 /**
  * Every shared-service path the Household module calls. The module's API client is bound to the
  * service itself (`<gateway>/api/shared`), so paths start at `/v1`. The module never talks to another
- * service: sign-in and profile belong to the workspace (or, standalone, to the hub's own shell).
+ * service: sign-in and profile belong to the workspace.
  */
 const SHARED = '/v1'
 

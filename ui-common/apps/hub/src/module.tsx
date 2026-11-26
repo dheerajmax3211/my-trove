@@ -9,8 +9,8 @@ import { useTodayItems } from './core/today'
  * The hub's households, reminders, files and activity as the `core` module (id `core`, service `shared`).
  *
  * The workspace supplies sign-in, the API client (bound to `<gateway>/api/shared`, so every path is `/v1/...`),
- * the query cache, theme, toasts and the router. The launcher, the account page and the admin pages stay in the
- * standalone hub app. The module itself never calls the auth service.
+ * the query cache, theme, toasts and the router; the workspace also has its own account and admin pages. The module
+ * itself never calls the auth service.
  */
 export const productModule: ProductModule = {
   id: 'core',

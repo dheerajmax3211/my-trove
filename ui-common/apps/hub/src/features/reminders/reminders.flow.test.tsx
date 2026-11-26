@@ -1,6 +1,6 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { callsTo, navLink, pageHeading, renderHub } from '../../test/renderHub'
+import { callsTo, pageHeading, renderHub } from '../../test/renderHub'
 
 const REMINDERS = '/api/shared/v1/reminders'
 type Harness = ReturnType<typeof renderHub>
@@ -98,15 +98,12 @@ describe('reminders', () => {
   })
 
   it('lifecycle: due reminders fire, one-offs complete and repeating ones move on', async () => {
-    const { user } = renderHub({ seed: 'demo', route: '/reminders' })
+    const { user, runtime } = renderHub({ seed: 'demo', route: '/reminders' })
     await screen.findByText('Renew passport')
     // The seed has: Renew passport (+9d, one-off), Water the plants (+2d, weekly), Pay property tax (+5d, every 3 months).
 
-    // Two weeks pass (the demo clock tool lives on the Account page); everything above fell due.
-    await user.click(await navLink('Account'))
-    await user.click(await screen.findByRole('button', { name: 'Advance one week' }))
-    await user.click(screen.getByRole('button', { name: 'Advance one week' }))
-    await user.click(await navLink('Reminders'))
+    // Two weeks pass; everything above fell due.
+    await act(() => runtime.demo.advanceClock(14 * 24 * 3600 * 1000))
 
     await waitFor(() =>
       expect(within(agenda()).queryByText('Renew passport')).not.toBeInTheDocument(),

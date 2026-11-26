@@ -114,7 +114,7 @@ describe('files', () => {
     await user.selectOptions(within(dialog).getByRole('combobox'), '1 minute')
     await user.click(within(dialog).getByRole('button', { name: 'Create link' }))
     await within(dialog).findByRole('textbox', { name: 'Download link' })
-    runtime.demo?.advanceClock(120_000)
+    void runtime.demo.advanceClock(120_000)
     await user.click(within(dialog).getByRole('button', { name: 'Download' }))
     expect(await screen.findByText('Download failed')).toBeInTheDocument()
     expect(screen.getByText('Invalid or expired download token')).toBeInTheDocument()

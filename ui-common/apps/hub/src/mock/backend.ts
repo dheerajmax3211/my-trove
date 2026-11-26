@@ -1,11 +1,10 @@
 /**
- * In-memory stand-in for auth-service (:8081) and shared-service (:8082). It speaks their real
+ * In-memory stand-in for shared-service (:8082). It speaks its real
  * contract (paths, status codes, error shapes, validation rules) so demo mode and the tests meet the
  * same successes and failures the live backend produces. Callers are identified by a `demo-token:<uid>`
  * bearer token, which the demo auth client issues.
  */
 import { createAuditRoutes } from './audit'
-import { createAuthRoutes } from './auth'
 import { createFileRoutes, downloadFile } from './files'
 import { createHouseholdRoutes } from './households'
 import { errorResponse, HttpError } from './http'
@@ -22,7 +21,7 @@ export interface MockBackendOptions {
   latencyMs?: number
   /** `demo`: a lived-in household and reminders. `empty`: only the demo users. Default `demo`. */
   seed?: SeedKind
-  /** Who exists. The first user owns the seeded household. Default: the standalone hub's three demo users. */
+  /** Who exists. The first user owns the seeded household. Default: the three demo users the tests use. */
   users?: readonly DemoUserSeed[]
 }
 
@@ -34,7 +33,7 @@ export interface MockBackend {
   advanceClock: (ms: number) => void
 }
 
-const SERVICE_PATH = /\/(auth|shared)(\/v1\/.*)$/
+const SERVICE_PATH = /\/shared(\/v1\/.*)$/
 
 export function createMockBackend(options: MockBackendOptions = {}): MockBackend {
   const { latencyMs = 0, seed = 'demo' } = options
@@ -44,15 +43,12 @@ export function createMockBackend(options: MockBackendOptions = {}): MockBackend
 
   const env: MockEnv = { state: createSeededState(seed, now(), options.users), now }
   const reminders = createReminderRoutes(env)
-  const routes: Record<'auth' | 'shared', Route[]> = {
-    auth: createAuthRoutes(env),
-    shared: [
-      ...createHouseholdRoutes(env),
-      ...reminders.routes,
-      ...createFileRoutes(env),
-      ...createAuditRoutes(env),
-    ],
-  }
+  const routes: Route[] = [
+    ...createHouseholdRoutes(env),
+    ...reminders.routes,
+    ...createFileRoutes(env),
+    ...createAuditRoutes(env),
+  ]
 
   const mockFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = new URL(
@@ -66,10 +62,9 @@ export function createMockBackend(options: MockBackendOptions = {}): MockBackend
 
     try {
       if (!matched) throw new HttpError(404, `${method} ${url.pathname} does not exist.`)
-      const service = matched[1] as 'auth' | 'shared'
-      const path = matched[2] ?? ''
+      const path = matched[1] ?? ''
 
-      if (service === 'shared' && method === 'GET' && path === '/v1/files/download')
+      if (method === 'GET' && path === '/v1/files/download')
         return downloadFile(env, url.searchParams.get('token'))
 
       const token = new Headers(init?.headers).get('authorization')?.replace(/^Bearer /, '')
@@ -78,7 +73,7 @@ export function createMockBackend(options: MockBackendOptions = {}): MockBackend
         : null
       if (!uid) throw new HttpError(401, 'Unauthorized', 'empty')
 
-      for (const route of routes[service]) {
+      for (const route of routes) {
         if (route.method !== method) continue
         const hit = route.pattern.exec(path)
         if (!hit) continue

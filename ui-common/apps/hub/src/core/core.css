@@ -1,4 +1,4 @@
-/* Utility classes shared by the Household pages (and the standalone hub screens). */
+/* Utility classes shared by the Household pages. */
 .hub-stack {
   display: flex;
   flex-direction: column;

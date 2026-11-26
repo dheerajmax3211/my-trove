@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { createMockBackend, DEMO_TOKEN_PREFIX } from './backend'
-import { DEMO_USERS } from './seed'
 import { nextOccurrenceAfter } from './schedule'
 
 const NOW = Date.parse('2026-11-19T09:00:00Z')
-const [ALICE, BOB] = DEMO_USERS
 
 /** The response fields these tests read; everything else is checked with toMatchObject. */
 interface Body {
@@ -43,60 +41,6 @@ function setup(seed: 'demo' | 'empty' = 'empty') {
   }
   return { backend, call }
 }
-
-describe('mock backend: auth-service contract', () => {
-  it('rejects a missing token with an empty 401', async () => {
-    const { call } = setup()
-    const res = await call(null, 'GET', '/auth/v1/me')
-    expect(res).toMatchObject({ status: 401, json: null })
-  })
-
-  it('returns the profile with roles and provisions unknown users as USER', async () => {
-    const { call } = setup()
-    expect((await call('demo-alice', 'POST', '/auth/v1/auth/session')).json).toMatchObject({
-      email: 'alice@example.test',
-      roles: ['ADMIN', 'USER'],
-    })
-    expect((await call('someone-new', 'GET', '/auth/v1/me')).json).toMatchObject({
-      roles: ['USER'],
-    })
-  })
-
-  it('hides admin endpoints from non-admins with an empty 403', async () => {
-    const { call } = setup()
-    const res = await call('demo-bob', 'GET', `/auth/v1/admin/users/${ALICE!.userId}`)
-    expect(res).toMatchObject({ status: 403, json: null })
-  })
-
-  it('answers admin errors in Spring Boot error shape, without a message', async () => {
-    const { call } = setup()
-    const notFound = await call(
-      'demo-alice',
-      'GET',
-      '/auth/v1/admin/users/0198a1ce-0000-7000-8000-0000000000ff',
-    )
-    expect(notFound.status).toBe(404)
-    expect(notFound.json).toMatchObject({ status: 404, error: 'Not Found' })
-    expect(notFound.json).not.toHaveProperty('detail')
-    expect((await call('demo-alice', 'GET', '/auth/v1/admin/users/not-a-uuid')).status).toBe(400)
-  })
-
-  it('enforces the guardrails: USER and your own ADMIN cannot be revoked', async () => {
-    const { call } = setup()
-    const base = `/auth/v1/admin/users`
-    expect((await call('demo-alice', 'DELETE', `${base}/${BOB!.userId}/roles/USER`)).status).toBe(
-      400,
-    )
-    expect(
-      (await call('demo-alice', 'DELETE', `${base}/${ALICE!.userId}/roles/ADMIN`)).status,
-    ).toBe(400)
-    expect((await call('demo-alice', 'PUT', `${base}/${BOB!.userId}/roles/NOPE`)).status).toBe(404)
-    const granted = await call('demo-alice', 'PUT', `${base}/${BOB!.userId}/roles/ADMIN`)
-    expect(granted.json?.roles).toEqual(['ADMIN', 'USER'])
-    const revoked = await call('demo-alice', 'DELETE', `${base}/${BOB!.userId}/roles/ADMIN`)
-    expect(revoked.json?.roles).toEqual(['USER'])
-  })
-})
 
 describe('mock backend: shared-service contract', () => {
   const makeHousehold = async (call: ReturnType<typeof setup>['call']) =>

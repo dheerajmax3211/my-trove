@@ -30,8 +30,8 @@ export function NotFoundPage() {
 }
 
 /**
- * Every Household page, with paths relative to wherever the module is mounted (`/app/core` in the workspace,
- * the app root standalone). No providers, no layout, no auth: the host supplies those.
+ * Every Household page, with paths relative to wherever the module is mounted (`/app/core` in the workspace).
+ * No providers, no layout, no auth: the workspace supplies those.
  */
 export function CoreRoutes() {
   return (
