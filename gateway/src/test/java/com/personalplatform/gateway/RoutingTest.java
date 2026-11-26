@@ -24,7 +24,7 @@ class RoutingTest extends GatewayTestBase {
     @MethodSource("services")
     void eachServicePrefixIsStrippedAndProxiedToItsOwnBackend(String service) {
         client.post().uri("/api/" + service + "/v1/things/123?x=1&y=two")
-                .header(HttpHeaders.AUTHORIZATION, bearer(Backends.MEMBER))
+                .header(HttpHeaders.AUTHORIZATION, bearer(service.equals("mcp") ? Backends.MCP_USER : Backends.MEMBER))
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("{\"hello\":\"world\"}")
                 .exchange()
@@ -112,6 +112,8 @@ class RoutingTest extends GatewayTestBase {
         assertThat(defaults.services().get("digital-legacy").uri()).isEqualTo("http://localhost:8087");
         assertThat(defaults.services().get("family-treasury").uri()).isEqualTo("http://localhost:8088");
         assertThat(defaults.services().get("platform").uri()).isEqualTo("http://localhost:8089");
+        assertThat(defaults.services().get("mcp").uri()).isEqualTo("http://localhost:8090");
+        assertThat(defaults.requiredPermission("mcp")).contains("mcp:use");
         for (String product : new String[] {"waiting-on", "consent", "home-pulse", "ask-your-life", "digital-legacy",
                 "family-treasury"}) {
             assertThat(defaults.requiredPermission(product)).contains("products:use");
