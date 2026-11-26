@@ -60,6 +60,9 @@ export MAIL_ENABLED="${MAIL_ENABLED:-true}"
 export MAIL_HOST="${MAIL_HOST:-localhost}"
 export MAIL_PORT="${MAIL_PORT:-1025}"
 export MAIL_PUBLIC_BASE_URL="${MAIL_PUBLIC_BASE_URL:-http://localhost:5190}"
+# Waiting On receives replies by real SMTP on localhost:2525 (receive-only; only open items' reply addresses).
+export INBOUND_SMTP_ENABLED="${INBOUND_SMTP_ENABLED:-true}"
+export INBOUND_SMTP_PORT="${INBOUND_SMTP_PORT:-2525}"
 export TEMPORAL_ENABLED="${TEMPORAL_ENABLED:-true}"   # the compose file starts a Temporal dev server on :7233; set false to run without
 
 # Management (actuator/prometheus) port is main port + 1000; every service exports traces to the local Jaeger.

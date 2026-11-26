@@ -57,4 +57,20 @@ spec:
         - namespaceSelector:
             matchLabels: { kubernetes.io/metadata.name: {{ .Values.networkPolicy.monitoringNamespace }} }
       ports: [{ port: management }]
+{{- if .Values.inboundEmail.enabled }}
+---
+# Inbound email: Waiting On's SMTP port from anywhere (sending mail servers). The listener itself refuses every
+# recipient that is not an open item's reply address and rate-limits per source IP.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-inbound-smtp
+  labels: {{- include "trove.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: { app.kubernetes.io/name: waiting-on }
+  policyTypes: [Ingress]
+  ingress:
+    - ports: [{ port: smtp }]
+{{- end }}
 {{- end }}

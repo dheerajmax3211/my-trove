@@ -1,0 +1,18 @@
+# Optional overlay: Waiting On receives replies by email. Turns on its SMTP listener (container port 2525, non-root)
+# and publishes host port 25 -> 2525. Only add this file when the host should accept mail:
+#
+#   docker compose -f deploy/compose/compose.yaml -f deploy/compose/compose.inbound-email.yaml \
+#     --env-file deploy/compose/.env up -d
+#
+# Set REPLY_DOMAIN in .env to the domain whose MX record points at this host (see docs/deploy.md). The listener is
+# receive-only and refuses every recipient that is not an open item's reply address, so it is not an open relay.
+# It has no STARTTLS: for mail from the internet, put a relay that terminates TLS in front, or accept plaintext SMTP
+# (which most senders still fall back to).
+services:
+  waiting-on:
+    environment:
+      INBOUND_SMTP_ENABLED: "true"
+      INBOUND_SMTP_PORT: "2525"
+      INBOUND_SMTP_BIND_ADDRESS: 0.0.0.0
+      INBOUND_SMTP_MAX_MESSAGE_SIZE: ${INBOUND_SMTP_MAX_MESSAGE_SIZE:-512KB}
+    ports: ["${INBOUND_SMTP_BIND:-0.0.0.0}:${INBOUND_SMTP_HOST_PORT:-25}:2525"]

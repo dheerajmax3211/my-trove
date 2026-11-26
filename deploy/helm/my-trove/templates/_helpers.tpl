@@ -75,6 +75,13 @@ helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 - { name: TEMPORAL_TARGET, value: {{ $v.temporal.target | quote }} }
 - { name: TEMPORAL_NAMESPACE, value: {{ $v.temporal.namespace | quote }} }
 - { name: TEMPORAL_TLS, value: {{ $v.temporal.tls | quote }} }
+- { name: REPLY_DOMAIN, value: {{ $v.inboundEmail.replyDomain | quote }} }
+- { name: INBOUND_SMTP_ENABLED, value: {{ $v.inboundEmail.enabled | quote }} }
+{{- if $v.inboundEmail.enabled }}
+- { name: INBOUND_SMTP_PORT, value: {{ $v.inboundEmail.containerPort | quote }} }
+- { name: INBOUND_SMTP_BIND_ADDRESS, value: "0.0.0.0" }
+- { name: INBOUND_SMTP_MAX_MESSAGE_SIZE, value: {{ $v.inboundEmail.maxMessageSize | quote }} }
+{{- end }}
 {{- end }}
 {{- if eq .name "consent-gateway" }}
 - name: CONSENT_KEY_ENCRYPTION_KEY

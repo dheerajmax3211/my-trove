@@ -44,6 +44,9 @@ spec:
           ports:
             - { name: http, containerPort: {{ $svc.port }} }
             - { name: management, containerPort: {{ $svc.managementPort }} }
+            {{- if and (eq $name "waiting-on") $.Values.inboundEmail.enabled }}
+            - { name: smtp, containerPort: {{ $.Values.inboundEmail.containerPort }} }
+            {{- end }}
           env:
             {{- include "trove.backendEnv" (dict "root" $ "name" $name "svc" $svc) | nindent 12 }}
           startupProbe:
@@ -91,4 +94,26 @@ spec:
   selector: { app.kubernetes.io/name: {{ $name }} }
   ports:
     - { name: http, port: {{ $svc.port }}, targetPort: http }
+{{- end }}
+{{- if .Values.inboundEmail.enabled }}
+---
+# Waiting On's SMTP listener, separate from the HTTP Service so it can be a LoadBalancer without exposing HTTP.
+apiVersion: v1
+kind: Service
+metadata:
+  name: waiting-on-smtp
+  labels:
+    {{- include "trove.labels" . | nindent 4 }}
+    app.kubernetes.io/name: waiting-on
+  {{- with .Values.inboundEmail.service.annotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.inboundEmail.service.type }}
+  {{- if and (ne .Values.inboundEmail.service.type "ClusterIP") .Values.inboundEmail.service.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ .Values.inboundEmail.service.externalTrafficPolicy }}
+  {{- end }}
+  selector: { app.kubernetes.io/name: waiting-on }
+  ports:
+    - { name: smtp, port: {{ .Values.inboundEmail.servicePort }}, targetPort: smtp }
 {{- end }}
