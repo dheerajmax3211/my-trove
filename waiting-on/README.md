@@ -106,8 +106,8 @@ Another user's item looks exactly like a missing one (404).
 | method + path | description |
 |---|---|
 | `POST /v1/items` | create. Body: `title`, `counterparty`, `counterpartyEmail?`, `category` (`REFUND CLAIM REIMBURSEMENT APPROVAL DELIVERY OTHER`), `amount?`+`currency` (ISO 4217, required with amount), `expectedBy`, `plan?` (`nudgeAfterDays`, `escalateAfterDays`, `finalNoticeAfterDays` (0 = none), `expireAfterDays`). 201 + `replyAddress` (the plus-address to put in Reply-To) |
-| `GET /v1/items?status=OPEN&status=NUDGED&limit=50&offset=0` | list (ordered by `expectedBy`) |
-| `GET /v1/items/{id}` | item + live `followUp` (`stage`, `nextAction`, `nextActionAt`, `snoozedDays`) queried from the workflow |
+| `GET /v1/items?status=OPEN&status=NUDGED&limit=50&offset=0` | list (ordered by `expectedBy`); each item carries `followUp` and `nextStep` like the detail. Active items' workflows are queried in parallel; if the first query fails (Temporal unreachable) the whole page falls back to plan-based steps |
+| `GET /v1/items/{id}` | item + live `followUp` (`stage`, `nextAction`, `nextActionAt`, `snoozedDays`) queried from the workflow, and `nextStep` (`action`, `at`, `source`): `source` is `WORKFLOW` when the workflow answered (snoozes, reply holds and refusals included) and `PLAN` when it did not (read off the stored plan from `createdAt`; ignores snoozes). `nextStep` is null once the item is closed. Every item response (create, list, resolve, snooze, cancel) carries both fields |
 | `POST /v1/items/{id}/resolve` | body `{"outcome": "..."}` optional. 409 if already closed |
 | `POST /v1/items/{id}/snooze` | `{"days": 1..90}`; shifts every remaining stage |
 | `POST /v1/items/{id}/cancel` | stop tracking |

@@ -17,11 +17,17 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -60,7 +66,12 @@ public class ItemService {
             java.math.BigDecimal amount, String currency, LocalDate expectedBy, EscalationPlan plan) {
     }
 
-    public record ItemDetail(WaitingItem item, String replyAddress, Optional<FollowUpState> followUp) {
+    /**
+     * An item with its follow-up as of now: {@code followUp} is the live workflow state when Temporal answered, and
+     * {@code nextStep} is what happens next (from the workflow, or from the stored plan when it did not answer).
+     */
+    public record ItemDetail(WaitingItem item, String replyAddress, Optional<FollowUpState> followUp,
+            Optional<NextStep> nextStep) {
     }
 
     @Transactional
@@ -87,14 +98,56 @@ public class ItemService {
         return item;
     }
 
-    public List<WaitingItem> list(String ownerUid, Set<ItemStatus> statuses, int limit, int offset) {
-        return items.list(ownerUid, statuses, Math.min(Math.max(limit, 1), 100), Math.max(offset, 0));
+    /**
+     * One page of items, each with its follow-up. Active items' workflows are queried in parallel; when the first query
+     * fails (Temporal unreachable) the rest are not attempted and every item falls back to its plan.
+     */
+    public List<ItemDetail> list(String ownerUid, Set<ItemStatus> statuses, int limit, int offset) {
+        List<WaitingItem> page = items.list(ownerUid, statuses, Math.min(Math.max(limit, 1), 100),
+                Math.max(offset, 0));
+        Map<UUID, Optional<FollowUpState>> states = states(page.stream()
+                .filter(i -> !i.status().isTerminal()).map(WaitingItem::id).toList());
+        return page.stream().map(i -> detail(i, states.getOrDefault(i.id(), Optional.empty()))).toList();
     }
 
     public ItemDetail get(String ownerUid, UUID id) {
-        WaitingItem item = require(ownerUid, id);
-        Optional<FollowUpState> state = item.status().isTerminal() ? Optional.empty() : safeState(id);
-        return new ItemDetail(item, letters.replyAddress(item), state);
+        return detailOf(require(ownerUid, id));
+    }
+
+    /** The item with its live follow-up (queried when the item is active). */
+    public ItemDetail detailOf(WaitingItem item) {
+        return detail(item, item.status().isTerminal() ? Optional.empty() : safeState(item.id()));
+    }
+
+    private ItemDetail detail(WaitingItem item, Optional<FollowUpState> state) {
+        return new ItemDetail(item, letters.replyAddress(item), state, NextStep.of(item, state, clock.instant()));
+    }
+
+    private Map<UUID, Optional<FollowUpState>> states(List<UUID> ids) {
+        Map<UUID, Optional<FollowUpState>> out = new HashMap<>();
+        if (ids.isEmpty()) {
+            return out;
+        }
+        UUID first = ids.getFirst();
+        try {
+            out.put(first, scheduler.state(first));
+        } catch (RuntimeException e) {
+            LOG.debug("Follow-up state unavailable, listing from plans: {}", e.toString());
+            return out;
+        }
+        List<UUID> rest = ids.subList(1, ids.size());
+        try (ExecutorService pool = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<Future<Optional<FollowUpState>>> futures = rest.stream()
+                    .map(id -> pool.submit(() -> safeState(id))).toList();
+            for (int i = 0; i < rest.size(); i++) {
+                out.put(rest.get(i), futures.get(i).get());
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            LOG.debug("Follow-up state query failed: {}", e.toString()); // safeState does not throw
+        }
+        return out;
     }
 
     @Transactional
@@ -139,7 +192,7 @@ public class ItemService {
         events.append(id, ownerUid, EventType.SNOOZED, "Follow-ups postponed by " + Plurals.days(days), null, null, now);
         items.touch(id, now);
         scheduler.snooze(id, days); // failure rolls back the event
-        return new ItemDetail(require(ownerUid, id), letters.replyAddress(item), safeState(id));
+        return detail(require(ownerUid, id), safeState(id));
     }
 
     public List<TimelineEvent> timeline(String ownerUid, UUID id) {

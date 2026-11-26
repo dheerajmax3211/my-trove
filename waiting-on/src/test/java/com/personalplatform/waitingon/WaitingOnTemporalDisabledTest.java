@@ -11,7 +11,10 @@ import com.jayway.jsonpath.JsonPath;
 import com.personalplatform.waitingon.temporal.NoopFollowUpScheduler;
 import com.personalplatform.waitingon.workflow.FollowUpScheduler;
 import io.temporal.client.WorkflowClient;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -54,6 +57,32 @@ class WaitingOnTemporalDisabledTest {
                 .contentType(MediaType.APPLICATION_JSON).content("{\"days\":2}")).andExpect(status().isOk());
         mvc.perform(post("/v1/items/" + id + "/resolve").header("Authorization", bearer("uid-noop")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("RESOLVED"));
+    }
+
+    @Test
+    void nextStepComesFromThePlanAndSaysSo() throws Exception {
+        String body = mvc.perform(post("/v1/items").header("Authorization", bearer("uid-noop-plan"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(("{\"title\":\"t\",\"counterparty\":\"c\",\"category\":\"OTHER\",\"expectedBy\":\"%s\","
+                                + "\"plan\":{\"nudgeAfterDays\":2,\"escalateAfterDays\":5,\"finalNoticeAfterDays\":0,"
+                                + "\"expireAfterDays\":10}}").formatted(LocalDate.now().plusDays(3))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nextStep.action").value("NUDGE"))
+                .andExpect(jsonPath("$.nextStep.source").value("PLAN"))
+                .andReturn().getResponse().getContentAsString();
+        String id = JsonPath.read(body, "$.id");
+        Instant createdAt = OffsetDateTime.parse(JsonPath.<String>read(body, "$.createdAt")).toInstant();
+
+        String list = mvc.perform(get("/v1/items").header("Authorization", bearer("uid-noop-plan")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nextStep.source").value("PLAN"))
+                .andExpect(jsonPath("$[0].followUp").doesNotExist())
+                .andReturn().getResponse().getContentAsString();
+        assertThat(Instant.parse(JsonPath.read(list, "$[0].nextStep.at")))
+                .isEqualTo(createdAt.plus(Duration.ofDays(2)));
+
+        mvc.perform(post("/v1/items/" + id + "/resolve").header("Authorization", bearer("uid-noop-plan")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.nextStep").doesNotExist());
     }
 
     @Test
