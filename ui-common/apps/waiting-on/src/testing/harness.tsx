@@ -1,13 +1,17 @@
 import { createApiClient } from '@platform/api-client'
-import { DEMO_USER, createStubAuthClient } from '@platform/auth-web'
+import { ApiProvider } from '@platform/api-client'
+import { AuthProvider, DEMO_USER, RequireAuth, createStubAuthClient } from '@platform/auth-web'
+import { ThemeProvider, ToastProvider } from '@platform/ui'
+import { ModuleBaseProvider } from '@platform/workspace-kit'
 import { QueryClient } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { Fragment } from 'react'
 import { MemoryRouter } from 'react-router-dom'
-import { App } from '../App'
+import { ClockProvider } from '../lib/clock'
 import { createMockBackend, type SeedEntry } from '../mock/backend'
 import { demoSeed } from '../mock/seed'
-import type { Runtime } from '../runtime'
+import { productModule } from '../module'
 
 /** Fixed "now": noon UTC so the calendar date is the same in every realistic time zone. */
 export const NOW = new Date('2026-11-19T12:00:00Z')
@@ -35,7 +39,7 @@ export const problem = (status: number, title: string, detail: string, extra: ob
     headers: { 'content-type': 'application/problem+json' },
   })
 
-/** Renders the whole app against the in-memory mock API, with a stub signed-in user and a fixed clock. */
+/** Renders the module against the in-memory mock API, with a stub signed-in user and a fixed clock. */
 export function renderApp({ route = '/', seed = demoSeed(NOW), intercept }: HarnessOptions = {}) {
   const user = userEvent.setup()
   const requests: RecordedRequest[] = []
@@ -58,24 +62,40 @@ export function renderApp({ route = '/', seed = demoSeed(NOW), intercept }: Harn
     return (await intercept?.(recorded, passThrough)) ?? passThrough()
   }
 
-  const runtime: Runtime = {
-    demo: true,
-    authClient,
-    clock: () => NOW,
-    apiClient: createApiClient({
-      baseUrl: '/api',
-      getToken: (force) => authClient.getIdToken(force),
-      fetch: fetchWithLog,
-      onUnauthorized: () => void authClient.signOut(),
-    }),
-    queryClient: new QueryClient({
-      defaultOptions: { queries: { retry: false, staleTime: 0 }, mutations: { retry: false } },
-    }),
-  }
+  const apiClient = createApiClient({
+    baseUrl: '/api',
+    getToken: (force) => authClient.getIdToken(force),
+    fetch: fetchWithLog,
+    onUnauthorized: () => void authClient.signOut(),
+  })
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: 0 }, mutations: { retry: false } },
+  })
+  const { Providers = Fragment, Routes: ModuleRoutes } = productModule
 
+  // The module as the workspace mounts it (at the root here): signed in, with the workspace's providers
+  // around the module's own, and a fixed clock inside them.
   const view = render(
     <MemoryRouter initialEntries={[route]}>
-      <App runtime={runtime} />
+      <ThemeProvider storageKey={null}>
+        <AuthProvider client={authClient}>
+          <ApiProvider client={apiClient} queryClient={queryClient}>
+            <ToastProvider>
+              <RequireAuth loading={null} fallback={<p>Signed out</p>}>
+                <ModuleBaseProvider base="">
+                  <Providers>
+                    <ClockProvider clock={() => NOW}>
+                      <main>
+                        <ModuleRoutes />
+                      </main>
+                    </ClockProvider>
+                  </Providers>
+                </ModuleBaseProvider>
+              </RequireAuth>
+            </ToastProvider>
+          </ApiProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </MemoryRouter>,
   )
   return { user, requests, ...view }

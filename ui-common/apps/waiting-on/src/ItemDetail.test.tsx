@@ -301,13 +301,11 @@ describe('failures', () => {
     expect(await screen.findByText(/could not reach the server/)).toBeInTheDocument()
   })
 
-  it('returns to sign-in when the session is rejected', async () => {
+  it('signs out when the session is rejected', async () => {
     renderApp({
       intercept: () => problem(401, 'Unauthorized', 'A valid Firebase ID token is required.'),
     })
-    expect(
-      await screen.findByRole('heading', { name: 'Sign in to Waiting On' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Signed out')).toBeInTheDocument()
   })
 
   it('degrades gracefully when the live follow-up state cannot be read', async () => {
@@ -345,15 +343,7 @@ describe('failures', () => {
   })
 })
 
-describe('shell', () => {
-  it('signs out to the sign-in screen', async () => {
-    const { user } = renderApp()
-    await user.click(await screen.findByRole('button', { name: 'Sign out' }))
-    expect(
-      await screen.findByRole('heading', { name: 'Sign in to Waiting On' }),
-    ).toBeInTheDocument()
-  })
-
+describe('navigation', () => {
   it('moves focus to the new page heading after navigating', async () => {
     const { user } = renderApp()
     await screen.findByRole('group', { name: 'Waiting items' })

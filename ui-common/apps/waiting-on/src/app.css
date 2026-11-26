@@ -1,12 +1,8 @@
 /*
  * Waiting On. The My-Trove bento pattern: white 28px cards on a grey canvas, one black card per
  * screen, huge numerals, rails and bubbles for the follow-up stage. Everything sits on the design
- * tokens; the product accent (ochre) comes from `data-product="waiting-on"` on the root.
+ * tokens; the product accent (ochre) comes from `data-product="waiting-on"`, which the workspace sets on the module.
  */
-
-.wo-root {
-  min-height: 100dvh;
-}
 
 .wo-page,
 .wo-stack {
@@ -58,61 +54,6 @@
   .wo-hide-sm {
     display: none;
   }
-}
-
-@media (max-width: 479.98px) {
-  .wo-hide-xs {
-    display: none !important;
-  }
-}
-
-.wo-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--pp-space-2);
-  color: inherit;
-  text-decoration: none;
-}
-
-.wo-theme {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--pp-space-2);
-  font-size: var(--pp-text-body-small-size);
-}
-
-/* Sign-in */
-.wo-signin {
-  display: grid;
-  place-items: center;
-  min-height: 100dvh;
-  padding: var(--pp-space-4);
-  background: var(--pp-color-canvas);
-}
-
-.wo-signin-card {
-  width: min(100%, 30rem);
-  padding: var(--pp-space-8);
-  border: 1px solid var(--pp-color-hairline);
-  border-radius: var(--pp-radius-xl);
-  background: var(--pp-color-surface);
-}
-
-.wo-signin-mark {
-  margin-block-end: var(--pp-space-5);
-}
-
-.wo-signin-title {
-  margin: 0 0 var(--pp-space-2);
-  font-family: var(--pp-font-display);
-  font-size: var(--pp-text-h2-size);
-  font-weight: 500;
-  letter-spacing: -0.035em;
-}
-
-.wo-signin-lede {
-  margin: 0 0 var(--pp-space-6);
-  color: var(--pp-color-text-muted);
 }
 
 /* ---------- Home: the summary bento ---------- */

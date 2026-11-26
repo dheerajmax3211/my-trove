@@ -21,8 +21,8 @@ function useFocusHeadingOnNavigate() {
 }
 
 /**
- * The product's pages, without providers, sign-in or layout. Every path is relative, so the same tree
- * runs standalone (base empty) and inside the workspace (base `/app/waiting-on`).
+ * The product's pages, without providers, sign-in or layout. Every path is module-relative: the workspace
+ * mounts the tree at `/app/waiting-on`.
  */
 export function WaitingOnRoutes() {
   useFocusHeadingOnNavigate()
