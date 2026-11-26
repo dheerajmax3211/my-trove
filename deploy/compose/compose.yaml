@@ -92,7 +92,7 @@ services:
         "waiting-on":{"uri":"http://waiting-on:8083"},"consent":{"uri":"http://consent-gateway:8084"},
         "home-pulse":{"uri":"http://home-pulse:8085"},"ask-your-life":{"uri":"http://ask-your-life:8086"},
         "digital-legacy":{"uri":"http://digital-legacy:8087"},"family-treasury":{"uri":"http://family-treasury:8088"},
-        "platform":{"uri":"http://platform-service:8089"}}}}
+        "platform":{"uri":"http://platform-service:8089"},"mcp":{"uri":"http://mcp-server:8090"}}}}
     ports: ["${BIND_ADDRESS:-127.0.0.1}:8080:8080"]
   auth:
     <<: *backend
@@ -162,6 +162,16 @@ services:
     <<: *backend
     image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/family-treasury:${TAG:?set TAG}
     environment: { <<: *backend-env, MANAGEMENT_PORT: "9088" }
+  mcp-server:
+    <<: *backend
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/mcp-server:${TAG:?set TAG}
+    environment:
+      <<: *backend-env
+      MANAGEMENT_PORT: "9090"
+      WAITING_ON_URL: http://waiting-on:8083
+      ASK_YOUR_LIFE_URL: http://ask-your-life:8086
+      HOME_PULSE_URL: http://home-pulse:8085
+      FAMILY_TREASURY_URL: http://family-treasury:8088
 
   workspace:
     image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/workspace:${TAG:?set TAG}

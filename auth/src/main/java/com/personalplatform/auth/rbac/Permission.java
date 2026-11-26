@@ -26,7 +26,8 @@ public enum Permission {
     PLANS_MANAGE("plans:manage"),
     FLAGS_MANAGE("flags:manage"),
     AUDIT_READ("audit:read"),
-    SUPPORT_IMPERSONATE("support:impersonate");
+    SUPPORT_IMPERSONATE("support:impersonate"),
+    MCP_USE("mcp:use");
 
     private final String value;
 

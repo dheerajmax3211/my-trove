@@ -31,6 +31,7 @@ public record GatewayProperties(
         List<ApiKeyRoute> apiKeyRoutes) {
 
     public static final String PRODUCTS_USE = "products:use";
+    public static final String MCP_USE = "mcp:use";
 
     /** Service name to local port, in route order. */
     public static final Map<String, Integer> DEFAULT_PORTS = defaultPorts();
@@ -190,6 +191,9 @@ public record GatewayProperties(
             String p = configured.requiredPermission().strip();
             return p.isEmpty() ? Optional.empty() : Optional.of(p);
         }
+        if ("mcp".equals(service)) {
+            return Optional.of(MCP_USE);
+        }
         return PRODUCT_ROUTES.contains(service) ? Optional.of(PRODUCTS_USE) : Optional.empty();
     }
 
@@ -204,6 +208,7 @@ public record GatewayProperties(
         m.put("digital-legacy", 8087);
         m.put("family-treasury", 8088);
         m.put("platform", 8089);
+        m.put("mcp", 8090);
         return Map.copyOf(m);
     }
 }

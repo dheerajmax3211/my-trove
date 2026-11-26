@@ -76,6 +76,7 @@ jobs:
           - { name: ask-your-life, kind: service }
           - { name: digital-legacy, kind: service }
           - { name: family-treasury, kind: service }
+          - { name: mcp-server, kind: service }
           - { name: workspace, kind: web }
           - { name: site, kind: web }
     steps:
@@ -119,7 +120,7 @@ jobs:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "$TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          # Twelve jobs push at once; the first push of each package occasionally fails transiently, so retry.
+          # Thirteen jobs push at once; the first push of each package occasionally fails transiently, so retry.
           for attempt in 1 2 3 4; do
             docker push "$IMAGE" && exit 0
             echo "push attempt $attempt failed; retrying in $((attempt * 15)) s"; sleep $((attempt * 15))
@@ -140,7 +141,7 @@ jobs:
       - name: Build images for kind
         run: |
           pids=()
-          for m in gateway auth platform-service shared-service waiting-on consent-gateway home-pulse ask-your-life digital-legacy family-treasury; do
+          for m in gateway auth platform-service shared-service waiting-on consent-gateway home-pulse ask-your-life digital-legacy family-treasury mcp-server; do
             docker build -q -f deploy/docker/service.Dockerfile --build-arg MODULE=$m -t my-trove/$m:${{ github.sha }} . &
             pids+=($!)
           done
@@ -156,7 +157,7 @@ jobs:
           cluster_name: trove
       - name: Load images into kind
         run: |
-          for m in gateway auth platform-service shared-service waiting-on consent-gateway home-pulse ask-your-life digital-legacy family-treasury workspace site; do
+          for m in gateway auth platform-service shared-service waiting-on consent-gateway home-pulse ask-your-life digital-legacy family-treasury mcp-server workspace site; do
             kind load docker-image my-trove/$m:${{ github.sha }} --name trove
           done
       - name: Smoke test

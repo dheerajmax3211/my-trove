@@ -34,10 +34,10 @@ logging:
 
 gateway:
   # Base URIs default to http://localhost:<port> (auth 8081, shared 8082, waiting-on 8083, consent 8084,
-  # home-pulse 8085, ask-your-life 8086, digital-legacy 8087, family-treasury 8088, platform 8089).
+  # home-pulse 8085, ask-your-life 8086, digital-legacy 8087, family-treasury 8088, platform 8089, mcp 8090).
   # Override with gateway.services.<name>.uri, e.g. GATEWAY_SERVICES_AUTH_URI.
   #
-  # Route policy: product routes require products:use, auth/shared/platform need only a valid token. Override with
+  # Route policy: product routes require products:use, mcp requires mcp:use, auth/shared/platform need only a valid token. Override with
   # gateway.routes.<name>.required-permission (empty string = none).
 
   # Requests the downstream service authenticates with its own credential. They are forwarded untouched, with no
@@ -95,3 +95,9 @@ gateway:
       methods: [GET]
       path: /v1/usage/me
       permission: usage:read:self
+    # mcp-server: MCP Streamable HTTP (JSON-RPC over POST). GET (server-sent stream) is answered 405 by the server.
+    # Tools that read personal data also need products:use, which mcp-server checks per tool.
+    - service: mcp
+      methods: [POST]
+      path: /mcp
+      permission: mcp:use

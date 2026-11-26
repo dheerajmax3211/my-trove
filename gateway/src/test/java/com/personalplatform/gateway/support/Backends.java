@@ -20,12 +20,14 @@ public final class Backends {
     public static final String MEMBER = "u|alice|FREE|products:use,usage:read:self,connections:manage";
     public static final String PRO = "u|pro-bob|PRO|products:use,usage:read:self,connections:manage";
     public static final String NO_PRODUCTS = "u|carol|FREE|usage:read:self";
+    /** A DEVELOPER-like user: MEMBER permissions plus mcp:use. */
+    public static final String MCP_USER = "u|dave|FREE|products:use,usage:read:self,connections:manage,mcp:use";
     public static final String SUSPENDED = "suspended";
     public static final String UNAUTHORIZED = "unauthorized";
     public static final String BOOM = "boom";
 
     public static final List<String> SERVICES = List.of("auth", "shared", "waiting-on", "consent", "home-pulse",
-            "ask-your-life", "digital-legacy", "family-treasury", "platform");
+            "ask-your-life", "digital-legacy", "family-treasury", "platform", "mcp");
 
     public static final String SEED_PLANS = "[{\"plan\":\"FREE\",\"requestsPerMinute\":120,\"requestsPerMonth\":10000},"
             + "{\"plan\":\"PRO\",\"requestsPerMinute\":600,\"requestsPerMonth\":200000},"
