@@ -115,8 +115,10 @@ jobs:
         with: { name: "sbom-${{ matrix.name }}", path: sbom/, retention-days: 30 }
       - name: Push (main only)
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          echo "$TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
           docker push "$IMAGE"
 
   kind-smoke:
@@ -132,10 +134,12 @@ jobs:
         with: { version: v3.19.5 }
       - name: Build images for kind
         run: |
+          pids=()
           for m in gateway auth platform-service shared-service waiting-on consent-gateway home-pulse ask-your-life digital-legacy family-treasury; do
             docker build -q -f deploy/docker/service.Dockerfile --build-arg MODULE=$m -t my-trove/$m:${{ github.sha }} . &
+            pids+=($!)
           done
-          wait
+          for pid in "${pids[@]}"; do wait "$pid" || { echo "an image build failed"; exit 1; }; done
           for app in workspace site; do
             docker build -q -f deploy/docker/web.Dockerfile --build-arg APP=$app \
               --build-arg VITE_API_BASE_URL=http://localhost:18080/api -t my-trove/$app:${{ github.sha }} .
@@ -157,12 +161,12 @@ jobs:
           kubectl -n trove port-forward svc/site 18081:80 >/tmp/pf-site.log 2>&1 &
           kubectl -n trove port-forward svc/gateway 18080:8080 >/tmp/pf-gw.log 2>&1 &
           sleep 3
-          mkdir -p zap && chmod 777 zap
+          mkdir -p zap && cp deploy/zap/rules.tsv zap/ && chmod -R 777 zap
           # Warnings are reported, not fatal; the rules file turns findings that must never ship into failures.
-          docker run --rm --network host -v "$PWD/zap:/zap/wrk" -v "$PWD/deploy/zap/rules.tsv:/zap/rules.tsv:ro" "$ZAP_IMAGE" \
-            zap-baseline.py -t http://localhost:18081 -c /zap/rules.tsv -r site.html -J site.json -I
-          docker run --rm --network host -v "$PWD/zap:/zap/wrk" -v "$PWD/deploy/zap/rules.tsv:/zap/rules.tsv:ro" "$ZAP_IMAGE" \
-            zap-baseline.py -t http://localhost:18080/api/auth/.well-known/jwks.json -c /zap/rules.tsv -r gateway.html -J gateway.json -I
+          docker run --rm --network host -v "$PWD/zap:/zap/wrk" "$ZAP_IMAGE" \
+            zap-baseline.py -t http://localhost:18081 -c rules.tsv -r site.html -J site.json -I
+          docker run --rm --network host -v "$PWD/zap:/zap/wrk" "$ZAP_IMAGE" \
+            zap-baseline.py -t http://localhost:18080/api/auth/.well-known/jwks.json -c rules.tsv -r gateway.html -J gateway.json -I
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: zap-reports, path: zap/, retention-days: 30 }

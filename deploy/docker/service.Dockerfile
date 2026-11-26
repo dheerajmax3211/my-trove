@@ -21,7 +21,9 @@ LABEL org.opencontainers.image.source="https://github.com/dheerajmax3211/my-trov
       org.opencontainers.image.title="my-trove-${MODULE}" \
       org.opencontainers.image.licenses="NOASSERTION"
 # A fixed, unprivileged user; Kubernetes runs it with runAsNonRoot and a read-only root filesystem.
-RUN groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app --no-create-home app
+RUN groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app --no-create-home app \
+ # shared-service stores uploads here; Docker copies this ownership into a fresh named volume.
+ && mkdir -p /data/blobs && chown 10001:10001 /data/blobs
 WORKDIR /app
 COPY --from=extract /build/extracted/dependencies/ ./
 COPY --from=extract /build/extracted/spring-boot-loader/ ./

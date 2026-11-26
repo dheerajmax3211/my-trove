@@ -16,11 +16,13 @@ ARG VITE_SITE_URL
 ARG VITE_WORKSPACE_URL
 ARG VITE_REPO_URL
 ARG VITE_TRUSTEE_PORTAL_URL
+# Only for trying the platform with the dev identity provider (never set it for a real deployment).
+ARG VITE_DEV_IDP_URL
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL} VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY} \
     VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN} VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID} \
     VITE_FIREBASE_APP_ID=${VITE_FIREBASE_APP_ID} VITE_SITE_URL=${VITE_SITE_URL} \
     VITE_WORKSPACE_URL=${VITE_WORKSPACE_URL} VITE_REPO_URL=${VITE_REPO_URL} \
-    VITE_TRUSTEE_PORTAL_URL=${VITE_TRUSTEE_PORTAL_URL}
+    VITE_TRUSTEE_PORTAL_URL=${VITE_TRUSTEE_PORTAL_URL} VITE_DEV_IDP_URL=${VITE_DEV_IDP_URL}
 WORKDIR /src
 RUN corepack enable
 COPY ui-common/ ./
@@ -36,6 +38,7 @@ USER root
 RUN apk upgrade --no-cache
 USER 101
 COPY deploy/docker/nginx-spa.conf /etc/nginx/conf.d/default.conf
+COPY deploy/docker/nginx-security-headers.conf /etc/nginx/snippets/security-headers.conf
 COPY --from=build /src/apps/${APP}/dist/ /usr/share/nginx/html/
 # nginx-unprivileged listens on 8080 as uid 101.
 EXPOSE 8080

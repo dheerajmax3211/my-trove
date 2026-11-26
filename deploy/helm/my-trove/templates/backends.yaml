@@ -10,6 +10,10 @@ metadata:
     app.kubernetes.io/component: backend
 spec:
   replicas: {{ $svc.replicas }}
+  {{- if and (eq $name "shared-service") $.Values.files.persistentVolumeClaim }}
+  # A ReadWriteOnce claim cannot attach to a second pod on another node during a rolling update.
+  strategy: { type: Recreate }
+  {{- end }}
   selector:
     matchLabels: { app.kubernetes.io/name: {{ $name }} }
   template:

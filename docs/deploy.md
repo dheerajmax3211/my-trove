@@ -38,7 +38,8 @@ docker compose -f deploy/compose/compose.yaml --env-file deploy/compose/.env up 
 ```
 
 To try it with no Firebase project, add `--profile dev-idp` and set `APP_FIREBASE_JWK_SET_URI=http://dev-idp:9100/jwks`
-in the `.env` file; `dev/seed-personas.sh` then creates the owner, admin, developer, member and auditor accounts.
+in the `.env` file; `dev/seed-personas.sh` then creates the owner, admin, developer, member and auditor accounts. To sign
+in from the browser too, build the workspace image with `--build-arg VITE_DEV_IDP_URL=http://localhost:9100`.
 
 ## Option B: Kubernetes with Helm
 
@@ -52,7 +53,7 @@ The rest of this guide covers the chart.
 | Kafka | One bootstrap address. Topic `platform.usage.v1` is auto-created, or create it yourself. | gateway (produces), platform-service (consumes) |
 | Temporal | A frontend address and namespace. Set `temporal.enabled=false` to run without durable follow-ups. | waiting-on |
 | Firebase project | Firebase Authentication with Google and email-link sign-in. The project id goes in `common.firebaseProjectId`; the web config goes into the web image build. | sign-in |
-| SMTP relay | Optional (`mail.enabled`). Without it, emails are not sent. | shared-service |
+| SMTP relay | Optional (`mail.enabled`). The sender has no username, password or STARTTLS settings yet, so it needs a relay that accepts unauthenticated mail from the cluster (for example a local Postfix that relays onward). Without it, emails are not sent. | shared-service |
 | OTLP collector | Optional. Traces go to `common.otlpTracesEndpoint`; an unreachable collector never slows requests (tested). | every backend |
 | Prometheus | Optional. Scrapes each pod's management port (annotations `prometheus.io/*`) from the `monitoring` namespace. | metrics |
 

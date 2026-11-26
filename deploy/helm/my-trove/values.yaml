@@ -46,7 +46,7 @@ bootstrapAdminEmails: ""
 mail:
   enabled: false
   host: smtp
-  port: 587
+  port: 25   # unauthenticated relay only: the sender has no SMTP auth or STARTTLS settings yet
   from: "My-Trove <no-reply@example.com>"
 
 temporal:
@@ -59,7 +59,9 @@ temporal:
 files:
   persistentVolumeClaim: ""
 
-# One entry per backend. port = the public HTTP port (a ClusterIP Service exposes only this);
+# One entry per backend. The ports are fixed by each service's application config and the gateway routes; they are
+# listed here for the templates, not to be changed.
+# port = the public HTTP port (a ClusterIP Service exposes only this);
 # managementPort = actuator (health, prometheus), reachable only from the monitoring namespace (NetworkPolicy).
 services:
   gateway:          { module: gateway,          port: 8080, managementPort: 9080, replicas: 2, env: {} }
