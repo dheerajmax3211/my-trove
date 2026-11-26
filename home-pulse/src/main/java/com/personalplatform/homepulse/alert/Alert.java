@@ -1,6 +1,7 @@
 package com.personalplatform.homepulse.alert;
 
 import com.personalplatform.homepulse.detect.AlertKind;
+import com.personalplatform.homepulse.detect.DecidedBy;
 import com.personalplatform.homepulse.detect.Severity;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -23,4 +24,5 @@ public record Alert(
         LocalDate warrantyEndDate,
         LocalDate lastServiceDate,
         LocalDate nextServiceDate,
-        boolean simulated) {}
+        boolean simulated,
+        DecidedBy decidedBy) {}

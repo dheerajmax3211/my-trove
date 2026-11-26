@@ -6,7 +6,7 @@ import com.personalplatform.homepulse.appliance.ApplianceRepository;
 import com.personalplatform.homepulse.config.HomePulseProperties;
 import com.personalplatform.homepulse.detect.AlertKind;
 import com.personalplatform.homepulse.detect.AlertReconciler;
-import com.personalplatform.homepulse.detect.AnomalyDetector;
+import com.personalplatform.homepulse.detect.AnomalyModel;
 import com.personalplatform.homepulse.detect.Baseline;
 import com.personalplatform.homepulse.detect.BaselineLearner;
 import com.personalplatform.homepulse.detect.DetectorProfile;
@@ -44,9 +44,12 @@ public class EvaluationService {
     private final AlertRepository alerts;
     private final HomePulseProperties props;
     private final Clock clock;
+    private final AnomalyModel model;
 
     public EvaluationService(ApplianceRepository appliances, DeviceRepository devices, ReadingsRepository readings,
-                             BaselineRepository baselines, AlertRepository alerts, HomePulseProperties props, Clock clock) {
+                             BaselineRepository baselines, AlertRepository alerts, HomePulseProperties props, Clock clock,
+                             AnomalyModel model) {
+        this.model = model;
         this.appliances = appliances;
         this.devices = devices;
         this.readings = readings;
@@ -78,7 +81,10 @@ public class EvaluationService {
 
         var live = alerts.liveForAppliance(applianceId);
         Set<AlertKind> liveKinds = live.stream().map(AlertReconciler.LiveAlert::kind).collect(Collectors.toSet());
-        var evaluation = AnomalyDetector.evaluate(profile, baseline, samples, lastSeen, now, liveKinds);
+        Device dev = device.get();
+        var evaluation = model.evaluate(new AnomalyModel.Input(applianceId, appliance.type(), profile, baseline, samples,
+                lastSeen, now, liveKinds,
+                () -> readings.minuteSamples(dev, baseline.learnedFrom(), baseline.learnedTo())));
         var plan = AlertReconciler.reconcile(live, evaluation, props.evaluation().resolveAfterClearRuns());
 
         plan.toOpen().forEach(f -> alerts.insert(appliance.ownerUid(), applianceId, f, now, device.get().simulated()));
