@@ -39,6 +39,7 @@ TypeScript · Vite · TanStack Query · Vitest
 ├── digital-legacy/          Dead-man's switch, Shamir secret sharing, end-to-end encrypted       :8087
 ├── family-treasury/         Double-entry household ledger                                        :8088
 ├── ui-common/               Frontend monorepo: tokens, UI kit, auth-web, api-client, gallery + 7 web apps (:5181-5187)
+├── deploy/                  Container images, Helm chart, single-host Compose, kind smoke test, ZAP rules
 ├── dev/                     Local stack: compose (Postgres+Timescale+pgvector, Temporal), dev identity provider, scripts
 └── docs/handoffs/           Integration notes written while each service and app was built
 ```
@@ -68,19 +69,38 @@ Open the workspace and click "Continue with Google": you are signed in as the lo
 Backend tests use Testcontainers, so Docker must be running:
 
 ```bash
-./mvnw clean verify                # all modules: 1,027 tests against real Postgres, Timescale, pgvector and Kafka containers
+./mvnw clean verify                # all modules: 1,325 tests against real Postgres, Timescale, pgvector and Kafka containers
 ./mvnw -pl waiting-on -am verify   # one service plus what it needs
 ```
 
-Frontend: `cd ui-common && pnpm install && pnpm lint && pnpm typecheck && pnpm test && pnpm build` (1,188 tests).
-CI runs both on every push (`.github/workflows/ci.yml`).
+Frontend: `cd ui-common && pnpm install && pnpm lint && pnpm typecheck && pnpm test && pnpm build` (2,240 tests).
+CI runs both on every push (`.github/workflows/ci.yml`). A second workflow (`release.yml`) builds an image per service
+and web app, scans each with Trivy, writes a CycloneDX SBOM, installs the Helm chart on a kind cluster, smoke-tests it
+through the gateway, runs an OWASP ZAP baseline, and pushes the images to GHCR from `main`.
+
+## Deploy
+
+Two supported ways, both documented in [`docs/deploy.md`](docs/deploy.md):
+
+- **One machine** with Docker Compose (`deploy/compose/`): every image plus PostgreSQL, Kafka and Temporal. The
+  cheapest real install.
+- **Kubernetes** with the Helm chart (`deploy/helm/my-trove`): hardened pods (non-root, read-only root filesystem, no
+  capabilities), default-deny NetworkPolicy, probes on a private management port, Secrets kept outside the chart.
+
+Security notes: [`docs/security/threat-model.md`](docs/security/threat-model.md). Design decisions:
+[`docs/adr/`](docs/adr/README.md). Load baseline: [`docs/perf/2026-11-23-baseline.md`](docs/perf/2026-11-23-baseline.md).
 
 ## Status
 
 Every service is a verified first vertical slice, not a finished product. All tests pass against real databases, and
-all seven web apps have been driven end to end against the real services. Sign-in has been verified with a real
-Firebase project (Google, and email link on the hub).
+the workspace has been driven end to end against the real services. Sign-in has been verified with a real Firebase
+project (Google, and email link).
 
-Known gaps: notification delivery is log-only (no email/SMS/push provider), MQTT ingestion is off by default, the
-embedder in Ask Your Life is a deterministic local one so semantic search is approximate, nothing has run against real
-devices, and there is no production deployment yet.
+Deployment readiness: images, the Helm chart and the Compose install exist and are tested locally (the Compose
+install of the real images passes the end-to-end scripts through the gateway). The kind smoke test, ZAP baseline and
+image push run in GitHub Actions and have not run yet. Nothing is deployed publicly. Details in `docs/deploy.md`.
+
+Known gaps: email goes to Mailpit in dev and needs an SMTP relay in production; MQTT ingestion is off by default; Ask
+Your Life uses a deterministic local embedder unless `EMBEDDER_URL` points at a real one, so semantic search is
+approximate; nothing has run against real devices; rate limits are per gateway replica; there is no
+Content-Security-Policy on the web apps yet.

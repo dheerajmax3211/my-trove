@@ -105,12 +105,15 @@ Audit, things that exist but do nothing useful for a real user (fix order):
 - [ ] 4.E Tests for all of the above; honest limits written down
 
 ## Phase 5: Hardening and presence
-- [ ] 5.A OpenTelemetry on all JVMs → collector → Tempo/Prometheus/Loki → Grafana dashboards as code
-- [ ] 5.B Helm chart for all services; kind cluster smoke test in GitHub Actions  (gate: ask before installing kind/k6 locally)
-- [ ] 5.C Image builds (GHCR), Trivy scan, Dependabot, SBOM
-- [ ] 5.D Playwright suite per persona; contract tests; k6 load run with numbers in README
-- [ ] 5.E OWASP ZAP baseline in CI; threat model; ADRs
-- [ ] 5.F Free live demo (frontends in demo mode on Firebase Hosting), screenshots, architecture diagrams, README overhaul, resume bullets
+- [x] 5.A OpenTelemetry traces (OTLP → Jaeger v2), Prometheus metrics on a private management port, Grafana dashboard as code, `dev/e2e-observability.sh` (plan 2026-11-23; Loki/log shipping not done)
+- [~] 5.B Helm chart `deploy/helm/my-trove` (lint, kubeconform 30/30 valid, default-deny NetworkPolicy, hardened pods) and single-host Compose `deploy/compose/` (real images pass e2e-phase1 33/33, personas 73/73, waiting-consent-ask 26/26, developer 24/28: webhook receiver unreachable from containers). kind smoke test `deploy/kind/smoke.sh` written; runs only in GitHub Actions, NOT YET RUN (needs push)
+- [~] 5.C `deploy/docker/` images (12 build; JRE 21.0.13_9 noble multi-arch, nginx 1.31.7 + apk upgrade), `release.yml` (Trivy gate, Syft CycloneDX SBOM, GHCR push from main), Dependabot. Local Trivy OS scan clean on 4 images; Java DB download failed locally, so jar CVEs only in CI. NOT YET RUN in CI (needs push)
+- [~] 5.D k6 baseline DONE (`docs/perf/2026-11-23-baseline.md`, all thresholds pass); Playwright per persona and contract tests not done
+- [~] 5.E ZAP baseline in `release.yml` with `deploy/zap/rules.tsv` (NOT YET RUN), threat model `docs/security/threat-model.md`, ADRs 0001-0006 `docs/adr/`
+- [~] 5.F README deploy/status sections and `docs/deploy.md` DONE; live demo hosting, diagrams and resume bullets not done (hosting needs the owner's account)
+
+## Deployment readiness (2026-11-26)
+Backend `./mvnw verify` 1,325 tests, 0 failures; frontend 2,240 tests, lint/typecheck/build green. Fixed in this pass: nine services' observability tests (metrics export is off in Spring Boot tests; health moved to the management port), dev IdP bind address (`DEV_IDP_HOST`). Everything is committed locally on `main`, NOT pushed: the kind smoke, ZAP, Trivy-in-CI and GHCR push all start on the first push.
 
 ## Decisions log
 - 2026-11-21: Gateway + platform token chosen over library-only RBAC and over a service mesh (design doc §4).
