@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Household detail (HouseholdService.HouseholdDetail)",
+  "description": "GET /v1/households/{id}.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "createdAt", "callerRole", "members"],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "callerRole": { "enum": ["MEMBER", "OWNER"] },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["uid", "role", "joinedAt"],
+        "properties": { "uid": { "type": "string" }, "role": { "enum": ["MEMBER", "OWNER"] }, "joinedAt": { "type": "string", "format": "date-time" } }
+      }
+    }
+  }
+}

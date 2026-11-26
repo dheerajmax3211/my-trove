@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Activity page (Page<AuditService.AuditEvent>)",
+  "description": "GET /v1/audit?page=&size= (the activity page).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "page", "size", "total"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "actorUid", "householdId", "action", "subjectType", "subjectId", "details", "createdAt"],
+        "properties": {
+          "id": { "type": "string" },
+          "actorUid": { "type": "string" },
+          "householdId": { "type": ["string", "null"] },
+          "action": { "type": "string" },
+          "subjectType": { "type": "string" },
+          "subjectId": { "type": ["string", "null"] },
+          "details": { "type": ["object", "null"] },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "page": { "type": "integer" },
+    "size": { "type": "integer" },
+    "total": { "type": "integer" }
+  }
+}

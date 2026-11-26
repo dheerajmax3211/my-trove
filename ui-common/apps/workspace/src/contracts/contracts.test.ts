@@ -11,6 +11,7 @@ import { productModule as digitalLegacy } from '@platform/digital-legacy/module'
 import { armedScenario } from '@platform/digital-legacy/testing/scenario'
 import { productModule as familyTreasury } from '@platform/family-treasury/module'
 import { productModule as homePulse } from '@platform/home-pulse/module'
+import { productModule as household } from '@platform/hub/module'
 import { productModule as waitingOn } from '@platform/waiting-on/module'
 import { validate, type Schema } from './validate'
 
@@ -326,5 +327,42 @@ describe('family-treasury demo API', () => {
     c('approval-list.schema.json', await call('GET', `${h}/approvals?status=PENDING_APPROVAL`))
     c('invite-created.schema.json', await call('POST', `${h}/invites`, { role: 'MEMBER' }))
     c('invite-list.schema.json', await call('GET', `${h}/invites`))
+  })
+})
+
+describe('household (shared service) demo API', () => {
+  const call = client(household)
+  const c = (file: string, body: unknown) => expectContract('shared', file, body)
+
+  it('overview and Today: households, reminders, files, activity', async () => {
+    const households = (await call('GET', '/v1/households')) as { id: string; role: string }[]
+    c('household-list.schema.json', households)
+    c('household.schema.json', await call('GET', `/v1/households/${households[0]!.id}`))
+    c('reminder-list.schema.json', await call('GET', '/v1/reminders'))
+    const files = (await call('GET', '/v1/files')) as { id: string }[]
+    c('file-list.schema.json', files)
+    c('download-link.schema.json', await call('POST', `/v1/files/${files[0]!.id}/download-link`, {}))
+    c('audit-page.schema.json', await call('GET', '/v1/audit?page=0&size=20'))
+  })
+
+  it('writes: a reminder, an invite and the invite list', async () => {
+    const households = (await call('GET', '/v1/households')) as { id: string; role: string }[]
+    const owned = households.find((h) => h.role === 'OWNER')!
+    const created = (await call('POST', '/v1/reminders', {
+      title: 'Contract reminder',
+      dueAt: '2030-01-01T09:00:00Z',
+      recurrence: { unit: 'WEEKLY', interval: 1 },
+    })) as { id: string }
+    c('reminder.schema.json', created)
+    c(
+      'reminder.schema.json',
+      await call('PUT', `/v1/reminders/${created.id}`, {
+        title: 'Contract reminder, moved',
+        dueAt: '2030-01-02T09:00:00Z',
+      }),
+    )
+    c('reminder.schema.json', await call('POST', `/v1/reminders/${created.id}/cancel`))
+    c('invite-created.schema.json', await call('POST', `/v1/households/${owned.id}/invites`, { role: 'MEMBER' }))
+    c('invite-list.schema.json', await call('GET', `/v1/households/${owned.id}/invites`))
   })
 })

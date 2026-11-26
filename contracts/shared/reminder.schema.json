@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Reminder (ReminderService.ReminderView)",
+  "description": "GET /v1/reminders/{id}; also the body of create, update and cancel.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "ownerUid", "householdId", "title", "dueAt", "recurrence", "status", "lastFiredAt", "createdAt"],
+  "properties": {
+    "id": { "type": "string" },
+    "ownerUid": { "type": "string" },
+    "householdId": { "type": ["string", "null"] },
+    "title": { "type": "string" },
+    "dueAt": { "type": "string", "format": "date-time" },
+    "recurrence": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["unit", "interval"],
+      "properties": { "unit": { "enum": ["DAILY", "WEEKLY", "MONTHLY"] }, "interval": { "type": "integer" } }
+    },
+    "status": { "enum": ["ACTIVE", "COMPLETED", "CANCELLED"] },
+    "lastFiredAt": { "type": ["string", "null"], "format": "date-time" },
+    "createdAt": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,0 +1,1 @@
+{ "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "File list", "description": "GET /v1/files.", "type": "array", "items": { "$ref": "file.schema.json" } }

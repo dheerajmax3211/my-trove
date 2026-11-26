@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Household list (HouseholdService.HouseholdView[])",
+  "description": "GET /v1/households (the Household module's overview).",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["id", "name", "role", "createdAt"],
+    "properties": { "id": { "type": "string" }, "name": { "type": "string" }, "role": { "enum": ["MEMBER", "OWNER"] }, "createdAt": { "type": "string", "format": "date-time" } }
+  }
+}

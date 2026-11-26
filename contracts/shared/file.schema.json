@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Stored file (FileService.FileView)",
+  "description": "GET /v1/files/{id}; also the body of upload.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "ownerUid", "householdId", "name", "contentType", "sizeBytes", "sha256", "createdAt"],
+  "properties": {
+    "id": { "type": "string" },
+    "ownerUid": { "type": "string" },
+    "householdId": { "type": ["string", "null"] },
+    "name": { "type": "string" },
+    "contentType": { "type": "string" },
+    "sizeBytes": { "type": "integer" },
+    "sha256": { "type": "string" },
+    "createdAt": { "type": "string", "format": "date-time" }
+  }
+}

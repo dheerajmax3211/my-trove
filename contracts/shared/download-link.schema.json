@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "File download link (FileService.DownloadLink)",
+  "description": "POST /v1/files/{id}/download-link.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["token", "url", "expiresAt"],
+  "properties": { "token": { "type": "string" }, "url": { "type": "string" }, "expiresAt": { "type": "string", "format": "date-time" } }
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Household invites (HouseholdService.InviteView[])",
+  "description": "GET /v1/households/{id}/invites.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["id", "role", "createdBy", "createdAt", "expiresAt"],
+    "properties": {
+      "id": { "type": "string" }, "role": { "enum": ["MEMBER", "OWNER"] }, "createdBy": { "type": "string" }, "createdAt": { "type": "string", "format": "date-time" }, "expiresAt": { "type": "string", "format": "date-time" }
+    }
+  }
+}

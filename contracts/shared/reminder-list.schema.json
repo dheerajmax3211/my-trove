@@ -1,0 +1,1 @@
+{ "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "Reminder list", "description": "GET /v1/reminders (overview, Today feed).", "type": "array", "items": { "$ref": "reminder.schema.json" } }

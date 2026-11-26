@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Household invite created (HouseholdService.InviteCreated)",
+  "description": "POST /v1/households/{id}/invites; the code is returned once.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "code", "role", "expiresAt"],
+  "properties": { "id": { "type": "string" }, "code": { "type": "string" }, "role": { "enum": ["MEMBER", "OWNER"] }, "expiresAt": { "type": "string", "format": "date-time" } }
+}
