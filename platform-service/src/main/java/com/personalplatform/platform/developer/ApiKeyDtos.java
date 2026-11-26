@@ -50,5 +50,13 @@ final class ApiKeyDtos {
             List<String> permissions,
             OffsetDateTime expiresAt) {}
 
+    record StatusRequest(@jakarta.validation.constraints.NotNull UUID keyId) {}
+
+    /** A key's current state, for auth's delegation check. */
+    enum KeyState { ACTIVE, REVOKED, EXPIRED, APP_DISABLED }
+
+    /** Never carries the key value or its hash. */
+    record KeyStatus(UUID keyId, UUID appId, String ownerUid, KeyState state, List<String> permissions) {}
+
     record ScopeView(String name, String description, List<String> permissions) {}
 }

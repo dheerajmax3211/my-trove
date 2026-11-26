@@ -228,6 +228,71 @@ class ApiKeysTest extends AbstractPlatformTest {
         assertThat(JsonPath.<List<String>>read(body, "$.permissions")).containsExactly("mcp:use");
     }
 
+    @Test
+    void theProductsReadScopeGrantsProductsUseOnly() throws Exception {
+        String key = issueKey(createApp(OWNER), "[\"mcp:use\",\"products:read\"]");
+        assertThat(JsonPath.<List<String>>read(verifyBody(key), "$.permissions"))
+                .containsExactly("mcp:use", "products:use");
+        mvc.perform(get("/v1/developer/scopes").with(developerOn(OWNER, "FREE")))
+                .andExpect(jsonPath("$[2].name").value("products:read"))
+                .andExpect(jsonPath("$[2].permissions.length()").value(1))
+                .andExpect(jsonPath("$[2].permissions[0]").value("products:use"));
+    }
+
+    private MvcResult keyStatus(String keyId, String internalKey) throws Exception {
+        var request = post("/internal/v1/api-keys/status").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"keyId\":\"" + keyId + "\"}");
+        if (internalKey != null) {
+            request.header("X-Internal-Key", internalKey);
+        }
+        return mvc.perform(request).andReturn();
+    }
+
+    @Test
+    void statusReportsAnActiveKeyWithItsAppOwnerAndPermissions() throws Exception {
+        String appId = createApp(OWNER);
+        String key = issueKey(appId, "[\"mcp:use\",\"products:read\"]");
+        String keyId = JsonPath.read(verifyBody(key), "$.keyId");
+        MvcResult r = keyStatus(keyId, INTERNAL);
+        assertThat(r.getResponse().getStatus()).isEqualTo(200);
+        String body = r.getResponse().getContentAsString();
+        assertThat(JsonPath.<String>read(body, "$.state")).isEqualTo("ACTIVE");
+        assertThat(JsonPath.<String>read(body, "$.appId")).isEqualTo(appId);
+        assertThat(JsonPath.<String>read(body, "$.ownerUid")).isEqualTo(OWNER);
+        assertThat(JsonPath.<List<String>>read(body, "$.permissions")).containsExactly("mcp:use", "products:use");
+        assertThat(body).doesNotContain(key).doesNotContain(sha256Hex(key));
+    }
+
+    @Test
+    void statusReportsRevokedExpiredAndDisabledApp() throws Exception {
+        String appId = createApp(OWNER);
+        String revoked = JsonPath.read(verifyBody(issueKey(appId, "[\"mcp:use\"]")), "$.keyId");
+        mvc.perform(delete("/v1/developer/keys/" + revoked).with(developerOn(OWNER, "FREE"))).andExpect(status().isNoContent());
+        assertThat(JsonPath.<String>read(keyStatus(revoked, INTERNAL).getResponse().getContentAsString(), "$.state"))
+                .isEqualTo("REVOKED");
+
+        MvcResult expiring = issue(OWNER, "FREE", appId, "[\"mcp:use\"]", "2031-03-16T00:00:00Z");
+        String expiringId = JsonPath.read(expiring.getResponse().getContentAsString(), "$.id");
+        clock.set(Instant.parse("2031-03-17T00:00:00Z"));
+        assertThat(JsonPath.<String>read(keyStatus(expiringId, INTERNAL).getResponse().getContentAsString(), "$.state"))
+                .isEqualTo("EXPIRED");
+
+        String otherApp = createApp(OWNER);
+        String disabled = JsonPath.read(issue(OWNER, "FREE", otherApp, "[\"mcp:use\"]", null).getResponse()
+                .getContentAsString(), "$.id");
+        mvc.perform(delete("/v1/developer/apps/" + otherApp).with(developerOn(OWNER, "FREE"))).andExpect(status().isNoContent());
+        assertThat(JsonPath.<String>read(keyStatus(disabled, INTERNAL).getResponse().getContentAsString(), "$.state"))
+                .isEqualTo("APP_DISABLED");
+    }
+
+    @Test
+    void statusNeedsTheInternalKeyAndAnswers404ForUnknownKeys() throws Exception {
+        String keyId = JsonPath.read(verifyBody(issueKey(createApp(OWNER), "[\"mcp:use\"]")), "$.keyId");
+        assertThat(keyStatus(keyId, null).getResponse().getStatus()).isEqualTo(401);
+        assertThat(keyStatus(keyId, "wrong-key").getResponse().getStatus()).isEqualTo(401);
+        assertThat(keyStatus(java.util.UUID.randomUUID().toString(), INTERNAL).getResponse().getStatus()).isEqualTo(404);
+    }
+
     /** The verify response for a key that must be valid. */
     private String verifyBody(String key) throws Exception {
         MvcResult r = verify(key);

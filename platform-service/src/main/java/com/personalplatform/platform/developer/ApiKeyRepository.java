@@ -82,6 +82,15 @@ class ApiKeyRepository {
                 .map(r -> toRows(List.of(r)).get(0));
     }
 
+    /** Any key by id, whoever owns it: for the internal status check during delegation. */
+    Optional<Row> findById(UUID id) {
+        return dsl.select(columns())
+                .from(API_KEYS).join(DEVELOPER_APPS).on(DEVELOPER_APPS.ID.eq(API_KEYS.APP_ID))
+                .where(API_KEYS.ID.eq(id))
+                .fetchOptional()
+                .map(r -> toRows(List.of(r)).get(0));
+    }
+
     Optional<Row> findByPrefix(String keyPrefix) {
         return dsl.select(columns())
                 .from(API_KEYS).join(DEVELOPER_APPS).on(DEVELOPER_APPS.ID.eq(API_KEYS.APP_ID))
