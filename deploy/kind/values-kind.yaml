@@ -1,0 +1,40 @@
+# Values for the kind smoke test (CI). Fixed throwaway secrets; never use these anywhere else.
+image:
+  registry: my-trove
+  pullPolicy: Never   # images are loaded into kind with `kind load docker-image`
+common:
+  db: { url: jdbc:postgresql://postgres:5432/platform, user: platform }
+  firebaseProjectId: demo-platform
+  kafkaBootstrapServers: kafka:9092
+  otlpTracesEndpoint: http://localhost:1/v1/traces   # no collector in the smoke cluster; export failures are harmless
+  tracingSampling: "0.0"
+secrets:
+  create: true
+  values:
+    DB_PASSWORD: smoke-only-password
+    APP_INTERNAL_API_KEY: smoke-only-internal-key-0123456789abcdef
+    APP_PLATFORM_KEY_ENCRYPTION_KEY: INPKgnIfGicu89x/VIJ3nZ6c3BBQShw3Tv0v9otK5cg=
+    CONSENT_KEY_ENCRYPTION_KEY: snig5+5W2En+Ge5TRHvIkuO29EjEoRUIhhp2PDxCdwE=
+    FILE_TOKEN_SECRET: smoke-only-file-token-secret-0123456789
+    INBOUND_WEBHOOK_SECRET: smoke-only-webhook-secret
+urls:
+  workspace: http://localhost:5190
+  site: http://localhost:5191
+  api: http://localhost:8080
+  consentIssuer: http://localhost:8080/api/consent
+temporal: { enabled: false }
+services:
+  gateway:          { module: gateway,          port: 8080, managementPort: 9080, replicas: 1, env: {} }
+  auth:             { module: auth,             port: 8081, managementPort: 9081, replicas: 1, env: {} }
+  shared-service:   { module: shared-service,   port: 8082, managementPort: 9082, replicas: 1, env: {} }
+  waiting-on:       { module: waiting-on,       port: 8083, managementPort: 9083, replicas: 1, env: {} }
+  consent-gateway:  { module: consent-gateway,  port: 8084, managementPort: 9084, replicas: 1, env: {} }
+  home-pulse:       { module: home-pulse,       port: 8085, managementPort: 9085, replicas: 1, env: {} }
+  ask-your-life:    { module: ask-your-life,    port: 8086, managementPort: 9086, replicas: 1, env: {} }
+  digital-legacy:   { module: digital-legacy,   port: 8087, managementPort: 9087, replicas: 1, env: {} }
+  family-treasury:  { module: family-treasury,  port: 8088, managementPort: 9088, replicas: 1, env: {} }
+  platform-service: { module: platform-service, port: 8089, managementPort: 9089, replicas: 1, env: {} }
+resources:
+  backend:
+    requests: { cpu: 50m, memory: 384Mi }
+    limits: { memory: 640Mi }

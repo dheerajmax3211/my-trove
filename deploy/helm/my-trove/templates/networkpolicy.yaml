@@ -1,0 +1,60 @@
+{{- if .Values.networkPolicy.enabled }}
+# Default: nothing reaches a My-Trove pod unless a rule below allows it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-default-deny
+  labels: {{- include "trove.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: { app.kubernetes.io/part-of: my-trove }
+  policyTypes: [Ingress]
+---
+# Public traffic: the gateway and the web apps accept their HTTP port from anywhere (the ingress controller).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-public
+  labels: {{- include "trove.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchExpressions:
+      - { key: app.kubernetes.io/name, operator: In, values: [gateway, workspace, site] }
+  policyTypes: [Ingress]
+  ingress:
+    - ports: [{ port: http }]
+---
+# Backends: their HTTP port only from other My-Trove backends (the gateway, and service-to-service calls such as
+# auth -> platform-service and every service -> auth for the JWKS).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-backends
+  labels: {{- include "trove.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: { app.kubernetes.io/component: backend }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: { app.kubernetes.io/component: backend }
+      ports: [{ port: http }]
+---
+# Management ports (health, metrics): only from the monitoring namespace. The kubelet's probes are not subject
+# to NetworkPolicy, so health checks keep working.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-management
+  labels: {{- include "trove.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: { app.kubernetes.io/component: backend }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: {{ .Values.networkPolicy.monitoringNamespace }} }
+      ports: [{ port: management }]
+{{- end }}

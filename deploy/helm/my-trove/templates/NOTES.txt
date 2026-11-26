@@ -1,0 +1,9 @@
+My-Trove {{ .Chart.AppVersion }} (images {{ .Values.image.registry }}/*:{{ .Values.image.tag }}) is installed.
+
+The gateway (service "gateway", port 8080) is the only public entrance to the backends; actuator ports are
+private. Check readiness with:
+  kubectl -n {{ .Release.Namespace }} get pods -l app.kubernetes.io/part-of=my-trove
+{{- if not .Values.files.persistentVolumeClaim }}
+
+WARNING: files.persistentVolumeClaim is empty, so uploaded files live in an emptyDir and are lost with the pod.
+{{- end }}

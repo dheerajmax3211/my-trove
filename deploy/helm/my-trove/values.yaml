@@ -1,0 +1,102 @@
+# My-Trove Helm values. Infrastructure (PostgreSQL with TimescaleDB and pgvector, Kafka, Temporal, SMTP, an OTLP
+# collector) is NOT part of this chart: point the values below at managed or separately installed instances.
+# deploy/kind/ holds a throwaway in-cluster setup used only by the CI smoke test.
+
+image:
+  registry: ghcr.io/dheerajmax3211/my-trove
+  # Every image is tagged with the git commit; CI sets this. Never deploy "latest".
+  tag: ""
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+# Values shared by every backend service.
+common:
+  db:
+    url: jdbc:postgresql://postgres:5432/platform
+    user: platform
+  firebaseProjectId: ""
+  # Point at a dev identity provider instead of Google's Firebase keys (smoke tests only). Empty = real Firebase.
+  firebaseJwkSetUri: ""
+  kafkaBootstrapServers: kafka:9092
+  otlpTracesEndpoint: http://otel-collector:4318/v1/traces
+  # 1.0 records every request; production traffic should sample.
+  tracingSampling: "0.1"
+  javaToolOptions: "-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError -Djava.io.tmpdir=/tmp"
+  extraEnv: {}
+
+# Secret values. In production create the Secret yourself (sealed-secrets, external-secrets, or kubectl) and set
+# existingSecret; the chart then never sees the values. create: true is for the kind smoke test only.
+secrets:
+  existingSecret: ""
+  create: false
+  # Keys the Secret must hold (all required):
+  #   DB_PASSWORD, APP_INTERNAL_API_KEY, APP_PLATFORM_KEY_ENCRYPTION_KEY, CONSENT_KEY_ENCRYPTION_KEY,
+  #   FILE_TOKEN_SECRET, INBOUND_WEBHOOK_SECRET
+  values: {}
+
+# Public origins. The gateway allows CORS only from these; e-mail links and trustee invites use them.
+urls:
+  workspace: https://app.example.com
+  site: https://www.example.com
+  api: https://api.example.com
+  consentIssuer: https://api.example.com/api/consent
+
+bootstrapAdminEmails: ""
+
+mail:
+  enabled: false
+  host: smtp
+  port: 587
+  from: "My-Trove <no-reply@example.com>"
+
+temporal:
+  enabled: true
+  target: temporal-frontend:7233
+  namespace: default
+  tls: false
+
+# Uploaded files (shared-service). Without a claim the files live in an emptyDir and vanish with the pod.
+files:
+  persistentVolumeClaim: ""
+
+# One entry per backend. port = the public HTTP port (a ClusterIP Service exposes only this);
+# managementPort = actuator (health, prometheus), reachable only from the monitoring namespace (NetworkPolicy).
+services:
+  gateway:          { module: gateway,          port: 8080, managementPort: 9080, replicas: 2, env: {} }
+  auth:             { module: auth,             port: 8081, managementPort: 9081, replicas: 1, env: {} }
+  shared-service:   { module: shared-service,   port: 8082, managementPort: 9082, replicas: 1, env: {} }
+  waiting-on:       { module: waiting-on,       port: 8083, managementPort: 9083, replicas: 1, env: {} }
+  consent-gateway:  { module: consent-gateway,  port: 8084, managementPort: 9084, replicas: 1, env: {} }
+  home-pulse:       { module: home-pulse,       port: 8085, managementPort: 9085, replicas: 1, env: {} }
+  ask-your-life:    { module: ask-your-life,    port: 8086, managementPort: 9086, replicas: 1, env: {} }
+  digital-legacy:   { module: digital-legacy,   port: 8087, managementPort: 9087, replicas: 1, env: {} }
+  family-treasury:  { module: family-treasury,  port: 8088, managementPort: 9088, replicas: 1, env: {} }
+  platform-service: { module: platform-service, port: 8089, managementPort: 9089, replicas: 1, env: {} }
+
+resources:
+  backend:
+    requests: { cpu: 100m, memory: 512Mi }
+    limits: { memory: 768Mi }
+  web:
+    requests: { cpu: 10m, memory: 32Mi }
+    limits: { memory: 64Mi }
+
+web:
+  workspace: { enabled: true, replicas: 1 }
+  site: { enabled: true, replicas: 1 }
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  # hosts: api -> gateway, app -> workspace, www -> site
+  hosts:
+    api: api.example.com
+    app: app.example.com
+    www: www.example.com
+  tls: []
+
+networkPolicy:
+  enabled: true
+  # Namespace allowed to scrape management ports (label kubernetes.io/metadata.name).
+  monitoringNamespace: monitoring
