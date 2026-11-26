@@ -3,8 +3,6 @@ import type { AlertDto } from '../alerts/types'
 import type { Appliance } from '../appliances/types'
 import { buildTodayItems } from './todayItems'
 
-const NOW = new Date('2026-11-19T12:00:00.000Z')
-
 const appliance = (over: Partial<Appliance> & { id: string; name: string }): Appliance => ({
   type: 'FRIDGE',
   location: null,
@@ -16,6 +14,7 @@ const appliance = (over: Partial<Appliance> & { id: string; name: string }): App
   underWarranty: false,
   daysToWarrantyEnd: null,
   serviceOverdue: false,
+  daysToNextService: null,
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-01T00:00:00Z',
   ...over,
@@ -44,7 +43,7 @@ const alert = (over: Partial<AlertDto> & { id: string }): AlertDto => ({
 
 describe('buildTodayItems', () => {
   it('is empty when nothing needs a look', () => {
-    expect(buildTodayItems([], [appliance({ id: 'a1', name: 'Fridge' })], NOW)).toEqual([])
+    expect(buildTodayItems([], [appliance({ id: 'a1', name: 'Fridge' })])).toEqual([])
   })
 
   it('lists open alerts by severity, ignoring acknowledged and resolved ones', () => {
@@ -57,7 +56,6 @@ describe('buildTodayItems', () => {
         alert({ id: 'done', status: 'RESOLVED' }),
       ],
       [],
-      NOW,
     )
     expect(items.map((i) => [i.id, i.severity])).toEqual([
       ['alert-c', 'danger'],
@@ -97,7 +95,6 @@ describe('buildTodayItems', () => {
         }),
         appliance({ id: 'a4', name: 'Old', warrantyEndDate: '2026-01-01' }),
       ],
-      NOW,
     )
     expect(items.map((i) => [i.id, i.severity, i.to])).toEqual([
       ['warranty-a2', 'danger', '/appliances/a2'],
@@ -105,6 +102,19 @@ describe('buildTodayItems', () => {
     ])
     expect(items[1]?.title).toBe('Fridge warranty ends in 12 days')
     expect(items[1]?.dueAt).toBe('2026-12-01')
+  })
+
+  it('counts days the way the service does, never from the browser clock', () => {
+    // the service says 20 days (its calendar day); whatever the viewer's clock says, that is not "soon"
+    const far = appliance({
+      id: 'a1',
+      name: 'AC',
+      nextServiceDate: '2026-11-30',
+      daysToNextService: 20,
+    })
+    expect(buildTodayItems([], [far])).toEqual([])
+    const soon = { ...far, daysToNextService: 2 }
+    expect(buildTodayItems([], [soon])[0]?.title).toBe('AC service is due in 2 days')
   })
 
   it('includes services overdue or due within 14 days, not later ones', () => {
@@ -116,11 +126,16 @@ describe('buildTodayItems', () => {
           name: 'Pump',
           nextServiceDate: '2026-11-07',
           serviceOverdue: true,
+          daysToNextService: -12,
         }),
-        appliance({ id: 'a2', name: 'AC', nextServiceDate: '2026-11-30' }),
-        appliance({ id: 'a3', name: 'Fridge', nextServiceDate: '2026-12-20' }),
+        appliance({ id: 'a2', name: 'AC', nextServiceDate: '2026-11-30', daysToNextService: 11 }),
+        appliance({
+          id: 'a3',
+          name: 'Fridge',
+          nextServiceDate: '2026-12-20',
+          daysToNextService: 31,
+        }),
       ],
-      NOW,
     )
     expect(items.map((i) => [i.id, i.severity])).toEqual([
       ['service-a1', 'warn'],
@@ -142,9 +157,9 @@ describe('buildTodayItems', () => {
           warrantyEndDate: '2026-12-01',
           daysToWarrantyEnd: 12,
           nextServiceDate: '2026-11-25',
+          daysToNextService: 6,
         }),
       ],
-      NOW,
     )
     expect(items.map((i) => i.id)).toEqual(['alert-w', 'warranty-a1', 'service-a1'])
     expect(new Set(items.map((i) => i.id)).size).toBe(items.length)

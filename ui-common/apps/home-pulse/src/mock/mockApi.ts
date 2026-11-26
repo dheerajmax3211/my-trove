@@ -96,6 +96,7 @@ export function createMockApi(options: MockApiOptions): MockApi {
       underWarranty: a.warrantyEndDate !== null && a.warrantyEndDate >= t,
       daysToWarrantyEnd: a.warrantyEndDate ? daysBetween(t, a.warrantyEndDate) : null,
       serviceOverdue: a.nextServiceDate !== null && a.nextServiceDate < t,
+      daysToNextService: a.nextServiceDate ? daysBetween(t, a.nextServiceDate) : null,
     }
   }
 
@@ -272,6 +273,7 @@ export function createMockApi(options: MockApiOptions): MockApi {
       lastServiceDate: a.lastServiceDate,
       nextServiceDate: a.nextServiceDate,
       serviceOverdue: w.serviceOverdue,
+      daysToNextService: w.daysToNextService,
     }
     const seen = device ? lastSeenOf(device, now) : null
     return {

@@ -50,6 +50,7 @@ describe('mock API contract', () => {
     expect(list.find((a) => a.id === PUMP)).toMatchObject({
       underWarranty: false,
       serviceOverdue: true,
+      daysToNextService: -12,
     })
   })
 

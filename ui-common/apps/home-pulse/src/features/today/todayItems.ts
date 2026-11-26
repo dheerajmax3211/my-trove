@@ -9,8 +9,6 @@ export const WARRANTY_HORIZON_DAYS = 30
 /** Services overdue, or due within this many days. */
 export const SERVICE_HORIZON_DAYS = 14
 
-const DAY_MS = 24 * 60 * 60_000
-
 const SEVERITY: Record<Severity, TodayItem['severity']> = {
   CRITICAL: 'danger',
   WARNING: 'warn',
@@ -18,21 +16,14 @@ const SEVERITY: Record<Severity, TodayItem['severity']> = {
 }
 const RANK: Record<TodayItem['severity'], number> = { danger: 0, warn: 1, info: 2 }
 
-/** Whole days from `now` (its UTC calendar day) to a `YYYY-MM-DD` date; negative when past. */
-function daysUntil(date: string, now: Date): number {
-  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-  const [y, m, d] = date.split('-').map(Number)
-  return Math.round((Date.UTC(y ?? 0, (m ?? 1) - 1, d ?? 1) - today) / DAY_MS)
-}
-
 /**
  * What needs a person's eye today: open alerts (worst first), warranties ending soon, services overdue or due soon.
- * Pure, so it can be tested with fixtures. `to` is relative to the module base.
+ * Day counts are the service's (`daysToWarrantyEnd`, `daysToNextService`), so the feed and the server agree on
+ * what is overdue. Pure, so it can be tested with fixtures. `to` is relative to the module base.
  */
 export function buildTodayItems(
   alerts: readonly AlertDto[],
   appliances: readonly Appliance[],
-  now: Date,
 ): TodayItem[] {
   const items: TodayItem[] = []
 
@@ -49,21 +40,21 @@ export function buildTodayItems(
   }
 
   for (const appliance of appliances) {
-    if (appliance.warrantyEndDate && appliance.underWarranty) {
-      const days = appliance.daysToWarrantyEnd ?? daysUntil(appliance.warrantyEndDate, now)
-      if (days >= 0 && days <= WARRANTY_HORIZON_DAYS) {
+    const warrantyDays = appliance.daysToWarrantyEnd
+    if (appliance.warrantyEndDate && appliance.underWarranty && warrantyDays !== null) {
+      if (warrantyDays >= 0 && warrantyDays <= WARRANTY_HORIZON_DAYS) {
         items.push({
           id: `warranty-${appliance.id}`,
-          title: `${appliance.name} warranty ends ${formatDaysUntil(days)}`,
+          title: `${appliance.name} warranty ends ${formatDaysUntil(warrantyDays)}`,
           subtitle: 'Claim now if something looks wrong',
           dueAt: appliance.warrantyEndDate,
-          severity: days <= 7 ? 'danger' : 'warn',
+          severity: warrantyDays <= 7 ? 'danger' : 'warn',
           to: `/appliances/${appliance.id}`,
         })
       }
     }
-    if (appliance.nextServiceDate) {
-      const days = daysUntil(appliance.nextServiceDate, now)
+    const days = appliance.daysToNextService
+    if (appliance.nextServiceDate && days !== null) {
       if (days < 0 || appliance.serviceOverdue) {
         items.push({
           id: `service-${appliance.id}`,

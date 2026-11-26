@@ -27,6 +27,8 @@ export interface Appliance {
   underWarranty: boolean
   daysToWarrantyEnd: number | null
   serviceOverdue: boolean
+  /** Whole days from the server's today (UTC) to `nextServiceDate`; negative when overdue. */
+  daysToNextService: number | null
   createdAt: string
   updatedAt: string
 }
@@ -78,6 +80,7 @@ export interface ServiceInfo {
   lastServiceDate: LocalDate | null
   nextServiceDate: LocalDate | null
   serviceOverdue: boolean
+  daysToNextService: number | null
 }
 
 export interface ApplianceHealth {

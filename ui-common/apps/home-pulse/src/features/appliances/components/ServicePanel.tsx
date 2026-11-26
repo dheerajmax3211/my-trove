@@ -32,6 +32,7 @@ export function ServicePanel({
     lastServiceDate: appliance.lastServiceDate,
     nextServiceDate: appliance.nextServiceDate,
     serviceOverdue: appliance.serviceOverdue,
+    daysToNextService: appliance.daysToNextService,
   }
   return (
     <BentoCard
