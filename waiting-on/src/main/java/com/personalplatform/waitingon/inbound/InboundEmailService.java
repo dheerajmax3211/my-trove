@@ -22,7 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps an inbound email to an item (plus-address token), classifies it, records it on the timeline and signals the
+ * The one reply pipeline. Both entry points end in {@link #handle}: the provider webhook
+ * ({@link InboundEmailController}) and the built-in SMTP listener ({@code inbound.smtp}); the owner's pasted reply joins
+ * at the same {@code record} step. Maps an inbound email to an item (plus-address token), classifies it, records it on the timeline and signals the
  * workflow. The workflow, not this class, decides what a PAID / REJECTED / NEEDS_INFO reply does to the schedule.
  */
 @Service
@@ -65,6 +67,15 @@ public class InboundEmailService {
             return new Result(false, false, null, null);
         }
         return record(found.get(), mail);
+    }
+
+    /**
+     * Whether mail for this reply token should be accepted at all (SMTP RCPT TO): the item exists and is still being
+     * followed up. A closed item's address stops accepting mail so the listener does not collect mail nobody reads.
+     */
+    @Transactional(readOnly = true)
+    public boolean acceptsRepliesFor(String token) {
+        return items.findByReplyToken(token).filter(i -> !i.status().isTerminal()).isPresent();
     }
 
     /**

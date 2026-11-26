@@ -30,6 +30,19 @@ class WaitingOnReplyAddressesTest {
     }
 
     @Test
+    void smtpRecipientsMustBeExactlyOurAddressOnOurDomain() {
+        ReplyAddresses addresses = new ReplyAddresses(new InboundProperties("s", "reply.example.com"));
+        assertThat(addresses.tokenForRecipient("waiting+" + TOKEN + "@reply.example.com")).contains(TOKEN);
+        assertThat(addresses.tokenForRecipient("WAITING+" + TOKEN.toUpperCase() + "@Reply.Example.COM")).contains(TOKEN);
+        assertThat(addresses.tokenForRecipient("waiting+" + TOKEN + "@reply.example.com.evil.example")).isEmpty();
+        assertThat(addresses.tokenForRecipient("waiting+" + TOKEN + "@other.example")).isEmpty();
+        assertThat(addresses.tokenForRecipient("x.waiting+" + TOKEN + "@reply.example.com")).isEmpty();
+        assertThat(addresses.tokenForRecipient("Name <waiting+" + TOKEN + "@reply.example.com>")).isEmpty();
+        assertThat(addresses.tokenForRecipient("waiting@reply.example.com")).isEmpty();
+        assertThat(addresses.tokenForRecipient(null)).isEmpty();
+    }
+
+    @Test
     void generatedTokensRoundTrip() {
         ReplyAddresses addresses = new ReplyAddresses(new InboundProperties("s", "reply.example.com"));
         String token = ReplyAddresses.newToken();
