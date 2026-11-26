@@ -126,12 +126,67 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<properties>
+		<!-- Where tests find the Model2Vec files (ask-your-life/model/fetch-model.sh puts them here). -->
+		<model2vec.dir>${project.basedir}/model/potion-base-2M</model2vec.dir>
+		<!-- true: tests that need the model fail instead of being skipped when it is absent (CI sets it). -->
+		<model2vec.required>false</model2vec.required>
+	</properties>
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<model2vec.dir>${model2vec.dir}</model2vec.dir>
+						<model2vec.required>${model2vec.required}</model2vec.required>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
+	<profiles>
+		<!-- ./mvnw -pl ask-your-life -am verify -Dfetch-model : fetch (pinned, checksum-verified, idempotent) the
+		     model before the tests run, and require it. -->
+		<profile>
+			<id>fetch-model</id>
+			<activation>
+				<property>
+					<name>fetch-model</name>
+				</property>
+			</activation>
+			<properties>
+				<model2vec.required>true</model2vec.required>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>fetch-model2vec</id>
+								<phase>generate-test-resources</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<executable>sh</executable>
+									<arguments>
+										<argument>${project.basedir}/model/fetch-model.sh</argument>
+										<argument>${model2vec.dir}</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

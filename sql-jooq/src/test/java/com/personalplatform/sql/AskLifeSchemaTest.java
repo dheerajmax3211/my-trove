@@ -80,6 +80,9 @@ class AskLifeSchemaTest {
                     + "and attname = 'embedding'", Integer.class)).isEqualTo(384);
             assertThat(value(dsl, "select attgenerated from pg_attribute where attrelid = 'ask_life.chunks'::regclass "
                     + "and attname = 'tsv'", String.class)).isEqualTo("s");
+            // V2: which embedder produced a document's vectors (drives re-embedding after a model change)
+            assertThat(com.personalplatform.sql.jooq.ask_life.ask_life.Tables.DOCUMENTS.EMBEDDER.getDataType().length())
+                    .isEqualTo(100);
         }
     }
 
@@ -103,6 +106,6 @@ class AskLifeSchemaTest {
         var info = Flyway.configure().dataSource(dataSource).schemas("ask_life").defaultSchema("ask_life")
                 .locations("classpath:db/migration/ask_life", "classpath:db/migration/ask_life_ext").load().info();
         assertThat(info.pending()).isEmpty();
-        assertThat(java.util.Arrays.stream(info.applied()).filter(i -> i.getVersion() != null).count()).isEqualTo(5);
+        assertThat(java.util.Arrays.stream(info.applied()).filter(i -> i.getVersion() != null).count()).isEqualTo(6);
     }
 }
