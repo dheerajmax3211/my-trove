@@ -1,6 +1,7 @@
 import {
   AppFrame,
   Button,
+  ChatSparkIcon,
   Logo,
   PageTransition,
   PersonaBadge,
@@ -14,6 +15,7 @@ import {
 import { useWorkspaceSession } from '@platform/workspace-kit'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useOutlet } from 'react-router-dom'
+import { ASSISTANT_PERMISSION, AssistantPanel } from '../assistant/AssistantPanel'
 import { primaryPersona } from '../lib/personas'
 import { canOpen, moduleBase } from '../modules/registry'
 import { useOnboarding } from '../onboarding/OnboardingProvider'
@@ -123,6 +125,16 @@ export function WorkspaceShell() {
   const outlet = useOutlet()
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [inboxOpen, setInboxOpen] = useState(false)
+  const [assistantOpen, setAssistantOpen] = useState(false)
+  // Only people who may use the MCP tools see the assistant at all (no teaser for anyone else).
+  const canAsk = session.can(ASSISTANT_PERMISSION)
+  const openAssistant = useCallback(() => setAssistantOpen(true), [])
+  const askButton = useRef<HTMLButtonElement>(null)
+  const onAssistantChange = useCallback((open: boolean) => {
+    setAssistantOpen(open)
+    // The panel has no trigger of its own (the palette can open it too), so focus goes back to the header button.
+    if (!open) window.setTimeout(() => askButton.current?.focus(), 0)
+  }, [])
   const closeInbox = useCallback(() => setInboxOpen(false), [])
   const unread = useUnreadCount({ enabled: live })
   // The menu is open for one page only: it closes by itself when the route changes.
@@ -172,6 +184,19 @@ export function WorkspaceShell() {
                 Demo data
               </span>
             ) : null}
+            {canAsk ? (
+              <Button
+                ref={askButton}
+                size="sm"
+                variant="secondary"
+                leftIcon={<ChatSparkIcon size={16} />}
+                aria-label="Ask the assistant"
+                aria-haspopup="dialog"
+                onClick={openAssistant}
+              >
+                Ask
+              </Button>
+            ) : null}
             <PersonaBadge persona={primaryPersona(session.roles)} className={styles.persona} />
             <ThemePill />
             <UserMenu
@@ -188,7 +213,12 @@ export function WorkspaceShell() {
           </PageTransition>
         </PaletteContext>
       </AppFrame>
-      <CommandPaletteHost open={paletteOpen} onOpenChange={setPaletteOpen} />
+      <CommandPaletteHost
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        {...(canAsk ? { onAskAssistant: openAssistant } : {})}
+      />
+      {canAsk ? <AssistantPanel open={assistantOpen} onOpenChange={onAssistantChange} /> : null}
       <NotificationBell open={inboxOpen} onClose={closeInbox} modules={modules} enabled={live} />
     </>
   )

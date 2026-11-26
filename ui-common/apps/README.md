@@ -6,6 +6,11 @@ Three runnable apps and seven product modules.
   `/app/<id>`, the account and developer pages, the admin console (`@platform/admin-console`), and Digital Legacy's
   public trustee portal at `/trustee`. `?demo=1` is a zero-setup demo mode: a stub identity and each module's
   in-memory mock API, never the network.
+  The **Trove Assistant** (`workspace/src/assistant`, header "Ask" button and ⌘K "Ask the assistant", shown only with
+  `mcp:use`) answers a question by calling one MCP tool through the gateway (`POST /api/mcp/mcp`, the person's own
+  token). There is no language model: fixed word rules (`intent.ts`, tested) pick Waiting On, Home Pulse or Family
+  Treasury, and anything else is an Ask Your Life search. In demo mode the same tools are answered from the products'
+  mock APIs.
 - `site` (5191): the public site.
 - `gallery`: living documentation of the design system (`pnpm dev` at the root).
 

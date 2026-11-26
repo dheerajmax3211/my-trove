@@ -1,4 +1,5 @@
 import {
+  ChatSparkIcon,
   CommandPalette,
   HomeIcon,
   LogoutIcon,
@@ -39,9 +40,12 @@ export function hotkeyLabel(): string {
 export function CommandPaletteHost({
   open,
   onOpenChange,
+  onAskAssistant,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Present only when the session may use the assistant (`mcp:use`). */
+  onAskAssistant?: () => void
 }) {
   const { modules, runtime } = useWorkspace()
   const session = useWorkspaceSession()
@@ -118,7 +122,20 @@ export function CommandPaletteHost({
     const recentIds = new Set(recents.map((item) => item.id))
     const rest = pages.filter((item) => !recentIds.has(item.id))
 
-    const actions: CommandItem[] = [
+    const actions: CommandItem[] = []
+    if (onAskAssistant) {
+      actions.push({
+        id: 'action:assistant',
+        label: 'Ask the assistant',
+        hint: 'Trove Assistant',
+        group: 'Actions',
+        keywords: ['assistant', 'question', 'ask', 'help', 'mcp'],
+        icon: <ChatSparkIcon size={18} />,
+        // The palette closes itself first; open the panel once it has gone, so focus lands in the panel.
+        onSelect: () => window.setTimeout(onAskAssistant, 0),
+      })
+    }
+    actions.push(
       {
         id: 'action:tour',
         label: 'Reopen the welcome tour',
@@ -135,7 +152,7 @@ export function CommandPaletteHost({
         icon: <SettingsIcon size={18} />,
         onSelect: () => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark'),
       },
-    ]
+    )
     const demo = runtime.demo
     if (demo) {
       for (const persona of personas) {
@@ -171,6 +188,7 @@ export function CommandPaletteHost({
     setTheme,
     runtime.demo,
     signOut,
+    onAskAssistant,
   ])
 
   return (
