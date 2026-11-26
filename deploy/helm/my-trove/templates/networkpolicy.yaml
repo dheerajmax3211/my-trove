@@ -57,6 +57,28 @@ spec:
         - namespaceSelector:
             matchLabels: { kubernetes.io/metadata.name: {{ .Values.networkPolicy.monitoringNamespace }} }
       ports: [{ port: management }]
+{{- if .Values.mlService.enabled }}
+---
+# ml-service: only home-pulse may call it; the monitoring namespace may scrape /metrics (same port).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-ml-service
+  labels: {{- include "trove.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: { app.kubernetes.io/name: ml-service }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: { app.kubernetes.io/name: home-pulse }
+      ports: [{ port: http }]
+    - from:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: {{ .Values.networkPolicy.monitoringNamespace }} }
+      ports: [{ port: http }]
+{{- end }}
 {{- if .Values.inboundEmail.enabled }}
 ---
 # Inbound email: Waiting On's SMTP port from anywhere (sending mail servers). The listener itself refuses every

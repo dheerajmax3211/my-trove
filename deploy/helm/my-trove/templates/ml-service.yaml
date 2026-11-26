@@ -1,0 +1,88 @@
+{{- if .Values.mlService.enabled }}
+# Home Pulse's ML service. Component "ml", not "backend": the backends NetworkPolicy does not open it to every
+# backend; the ml-service policy admits home-pulse only.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-service
+  labels:
+    {{- include "trove.labels" . | nindent 4 }}
+    app.kubernetes.io/name: ml-service
+    app.kubernetes.io/component: ml
+spec:
+  replicas: {{ .Values.mlService.replicas }}
+  {{- if .Values.mlService.persistentVolumeClaim }}
+  strategy: { type: Recreate }
+  {{- end }}
+  selector:
+    matchLabels: { app.kubernetes.io/name: ml-service }
+  template:
+    metadata:
+      labels:
+        {{- include "trove.labels" . | nindent 8 }}
+        app.kubernetes.io/name: ml-service
+        app.kubernetes.io/component: ml
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ .Values.mlService.port | quote }}
+        prometheus.io/path: /metrics
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: ml-service
+          image: {{ include "trove.image" (dict "root" . "name" "ml-service") }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", {{ .Values.mlService.port | quote }}, "--no-access-log"]
+          ports:
+            - { name: http, containerPort: {{ .Values.mlService.port }} }
+          env:
+            - { name: MODEL_DIR, value: /var/lib/ml-service }
+          startupProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 2
+            failureThreshold: 30
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 5
+          resources: {{- toYaml .Values.mlService.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+            - { name: models, mountPath: /var/lib/ml-service }
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: models
+          {{- if .Values.mlService.persistentVolumeClaim }}
+          persistentVolumeClaim: { claimName: {{ .Values.mlService.persistentVolumeClaim }} }
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-service
+  labels:
+    {{- include "trove.labels" . | nindent 4 }}
+    app.kubernetes.io/name: ml-service
+spec:
+  selector: { app.kubernetes.io/name: ml-service }
+  ports:
+    - { name: http, port: {{ .Values.mlService.port }}, targetPort: http }
+{{- end }}

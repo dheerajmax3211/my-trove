@@ -95,6 +95,10 @@ helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 - { name: HOME_PULSE_URL, value: "http://home-pulse:8085" }
 - { name: FAMILY_TREASURY_URL, value: "http://family-treasury:8088" }
 {{- end }}
+{{- if and (eq .name "home-pulse") $v.mlService.enabled }}
+# Trained model for power shift / duty drift; home-pulse falls back to its built-in detector when it does not answer.
+- { name: ML_SERVICE_URL, value: "http://ml-service:{{ $v.mlService.port }}" }
+{{- end }}
 {{- if eq .name "digital-legacy" }}
 - { name: LEGACY_TRUSTEE_PORTAL_URL, value: {{ $v.urls.workspace | quote }} }
 {{- end }}
