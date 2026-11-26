@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { demoSeed } from '../../../mock/seed'
+import { nextStepOf } from '../../../mock/backend'
 import { NOW } from '../../../testing/harness'
 import { groupItems, headline, nextFollowUp, summarize, whenLabel } from './groups'
 
 const items = demoSeed(NOW)
   .filter((e) => e.item.ownerUid === 'demo-user')
-  .map((e) => ({ ...e.item, replyAddress: 'x', followUp: null }))
+  .map((e) => ({ ...e.item, replyAddress: 'x', followUp: null, nextStep: nextStepOf(e.item) }))
   // the service answers oldest expected date first
   .sort((a, b) => a.expectedBy.localeCompare(b.expectedBy))
 

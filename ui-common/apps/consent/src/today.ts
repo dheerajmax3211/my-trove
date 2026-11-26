@@ -1,7 +1,6 @@
 import type { TodayItem } from '@platform/workspace-kit'
 import type { AccessRequest, Grant } from './shared/api/types'
 import { formatDuration } from './shared/lib/format'
-import { requestExpiresAt } from './shared/lib/requests'
 import { useGrants } from './features/grants/hooks/useGrants'
 import { usePendingRequests } from './features/requests/hooks/useRequests'
 
@@ -31,7 +30,7 @@ export function buildTodayItems(
       id: `request:${r.id}`,
       title: `${r.clientName} is asking to read your data`,
       subtitle: `${scopeSummary(r.scopes)} for ${formatDuration(r.durationSeconds)}. ${r.purpose}`,
-      dueAt: requestExpiresAt(r),
+      ...(r.expiresAt ? { dueAt: r.expiresAt } : {}),
       severity: 'warn' as const,
       to: '/requests',
     }))

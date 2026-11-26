@@ -55,6 +55,31 @@ class ConsentFlowTest extends IntegrationTest {
     }
 
     @Test
+    void requestCarriesTheServersExpiryUntilItIsDecided() throws Exception {
+        String owner = newOwner();
+        Registered client = registerClient(owner, "profile.sizes:read");
+        String ct = clientToken(client);
+        String pending = createRequest(ct, "{'scopes':['profile.sizes:read'],'purpose':'x','durationSeconds':600}");
+        String denied = createRequest(ct, "{'scopes':['profile.sizes:read'],'purpose':'y','durationSeconds':600}");
+
+        var view = ownerGet(owner, "/v1/owner/requests/" + pending).andExpect(status().isOk());
+        java.time.Instant created = java.time.Instant.parse(read(view, "$.createdAt"));
+        // app.consent.request-ttl defaults to P7D: the owner and the client both see the same deadline
+        org.assertj.core.api.Assertions.assertThat(java.time.Instant.parse(read(view, "$.expiresAt")))
+                .isEqualTo(created.plus(Duration.ofDays(7)));
+        mvc.perform(get("/v1/gateway/requests/" + pending).header("Authorization", bearer(ct)))
+                .andExpect(jsonPath("$.expiresAt").value(read(view, "$.expiresAt").toString()));
+
+        ownerPost(owner, "/v1/owner/requests/" + denied + "/deny", null)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.expiresAt").value(nullValue()));
+
+        clock.advance(Duration.ofDays(8));
+        ownerGet(owner, "/v1/owner/requests/" + pending)
+                .andExpect(jsonPath("$.status").value("EXPIRED"))
+                .andExpect(jsonPath("$.expiresAt").value(read(view, "$.expiresAt").toString()));
+    }
+
+    @Test
     void deniedRequestCannotBeExchangedAndCannotBeDecidedTwice() throws Exception {
         String owner = newOwner();
         Registered client = registerClient(owner, "profile.sizes:read");

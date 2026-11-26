@@ -235,6 +235,37 @@ class WaitingOnApiTest {
     }
 
     @Test
+    void listAndDetailCarryTheWorkflowsNextStepIncludingASnooze() throws Exception {
+        String uid = "uid-next-step";
+        String id = create(uid, itemJson("Parcel", "DELIVERY", FAST_PLAN));
+        String closed = create(uid, itemJson("Other parcel", "DELIVERY", FAST_PLAN));
+        mvc.perform(post("/v1/items/" + closed + "/cancel").header("Authorization", bearer(uid)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.nextStep").doesNotExist());
+        String created = mvc.perform(post("/v1/items/" + id + "/snooze").header("Authorization", bearer(uid))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"days\":4}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nextStep.source").value("WORKFLOW"))
+                .andReturn().getResponse().getContentAsString();
+        java.time.Instant createdAt = java.time.OffsetDateTime.parse(JsonPath.read(created, "$.createdAt"))
+                .toInstant();
+
+        String list = mvc.perform(get("/v1/items").header("Authorization", bearer(uid)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        List<String> sources = JsonPath.read(list, "$[?(@.id == '" + id + "')].nextStep.source");
+        List<String> actions = JsonPath.read(list, "$[?(@.id == '" + id + "')].nextStep.action");
+        List<String> ats = JsonPath.read(list, "$[?(@.id == '" + id + "')].nextStep.at");
+        List<java.util.Map<String, Object>> closedItems = JsonPath.read(list, "$[?(@.id == '" + closed + "')]");
+        assertThat(sources).containsExactly("WORKFLOW");
+        assertThat(actions).containsExactly("NUDGE");
+        assertThat(closedItems).singleElement().satisfies(m -> assertThat(m.get("nextStep")).isNull());
+        // the workflow's due time, which includes the snooze; the plan alone would say createdAt + 2 days
+        String live = field(uid, id, "$.followUp.nextActionAt");
+        assertThat(java.time.Instant.parse(ats.getFirst())).isEqualTo(java.time.Instant.parse(live));
+        assertThat(field(uid, id, "$.nextStep.at")).isEqualTo(ats.getFirst());
+        assertThat(java.time.Instant.parse(ats.getFirst())).isAfter(createdAt.plus(Duration.ofDays(5)));
+    }
+
+    @Test
     void cancelThroughTheApi() throws Exception {
         String uid = "uid-cancel";
         String id = create(uid, itemJson("Approval", "APPROVAL", FAST_PLAN));

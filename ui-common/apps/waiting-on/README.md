@@ -90,7 +90,7 @@ src/
   features/items/
     api/        wire types, paths, cache keys
     hooks/      useApiQuery / useApiMutation wrappers
-    logic/      pure code: default plans, plan validation, form validation, next-step estimate, overdue
+    logic/      pure code: default plans, plan validation, form validation, overdue
     components/ rows, forms, cards, dialogs, timeline, letters
     pages/      ItemsPage, NewItemPage, ItemDetailPage, NotFoundPage
   mock/         in-memory service (backend.ts), letter templates, seed data
@@ -102,8 +102,8 @@ src/
 The mock follows the real contract as read from `ItemController` and `ItemService`: same paths and statuses,
 RFC 9457 problem documents, 404 for another user's item, 409 when closing a closed item, 400 for validation
 (the service's generic "Invalid request content." for bean-validation failures and its specific messages for
-amount-without-currency and bad plan order), `limit` clamped to 1..100, timeline oldest first, `followUp` only on
-the detail and snooze responses. Letter text is a condensed port of the template engine. Time does not pass in the
+amount-without-currency and bad plan order), `limit` clamped to 1..100, timeline oldest first, `followUp` and `nextStep` on
+every item response (the mock computes `nextStep` from its simulated workflow, so its `source` is always `WORKFLOW`). Letter text is a condensed port of the template engine. Time does not pass in the
 mock: items never advance from OPEN to NUDGED by themselves, and inbound replies do not exist.
 
 ## Tests
@@ -116,8 +116,8 @@ user's item, list failure with retry, network failure, 409, 401 sign-out. Separa
 
 ## Limitations
 
-- The list endpoint does not return live workflow state, so the "Next:" line in the list is an estimate from the
-  plan and ignores snoozes. The item page shows the real value.
+- The "Next:" line and the home summary show the service's `nextStep`. When Temporal does not answer, the service
+  falls back to the stored plan (`source: PLAN`, ignores snoozes) and the card says "estimated from the plan".
 - The service has no category filter, total count or search; the category filter works on the loaded page and
   "Show more" re-requests with a larger `limit` (100 per step).
 - The service answers validation failures without field names, so a rejected create shows a form-level message;

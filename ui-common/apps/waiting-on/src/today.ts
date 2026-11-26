@@ -6,7 +6,7 @@ import { calendarDaysBetween, pluralDays } from './lib/dates'
 import { ACTIVE_STATUSES, type Item } from './features/items/api/types'
 import { itemsPath } from './features/items/api/paths'
 import { NEXT_ACTION_LABEL } from './features/items/logic/labels'
-import { dueState, estimateNextStep } from './features/items/logic/schedule'
+import { dueState } from './features/items/logic/schedule'
 
 /** How many days ahead something counts as "soon" in the workspace Today feed. */
 export const SOON_DAYS = 3
@@ -22,7 +22,7 @@ export function todayItemsFrom(items: readonly Item[], now: Date): TodayItem[] {
   const out: TodayItem[] = []
   for (const item of items) {
     const due = dueState(item, now)
-    const next = estimateNextStep(item, now)
+    const next = item.nextStep
     const base = { id: item.id, title: item.title, to: `/items/${item.id}` }
     const who = `Waiting on ${item.counterparty}`
     if (due?.kind === 'overdue') {
@@ -40,12 +40,12 @@ export function todayItemsFrom(items: readonly Item[], now: Date): TodayItem[] {
         severity: 'warn',
       })
     } else if (next && next.action !== 'EXPIRE') {
-      const days = calendarDaysBetween(now, next.at)
+      const days = calendarDaysBetween(now, new Date(next.at))
       if (days <= SOON_DAYS)
         out.push({
           ...base,
           subtitle: `${who}. ${NEXT_ACTION_LABEL[next.action]} is scheduled`,
-          dueAt: next.at.toISOString(),
+          dueAt: next.at,
           severity: 'info',
         })
     }

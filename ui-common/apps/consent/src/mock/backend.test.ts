@@ -162,7 +162,10 @@ describe('mock gateway contract: approval', () => {
     expect(again).toMatchObject({ status: 409, detail: 'Request was already APPROVED' })
     expect(again.extensions.code).toBe('REQUEST_ALREADY_DECIDED')
     const denied = await api.post<AccessRequest>(paths.deny(second?.id ?? ''), { note: 'no' })
-    expect(denied).toMatchObject({ status: 'DENIED', decisionNote: 'no' })
+    expect(denied).toMatchObject({ status: 'DENIED', decisionNote: 'no', expiresAt: null })
+    expect(Date.parse(second?.expiresAt ?? '') - Date.parse(second?.createdAt ?? '')).toBe(
+      7 * 86_400_000,
+    )
     expect((await failure(api.post(paths.deny(second?.id ?? '')))).status).toBe(409)
     expect((await failure(api.post(paths.approve('nope')))).status).toBe(404)
   })

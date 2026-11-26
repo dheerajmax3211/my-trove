@@ -16,6 +16,7 @@ import {
   type ItemCategory,
   type ItemStatus,
   type NextAction,
+  type NextStep,
   type Plan,
   type Stage,
   type TimelineEvent,
@@ -37,7 +38,7 @@ export interface StoredEvent extends TimelineEvent {
   itemId: string
 }
 
-export type StoredItem = Omit<Item, 'followUp' | 'replyAddress'> & {
+export type StoredItem = Omit<Item, 'followUp' | 'nextStep' | 'replyAddress'> & {
   ownerUid: string
   replyToken: string
   /** Workflow state: which stage it is in and how many days it has been snoozed in total. */
@@ -101,6 +102,44 @@ const WORKFLOW_STAGE_FOR_STATUS: Record<ItemStatus, Stage> = {
 }
 export const stageForStatus = (status: ItemStatus): Stage => WORKFLOW_STAGE_FOR_STATUS[status]
 
+/**
+ * The mock's stand-in for the workflow's `state()` query: the stage it is in and when the next step is due, with
+ * snoozes and reply holds applied. Null for closed items.
+ */
+export function followUpOf(item: StoredItem): FollowUp | null {
+  if (isTerminal(item.status)) return null
+  const created = new Date(item.createdAt)
+  const { plan: p, snoozedDays: s } = item
+  const due = (days: number) => addDays(created, days + s).toISOString()
+  let nextAction: NextAction
+  let nextActionAt: string
+  switch (item.stage) {
+    case 'AWAITING_NUDGE':
+      nextAction = 'NUDGE'
+      nextActionAt = due(p.nudgeAfterDays)
+      break
+    case 'NUDGED':
+      nextAction = 'ESCALATE'
+      nextActionAt = due(p.escalateAfterDays)
+      break
+    case 'ESCALATED':
+      nextAction = p.finalNoticeAfterDays > 0 ? 'FINAL_NOTICE' : 'EXPIRE'
+      nextActionAt = due(p.finalNoticeAfterDays > 0 ? p.finalNoticeAfterDays : p.expireAfterDays)
+      break
+    default:
+      nextAction = 'EXPIRE'
+      nextActionAt = due(p.expireAfterDays)
+  }
+  return { stage: item.stage, nextAction, nextActionAt, snoozedDays: s }
+}
+
+/** The service's `nextStep`, as the demo backend computes it: always from its (simulated) workflow. */
+export function nextStepOf(item: StoredItem): NextStep | null {
+  const f = followUpOf(item)
+  if (!f || f.nextAction === 'NONE' || !f.nextActionAt) return null
+  return { action: f.nextAction, at: f.nextActionAt, source: 'WORKFLOW' }
+}
+
 export function createMockBackend(options: MockBackendOptions): { fetch: typeof fetch } {
   const { clock, latencyMs = 0 } = options
   const items = new Map<string, StoredItem>()
@@ -124,39 +163,14 @@ export function createMockBackend(options: MockBackendOptions): { fetch: typeof 
     return item
   }
 
-  const followUpFor = (item: StoredItem): FollowUp | null => {
-    if (isTerminal(item.status)) return null
-    const created = new Date(item.createdAt)
-    const { plan: p, snoozedDays: s } = item
-    const due = (days: number) => addDays(created, days + s).toISOString()
-    let nextAction: NextAction
-    let nextActionAt: string
-    switch (item.stage) {
-      case 'AWAITING_NUDGE':
-        nextAction = 'NUDGE'
-        nextActionAt = due(p.nudgeAfterDays)
-        break
-      case 'NUDGED':
-        nextAction = 'ESCALATE'
-        nextActionAt = due(p.escalateAfterDays)
-        break
-      case 'ESCALATED':
-        nextAction = p.finalNoticeAfterDays > 0 ? 'FINAL_NOTICE' : 'EXPIRE'
-        nextActionAt = due(p.finalNoticeAfterDays > 0 ? p.finalNoticeAfterDays : p.expireAfterDays)
-        break
-      default:
-        nextAction = 'EXPIRE'
-        nextActionAt = due(p.expireAfterDays)
-    }
-    return { stage: item.stage, nextAction, nextActionAt, snoozedDays: s }
-  }
-
-  const view = (item: StoredItem, withFollowUp: boolean): Item => {
+  /** Like the service: every response carries the live follow-up and the next step it implies. */
+  const view = (item: StoredItem): Item => {
     const { ownerUid: _o, replyToken, stage: _s, snoozedDays: _d, ...rest } = item
     return {
       ...rest,
       replyAddress: `waiting+${replyToken}@${REPLY_DOMAIN}`,
-      followUp: withFollowUp ? followUpFor(item) : null,
+      followUp: followUpOf(item),
+      nextStep: nextStepOf(item),
     }
   }
 
@@ -295,7 +309,7 @@ export function createMockBackend(options: MockBackendOptions): { fetch: typeof 
           (p.finalNoticeAfterDays > 0 ? `, final notice after day ${p.finalNoticeAfterDays}` : '') +
           `, expire after day ${p.expireAfterDays}.`,
       )
-      return json(view(created, false), 201, { location: `/v1/items/${created.id}` })
+      return json(view(created), 201, { location: `/v1/items/${created.id}` })
     }
 
     if (path === '/v1/items' && method === 'GET') {
@@ -311,7 +325,7 @@ export function createMockBackend(options: MockBackendOptions): { fetch: typeof 
             a.expectedBy.localeCompare(b.expectedBy) || a.createdAt.localeCompare(b.createdAt),
         )
         .slice(offset, offset + limit)
-      return json(rows.map((i) => view(i, false)))
+      return json(rows.map((i) => view(i)))
     }
 
     const match =
@@ -321,7 +335,7 @@ export function createMockBackend(options: MockBackendOptions): { fetch: typeof 
     const [, id = '', action] = match
     const item = mine(id, uid)
 
-    if (!action && method === 'GET') return json(view(item, true))
+    if (!action && method === 'GET') return json(view(item))
     if (action === 'timeline' && method === 'GET')
       return json(events.filter((e) => e.itemId === item.id).map(({ itemId: _i, ...e }) => e))
     if (action === 'draft' && method === 'GET') {
@@ -345,11 +359,11 @@ export function createMockBackend(options: MockBackendOptions): { fetch: typeof 
       const outcome = isRecord(body) && typeof body.outcome === 'string' ? body.outcome : ''
       if (outcome.length > 1000) throw GENERIC_VALIDATION
       close(item, 'RESOLVED', outcome.trim() || 'Resolved', 'RESOLVED', 'Marked as resolved')
-      return json(view(item, false))
+      return json(view(item))
     }
     if (action === 'cancel' && method === 'POST') {
       close(item, 'CANCELLED', 'Cancelled by owner', 'CANCELLED', 'Tracking cancelled')
-      return json(view(item, false))
+      return json(view(item))
     }
     if (action === 'replies' && method === 'POST') {
       const text = isRecord(body) && typeof body.text === 'string' ? body.text.trim() : ''
@@ -394,7 +408,7 @@ export function createMockBackend(options: MockBackendOptions): { fetch: typeof 
       record(item, 'SNOOZED', `Follow-ups postponed by ${pluralDays(days)}`, null)
       item.snoozedDays += days
       item.updatedAt = clock().toISOString()
-      return json(view(item, true))
+      return json(view(item))
     }
     throw new Problem(405, 'Method Not Allowed', `Request method '${method}' is not supported`)
   }

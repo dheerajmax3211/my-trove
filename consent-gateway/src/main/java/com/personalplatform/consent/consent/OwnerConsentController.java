@@ -101,6 +101,7 @@ public class OwnerConsentController {
     }
 
     private ConsentViews.RequestView view(AccessRequestRow r) {
-        return ConsentViews.RequestView.of(r, consent.isExpired(r), consent.grantIdForRequest(r.id()).orElse(null));
+        return ConsentViews.RequestView.of(r, consent.isExpired(r), consent.grantIdForRequest(r.id()).orElse(null),
+                consent.expiresAt(r));
     }
 }

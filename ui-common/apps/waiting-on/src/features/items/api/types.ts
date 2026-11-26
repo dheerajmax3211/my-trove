@@ -56,12 +56,26 @@ export interface Plan {
   expireAfterDays: number
 }
 
-/** Live workflow state. Only present on the detail and snooze responses, and only while the item is active. */
+/** Live workflow state. Present while the item is active and Temporal answered; null otherwise. */
 export interface FollowUp {
   stage: Stage
   nextAction: NextAction
   nextActionAt: string | null
   snoozedDays: number
+}
+
+/**
+ * Where the service read the next step from: the running workflow (snoozes and reply holds included), or the
+ * stored plan counted from creation when the workflow did not answer (an estimate that ignores snoozes).
+ */
+export type NextStepSource = 'WORKFLOW' | 'PLAN'
+
+/** What the follow-up does next and when, computed by the service. Null once the item is closed. */
+export interface NextStep {
+  action: Exclude<NextAction, 'NONE'>
+  /** ISO instant. */
+  at: string
+  source: NextStepSource
 }
 
 export interface Item {
@@ -82,6 +96,7 @@ export interface Item {
   updatedAt: string
   closedAt: string | null
   followUp: FollowUp | null
+  nextStep: NextStep | null
 }
 
 export interface TimelineEvent {

@@ -3,7 +3,7 @@ import type { AccessRequest, Attribute } from '../../../shared/api/types'
 import { ScopeList } from '../../../shared/components/ScopeList'
 import { StatusBadge } from '../../../shared/components/StatusBadge'
 import { formatDuration, formatHours, formatRelative } from '../../../shared/lib/format'
-import { describeAsk, requestExpiresAt } from '../../../shared/lib/requests'
+import { describeAsk } from '../../../shared/lib/requests'
 import { computeVisibility } from '../api/approval'
 
 export interface RequestCardProps {
@@ -86,10 +86,10 @@ export function RequestCard({ request, attributes, onApprove, onDeny }: RequestC
         ) : null}
       </dl>
 
-      {open ? (
+      {open && request.expiresAt ? (
         <p className="muted request-clock">
-          If you do nothing it expires {formatRelative(requestExpiresAt(request))}. Nothing is
-          shared until you approve.
+          If you do nothing it expires {formatRelative(request.expiresAt)}. Nothing is shared
+          until you approve.
         </p>
       ) : null}
       {onApprove || onDeny ? (

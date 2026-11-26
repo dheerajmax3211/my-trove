@@ -59,6 +59,7 @@ class OwnerApiTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.underWarranty").value(true))
                 .andExpect(jsonPath("$.daysToWarrantyEnd").value(106))
                 .andExpect(jsonPath("$.serviceOverdue").value(false))
+                .andExpect(jsonPath("$.daysToNextService").value(76))
                 .andReturn().getResponse().getContentAsString();
         String id = JsonPath.read(created, "$.id");
 
@@ -72,6 +73,7 @@ class OwnerApiTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.name").value("Bedroom AC"))
                 .andExpect(jsonPath("$.underWarranty").value(false))
                 .andExpect(jsonPath("$.serviceOverdue").value(true))
+                .andExpect(jsonPath("$.daysToNextService").value(-5))
                 .andExpect(jsonPath("$.location").doesNotExist());
 
         mvc.perform(delete("/v1/appliances/" + id).header("Authorization", bearer(ALICE))).andExpect(status().isNoContent());
@@ -204,9 +206,11 @@ class OwnerApiTest extends AbstractIntegrationTest {
 
     @Test
     void healthSummaryReflectsDeviceBaselineAlertsAndEnergy() throws Exception {
-        UUID appliance = createAppliance(ALICE, "FRIDGE", ",\"warrantyEndDate\":\"2032-01-01\"");
+        UUID appliance = createAppliance(ALICE, "FRIDGE",
+                ",\"warrantyEndDate\":\"2032-01-01\",\"nextServiceDate\":\"2031-01-25\"");
         getAs(ALICE, "/v1/appliances/" + appliance + "/health").andExpect(jsonPath("$.status").value("NO_DEVICE"))
-                .andExpect(jsonPath("$.service.underWarranty").value(true));
+                .andExpect(jsonPath("$.service.underWarranty").value(true))
+                .andExpect(jsonPath("$.service.daysToNextService").value(10));
 
         var device = registerDevice(ALICE, appliance);
         seed(device.deviceId(), constant(T0.minus(Duration.ofHours(24)), 1440, 120));

@@ -105,7 +105,8 @@ describe('request shapes', () => {
     })
     expect(created.status).toBe('OPEN')
     expect(created.replyAddress).toMatch(/^waiting\+[a-f0-9]{20}@/)
-    expect(created.followUp).toBeNull()
+    expect(created.followUp).toMatchObject({ stage: 'AWAITING_NUDGE', nextAction: 'NUDGE' })
+    expect(created.nextStep).toMatchObject({ action: 'NUDGE', source: 'WORKFLOW' })
   })
 
   it('resolves with an optional outcome body, and snoozes with a day count', async () => {

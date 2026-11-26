@@ -23,12 +23,17 @@ public final class ConsentViews {
             Instant createdAt,
             Instant decidedAt,
             String decisionNote,
-            UUID grantId) {
+            UUID grantId,
+            Instant expiresAt) {
 
-        static RequestView of(AccessRequestRow r, boolean expired, UUID grantId) {
+        /**
+         * {@code expiresAt} is when an undecided request stops being approvable ({@code createdAt + request-ttl}, the
+         * server's setting); null once the owner approved or denied it.
+         */
+        static RequestView of(AccessRequestRow r, boolean expired, UUID grantId, Instant expiresAt) {
             return new RequestView(r.id(), r.clientId(), r.clientName(), r.scopes(), r.purpose(), r.durationSeconds(),
                     r.maxReads(), AllowedHours.of(r.window()), expired ? "EXPIRED" : r.status(), r.createdAt(),
-                    r.decidedAt(), r.decisionNote(), grantId);
+                    r.decidedAt(), r.decisionNote(), grantId, "PENDING".equals(r.status()) ? expiresAt : null);
         }
     }
 

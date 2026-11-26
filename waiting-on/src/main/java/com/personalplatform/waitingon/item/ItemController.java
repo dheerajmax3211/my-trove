@@ -84,10 +84,22 @@ public class ItemController {
         }
     }
 
+    /** {@code source} is WORKFLOW when read from the running workflow, PLAN when estimated from the stored plan. */
+    public record NextStepView(String action, Instant at, String source) {
+        static NextStepView of(NextStep n) {
+            return new NextStepView(n.action().name(), n.at(), n.source().name());
+        }
+    }
+
+    /**
+     * {@code followUp} is the live workflow state (null when the item is closed or Temporal did not answer);
+     * {@code nextStep} is what happens next and when (null when the item is closed), computed here so every client
+     * shows the same schedule.
+     */
     public record ItemResponse(UUID id, String title, String counterparty, String counterpartyEmail,
             ItemCategory category, BigDecimal amount, String currency, LocalDate expectedBy, ItemStatus status,
             String outcome, String replyAddress, PlanView plan, OffsetDateTime createdAt, OffsetDateTime updatedAt,
-            OffsetDateTime closedAt, FollowUpView followUp) {
+            OffsetDateTime closedAt, FollowUpView followUp, NextStepView nextStep) {
     }
 
     public record TimelineResponse(UUID id, EventType type, String summary, String detail, OffsetDateTime occurredAt) {
@@ -100,12 +112,10 @@ public class ItemController {
             + "as examples and is not legal advice. Check what applies in your jurisdiction before sending.";
 
     private final ItemService service;
-    private final ItemLetters letters;
     private final InboundEmailService replies;
 
-    public ItemController(ItemService service, ItemLetters letters, InboundEmailService replies) {
+    public ItemController(ItemService service, InboundEmailService replies) {
         this.service = service;
-        this.letters = letters;
         this.replies = replies;
     }
 
@@ -116,8 +126,7 @@ public class ItemController {
                 r.plan().escalateAfterDays(), r.plan().finalNoticeAfterDays(), r.plan().expireAfterDays());
         WaitingItem item = service.create(jwt.getSubject(), new NewItem(r.title(), r.counterparty(),
                 r.counterpartyEmail(), r.category(), r.amount(), r.currency(), r.expectedBy(), plan));
-        return ResponseEntity.created(URI.create("/v1/items/" + item.id()))
-                .body(response(item, letters.replyAddress(item), null));
+        return ResponseEntity.created(URI.create("/v1/items/" + item.id())).body(detail(service.detailOf(item)));
     }
 
     @GetMapping
@@ -125,8 +134,7 @@ public class ItemController {
             @RequestParam(required = false) Set<ItemStatus> status,
             @RequestParam(defaultValue = "50") int limit, @RequestParam(defaultValue = "0") int offset) {
         Set<ItemStatus> statuses = status == null || status.isEmpty() ? null : EnumSet.copyOf(status);
-        return service.list(jwt.getSubject(), statuses, limit, offset).stream()
-                .map(i -> response(i, letters.replyAddress(i), null)).toList();
+        return service.list(jwt.getSubject(), statuses, limit, offset).stream().map(ItemController::detail).toList();
     }
 
     @GetMapping("/{id}")
@@ -137,8 +145,7 @@ public class ItemController {
     @PostMapping("/{id}/resolve")
     public ItemResponse resolve(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,
             @Valid @RequestBody(required = false) ResolveRequest r) {
-        WaitingItem item = service.resolve(jwt.getSubject(), id, r == null ? null : r.outcome());
-        return response(item, letters.replyAddress(item), null);
+        return detail(service.detailOf(service.resolve(jwt.getSubject(), id, r == null ? null : r.outcome())));
     }
 
     @PostMapping("/{id}/snooze")
@@ -161,8 +168,7 @@ public class ItemController {
 
     @PostMapping("/{id}/cancel")
     public ItemResponse cancel(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
-        WaitingItem item = service.cancel(jwt.getSubject(), id);
-        return response(item, letters.replyAddress(item), null);
+        return detail(service.detailOf(service.cancel(jwt.getSubject(), id)));
     }
 
     @GetMapping("/{id}/timeline")
@@ -179,13 +185,11 @@ public class ItemController {
         return new DraftResponse(tone, l.subject(), l.body(), DRAFT_NOTE);
     }
 
-    private ItemResponse detail(ItemDetail d) {
-        return response(d.item(), d.replyAddress(), d.followUp().map(FollowUpView::of).orElse(null));
-    }
-
-    private static ItemResponse response(WaitingItem i, String replyAddress, FollowUpView followUp) {
+    private static ItemResponse detail(ItemDetail d) {
+        WaitingItem i = d.item();
         return new ItemResponse(i.id(), i.title(), i.counterparty(), i.counterpartyEmail(), i.category(), i.amount(),
-                i.currency(), i.expectedBy(), i.status(), i.outcome(), replyAddress, PlanView.of(i.plan()),
-                i.createdAt(), i.updatedAt(), i.closedAt(), followUp);
+                i.currency(), i.expectedBy(), i.status(), i.outcome(), d.replyAddress(), PlanView.of(i.plan()),
+                i.createdAt(), i.updatedAt(), i.closedAt(), d.followUp().map(FollowUpView::of).orElse(null),
+                d.nextStep().map(NextStepView::of).orElse(null));
     }
 }

@@ -77,7 +77,8 @@ public class HealthService {
         var service = new ApplianceHealth.Service(warranty, appliance.warrantyEndDate(),
                 appliance.warrantyEndDate() == null ? null : ChronoUnit.DAYS.between(today, appliance.warrantyEndDate()),
                 appliance.lastServiceDate(), appliance.nextServiceDate(),
-                appliance.nextServiceDate() != null && appliance.nextServiceDate().isBefore(today));
+                appliance.nextServiceDate() != null && appliance.nextServiceDate().isBefore(today),
+                appliance.nextServiceDate() == null ? null : ChronoUnit.DAYS.between(today, appliance.nextServiceDate()));
         return new ApplianceHealth(applianceId, appliance.name(), status,
                 baselineRow.map(r -> r.status().name()).orElse("NONE"),
                 baselineRow.map(BaselineRepository.Row::learnedAt).orElse(null), baseline, lastReading, last24h,

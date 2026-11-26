@@ -29,6 +29,7 @@ const request = (over: Partial<AccessRequest> = {}): AccessRequest => ({
   decidedAt: null,
   decisionNote: null,
   grantId: null,
+  expiresAt: new Date(NOW - DAY + 7 * DAY).toISOString(),
   ...over,
 })
 
@@ -108,8 +109,13 @@ describe('productModule', () => {
 
 describe('buildTodayItems', () => {
   it('lists pending requests as warnings, then grants ending within seven days', () => {
+    // the deadline is whatever the gateway reports, not a TTL the UI assumes
+    const deadline = '2026-11-23T09:00:00.000Z'
     const items = buildTodayItems(
-      [request(), request({ id: 'r2', clientName: 'Old', status: 'DENIED' })],
+      [
+        request({ expiresAt: deadline }),
+        request({ id: 'r2', clientName: 'Old', status: 'DENIED', expiresAt: null }),
+      ],
       [
         grant(),
         grant({ id: 'g2', clientName: 'Far', expiresAt: new Date(NOW + 30 * DAY).toISOString() }),
@@ -123,7 +129,7 @@ describe('buildTodayItems', () => {
       title: 'Stride Shoes is asking to read your data',
     })
     expect(items[0]?.subtitle).toContain('profile.sizes:read and 1 more')
-    expect(items[0]?.dueAt).toBe(new Date(NOW - DAY + 7 * DAY).toISOString())
+    expect(items[0]?.dueAt).toBe(deadline)
     expect(items[1]).toMatchObject({ severity: 'info', to: '/grants', dueAt: grant().expiresAt })
   })
 

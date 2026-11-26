@@ -151,7 +151,12 @@ public class ConsentService {
 
     /** A pending request older than {@code request-ttl} can no longer be approved. */
     public boolean isExpired(AccessRequestRow r) {
-        return "PENDING".equals(r.status()) && !clock.instant().isBefore(r.createdAt().plus(props.requestTtl()));
+        return "PENDING".equals(r.status()) && !clock.instant().isBefore(expiresAt(r));
+    }
+
+    /** When the request stops being approvable if nobody decides it. */
+    public Instant expiresAt(AccessRequestRow r) {
+        return r.createdAt().plus(props.requestTtl());
     }
 
     @Transactional

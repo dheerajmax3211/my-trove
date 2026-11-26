@@ -1,6 +1,6 @@
 import { calendarDaysBetween } from '../../../lib/dates'
-import { isTerminal, type Item } from '../api/types'
-import { dueState, estimateNextStep, type NextStep } from './schedule'
+import { isTerminal, type Item, type NextStep } from '../api/types'
+import { dueState } from './schedule'
 
 export type GroupKey = 'overdue' | 'soon' | 'later' | 'closed'
 
@@ -39,24 +39,27 @@ export function groupItems(items: readonly Item[], now: Date): Record<GroupKey, 
   return groups
 }
 
-export interface NextFollowUp extends NextStep {
+export interface NextFollowUp {
+  action: Exclude<NextStep['action'], 'EXPIRE'>
+  at: Date
   item: Item
   /** Calendar days from today: 0 is today. */
   inDays: number
 }
 
 /**
- * The earliest follow-up still to come: the first nudge, escalation or final notice that is due today or later.
- * Expiry is not a follow-up, and an estimate in the past is skipped (the service has already acted on it).
+ * The earliest follow-up still to come, from the service's `nextStep`: the first nudge, escalation or final notice
+ * due today or later. Expiry is not a follow-up, and a step in the past is skipped (the service is acting on it).
  */
 export function nextFollowUp(items: readonly Item[], now: Date): NextFollowUp | null {
   let best: NextFollowUp | null = null
   for (const item of items) {
-    const next = estimateNextStep(item, now)
+    const next = item.nextStep
     if (!next || next.action === 'EXPIRE') continue
-    const inDays = calendarDaysBetween(now, next.at)
+    const at = new Date(next.at)
+    const inDays = calendarDaysBetween(now, at)
     if (inDays < 0) continue
-    if (!best || next.at < best.at) best = { ...next, item, inDays }
+    if (!best || at < best.at) best = { action: next.action, at, item, inDays }
   }
   return best
 }

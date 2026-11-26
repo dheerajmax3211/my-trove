@@ -8,7 +8,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { createDemoFetch, productModule } from './module'
 import { demoSeed } from './mock/seed'
-import { createMockBackend } from './mock/backend'
+import { createMockBackend, nextStepOf } from './mock/backend'
 import { todayItemsFrom } from './today'
 import type { Item } from './features/items/api/types'
 import { NOW } from './testing/harness'
@@ -178,7 +178,7 @@ const withToken = (init?: RequestInit): RequestInit => ({
 
 describe('todayItemsFrom', () => {
   const items = demoSeed(NOW)
-    .map((e) => ({ ...e.item, replyAddress: 'x', followUp: null }))
+    .map((e) => ({ ...e.item, replyAddress: 'x', followUp: null, nextStep: nextStepOf(e.item) }))
     .filter((i) => (i as unknown as { ownerUid: string }).ownerUid === 'demo-user')
 
   it('lists overdue, due-soon and soon-to-be-followed-up items, most urgent first', () => {
@@ -213,23 +213,25 @@ describe('todayItemsFrom', () => {
     })
   })
 
-  it('adds an info entry for an item whose follow-up is about to go out', () => {
+  it('adds an info entry when the service puts the next follow-up within days', () => {
+    const at = new Date(NOW.getTime() + 2 * 86_400_000).toISOString()
     const future: Item = {
       ...(items.find((i) => i.title === 'Visa renewal decision') as Item),
-      createdAt: new Date(NOW.getTime() - 2 * 86_400_000).toISOString(),
-      plan: {
-        nudgeAfterDays: 4,
-        escalateAfterDays: 10,
-        finalNoticeAfterDays: 0,
-        expireAfterDays: 30,
-      },
+      nextStep: { action: 'NUDGE', at, source: 'WORKFLOW' },
     }
     const today = todayItemsFrom([future], NOW)
     expect(today).toHaveLength(1)
     expect(today[0]).toMatchObject({
       severity: 'info',
       subtitle: expect.stringContaining('Friendly nudge'),
+      dueAt: at,
     })
+    // a step the service puts weeks away is not on Today, whatever the plan alone would suggest
+    const later: Item = {
+      ...future,
+      nextStep: { action: 'NUDGE', at: '2027-02-01T00:00:00Z', source: 'WORKFLOW' },
+    }
+    expect(todayItemsFrom([later], NOW)).toEqual([])
   })
 
   it('ignores closed items', () => {

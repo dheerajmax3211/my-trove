@@ -19,6 +19,8 @@ public record ApplianceResponse(
         boolean underWarranty,
         Long daysToWarrantyEnd,
         boolean serviceOverdue,
+        /** Whole days from today (UTC) to {@code nextServiceDate}; negative when overdue, null without a date. */
+        Long daysToNextService,
         Instant createdAt,
         Instant updatedAt) {
 
@@ -26,8 +28,9 @@ public record ApplianceResponse(
         boolean warranty = a.warrantyEndDate() != null && !a.warrantyEndDate().isBefore(today);
         Long daysToWarranty = a.warrantyEndDate() == null ? null : ChronoUnit.DAYS.between(today, a.warrantyEndDate());
         boolean overdue = a.nextServiceDate() != null && a.nextServiceDate().isBefore(today);
+        Long daysToService = a.nextServiceDate() == null ? null : ChronoUnit.DAYS.between(today, a.nextServiceDate());
         return new ApplianceResponse(a.id(), a.name(), a.type(), a.location(), a.purchaseDate(), a.warrantyEndDate(),
-                a.lastServiceDate(), a.nextServiceDate(), a.notes(), warranty, daysToWarranty, overdue,
+                a.lastServiceDate(), a.nextServiceDate(), a.notes(), warranty, daysToWarranty, overdue, daysToService,
                 a.createdAt(), a.updatedAt());
     }
 }

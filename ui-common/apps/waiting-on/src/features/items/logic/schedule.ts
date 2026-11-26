@@ -1,5 +1,5 @@
 import { addDays, calendarDaysBetween, parseCalendarDate } from '../../../lib/dates'
-import type { Item, ItemCategory, NextAction, Plan } from '../api/types'
+import type { Item, ItemCategory, Plan } from '../api/types'
 import { isTerminal } from '../api/types'
 
 /**
@@ -101,32 +101,6 @@ export function buildSchedule(p: Plan, start: Date): ScheduleStep[] {
     description: 'If nobody has answered by now, the item is closed as Expired.',
   })
   return steps
-}
-
-export interface NextStep {
-  action: Exclude<NextAction, 'NONE'>
-  at: Date
-}
-
-/**
- * Best estimate of the next scheduled step from list data only (the list endpoint carries no live
- * workflow state). It follows the plan and ignores snoozes; the detail page shows the live value.
- */
-export function estimateNextStep(item: Item, now: Date): NextStep | null {
-  if (isTerminal(item.status)) return null
-  const created = new Date(item.createdAt)
-  const at = (days: number) => addDays(created, days)
-  const { plan: p } = item
-  switch (item.status) {
-    case 'OPEN':
-      return { action: 'NUDGE', at: at(p.nudgeAfterDays) }
-    case 'NUDGED':
-      return { action: 'ESCALATE', at: at(p.escalateAfterDays) }
-    default:
-      return p.finalNoticeAfterDays > 0 && at(p.finalNoticeAfterDays) > now
-        ? { action: 'FINAL_NOTICE', at: at(p.finalNoticeAfterDays) }
-        : { action: 'EXPIRE', at: at(p.expireAfterDays) }
-  }
 }
 
 export type DueState =
