@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Waiting On letter draft (ItemController.DraftResponse)",
+  "description": "GET /v1/items/{id}/draft?tone=...",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["tone", "subject", "body", "note"],
+  "properties": {
+    "tone": { "enum": ["NUDGE", "ESCALATION", "FINAL_NOTICE"] },
+    "subject": { "type": "string" },
+    "body": { "type": "string" },
+    "note": { "type": "string" }
+  }
+}

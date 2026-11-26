@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Waiting On item (ItemController.ItemResponse)",
+  "description": "GET /v1/items/{id}; also the body of create, resolve, snooze and cancel.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "title", "counterparty", "counterpartyEmail", "category", "amount", "currency", "expectedBy", "status",
+    "outcome", "replyAddress", "plan", "createdAt", "updatedAt", "closedAt", "followUp", "nextStep"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "title": { "type": "string" },
+    "counterparty": { "type": "string" },
+    "counterpartyEmail": { "type": ["string", "null"] },
+    "category": { "enum": ["REFUND", "CLAIM", "REIMBURSEMENT", "APPROVAL", "DELIVERY", "OTHER"] },
+    "amount": { "type": ["number", "null"] },
+    "currency": { "type": ["string", "null"] },
+    "expectedBy": { "type": "string", "format": "date" },
+    "status": { "enum": ["OPEN", "NUDGED", "ESCALATED", "RESOLVED", "EXPIRED", "CANCELLED"] },
+    "outcome": { "type": ["string", "null"] },
+    "replyAddress": { "type": "string" },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nudgeAfterDays", "escalateAfterDays", "finalNoticeAfterDays", "expireAfterDays"],
+      "properties": {
+        "nudgeAfterDays": { "type": "integer" },
+        "escalateAfterDays": { "type": "integer" },
+        "finalNoticeAfterDays": { "type": "integer" },
+        "expireAfterDays": { "type": "integer" }
+      }
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "closedAt": { "type": ["string", "null"], "format": "date-time" },
+    "followUp": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["stage", "nextAction", "nextActionAt", "snoozedDays"],
+      "properties": {
+        "stage": {
+          "enum": ["AWAITING_NUDGE", "NUDGED", "ESCALATED", "FINAL_NOTICE", "RESOLVED", "EXPIRED", "CANCELLED", "CLOSED_EXTERNALLY"]
+        },
+        "nextAction": { "enum": ["NUDGE", "ESCALATE", "FINAL_NOTICE", "EXPIRE", "NONE"] },
+        "nextActionAt": { "type": ["string", "null"], "format": "date-time" },
+        "snoozedDays": { "type": "integer" }
+      }
+    },
+    "nextStep": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["action", "at", "source"],
+      "properties": {
+        "action": { "enum": ["NUDGE", "ESCALATE", "FINAL_NOTICE", "EXPIRE"] },
+        "at": { "type": "string", "format": "date-time" },
+        "source": { "enum": ["WORKFLOW", "PLAN"] }
+      }
+    }
+  }
+}

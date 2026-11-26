@@ -54,6 +54,13 @@
 				<artifactId>platform-notify</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<!-- Contract tests (`contracts/`, test scope only). The same version the MCP Java SDK already brings into
+			     mcp-server, so one validator version across the reactor. -->
+			<dependency>
+				<groupId>com.networknt</groupId>
+				<artifactId>json-schema-validator</artifactId>
+				<version>3.0.6</version>
+			</dependency>
 			<!-- Security pins for transitive dependencies (found by OSV-Scanner on the images; CI's Trivy gate failed on
 			     them). Remove a pin once the dependency that brings it in ships the fixed version itself. -->
 			<!-- kafka-clients 4.x brings lz4-java 1.11.2 and snappy-java 1.1.10.7 (HIGH: GHSA-343h-94h5-c4wr, GHSA-gwq9-9ffj-mvrv) -->
