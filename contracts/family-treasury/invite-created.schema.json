@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Family Treasury invite created (Dtos.InviteCreated)",
+  "description": "POST /v1/households/{id}/invites; the code is shown once.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "code", "role", "expiresAt"],
+  "properties": { "id": { "type": "string" }, "code": { "type": "string" }, "role": { "enum": ["OWNER", "APPROVER", "MEMBER", "KID"] }, "expiresAt": { "type": "string", "format": "date-time" } }
+}

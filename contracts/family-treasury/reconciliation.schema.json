@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Family Treasury reconciliation report (ReconciliationService.Report)",
+  "description": "GET /v1/households/{id}/reconciliation (Today feed).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["householdId", "checkedAt", "accountsChecked", "consistent", "drifts", "ledgerImbalances"],
+  "properties": {
+    "householdId": { "type": "string" },
+    "checkedAt": { "type": "string", "format": "date-time" },
+    "accountsChecked": { "type": "integer" },
+    "consistent": { "type": "boolean" },
+    "drifts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["accountId", "code", "projectedMinor", "ledgerMinor", "driftMinor"],
+        "properties": {
+          "accountId": { "type": "string" },
+          "code": { "type": "string" },
+          "projectedMinor": { "type": ["integer", "null"] },
+          "ledgerMinor": { "type": "integer" },
+          "driftMinor": { "type": "integer" }
+        }
+      }
+    },
+    "ledgerImbalances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["currency", "totalMinor"],
+        "properties": { "currency": { "type": "string" }, "totalMinor": { "type": "integer" } }
+      }
+    }
+  }
+}

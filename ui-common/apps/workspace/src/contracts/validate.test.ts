@@ -67,6 +67,16 @@ describe('contract validator', () => {
     ])
   })
 
+  it('anyOf passes when one option does (a nullable $ref)', () => {
+    const nullable = folder({
+      'thing.schema.json': thing,
+      'n.schema.json': { anyOf: [{ type: 'null' }, { $ref: 'thing.schema.json' }] },
+    })
+    expect(validate(nullable, 'n.schema.json', null)).toEqual([])
+    expect(validate(nullable, 'n.schema.json', good)).toEqual([])
+    expect(validate(nullable, 'n.schema.json', 3)).toHaveLength(1)
+  })
+
   it('refuses keywords it does not implement instead of ignoring them', () => {
     const loose = folder({ 'a.schema.json': { type: 'string', minLength: 3 } })
     expect(() => validate(loose, 'a.schema.json', 'ab')).toThrow(/Unsupported schema keyword "minLength"/)

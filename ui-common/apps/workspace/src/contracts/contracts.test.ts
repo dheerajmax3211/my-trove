@@ -9,6 +9,7 @@ import { productModule as askYourLife } from '@platform/ask-your-life/module'
 import { productModule as consent } from '@platform/consent/module'
 import { productModule as digitalLegacy } from '@platform/digital-legacy/module'
 import { armedScenario } from '@platform/digital-legacy/testing/scenario'
+import { productModule as familyTreasury } from '@platform/family-treasury/module'
 import { productModule as homePulse } from '@platform/home-pulse/module'
 import { productModule as waitingOn } from '@platform/waiting-on/module'
 import { validate, type Schema } from './validate'
@@ -34,13 +35,19 @@ const API = 'http://localhost/api'
 function client(module: ProductModule) {
   const demoFetch = module.createDemoFetch?.()
   if (!demoFetch) throw new Error(`${module.id} has no demo API`)
-  return async (method: string, path: string, body?: unknown): Promise<unknown> => {
+  return async (
+    method: string,
+    path: string,
+    body?: unknown,
+    extraHeaders: Record<string, string> = {},
+  ): Promise<unknown> => {
     const response = await demoFetch(`${API}/${module.service}${path}`, {
       method,
       headers: {
         authorization: 'Bearer demo',
         accept: 'application/json',
         ...(body === undefined ? {} : { 'content-type': 'application/json' }),
+        ...extraHeaders,
       },
       body: body === undefined ? undefined : JSON.stringify(body),
     })
@@ -267,5 +274,57 @@ describe('digital-legacy demo API', () => {
     c('trustee-list.schema.json', await call('GET', '/v1/legacy/vault/trustees'))
     c('invite.schema.json', await call('POST', '/v1/legacy/vault/trustees', { label: 'Dee' }))
     c('trustee-list.schema.json', await call('GET', '/v1/legacy/vault/trustees')) // with an INVITED one
+  })
+})
+
+describe('family-treasury demo API', () => {
+  const call = client(familyTreasury)
+  const c = (file: string, body: unknown) => expectContract('family-treasury', file, body)
+  type Account = { id: string; type: string; ownerUid: string | null }
+
+  it('home and Today: households, approvals, schedules, reconciliation; ledger and statements', async () => {
+    const households = (await call('GET', '/v1/households')) as { id: string }[]
+    c('household-list.schema.json', households)
+    const h = `/v1/households/${households[0]!.id}`
+    c('household.schema.json', await call('GET', h))
+    const accounts = (await call('GET', `${h}/accounts`)) as Account[]
+    c('account-list.schema.json', accounts)
+    c('account.schema.json', await call('GET', `${h}/accounts/${accounts[0]!.id}`))
+    const entries = (await call('GET', `${h}/entries?page=0&size=20`)) as { id: string }[]
+    c('entry-list.schema.json', entries)
+    c('entry.schema.json', await call('GET', `${h}/entries/${entries[0]!.id}`))
+    c('approval-list.schema.json', await call('GET', `${h}/approvals`))
+    c('schedule-list.schema.json', await call('GET', `${h}/allowance-schedules`))
+    c('reconciliation.schema.json', await call('GET', `${h}/reconciliation`))
+    const asset = accounts.find((a) => a.type === 'ASSET')!
+    c('statement.schema.json', await call('GET', `${h}/accounts/${asset.id}/statement?page=0&size=20`))
+  })
+
+  it('writes: deposit, a small spend that posts, a large one that waits for approval, an invite', async () => {
+    const households = (await call('GET', '/v1/households')) as { id: string }[]
+    const h = `/v1/households/${households[0]!.id}`
+    const accounts = (await call('GET', `${h}/accounts`)) as Account[]
+    const pot = accounts.find((a) => a.type === 'ASSET')!
+    const key = (k: string) => ({ 'Idempotency-Key': `contract-${k}-${Math.random()}` })
+    c(
+      'entry.schema.json',
+      await call('POST', `${h}/deposits`, { toAccountId: pot.id, amountMinor: 500000, description: 'Pay' }, key('d')),
+    )
+    c(
+      'spend-result.schema.json',
+      await call('POST', `${h}/spends`, { fromAccountId: pot.id, amountMinor: 100, description: 'Milk' }, key('s')),
+    )
+    c(
+      'spend-result.schema.json',
+      await call(
+        'POST',
+        `${h}/spends`,
+        { fromAccountId: pot.id, amountMinor: 400000, description: 'Sofa' },
+        key('big'),
+      ),
+    )
+    c('approval-list.schema.json', await call('GET', `${h}/approvals?status=PENDING_APPROVAL`))
+    c('invite-created.schema.json', await call('POST', `${h}/invites`, { role: 'MEMBER' }))
+    c('invite-list.schema.json', await call('GET', `${h}/invites`))
   })
 })

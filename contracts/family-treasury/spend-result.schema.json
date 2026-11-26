@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Family Treasury spend result (OpsDtos.SpendResult)",
+  "description": "POST /v1/households/{id}/spends: POSTED with the entry, or PENDING_APPROVAL with the approval request.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "entry",
+    "approval"
+  ],
+  "properties": {
+    "status": {
+      "enum": [
+        "POSTED",
+        "PENDING_APPROVAL"
+      ]
+    },
+    "entry": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "entry.schema.json"
+        }
+      ]
+    },
+    "approval": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "approval.schema.json"
+        }
+      ]
+    }
+  }
+}

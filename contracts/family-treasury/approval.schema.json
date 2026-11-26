@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Family Treasury approval request (ApprovalView)",
+  "description": "GET /v1/households/{id}/approvals/{approvalId}; also the body of approve and reject.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "householdId", "requestedByUid", "fromAccountId", "toAccountId", "amountMinor", "currency", "description",
+    "status", "expiresAt", "decidedByUid", "decidedAt", "decisionNote", "entryId", "createdAt"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "householdId": { "type": "string" },
+    "requestedByUid": { "type": "string" },
+    "fromAccountId": { "type": "string" },
+    "toAccountId": { "type": "string" },
+    "amountMinor": { "type": "integer" },
+    "currency": { "type": "string" },
+    "description": { "type": "string" },
+    "status": { "enum": ["PENDING_APPROVAL", "APPROVED", "REJECTED", "EXPIRED"] },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "decidedByUid": { "type": ["string", "null"] },
+    "decidedAt": { "type": ["string", "null"], "format": "date-time" },
+    "decisionNote": { "type": ["string", "null"] },
+    "entryId": { "type": ["string", "null"] },
+    "createdAt": { "type": "string", "format": "date-time" }
+  }
+}

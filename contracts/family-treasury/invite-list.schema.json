@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Family Treasury open invites (Dtos.InviteView[])",
+  "description": "GET /v1/households/{id}/invites.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["id", "role", "createdByUid", "createdAt", "expiresAt"],
+    "properties": {
+      "id": { "type": "string" },
+      "role": { "enum": ["OWNER", "APPROVER", "MEMBER", "KID"] },
+      "createdByUid": { "type": "string" },
+      "createdAt": { "type": "string", "format": "date-time" },
+      "expiresAt": { "type": "string", "format": "date-time" }
+    }
+  }
+}

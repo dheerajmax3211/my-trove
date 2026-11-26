@@ -1,0 +1,1 @@
+{ "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "Family Treasury household list", "description": "GET /v1/households (the product's home page and Today feed).", "type": "array", "items": { "$ref": "household.schema.json" } }

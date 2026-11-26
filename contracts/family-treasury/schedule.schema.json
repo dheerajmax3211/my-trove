@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Family Treasury allowance schedule (AllowanceDtos.ScheduleView)",
+  "description": "POST /v1/households/{id}/allowance-schedules; an element of the schedule list.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "fromAccountId", "toAccountId", "amountMinor", "currency", "frequency", "startDate", "nextDueOn", "active", "description"],
+  "properties": {
+    "id": { "type": "string" },
+    "fromAccountId": { "type": ["string", "null"] },
+    "toAccountId": { "type": "string" },
+    "amountMinor": { "type": "integer" },
+    "currency": { "type": "string" },
+    "frequency": { "enum": ["WEEKLY", "MONTHLY"] },
+    "startDate": { "type": "string", "format": "date" },
+    "nextDueOn": { "type": ["string", "null"], "format": "date" },
+    "active": { "type": "boolean" },
+    "description": { "type": "string" }
+  }
+}

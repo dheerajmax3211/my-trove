@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Family Treasury household (Dtos.HouseholdView)",
+  "description": "GET /v1/households/{id}; also the body of create, settings and invite accept.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "currency", "approvalThresholdMinor", "approvalExpiryHours", "createdAt", "members", "accounts"],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "currency": { "type": "string" },
+    "approvalThresholdMinor": { "type": ["integer", "null"] },
+    "approvalExpiryHours": { "type": "integer" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["uid", "role", "displayName"],
+        "properties": { "uid": { "type": "string" }, "role": { "enum": ["OWNER", "APPROVER", "MEMBER", "KID"] }, "displayName": { "type": ["string", "null"] } }
+      }
+    },
+    "accounts": { "type": "array", "items": { "$ref": "account.schema.json" } }
+  }
+}

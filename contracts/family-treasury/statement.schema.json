@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Family Treasury account statement (StatementService.Statement)",
+  "description": "GET /v1/households/{id}/accounts/{accountId}/statement.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["accountId", "code", "currency", "type", "page", "size", "totalRows", "currentBalanceMinor", "rows"],
+  "properties": {
+    "accountId": { "type": "string" },
+    "code": { "type": "string" },
+    "currency": { "type": "string" },
+    "type": { "enum": ["ASSET", "EXPENSE", "LIABILITY", "EQUITY", "INCOME"] },
+    "page": { "type": "integer" },
+    "size": { "type": "integer" },
+    "totalRows": { "type": "integer" },
+    "currentBalanceMinor": { "type": "integer" },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["seq", "entryId", "postedAt", "kind", "description", "amountMinor", "balanceMinor"],
+        "properties": {
+          "seq": { "type": "integer" },
+          "entryId": { "type": "string" },
+          "postedAt": { "type": "string", "format": "date-time" },
+          "kind": { "enum": ["DEPOSIT", "SPEND", "TRANSFER", "SPLIT", "REVERSAL", "ALLOWANCE"] },
+          "description": { "type": "string" },
+          "amountMinor": { "type": "integer" },
+          "balanceMinor": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

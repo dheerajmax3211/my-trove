@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Family Treasury account (Dtos.AccountView)",
+  "description": "GET /v1/households/{id}/accounts/{accountId}; an element of the account list and of household.accounts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "code", "name", "type", "currency", "ownerUid", "allowNegative", "balanceMinor", "rawBalanceMinor"],
+  "properties": {
+    "id": { "type": "string" },
+    "code": { "type": "string" },
+    "name": { "type": "string" },
+    "type": { "enum": ["ASSET", "EXPENSE", "LIABILITY", "EQUITY", "INCOME"] },
+    "currency": { "type": "string" },
+    "ownerUid": { "type": ["string", "null"] },
+    "allowNegative": { "type": "boolean" },
+    "balanceMinor": { "type": "integer" },
+    "rawBalanceMinor": { "type": "integer" }
+  }
+}

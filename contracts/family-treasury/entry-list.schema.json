@@ -1,0 +1,1 @@
+{ "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "Family Treasury ledger entries", "description": "GET /v1/households/{id}/entries?page=&size=.", "type": "array", "items": { "$ref": "entry.schema.json" } }

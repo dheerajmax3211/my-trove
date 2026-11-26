@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Family Treasury allowance schedules (AllowanceDtos.ScheduleView[])",
+  "description": "GET /v1/households/{id}/allowance-schedules (Today feed).",
+  "type": "array",
+  "items": { "$ref": "schedule.schema.json" }
+}

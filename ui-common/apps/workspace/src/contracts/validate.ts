@@ -6,7 +6,7 @@
  * other keyword, so a schema can never silently pass because a keyword was ignored:
  * `type` (string or array; "integer" is a whole number), `required`, `properties`, `additionalProperties` (boolean
  * or schema), `items`, `enum`, `const`, `format` (date-time, date), `$ref` (`#/$defs/name`, `other.schema.json` or
- * `other.schema.json#/$defs/name`, all in the same folder), `$defs`, and the annotations `$schema`, `title`,
+ * `other.schema.json#/$defs/name`, all in the same folder), `anyOf`, `$defs`, and the annotations `$schema`, `title`,
  * `description`.
  */
 
@@ -26,6 +26,7 @@ const KEYWORDS = new Set([
   'const',
   'format',
   '$ref',
+  'anyOf',
 ])
 
 // RFC 3339 date-time (what `format: date-time` means in JSON Schema) and full-date.
@@ -97,6 +98,17 @@ function check(
   if (typeof schema.$ref === 'string') {
     const target = resolve(folder, root, schema.$ref)
     check(folder, target.root, target.schema, value, path, errors)
+  }
+
+  if (Array.isArray(schema.anyOf)) {
+    const options = schema.anyOf as Schema[]
+    const failures = options.map((option) => {
+      const found: string[] = []
+      check(folder, root, option, value, path, found)
+      return found
+    })
+    if (!failures.some((found) => found.length === 0))
+      errors.push(`${path}: matches none of anyOf (${failures.map((f) => f.join('; ')).join(' | ')})`)
   }
 
   if (schema.type !== undefined) {
