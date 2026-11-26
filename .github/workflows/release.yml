@@ -1,0 +1,173 @@
+name: Images, scan and kind smoke
+
+# Builds one image per service and per web app, scans each with Trivy, writes an SBOM, proves the Helm chart
+# installs and answers on a kind cluster, and runs an OWASP ZAP baseline against it. Images are pushed to GHCR only
+# from main; pull requests build and test the same images without pushing.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository_owner }}/my-trove
+  TRIVY_IMAGE: aquasec/trivy:0.76.2
+  SYFT_IMAGE: anchore/syft:v1.57.2
+  ZAP_IMAGE: zaproxy/zap-stable:2.17.0
+
+jobs:
+  chart:
+    name: Helm chart (lint, render, schema)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with: { version: v3.19.5 }
+      - run: helm lint deploy/helm/my-trove -f deploy/kind/values-kind.yaml --set image.tag=ci
+      - name: Render and validate against Kubernetes 1.34 schemas
+        run: |
+          helm template trove deploy/helm/my-trove -f deploy/kind/values-kind.yaml --set image.tag=ci --set ingress.enabled=true > rendered.yaml
+          docker run --rm -i ghcr.io/yannh/kubeconform:v0.7.0 -strict -summary -kubernetes-version 1.34.0 - < rendered.yaml
+      - name: Required values fail loudly
+        run: |
+          if helm template trove deploy/helm/my-trove 2>err.txt; then echo "render without values must fail"; exit 1; fi
+          grep -q "image.tag is required" err.txt
+
+  jars:
+    name: Build service jars
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21, cache: maven }
+      # Tests run in ci.yml; this job only packages (the jOOQ generator still starts a Postgres container).
+      - run: ./mvnw -B -ntp -DskipTests package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jars
+          path: "*/target/*-SNAPSHOT.jar"
+          retention-days: 3
+
+  images:
+    name: Image ${{ matrix.name }}
+    needs: jars
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: gateway, kind: service }
+          - { name: auth, kind: service }
+          - { name: platform-service, kind: service }
+          - { name: shared-service, kind: service }
+          - { name: waiting-on, kind: service }
+          - { name: consent-gateway, kind: service }
+          - { name: home-pulse, kind: service }
+          - { name: ask-your-life, kind: service }
+          - { name: digital-legacy, kind: service }
+          - { name: family-treasury, kind: service }
+          - { name: workspace, kind: web }
+          - { name: site, kind: web }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        if: matrix.kind == 'service'
+        with: { name: jars }
+      - name: Build
+        run: |
+          IMAGE="$REGISTRY/${{ matrix.name }}:${{ github.sha }}"
+          if [ "${{ matrix.kind }}" = service ]; then
+            docker build -f deploy/docker/service.Dockerfile --build-arg MODULE=${{ matrix.name }} -t "$IMAGE" .
+          else
+            # Production web builds get their URLs from repository variables (Settings > Variables).
+            docker build -f deploy/docker/web.Dockerfile --build-arg APP=${{ matrix.name }} \
+              --build-arg VITE_API_BASE_URL="${{ vars.VITE_API_BASE_URL }}" \
+              --build-arg VITE_FIREBASE_API_KEY="${{ vars.VITE_FIREBASE_API_KEY }}" \
+              --build-arg VITE_FIREBASE_AUTH_DOMAIN="${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}" \
+              --build-arg VITE_FIREBASE_PROJECT_ID="${{ vars.VITE_FIREBASE_PROJECT_ID }}" \
+              --build-arg VITE_FIREBASE_APP_ID="${{ vars.VITE_FIREBASE_APP_ID }}" \
+              --build-arg VITE_SITE_URL="${{ vars.VITE_SITE_URL }}" \
+              --build-arg VITE_WORKSPACE_URL="${{ vars.VITE_WORKSPACE_URL }}" \
+              --build-arg VITE_REPO_URL="https://github.com/${{ github.repository }}" \
+              -t "$IMAGE" .
+          fi
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+      - name: Trivy (fail on fixable HIGH or CRITICAL)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$TRIVY_IMAGE" image \
+            --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress "$IMAGE"
+      - name: SBOM (CycloneDX)
+        run: |
+          mkdir -p sbom
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/sbom:/out" "$SYFT_IMAGE" \
+            "$IMAGE" -o cyclonedx-json=/out/${{ matrix.name }}.cdx.json
+      - uses: actions/upload-artifact@v4
+        with: { name: "sbom-${{ matrix.name }}", path: sbom/, retention-days: 30 }
+      - name: Push (main only)
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker push "$IMAGE"
+
+  kind-smoke:
+    name: Kind smoke test and ZAP baseline
+    needs: jars
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: jars }
+      - uses: azure/setup-helm@v4
+        with: { version: v3.19.5 }
+      - name: Build images for kind
+        run: |
+          for m in gateway auth platform-service shared-service waiting-on consent-gateway home-pulse ask-your-life digital-legacy family-treasury; do
+            docker build -q -f deploy/docker/service.Dockerfile --build-arg MODULE=$m -t my-trove/$m:${{ github.sha }} . &
+          done
+          wait
+          for app in workspace site; do
+            docker build -q -f deploy/docker/web.Dockerfile --build-arg APP=$app \
+              --build-arg VITE_API_BASE_URL=http://localhost:18080/api -t my-trove/$app:${{ github.sha }} .
+          done
+      - uses: helm/kind-action@v1.15.2
+        with:
+          version: v0.33.0
+          node_image: kindest/node:v1.34.11
+          cluster_name: trove
+      - name: Load images into kind
+        run: |
+          for m in gateway auth platform-service shared-service waiting-on consent-gateway home-pulse ask-your-life digital-legacy family-treasury workspace site; do
+            kind load docker-image my-trove/$m:${{ github.sha }} --name trove
+          done
+      - name: Smoke test
+        run: TAG=${{ github.sha }} deploy/kind/smoke.sh
+      - name: OWASP ZAP baseline (public site and gateway)
+        run: |
+          kubectl -n trove port-forward svc/site 18081:80 >/tmp/pf-site.log 2>&1 &
+          kubectl -n trove port-forward svc/gateway 18080:8080 >/tmp/pf-gw.log 2>&1 &
+          sleep 3
+          mkdir -p zap && chmod 777 zap
+          # Warnings are reported, not fatal; the rules file turns findings that must never ship into failures.
+          docker run --rm --network host -v "$PWD/zap:/zap/wrk" -v "$PWD/deploy/zap/rules.tsv:/zap/rules.tsv:ro" "$ZAP_IMAGE" \
+            zap-baseline.py -t http://localhost:18081 -c /zap/rules.tsv -r site.html -J site.json -I
+          docker run --rm --network host -v "$PWD/zap:/zap/wrk" -v "$PWD/deploy/zap/rules.tsv:/zap/rules.tsv:ro" "$ZAP_IMAGE" \
+            zap-baseline.py -t http://localhost:18080/api/auth/.well-known/jwks.json -c /zap/rules.tsv -r gateway.html -J gateway.json -I
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: zap-reports, path: zap/, retention-days: 30 }
+      - name: Pod logs on failure
+        if: failure()
+        run: |
+          kubectl -n trove get pods -o wide || true
+          for p in $(kubectl -n trove get pods -o name); do echo "== $p"; kubectl -n trove logs "$p" --tail=100 || true; done
