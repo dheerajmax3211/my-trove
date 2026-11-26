@@ -78,6 +78,12 @@ owner sees platform usage. It cleans up after itself (cancels the item, revokes 
 resolvable. This is a manual, live check: CI has no running stack. The API contract tests (`contracts/README.md`) do run
 in CI.
 
+Trove Assistant in a browser: `dev/e2e-assistant.mjs` (same helpers). Signs in as the owner, opens the assistant from the
+header and from ⌘K, asks one question per MCP tool (choosing a household when there are several), checks each answer
+names its product, that every call went to `/api/mcp/mcp` with the owner's token, and that `mcp.tool_calls` grew by one
+row per call (skipped if the dev Postgres container is unreachable); then checks a member sees no assistant. If the
+bundled Chromium does not match the playwright-core build, point `QA_CHROMIUM` at an installed headless shell.
+
 Do not run `./mvnw package`/`verify` in this checkout while the stack runs from it: `dev/up.sh` runs
 `<module>/target/*.jar`, and rewriting a jar under a running JVM makes later class loads fail (500s with
 `ClassNotFoundException`). Use `./mvnw test` here, or restart the stack after a build.
