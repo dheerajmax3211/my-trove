@@ -1,0 +1,180 @@
+# Single-host deployment: every My-Trove image plus PostgreSQL (TimescaleDB + pgvector), Kafka and Temporal on one
+# machine with Docker. The cheapest real way to run the platform (one small VM). Put a TLS reverse proxy (Caddy,
+# nginx) in front of ports 8080 (API), 5190 (workspace) and 5191 (site) for anything public.
+#
+#   deploy/compose/init-env.sh                 # writes deploy/compose/.env with fresh random secrets (once)
+#   docker compose -f deploy/compose/compose.yaml --env-file deploy/compose/.env up -d
+#   ... --profile dev-idp up -d                # also a local identity provider, for trying it with no Firebase
+#
+# Only the gateway and the two web apps publish ports; databases, brokers and management ports stay internal.
+name: trove
+
+x-backend: &backend
+  restart: unless-stopped
+  read_only: true
+  tmpfs: [/tmp]
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  depends_on:
+    postgres: { condition: service_healthy }
+  environment: &backend-env
+    DB_URL: jdbc:postgresql://postgres:5432/platform
+    DB_USER: platform
+    DB_PASSWORD: ${DB_PASSWORD:?run init-env.sh}
+    FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:?set FIREBASE_PROJECT_ID}
+    APP_FIREBASE_JWK_SET_URI: ${APP_FIREBASE_JWK_SET_URI:-}
+    APP_SECURITY_MODE: platform
+    APP_PLATFORM_JWK_SET_URI: http://auth:8081/.well-known/jwks.json
+    APP_PLATFORM_ACCEPT_PLATFORM_TOKENS: "true"
+    APP_INTERNAL_API_KEY: ${APP_INTERNAL_API_KEY:?run init-env.sh}
+    OTLP_TRACES_ENDPOINT: ${OTLP_TRACES_ENDPOINT:-http://localhost:1/v1/traces}
+    TRACING_SAMPLING: ${TRACING_SAMPLING:-0.1}
+    SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "4"
+
+services:
+  postgres:
+    image: timescale/timescaledb-ha:pg16.16-ts2.32.1
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: platform
+      POSTGRES_USER: platform
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?run init-env.sh}
+    volumes: [pgdata:/home/postgres/pgdata/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platform -d platform"]
+      interval: 5s
+      retries: 30
+  kafka:
+    image: apache/kafka:4.3.2
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_HEAP_OPTS: "-Xmx384m -Xms256m"
+    volumes: [kafkadata:/var/lib/kafka/data]
+  temporal:
+    # Temporal's single-binary dev server, persisted to a SQLite file. Fine for one host; use a real cluster at scale.
+    image: temporalio/temporal:1.10.1
+    restart: unless-stopped
+    command: server start-dev --ip 0.0.0.0 --db-filename /home/temporal/temporal.db
+    volumes: [temporaldata:/home/temporal]   # the image runs as uid 1000, which owns this path
+
+  dev-idp:
+    profiles: [dev-idp]
+    image: node:22.23.5-alpine3.23
+    command: node /idp/dev-idp.mjs
+    environment: { FIREBASE_PROJECT_ID: "${FIREBASE_PROJECT_ID}", DEV_IDP_HOST: 0.0.0.0 }
+    volumes: ["../../dev/dev-idp.mjs:/idp/dev-idp.mjs:ro"]
+    ports: ["127.0.0.1:9100:9100"]
+
+  gateway:
+    <<: *backend
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/gateway:${TAG:?set TAG}
+    depends_on: [auth]
+    environment:
+      MANAGEMENT_PORT: "9080"
+      OTLP_TRACES_ENDPOINT: ${OTLP_TRACES_ENDPOINT:-http://localhost:1/v1/traces}
+      TRACING_SAMPLING: ${TRACING_SAMPLING:-0.1}
+      GATEWAY_INTERNAL_API_KEY: ${APP_INTERNAL_API_KEY:?run init-env.sh}
+      GATEWAY_METERING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_APPLICATION_JSON: >-
+        {"gateway":{"cors":{"allowed-origins":["${WORKSPACE_URL:-http://localhost:5190}","${SITE_URL:-http://localhost:5191}"]},
+        "services":{"auth":{"uri":"http://auth:8081"},"shared":{"uri":"http://shared-service:8082"},
+        "waiting-on":{"uri":"http://waiting-on:8083"},"consent":{"uri":"http://consent-gateway:8084"},
+        "home-pulse":{"uri":"http://home-pulse:8085"},"ask-your-life":{"uri":"http://ask-your-life:8086"},
+        "digital-legacy":{"uri":"http://digital-legacy:8087"},"family-treasury":{"uri":"http://family-treasury:8088"},
+        "platform":{"uri":"http://platform-service:8089"}}}}
+    ports: ["${BIND_ADDRESS:-127.0.0.1}:8080:8080"]
+  auth:
+    <<: *backend
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/auth:${TAG:?set TAG}
+    environment:
+      <<: *backend-env
+      MANAGEMENT_PORT: "9081"
+      APP_PLATFORM_KEY_ENCRYPTION_KEY: ${APP_PLATFORM_KEY_ENCRYPTION_KEY:?run init-env.sh}
+      BOOTSTRAP_ADMIN_EMAILS: ${BOOTSTRAP_ADMIN_EMAILS:-}
+      PLATFORM_SERVICE_URL: http://platform-service:8089
+  platform-service:
+    <<: *backend
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/platform-service:${TAG:?set TAG}
+    environment:
+      <<: *backend-env
+      MANAGEMENT_PORT: "9089"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  shared-service:
+    <<: *backend
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/shared-service:${TAG:?set TAG}
+    environment:
+      <<: *backend-env
+      MANAGEMENT_PORT: "9082"
+      FILE_TOKEN_SECRET: ${FILE_TOKEN_SECRET:?run init-env.sh}
+      FILES_ROOT: /data/blobs
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      MAIL_HOST: ${MAIL_HOST:-localhost}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_PUBLIC_BASE_URL: ${WORKSPACE_URL:-http://localhost:5190}
+    volumes: [files:/data/blobs]
+  waiting-on:
+    <<: *backend
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/waiting-on:${TAG:?set TAG}
+    environment:
+      <<: *backend-env
+      MANAGEMENT_PORT: "9083"
+      INBOUND_WEBHOOK_SECRET: ${INBOUND_WEBHOOK_SECRET:?run init-env.sh}
+      TEMPORAL_ENABLED: "true"
+      TEMPORAL_TARGET: temporal:7233
+  consent-gateway:
+    <<: *backend
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/consent-gateway:${TAG:?set TAG}
+    environment:
+      <<: *backend-env
+      MANAGEMENT_PORT: "9084"
+      CONSENT_KEY_ENCRYPTION_KEY: ${CONSENT_KEY_ENCRYPTION_KEY:?run init-env.sh}
+      CONSENT_ISSUER: ${API_URL:-http://localhost:8080}/api/consent
+  home-pulse:
+    <<: *backend
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/home-pulse:${TAG:?set TAG}
+    environment: { <<: *backend-env, MANAGEMENT_PORT: "9085" }
+  ask-your-life:
+    <<: *backend
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/ask-your-life:${TAG:?set TAG}
+    environment: { <<: *backend-env, MANAGEMENT_PORT: "9086" }
+  digital-legacy:
+    <<: *backend
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/digital-legacy:${TAG:?set TAG}
+    environment:
+      <<: *backend-env
+      MANAGEMENT_PORT: "9087"
+      LEGACY_TRUSTEE_PORTAL_URL: ${WORKSPACE_URL:-http://localhost:5190}
+  family-treasury:
+    <<: *backend
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/family-treasury:${TAG:?set TAG}
+    environment: { <<: *backend-env, MANAGEMENT_PORT: "9088" }
+
+  workspace:
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/workspace:${TAG:?set TAG}
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    ports: ["${BIND_ADDRESS:-127.0.0.1}:5190:8080"]
+  site:
+    image: ${REGISTRY:-ghcr.io/dheerajmax3211/my-trove}/site:${TAG:?set TAG}
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    ports: ["${BIND_ADDRESS:-127.0.0.1}:5191:8080"]
+
+volumes:
+  pgdata: {}
+  kafkadata: {}
+  temporaldata: {}
+  files: {}

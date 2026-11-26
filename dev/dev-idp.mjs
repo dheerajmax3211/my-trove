@@ -30,6 +30,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const PORT = Number(process.env.DEV_IDP_PORT ?? 9100);
+// Loopback by default. The single-host compose profile sets 0.0.0.0 inside its container (published on host loopback only).
+const HOST = process.env.DEV_IDP_HOST ?? "127.0.0.1";
 const PROJECT = process.env.FIREBASE_PROJECT_ID ?? "demo-platform";
 const TTL_SECONDS = 3600;
 const LINK_TTL_MS = 15 * 60 * 1000;
@@ -202,8 +204,8 @@ const server = createServer((req, res) => {
   json(404, { error: "not found" });
 });
 
-server.listen(PORT, "127.0.0.1", () => {
+server.listen(PORT, HOST, () => {
   console.log(
-    `dev-idp listening on http://127.0.0.1:${PORT} (project ${PROJECT}, kid ${kid}). Development only.`,
+    `dev-idp listening on http://${HOST}:${PORT} (project ${PROJECT}, kid ${kid}). Development only.`,
   );
 });

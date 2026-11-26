@@ -82,13 +82,13 @@ check "other users are unaffected"           200 "$(status "$MEMBER_T" /api/auth
 
 echo "== Metering reached Kafka and Timescale"
 sleep 8
-ROWS=$(docker exec dev-postgres-1 psql -U platform -d platform -At -c "select count(*) from platform.usage_events where ts > now() - interval '10 minutes'" 2>/dev/null)
+ROWS=$(docker exec "${PG_CONTAINER:-dev-postgres-1}" psql -U platform -d platform -At -c "select count(*) from platform.usage_events where ts > now() - interval '10 minutes'" 2>/dev/null)
 if [ "${ROWS:-0}" -ge 150 ] 2>/dev/null; then ok "usage_events has $ROWS recent rows"; else bad "usage_events rows" "got ${ROWS:-none}"; fi
 TOTAL=$(body "$OWNER_T" '/api/platform/v1/usage/summary' | json "d['totalRequests']")
 if [ "${TOTAL:-0}" -ge 100 ] 2>/dev/null; then ok "owner summary reports $TOTAL requests"; else bad "owner summary totalRequests" "got ${TOTAL:-none}"; fi
 SELF=$(body "$MEMBER_T" '/api/platform/v1/usage/me' | json "d['totalRequests']")
 if [ "${SELF:-0}" -ge 3 ] 2>/dev/null; then ok "member sees own $SELF requests only"; else bad "member own usage" "got ${SELF:-none}"; fi
-LEAK=$(docker exec dev-postgres-1 psql -U platform -d platform -At -c "select count(*) from platform.usage_events where route_template ~ '[0-9a-f]{8}-[0-9a-f]{4}'" 2>/dev/null)
+LEAK=$(docker exec "${PG_CONTAINER:-dev-postgres-1}" psql -U platform -d platform -At -c "select count(*) from platform.usage_events where route_template ~ '[0-9a-f]{8}-[0-9a-f]{4}'" 2>/dev/null)
 check "no raw ids in routeTemplate"          0 "${LEAK:-x}"
 
 echo
