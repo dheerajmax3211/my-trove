@@ -7,6 +7,7 @@
 #   ... --profile dev-idp up -d                # also a local identity provider, for trying it with no Firebase
 #
 # Only the gateway and the two web apps publish ports; databases, brokers and management ports stay internal.
+# (Optional: compose.inbound-email.yaml also publishes Waiting On's SMTP listener, port 25 -> 2525.)
 name: trove
 
 x-backend: &backend
@@ -133,6 +134,9 @@ services:
       <<: *backend-env
       MANAGEMENT_PORT: "9083"
       INBOUND_WEBHOOK_SECRET: ${INBOUND_WEBHOOK_SECRET:?run init-env.sh}
+      REPLY_DOMAIN: ${REPLY_DOMAIN:-reply.waiting-on.local}
+      # The SMTP listener for reply addresses stays off here; compose.inbound-email.yaml turns it on and publishes it.
+      INBOUND_SMTP_ENABLED: "false"
       TEMPORAL_ENABLED: "true"
       TEMPORAL_TARGET: temporal:7233
   consent-gateway:

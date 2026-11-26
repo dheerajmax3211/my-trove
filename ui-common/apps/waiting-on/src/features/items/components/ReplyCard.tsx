@@ -58,8 +58,9 @@ export function ReplyCard({ itemId, counterparty }: { itemId: string; counterpar
   return (
     <BentoCard span={5} title="Their reply" icon={<InboxIcon size={18} />}>
       <p className="wo-detail-note">
-        Waiting On does not read your inbox. Paste in what they said, and it is classified, kept on
-        the timeline, and used to move the follow-up.
+        Replies that reach Waiting On by email are read on their own. If one landed in your own
+        inbox instead, paste in what they said, and it is classified, kept on the timeline, and used
+        to move the follow-up.
       </p>
       <form className="wo-stack" onSubmit={submit} noValidate aria-label="Record a reply">
         <Field label="What did they say?" required>

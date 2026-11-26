@@ -52,6 +52,24 @@ mail:
   username: ""
   starttls: true
 
+# Waiting On's built-in SMTP listener for the per-item reply addresses (waiting+<token>@<replyDomain>). Receive-only:
+# every recipient that is not an open item's reply address is refused at RCPT TO, so it is never a relay. No STARTTLS:
+# point the domain's MX at a relay or load balancer that does TLS and forwards to this Service (see docs/deploy.md).
+inboundEmail:
+  enabled: false
+  # The domain in the reply addresses; its MX record must lead to the Service below.
+  replyDomain: reply.example.com
+  # The container listens on 2525 (non-root cannot bind 25); the Service maps servicePort -> 2525.
+  containerPort: 2525
+  servicePort: 25
+  service:
+    # LoadBalancer (or NodePort) when the MX points straight at the cluster; ClusterIP behind an in-cluster relay.
+    type: LoadBalancer
+    annotations: {}
+    # Keeps the sender's IP visible to the per-IP limits (LoadBalancer / NodePort only).
+    externalTrafficPolicy: Local
+  maxMessageSize: 512KB
+
 temporal:
   enabled: true
   target: temporal-frontend:7233

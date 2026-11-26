@@ -89,6 +89,13 @@
 			<version>${temporal.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- Inbound SMTP listener for per-item reply addresses (off by default, see README). Jakarta Mail (API +
+		     Angus implementation) is already here through platform-notify's spring-boot-starter-mail. -->
+		<dependency>
+			<groupId>com.github.davidmoten</groupId>
+			<artifactId>subethasmtp</artifactId>
+			<version>7.2.2</version>
+		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
