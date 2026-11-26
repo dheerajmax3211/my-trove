@@ -89,7 +89,7 @@ Two supported ways, both documented in [`docs/deploy.md`](docs/deploy.md):
 - **Kubernetes** with the Helm chart (`deploy/helm/my-trove`): hardened pods (non-root, read-only root filesystem, no
   capabilities), default-deny NetworkPolicy, probes on a private management port, Secrets kept outside the chart.
 
-Security notes: [`docs/security/threat-model.md`](docs/security/threat-model.md). Design decisions:
+Architecture diagrams: [`docs/architecture.md`](docs/architecture.md). Security notes: [`docs/security/threat-model.md`](docs/security/threat-model.md). Design decisions:
 [`docs/adr/`](docs/adr/README.md). Load baseline: [`docs/perf/2026-11-23-baseline.md`](docs/perf/2026-11-23-baseline.md).
 
 ## Status
