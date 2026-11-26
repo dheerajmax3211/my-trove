@@ -68,6 +68,20 @@ Checks for all of this: `dev/e2e-personas.sh` (the persona matrix and role guard
 `dev/e2e-personas-ui.mjs` (the same personas and the sign-in flows in a real browser, with `WORKSPACE_URL` pointing at a
 running workspace; it needs `playwright-core`, via `PLAYWRIGHT_CORE=<path to its index.mjs>` if it is not installed).
 
+Per-persona tasks, end to end in a browser: `dev/e2e-personas-browser.mjs` (same `dev/qa/lib.mjs` helpers). One section
+per persona, each asserting what the persona does and what it must not see: member adds a Waiting On item and finds it
+on Today; developer registers an app and issues an API key (the gateway then accepts it in scope, refuses it outside);
+admin grants and revokes a role on a disposable account (`persona-suite-target@example.test`), is refused on an owner,
+and cannot change ADMIN/OWNER; auditor reads the audit log, has no write controls, and the API refuses a role change;
+owner sees platform usage. It cleans up after itself (cancels the item, revokes the key, retires the app).
+`QA_PERSONAS=member,owner` runs some sections; `PLAYWRIGHT_CORE=<path to playwright-core/index.mjs>` if it is not
+resolvable. This is a manual, live check: CI has no running stack. The API contract tests (`contracts/README.md`) do run
+in CI.
+
+Do not run `./mvnw package`/`verify` in this checkout while the stack runs from it: `dev/up.sh` runs
+`<module>/target/*.jar`, and rewriting a jar under a running JVM makes later class loads fail (500s with
+`ClassNotFoundException`). Use `./mvnw test` here, or restart the stack after a build.
+
 The identity provider only answers CORS requests from localhost origins and binds to loopback. It must never be
 reachable from a network, and the services must never be pointed at it outside development.
 
