@@ -39,9 +39,9 @@ export function SchedulePreview({ values }: { values: NewItemValues }) {
         </p>
       )}
       <p className="wo-fineprint" style={{ marginTop: 'var(--pp-space-5)' }}>
-        Letters are drafted for you to review and send. Waiting On does not read email replies yet,
-        so you record the outcome yourself: resolve the item when it is paid or approved, or cancel
-        it if you stop chasing.
+        Letters are drafted for you to review and send. Replies that reach Waiting On by email move
+        the follow-up on their own; otherwise you record the outcome yourself: resolve the item when
+        it is paid or approved, or cancel it if you stop chasing.
       </p>
     </BentoCard>
   )
