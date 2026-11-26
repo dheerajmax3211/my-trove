@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consent vault attribute (VaultController.AttributeView)",
+  "description": "GET /v1/owner/vault/attributes/{keyPath}; also the body of create and replace. value is any JSON.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["keyPath", "value", "sensitivity", "createdAt", "updatedAt"],
+  "properties": {
+    "keyPath": { "type": "string" },
+    "value": { "type": ["string", "number", "boolean", "object", "array", "null"] },
+    "sensitivity": { "enum": ["PUBLIC", "PERSONAL", "SENSITIVE", "RESTRICTED"] },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  }
+}

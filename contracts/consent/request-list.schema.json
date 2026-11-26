@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consent access request list",
+  "description": "GET /v1/owner/requests?status=PENDING (requests inbox, Today feed).",
+  "type": "array",
+  "items": { "$ref": "request.schema.json" }
+}

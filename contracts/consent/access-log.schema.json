@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consent access log",
+  "description": "GET /v1/owner/access-log.",
+  "type": "array",
+  "items": { "$ref": "audit-entry.schema.json" }
+}

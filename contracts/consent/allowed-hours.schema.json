@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consent allowed hours (AllowedHours), a fragment used by requests and grants",
+  "type": ["object", "null"],
+  "additionalProperties": false,
+  "required": ["startHour", "endHour", "zone"],
+  "properties": {
+    "startHour": { "type": "integer" },
+    "endHour": { "type": "integer" },
+    "zone": { "type": "string" }
+  }
+}

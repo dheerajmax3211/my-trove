@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consent access request (ConsentViews.RequestView)",
+  "description": "GET /v1/owner/requests/{id}; also the body of deny.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "clientId", "clientName", "scopes", "purpose", "durationSeconds", "maxReads", "allowedHours", "status",
+    "createdAt", "decidedAt", "decisionNote", "grantId", "expiresAt"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "clientId": { "type": "string" },
+    "clientName": { "type": "string" },
+    "scopes": { "type": "array", "items": { "type": "string" } },
+    "purpose": { "type": "string" },
+    "durationSeconds": { "type": "integer" },
+    "maxReads": { "type": ["integer", "null"] },
+    "allowedHours": { "$ref": "allowed-hours.schema.json" },
+    "status": { "enum": ["PENDING", "APPROVED", "DENIED", "EXPIRED"] },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "decidedAt": { "type": ["string", "null"], "format": "date-time" },
+    "decisionNote": { "type": ["string", "null"] },
+    "grantId": { "type": ["string", "null"] },
+    "expiresAt": { "type": ["string", "null"], "format": "date-time" }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consent client (ClientController.ClientView)",
+  "description": "GET /v1/owner/clients/{clientId}; an element of the client list.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "clientId", "name", "contactEmail", "redirectUri", "allowedScopes", "createdAt", "secretRotatedAt", "disabledAt"
+  ],
+  "properties": {
+    "clientId": { "type": "string" },
+    "name": { "type": "string" },
+    "contactEmail": { "type": ["string", "null"] },
+    "redirectUri": { "type": ["string", "null"] },
+    "allowedScopes": { "type": "array", "items": { "type": "string" } },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "secretRotatedAt": { "type": ["string", "null"], "format": "date-time" },
+    "disabledAt": { "type": ["string", "null"], "format": "date-time" }
+  }
+}

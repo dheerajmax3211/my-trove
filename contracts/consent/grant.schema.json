@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consent grant (ConsentViews.GrantView)",
+  "description": "The body of approve and revoke; an element of the grant list and the dashboard.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "clientId", "clientName", "scopes", "purpose", "maxSensitivity", "createdAt", "expiresAt", "maxReads",
+    "readsUsed", "allowedHours", "revokedAt", "lastReadAt", "status"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "clientId": { "type": "string" },
+    "clientName": { "type": "string" },
+    "scopes": { "type": "array", "items": { "type": "string" } },
+    "purpose": { "type": "string" },
+    "maxSensitivity": { "enum": ["PUBLIC", "PERSONAL", "SENSITIVE", "RESTRICTED"] },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "maxReads": { "type": ["integer", "null"] },
+    "readsUsed": { "type": "integer" },
+    "allowedHours": { "$ref": "allowed-hours.schema.json" },
+    "revokedAt": { "type": ["string", "null"], "format": "date-time" },
+    "lastReadAt": { "type": ["string", "null"], "format": "date-time" },
+    "status": { "enum": ["ACTIVE", "REVOKED", "EXPIRED"] }
+  }
+}

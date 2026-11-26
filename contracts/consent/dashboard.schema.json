@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consent dashboard (OwnerConsentController.Dashboard)",
+  "description": "GET /v1/owner/dashboard (the product's home page).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pendingRequests", "activeGrants", "recentAccess"],
+  "properties": {
+    "pendingRequests": { "type": "integer" },
+    "activeGrants": { "type": "array", "items": { "$ref": "grant.schema.json" } },
+    "recentAccess": { "type": "array", "items": { "$ref": "audit-entry.schema.json" } }
+  }
+}

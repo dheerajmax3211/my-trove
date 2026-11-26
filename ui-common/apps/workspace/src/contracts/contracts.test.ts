@@ -5,6 +5,7 @@
  */
 import type { ProductModule } from '@platform/workspace-kit'
 import { describe, expect, it } from 'vitest'
+import { productModule as consent } from '@platform/consent/module'
 import { productModule as waitingOn } from '@platform/waiting-on/module'
 import { validate, type Schema } from './validate'
 
@@ -95,5 +96,57 @@ describe('waiting-on demo API', () => {
       'item.schema.json',
       await call('POST', `/v1/items/${created.id}/resolve`, { outcome: 'Paid' }),
     )
+  })
+})
+
+describe('consent demo API', () => {
+  const call = client(consent)
+  const c = (file: string, body: unknown) => expectContract('consent', file, body)
+
+  it('home: dashboard, requests inbox and grants (Today)', async () => {
+    c('dashboard.schema.json', await call('GET', '/v1/owner/dashboard'))
+    const pending = (await call('GET', '/v1/owner/requests?status=PENDING')) as { id: string }[]
+    c('request-list.schema.json', pending)
+    c('request-list.schema.json', await call('GET', '/v1/owner/requests'))
+    c('request.schema.json', await call('GET', `/v1/owner/requests/${pending[0]!.id}`))
+    c('grant-list.schema.json', await call('GET', '/v1/owner/grants'))
+    c('grant-list.schema.json', await call('GET', '/v1/owner/grants?includeInactive=true'))
+  })
+
+  it('vault, clients and the audit trail', async () => {
+    const attributes = (await call('GET', '/v1/owner/vault/attributes')) as { keyPath: string }[]
+    c('attribute-list.schema.json', attributes)
+    c(
+      'attribute.schema.json',
+      await call('GET', `/v1/owner/vault/attributes/${encodeURIComponent(attributes[0]!.keyPath)}`),
+    )
+    const clients = (await call('GET', '/v1/owner/clients')) as { clientId: string }[]
+    c('client-list.schema.json', clients)
+    c('client.schema.json', await call('GET', `/v1/owner/clients/${clients[0]!.clientId}`))
+    c('access-log.schema.json', await call('GET', '/v1/owner/access-log'))
+    c('chain-report.schema.json', await call('GET', '/v1/owner/audit/verify'))
+  })
+
+  it('writes: create attribute, register client, approve, deny, revoke', async () => {
+    c(
+      'attribute.schema.json',
+      await call('POST', '/v1/owner/vault/attributes', {
+        keyPath: 'contract.check',
+        value: { size: 9 },
+        sensitivity: 'PERSONAL',
+      }),
+    )
+    c(
+      'client-with-secret.schema.json',
+      await call('POST', '/v1/owner/clients', { name: 'Contract app', allowedScopes: ['profile:read'] }),
+    )
+    const pending = (await call('GET', '/v1/owner/requests?status=PENDING')) as { id: string }[]
+    expect(pending.length).toBeGreaterThan(1)
+    const grant = (await call('POST', `/v1/owner/requests/${pending[0]!.id}/approve`, {})) as {
+      id: string
+    }
+    c('grant.schema.json', grant)
+    c('request.schema.json', await call('POST', `/v1/owner/requests/${pending[1]!.id}/deny`, {}))
+    c('grant.schema.json', await call('POST', `/v1/owner/grants/${grant.id}/revoke`))
   })
 })

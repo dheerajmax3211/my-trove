@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consent vault attribute list",
+  "description": "GET /v1/owner/vault/attributes.",
+  "type": "array",
+  "items": { "$ref": "attribute.schema.json" }
+}

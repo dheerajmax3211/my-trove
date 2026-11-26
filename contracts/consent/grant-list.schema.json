@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consent grant list",
+  "description": "GET /v1/owner/grants (and ?includeInactive=true).",
+  "type": "array",
+  "items": { "$ref": "grant.schema.json" }
+}

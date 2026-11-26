@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consent audit entry (AuditEntry)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "seq", "eventType", "actorType", "actorId", "clientId", "grantId", "detail", "occurredAt", "prevHash", "entryHash"
+  ],
+  "properties": {
+    "seq": { "type": "integer" },
+    "eventType": {
+      "enum": [
+        "VAULT_ATTRIBUTE_CREATED", "VAULT_ATTRIBUTE_UPDATED", "VAULT_ATTRIBUTE_DELETED", "CLIENT_REGISTERED",
+        "CLIENT_SECRET_ROTATED", "CLIENT_DISABLED", "ACCESS_REQUESTED", "REQUEST_APPROVED", "REQUEST_DENIED",
+        "GRANT_REVOKED", "TOKEN_ISSUED", "DATA_READ", "DATA_DENIED"
+      ]
+    },
+    "actorType": { "type": "string" },
+    "actorId": { "type": "string" },
+    "clientId": { "type": ["string", "null"] },
+    "grantId": { "type": ["string", "null"] },
+    "detail": { "type": "string" },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "prevHash": { "type": "string" },
+    "entryHash": { "type": "string" }
+  }
+}

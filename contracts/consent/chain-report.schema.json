@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consent audit chain report (ChainReport)",
+  "description": "GET /v1/owner/audit/verify.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["valid", "entriesChecked", "firstBrokenSeq", "reason", "headSeq", "headHash"],
+  "properties": {
+    "valid": { "type": "boolean" },
+    "entriesChecked": { "type": "integer" },
+    "firstBrokenSeq": { "type": ["integer", "null"] },
+    "reason": { "enum": ["ENTRY_HASH_MISMATCH", "PREV_HASH_MISMATCH", "SEQUENCE_GAP", "HEAD_MISMATCH", null] },
+    "headSeq": { "type": "integer" },
+    "headHash": { "type": "string" }
+  }
+}
