@@ -127,7 +127,7 @@ class WaitingOnApiTest {
     void requiresAuthenticationButHealthIsPublic() throws Exception {
         mvc.perform(get("/v1/items")).andExpect(status().isUnauthorized());
         mvc.perform(get("/v1/items").header("Authorization", "Bearer garbage")).andExpect(status().isUnauthorized());
-        mvc.perform(get("/actuator/health")).andExpect(status().isOk());
+        mvc.perform(get("/actuator/health")).andExpect(status().isNotFound()); // health is served on the private management port only (ObservabilityExposureTest)
     }
 
     // ------------------------------------------------------------------ the whole lifecycle

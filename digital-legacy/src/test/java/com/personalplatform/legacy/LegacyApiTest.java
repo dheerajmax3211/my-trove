@@ -38,7 +38,7 @@ class LegacyApiTest extends LegacyIntegrationBase {
         mvc.perform(get("/v1/legacy/vault").header("Authorization", "Bearer !!!")).andExpect(status().isUnauthorized());
         mvc.perform(get("/v1/legacy/trustee/me")).andExpect(status().isUnauthorized());
         mvc.perform(get("/v1/legacy/trustee/me").header("Authorization", "Trustee nope")).andExpect(status().isUnauthorized());
-        mvc.perform(get("/actuator/health")).andExpect(status().isOk());
+        mvc.perform(get("/actuator/health")).andExpect(status().isNotFound()); // health is served on the private management port only (ObservabilityExposureTest)
 
         Team team = setupTeam(uniqueUid("auth"), 1, 1, false);
         // a Firebase-style owner token is not a trustee credential

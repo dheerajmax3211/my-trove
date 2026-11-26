@@ -1,5 +1,6 @@
 package com.personalplatform.shared;
 
+import org.springframework.boot.micrometer.metrics.test.autoconfigure.AutoConfigureMetrics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import java.net.URI;
@@ -20,6 +21,8 @@ import org.springframework.http.HttpHeaders;
  * Metrics live on a private management port; the main port stays closed to them.
  * Route for the label test: GET /v1/households/{id} (served by this service itself, called with a random UUID).
  */
+// Spring Boot turns metrics export off in tests; this test is about the real Prometheus scrape, so turn it on.
+@AutoConfigureMetrics
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"management.server.port=0",
         "logging.level.org.springframework.security.web.FilterChainProxy=DEBUG"})
 @ExtendWith(OutputCaptureExtension.class)

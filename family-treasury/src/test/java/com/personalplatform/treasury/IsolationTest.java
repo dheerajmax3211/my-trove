@@ -91,7 +91,7 @@ class IsolationTest extends AbstractIntegrationTest {
     void unauthenticatedRequestsAreRejected() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/v1/households")).andExpect(status().isUnauthorized());
         mvc.perform(MockMvcRequestBuilders.get("/v1/households").header("Authorization", "Bearer !!!")).andExpect(status().isUnauthorized());
-        mvc.perform(MockMvcRequestBuilders.get("/actuator/health")).andExpect(status().isOk());
+        mvc.perform(MockMvcRequestBuilders.get("/actuator/health")).andExpect(status().isNotFound()); // health is served on the private management port only (ObservabilityExposureTest)
     }
 
     @Test

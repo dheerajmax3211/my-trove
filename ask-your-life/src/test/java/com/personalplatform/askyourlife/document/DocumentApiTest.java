@@ -55,7 +55,7 @@ class DocumentApiTest extends AbstractIntegrationTest {
         mvc.perform(get("/v1/documents")).andExpect(status().isUnauthorized());
         mvc.perform(get("/v1/search?q=x")).andExpect(status().isUnauthorized());
         mvc.perform(post("/v1/documents").contentType("text/plain").content("x")).andExpect(status().isUnauthorized());
-        mvc.perform(get("/actuator/health")).andExpect(status().isOk());
+        mvc.perform(get("/actuator/health")).andExpect(status().isNotFound()); // health is served on the private management port only (ObservabilityExposureTest)
     }
 
     @Test

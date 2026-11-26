@@ -283,7 +283,7 @@ class TokenIssuerTest extends IntegrationTest {
         mvc.perform(get("/v1/gateway/data")).andExpect(status().isUnauthorized());
         // public things stay public
         mvc.perform(get("/.well-known/jwks.json")).andExpect(status().isOk());
-        mvc.perform(get("/actuator/health")).andExpect(status().isOk());
+        mvc.perform(get("/actuator/health")).andExpect(status().isNotFound()); // health is served on the private management port only (ObservabilityExposureTest)
         // the owner chain still works with a Firebase token (the platform decoder was not displaced)
         mvc.perform(get("/v1/owner/vault/attributes").header("Authorization", ownerBearer(owner))).andExpect(status().isOk());
     }

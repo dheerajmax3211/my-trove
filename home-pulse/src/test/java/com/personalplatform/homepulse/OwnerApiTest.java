@@ -287,6 +287,6 @@ class OwnerApiTest extends AbstractIntegrationTest {
     void unauthenticatedOwnerCallsAreRejectedAndHealthIsPublic() throws Exception {
         mvc.perform(get("/v1/appliances")).andExpect(status().isUnauthorized());
         mvc.perform(get("/v1/alerts").header("Authorization", "Bearer garbage")).andExpect(status().isUnauthorized());
-        mvc.perform(get("/actuator/health")).andExpect(status().isOk());
+        mvc.perform(get("/actuator/health")).andExpect(status().isNotFound()); // health is served on the private management port only (ObservabilityExposureTest)
     }
 }
