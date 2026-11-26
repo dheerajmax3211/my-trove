@@ -224,17 +224,11 @@ class ToolCallTest extends McpTestBase {
     }
 
     @Test
-    void anApiKeyIsRefusedEvenWithProductsUseBecauseItDoesNotActAsItsOwner() throws Exception {
-        String key = apiKey("0190f0a0-0000-7000-8000-0000000000bb", "mcp:use", "products:use");
-        assertToolError(callTool(key, "waiting_on_list_followups", "{}"), "api_key_not_supported");
-        ToolCallsRecord audit = lastAudit();
-        assertThat(audit.getPrincipalType()).isEqualTo("API_KEY");
-        assertThat(audit.getPrincipalId()).isEqualTo("app:0190f0a0-0000-7000-8000-0000000000bb");
-        assertThat(audit.getOutcome()).isEqualTo("DENIED");
-        assertThat(service("waiting-on").received()).isEmpty();
-
-        String keyWithoutProducts = apiKey("0190f0a0-0000-7000-8000-0000000000bc", "mcp:use");
-        assertToolError(callTool(keyWithoutProducts, "ask_your_life_search", "{\"query\":\"x\"}"), "forbidden");
+    void aPersonsCallNeverGoesThroughDelegation() throws Exception {
+        service("home-pulse").reply("/v1/appliances", 200, "[]");
+        callTool(member("ann"), "home_pulse_appliance_status", "{}");
+        assertThat(AUTH.received()).isEmpty();
+        assertThat(lastAudit().getOnBehalfOf()).isNull();
     }
 
     @Test

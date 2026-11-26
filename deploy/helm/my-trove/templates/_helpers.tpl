@@ -94,6 +94,8 @@ helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 - { name: ASK_YOUR_LIFE_URL, value: "http://ask-your-life:8086" }
 - { name: HOME_PULSE_URL, value: "http://home-pulse:8085" }
 - { name: FAMILY_TREASURY_URL, value: "http://family-treasury:8088" }
+# API-key callers act for their owner via auth's /internal/v1/token/delegate (APP_INTERNAL_API_KEY is set above).
+- { name: AUTH_URL, value: "http://auth:8081" }
 {{- end }}
 {{- if eq .name "digital-legacy" }}
 - { name: LEGACY_TRUSTEE_PORTAL_URL, value: {{ $v.urls.workspace | quote }} }

@@ -15,7 +15,8 @@ import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Writes one {@code mcp.tool_calls} row per {@code tools/call}: who, which tool, a SHA-256 of the canonical
+ * Writes one {@code mcp.tool_calls} row per {@code tools/call}: who (for an API key: its app in {@code principal_id}
+ * and the owner it acts for in {@code on_behalf_of}), which tool, a SHA-256 of the canonical
  * arguments (never the arguments themselves), result size, outcome and duration. A failed write fails the call, so no
  * data leaves without its audit row.
  */
@@ -43,6 +44,8 @@ public class ToolCallAudit {
                 .set(TOOL_CALLS.ID, UuidV7.next())
                 .set(TOOL_CALLS.PRINCIPAL_TYPE, e.caller() == null ? "UNKNOWN" : e.caller().type().name())
                 .set(TOOL_CALLS.PRINCIPAL_ID, e.caller() == null ? "anonymous" : truncate(e.caller().subject(), 160))
+                .set(TOOL_CALLS.ON_BEHALF_OF, e.caller() == null || e.caller().onBehalfOf() == null ? null
+                        : truncate(e.caller().onBehalfOf(), 160))
                 .set(TOOL_CALLS.TOOL, truncate(e.tool() == null ? "(missing)" : e.tool(), 128))
                 .set(TOOL_CALLS.ARGUMENTS_HASH, argumentsHash(e.arguments()))
                 .set(TOOL_CALLS.RESULT_BYTES, Math.max(0, e.resultBytes()))

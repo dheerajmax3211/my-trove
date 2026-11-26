@@ -12,7 +12,10 @@ import java.util.Map;
 public final class ToolErrors {
 
     public static final String FORBIDDEN = "forbidden";
+    /** No longer produced (API keys act for their owner since brief 86); kept so old audit rows still map. */
     public static final String API_KEY_NOT_SUPPORTED = "api_key_not_supported";
+    /** auth refused to let the key act for its owner: owner suspended, key revoked or expired, app disabled. */
+    public static final String DELEGATION_REFUSED = "delegation_refused";
     public static final String DOWNSTREAM_DENIED = "downstream_denied";
     public static final String INVALID_INPUT = "invalid_input";
     public static final String NOT_FOUND = "not_found";
@@ -44,7 +47,7 @@ public final class ToolErrors {
             return Outcome.ERROR;
         }
         return switch (code) {
-            case FORBIDDEN, API_KEY_NOT_SUPPORTED, DOWNSTREAM_DENIED -> Outcome.DENIED;
+            case FORBIDDEN, API_KEY_NOT_SUPPORTED, DELEGATION_REFUSED, DOWNSTREAM_DENIED -> Outcome.DENIED;
             case INVALID_INPUT, NOT_FOUND, DOWNSTREAM_REJECTED -> Outcome.INVALID;
             default -> Outcome.ERROR;
         };

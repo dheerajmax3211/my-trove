@@ -13,7 +13,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /** A tiny HTTP stub for one product service: canned answers by path, and a record of what it received. */
 final class StubService {
 
-    record Received(String method, String path, String rawQuery, String authorization) {}
+    record Received(String method, String path, String rawQuery, String authorization, String internalKey, String body) {}
 
     record Reply(int status, String body) {}
 
@@ -26,7 +26,9 @@ final class StubService {
         server.createContext("/", exchange -> {
             String path = exchange.getRequestURI().getPath();
             received.add(new Received(exchange.getRequestMethod(), path, exchange.getRequestURI().getRawQuery(),
-                    exchange.getRequestHeaders().getFirst("Authorization")));
+                    exchange.getRequestHeaders().getFirst("Authorization"),
+                    exchange.getRequestHeaders().getFirst("X-Internal-Key"),
+                    new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8)));
             Reply reply = replies.getOrDefault(path, new Reply(404, "{\"title\":\"Not Found\"}"));
             byte[] body = reply.body().getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", "application/json");

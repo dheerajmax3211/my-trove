@@ -26,4 +26,10 @@ class ApiKeyInternalController {
     Verified verify(@Valid @RequestBody VerifyRequest request) {
         return service.verify(request.key());
     }
+
+    /** A key's current state by id, for auth's delegated-token check ({@code POST /internal/v1/token/delegate}). */
+    @PostMapping("/status")
+    ApiKeyDtos.KeyStatus status(@Valid @RequestBody ApiKeyDtos.StatusRequest request) {
+        return service.status(request.keyId());
+    }
 }

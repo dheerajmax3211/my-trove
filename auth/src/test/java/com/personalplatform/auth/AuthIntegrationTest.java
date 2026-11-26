@@ -26,6 +26,8 @@ import org.springframework.test.context.TestPropertySource;
             "app.auth.bootstrap-admin-emails=boss@example.com",
             // base64 of 32 bytes: a TEST value only
             "app.platform.key-encryption-key=dGVzdC1vbmx5LWtleS1lbmNyeXB0aW9uLWtleS0zMmI=",
-            "app.platform.issuer=http://auth.test"
+            "app.platform.issuer=http://auth.test",
+            // shared secret of /internal/** (delegation): a TEST value only
+            "app.platform-service.internal-api-key=test-internal-key"
         })
 public @interface AuthIntegrationTest {}

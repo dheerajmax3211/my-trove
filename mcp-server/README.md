@@ -9,8 +9,9 @@ Port **8090** (management/Prometheus on **9090**, private). Schema: `mcp`. Spec 
 ```
 MCP client ──POST /api/mcp/mcp──► gateway ──(mcp:use? exchange → platform token)──► mcp-server POST /mcp
                                                                                         │ tools/call
-                                                                   check products:use, person not API key
-                                                                                        │ caller's own token
+                                                                   check products:use on the caller's token
+                                              API key? ──► auth /internal/v1/token/delegate ──► owner token
+                                                                                        │ person's (or owner's) token
                                            waiting-on · ask-your-life · home-pulse · family-treasury (direct)
                                                                                         │
                                                                          mcp.tool_calls (append-only audit)
@@ -30,12 +31,23 @@ MCP client ──POST /api/mcp/mcp──► gateway ──(mcp:use? exchange →
   for all four, the same permission the gateway requires for those products' own routes). Otherwise the result is an
   MCP tool error (`isError: true`, `structuredContent.error.code = "forbidden"`, `requiredPermission`), never data,
   and no product service is called.
+- **API keys act for their owner.** A key's token is a service token (`sub = app:<appId>`, the key's permissions
+  only, `act = {"sub": <owner uid>}`). For a key caller each tool call first trades it at auth's
+  `POST /internal/v1/token/delegate` (sent directly to auth with `APP_INTERNAL_API_KEY`; the gateway blocks
+  `/internal/**`) for a token for the owner: user-shaped, 5 minutes (never past the service token's expiry), no roles,
+  permissions = owner's AND key's, `act = {"sub": "app:<appId>", "key_id": ...}`. mcp-server verifies it (signature,
+  issuer, `token_use=platform`, `act.sub` = this app) and calls the products with it exactly as for a person. The
+  key's token must carry the tool permission (else `forbidden`, and auth is not asked), and so must the delegated
+  token (the owner may lack it: `forbidden`). If auth refuses (owner suspended, key revoked or expired, app disabled),
+  the tool answers `delegation_refused` with a `reason`; if auth is unreachable, `unavailable`. Nothing is cached:
+  every call re-checks, so a revoked key stops at once, even while the gateway still holds its exchanged token.
 - **Calls downstream** go straight to each service with the caller's own platform token (the gateway cannot
   exchange a platform token again). No credential of mcp-server's own exists; each service applies its own per-user
   rules (e.g. Family Treasury refuses a household the caller is not a member of, which becomes a
   `downstream_denied` tool error).
 - **Audit.** Every `tools/call`, including unknown tools and arguments the SDK's schema validation rejects, writes one
-  `mcp.tool_calls` row: principal type and id (`sub`), tool, SHA-256 of the canonical (key-sorted) arguments JSON
+  `mcp.tool_calls` row: principal type and id (`sub`; for a key `app:<appId>`), `on_behalf_of` (for a key, the
+  owner's internal user id; null for a person), tool, SHA-256 of the canonical (key-sorted) arguments JSON
   (never the arguments: search queries are personal), result size in bytes, outcome
   (`OK | DENIED | INVALID | UNKNOWN_TOOL | ERROR`), error code, duration, time. The table is append-only (trigger in
   `mcp_ext/V100`). The row is written before the answer leaves; if the write fails, the answer is withheld.
@@ -93,12 +105,11 @@ with `mcp-remote`:
 
 What to put in `TROVE_TOKEN`:
 
-- **An API key** (`pk_...`) with the scope `mcp:use`, created in the workspace's Developer section (or
-  `POST /api/platform/v1/developer/apps/{appId}/keys` with `{"name":"agent","scopes":["mcp:use"]}`). The key can
-  connect, `initialize` and `tools/list`. **It cannot read product data yet:** a key's token is a service token
-  (`sub = app:<appId>`) that by design never acts as its owner, and the products key their data by the person, so
-  every tool answers `api_key_not_supported` for keys (and `forbidden` first if the key lacks `products:use`, which
-  no scope grants). Letting a key act for its owner needs a deliberate token change in `auth`; it is not done here.
+- **An API key** (`pk_...`) created in the workspace's Developer section (or
+  `POST /api/platform/v1/developer/apps/{appId}/keys` with `{"name":"agent","scopes":["mcp:use","products:read"]}`).
+  `mcp:use` alone lets it connect, `initialize` and `tools/list`; `products:read` (grants `products:use`) lets the
+  tools read **the key owner's** data, never more than the owner holds. The gateway opens no product route to keys,
+  so `products:read` works only through these tools. A key with only `usage:read` gets 403 at `/mcp`.
 - **A person's sign-in token** (Firebase ID token; in dev, `curl -s -X POST localhost:9100/token -d
   '{"email":"dev@example.test"}'`). This is what makes the tools return data. It needs `mcp:use`, which DEVELOPER,
   ADMIN and OWNER hold; MEMBER does not (the persona table does not give members assistants yet). ID tokens expire
@@ -113,28 +124,37 @@ What to put in `TROVE_TOKEN`:
 | `APP_SECURITY_MODE` | `platform` | must stay `platform`: permissions come from platform tokens |
 | `APP_PLATFORM_JWK_SET_URI` | `http://localhost:8081/.well-known/jwks.json` | where platform-token keys come from |
 | `DB_URL`, `DB_USER`, `DB_PASSWORD` | dev database | Postgres for the `mcp` schema |
+| `AUTH_URL` | `http://localhost:8081` | auth, for delegated tokens of API-key callers (direct, not the gateway) |
+| `APP_INTERNAL_API_KEY` | (blank) | shared key for auth's `/internal/**`; blank: key callers get `unavailable` |
 | `MANAGEMENT_PORT` | `9090` | private actuator port; `dev/up.sh` uses 9190 because the dev Prometheus publishes 9090 |
 
 ## Tests
 
-`./mvnw -B -ntp -pl mcp-server -am verify` (Docker needed: real Postgres via Testcontainers). 40 tests: protocol
+`./mvnw -B -ntp -pl mcp-server -am verify` (Docker needed: real Postgres via Testcontainers). 47 tests: protocol
 (initialize and version negotiation, initialized notification, ping, tools/list schemas and annotations, unknown
 tool and unknown method, GET 405, endpoint auth incl. forged and unsigned tokens, API key connect), every tool's happy
 path against HTTP stubs of the product services (the caller's token is forwarded unchanged; query encoding),
-permission denied for all four tools with no downstream call, API keys refused, bad input (schema and in-code),
+permission denied for all four tools with no downstream call, API keys through delegation (`ApiKeyDelegationTest`:
+data with the owner's delegated token, never the key's; a key without the permission refused without asking auth; an
+owner without it refused; auth refusal and outage; unverifiable or other-app tokens never used; no caching; audit
+shows app and owner), bad input (schema and in-code),
 downstream 403/404/500, one audit row per call with the right outcome and no raw arguments, a failed audit write
 withholds the answer, management-port exposure, trace ids in logs and no token in logs. The gateway route is tested
 in `gateway` (`McpRouteTest`).
 
 `dev/e2e-mcp.sh` drives the real stack through the gateway (initialize, list, each tool as the owner, a denied
-member, bad input, unknown tool).
+member, bad input, unknown tool), then as API keys of developer@example.test (usage-only key 403, mcp-only key
+refused by the tools, agent key reads each tool, audit rows with app and owner, revocation stops it at once). Direct
+mode (`AUTH_URL`, `MCP_URL`, `PLATFORM_URL`) tries changed services on spare ports.
 
 ## Status and limits
 
-- Verified: the module tests above, and the gateway, auth, platform-service and sql-jooq tests touched by this
-  change. Not verified: `dev/e2e-mcp.sh` has not been run against a live stack yet; no real MCP client (Claude Code
-  or Desktop) has been connected; the Helm and Compose entries were rendered/validated, not deployed.
-- API keys cannot read product data (see above).
+- Verified: the module tests above and the auth, platform-service and sql-jooq tests. `dev/e2e-mcp.sh` ran on
+  2026-11-27 in direct mode (second auth, platform-service and mcp-server instances on spare ports beside the dev
+  stack): 21 of 24 checks passed. All 3 failures involve `waiting_on_list_followups`, because the shared waiting-on
+  process answered 500 to every request, also straight through the gateway with no MCP involved. Not verified: a
+  gateway-mode run with these changes deployed on the shared stack; a real MCP client (Claude Code or Desktop); the
+  Helm and Compose entries were rendered (`helm template` with the kind values, `docker compose config`), not deployed.
 - No resources, prompts, sampling or server-to-client streams: tools only, request/response.
 - Tools are read-only by design; nothing here writes to a product.
 - Downstream calls are sequential (item details, appliance health, household accounts), bounded by the caps above.

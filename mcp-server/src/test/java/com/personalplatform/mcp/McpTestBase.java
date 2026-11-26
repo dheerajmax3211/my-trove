@@ -39,6 +39,9 @@ abstract class McpTestBase {
             "ask-your-life", StubService.start(),
             "home-pulse", StubService.start(),
             "family-treasury", StubService.start());
+    /** auth, for the delegated-token endpoint API-key callers go through. */
+    static final StubService AUTH = StubService.start();
+    static final String INTERNAL_KEY = "test-internal-key";
     static final JsonMapper JSON = JsonMapper.builder().build();
 
     @TestConfiguration(proxyBeanMethods = false)
@@ -59,6 +62,8 @@ abstract class McpTestBase {
     @DynamicPropertySource
     static void services(DynamicPropertyRegistry r) {
         SERVICES.forEach((name, stub) -> r.add("app.mcp.services." + name, stub::uri));
+        r.add("app.mcp.delegation.auth-url", AUTH::uri);
+        r.add("app.mcp.delegation.internal-api-key", () -> INTERNAL_KEY);
     }
 
     @LocalServerPort int port;
@@ -69,6 +74,7 @@ abstract class McpTestBase {
     @BeforeEach
     void resetStubs() {
         SERVICES.values().forEach(StubService::reset);
+        AUTH.reset();
     }
 
     static StubService service(String name) {
@@ -85,9 +91,26 @@ abstract class McpTestBase {
         return person(uid, "products:use", "usage:read:self", "connections:manage", "mcp:use");
     }
 
-    /** An API key's service token. */
+    /** An API key's service token, acting for {@link #KEY_OWNER} (act.sub and owner_uid, as auth issues it). */
     static String apiKey(String appId, String... permissions) {
-        return TOKENS.serviceToken(appId).permissions(permissions).scopes("mcp:use").build();
+        return TOKENS.serviceToken(appId).permissions(permissions).scopes("mcp:use")
+                .claim("owner_uid", KEY_OWNER).claim("act", Map.of("sub", KEY_OWNER)).build();
+    }
+
+    /** Internal user id of the person every test API key belongs to. */
+    static final String KEY_OWNER = "0190f0a0-0000-7000-8000-00000000a001";
+
+    /** What auth's delegate endpoint would mint for {@link #KEY_OWNER} acting as the given app. */
+    static String delegatedToken(String appId, String... permissions) {
+        return TOKENS.platformToken("firebase-key-owner").uid(KEY_OWNER).roles().permissions(permissions)
+                .claim("act", Map.of("sub", "app:" + appId, "key_id", "0190f0a0-0000-7000-8000-00000000b001"))
+                .expiresIn(java.time.Duration.ofMinutes(5)).build();
+    }
+
+    /** Makes the auth stub answer the next delegations with this token. */
+    static void authDelegates(String token) {
+        AUTH.reply("/internal/v1/token/delegate", 200, "{\"accessToken\":\"" + token
+                + "\",\"expiresIn\":300,\"tokenType\":\"Bearer\"}");
     }
 
     HttpResponse<String> post(String token, String body) throws Exception {

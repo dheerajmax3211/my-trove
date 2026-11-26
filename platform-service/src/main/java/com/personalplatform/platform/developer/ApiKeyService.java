@@ -102,6 +102,27 @@ class ApiKeyService {
                 ScopeCatalogue.permissionsFor(row.scopes()), row.expiresAt());
     }
 
+    /**
+     * The key's current state by id (no secret involved), so auth can refuse to delegate for a key that was revoked,
+     * expired or whose app was disabled after its service token was minted. Unknown ids are 404.
+     */
+    ApiKeyDtos.KeyStatus status(UUID keyId) {
+        Row row = keys.findById(keyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No API key with id " + keyId));
+        ApiKeyDtos.KeyState state;
+        if (row.revokedAt() != null) {
+            state = ApiKeyDtos.KeyState.REVOKED;
+        } else if (row.appRevokedAt() != null) {
+            state = ApiKeyDtos.KeyState.APP_DISABLED;
+        } else if (row.expiresAt() != null && !row.expiresAt().isAfter(now())) {
+            state = ApiKeyDtos.KeyState.EXPIRED;
+        } else {
+            state = ApiKeyDtos.KeyState.ACTIVE;
+        }
+        return new ApiKeyDtos.KeyStatus(row.id(), row.appId(), row.ownerUid(), state,
+                ScopeCatalogue.permissionsFor(row.scopes()));
+    }
+
     private java.util.Optional<Row> lookup(String presented) {
         if (presented == null || presented.length() <= PREFIX_LENGTH || !presented.startsWith(KEY_PREFIX_TAG)
                 || presented.charAt(PREFIX_LENGTH) != '_') {
