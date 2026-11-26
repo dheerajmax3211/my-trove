@@ -65,7 +65,7 @@ describe('alerts inbox', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('a new alert appears in the inbox and the nav count, explained from its evidence, then is acknowledged', async () => {
+  it('a new alert appears in the inbox, explained from its evidence, then is acknowledged', async () => {
     const { mock, user } = await renderApp({ path: '/reminders' })
     await screen.findByRole('heading', { level: 1, name: 'Reminders' })
     mock.addAlert({

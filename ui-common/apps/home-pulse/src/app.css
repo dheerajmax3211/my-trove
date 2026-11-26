@@ -13,15 +13,6 @@
   white-space: nowrap;
 }
 
-.hp-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--pp-space-2);
-  font-family: var(--pp-font-display);
-  font-size: var(--pp-text-h4-size);
-  letter-spacing: -0.01em;
-}
-
 .hp-muted {
   color: var(--pp-color-text-muted);
 }
@@ -90,86 +81,6 @@ ul.hp-plain-list:not(.hp-stack-3) > li + li {
 }
 .hp-hint {
   margin-top: var(--pp-space-1);
-}
-
-/* ---- shell ---- */
-.hp-theme-select {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--pp-space-2);
-  font-size: var(--pp-text-body-small-size);
-}
-.hp-user-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--pp-space-2);
-  font-size: var(--pp-text-body-small-size);
-}
-.hp-nav-icon {
-  display: inline-flex;
-}
-.hp-nav-count {
-  margin-inline-start: auto;
-}
-@media (max-width: 639.98px) {
-  .hp-hide-sm {
-    display: none !important;
-  }
-}
-/* Phones: keep the top bar to menu, title, theme and sign out. */
-@media (max-width: 479.98px) {
-  .hp-hide-xs {
-    display: none !important;
-  }
-}
-
-/* ---- sign-in (standalone app only) ---- */
-.hp-signin {
-  min-height: 100dvh;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  background: var(--pp-color-canvas);
-}
-.hp-signin-pitch {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: var(--pp-space-5);
-  padding: var(--pp-space-12) var(--pp-space-10);
-  background: var(--pp-color-vault);
-  color: var(--pp-color-on-vault);
-}
-.hp-signin-pitch .hp-signin-keycut {
-  max-width: 12rem;
-  margin: 0;
-  color: var(--pp-color-vault-brass);
-}
-.hp-signin-pitch .hp-signin-promise {
-  max-width: 30ch;
-  margin: 0;
-  font-family: var(--pp-font-display);
-  font-size: var(--pp-text-h2-size);
-  line-height: 1.3;
-  color: var(--pp-color-on-vault);
-}
-.hp-signin-pitch .hp-brand {
-  color: var(--pp-color-on-vault);
-}
-.hp-signin-form {
-  display: grid;
-  place-items: center;
-  padding: var(--pp-space-8) var(--pp-space-6);
-}
-.hp-signin-card {
-  width: min(26rem, 100%);
-}
-@media (max-width: 859.98px) {
-  .hp-signin {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .hp-signin-pitch {
-    padding: var(--pp-space-8) var(--pp-space-6);
-  }
 }
 
 /* ---- home ---- */
@@ -700,13 +611,6 @@ ul.hp-plain-list:not(.hp-stack-3) > li + li {
   gap: var(--pp-space-3);
 }
 
-.hp-loading {
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  padding: var(--pp-space-6);
-}
-
 .hp-card-facts.hp-card-facts > div {
   grid-template-columns: 6.5rem minmax(0, 1fr);
   column-gap: var(--pp-space-3);
@@ -727,17 +631,6 @@ ul.hp-plain-list:not(.hp-stack-3) > li + li {
 .hp-compare-table th,
 .hp-compare-table td {
   padding-inline: var(--pp-space-1);
-}
-
-@media (max-width: 479.98px) {
-  .hp-brand {
-    font-size: var(--pp-text-body-size);
-    gap: var(--pp-space-1);
-    white-space: nowrap;
-  }
-  .hp-theme-select select {
-    max-width: 6.5rem;
-  }
 }
 
 .hp-table-scroll {

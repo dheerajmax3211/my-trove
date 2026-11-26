@@ -56,7 +56,7 @@ describe('first-run flow: add an appliance, connect a device, read the chart', (
     expect(await navigator.clipboard.readText()).toBe(token)
 
     const curl = within(tokenDialog).getByLabelText('curl example')
-    expect(curl).toHaveTextContent('https://hp.example.test/v1/ingest/readings')
+    expect(curl).toHaveTextContent('http://localhost:8080/api/home-pulse/v1/ingest/readings')
     expect(curl).toHaveTextContent(`Authorization: Bearer ${token}`)
     await user.click(within(tokenDialog).getByRole('tab', { name: 'MQTT' }))
     expect(within(tokenDialog).getByLabelText('MQTT example')).toHaveTextContent(

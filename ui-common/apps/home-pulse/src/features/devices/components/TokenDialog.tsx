@@ -1,7 +1,7 @@
 import { Button, Dialog, Input, Tabs, TabsContent, TabsList, TabsTrigger } from '@platform/ui'
 import { CopyButton } from '../../../components/CopyButton'
 import { useClock } from '../../../lib/clock'
-import { useIngestBaseUrl } from '../../../runtime'
+import { useIngestBaseUrl } from '../../../lib/ingest'
 import { ConnectSteps } from './ConnectSteps'
 import {
   curlSnippet,

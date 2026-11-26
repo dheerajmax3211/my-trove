@@ -13,7 +13,7 @@ function HomePulseProviders({ children }: { children: ReactNode }) {
   return <ClockProvider clock={systemClock}>{children}</ClockProvider>
 }
 
-/** The navigation, shared by the workspace sidebar and the standalone app's own sidebar. */
+/** The navigation the workspace sidebar shows for Home Pulse. */
 export const HOME_PULSE_NAV: ProductModule['nav'] = [
   { to: '/', label: 'Home', end: true, icon: HomeIcon },
   { to: '/alerts', label: 'Alerts', icon: BellIcon },

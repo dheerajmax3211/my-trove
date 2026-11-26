@@ -11,7 +11,7 @@ import {
   homeAssistantSnippet,
   ingestUrl,
 } from '../features/devices/snippets'
-import { gatewayIngestBaseUrl } from '../runtime'
+import { gatewayIngestBaseUrl } from '../lib/ingest'
 import { createMockApi } from '../mock/mockApi'
 import { renderApp } from '../test/setup'
 

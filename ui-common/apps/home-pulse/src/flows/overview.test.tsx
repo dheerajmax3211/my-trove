@@ -95,11 +95,10 @@ describe('home overview', () => {
     ).toBeInTheDocument()
   })
 
-  it('has the page landmarks: banner nav, main and one h1', async () => {
+  it('has one h1 inside main and sets the page title', async () => {
     await renderApp()
     await applianceCard('Kitchen fridge')
     expect(screen.getByRole('main')).toBeInTheDocument()
-    expect(screen.getAllByRole('navigation', { name: 'Primary' }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
     await waitFor(() => expect(document.title).toBe('Home - Home Pulse'))
   })

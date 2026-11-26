@@ -207,7 +207,7 @@ describe('home when the alert check fails', () => {
     expect(await screen.findByRole('region', { name: /need your attention/ })).toBeInTheDocument()
   })
 
-  it('opens the device page in the workspace, where there is no standalone runtime', async () => {
+  it('opens the device page in the workspace', async () => {
     const mock = createMockApi({ clock })
     const Routes = productModule.Routes
     render(
