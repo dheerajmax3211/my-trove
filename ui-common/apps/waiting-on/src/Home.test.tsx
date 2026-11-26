@@ -36,6 +36,20 @@ describe('home', () => {
     ).toBeInTheDocument()
   })
 
+  it('never shows a next step dated in the past: an overdue step reads "due now"', async () => {
+    renderApp()
+    await screen.findByRole('heading', { name: /Recently closed/ })
+    const lines = [...document.querySelectorAll('.wo-card-next')].filter((p) =>
+      p.textContent?.startsWith('Next:'),
+    )
+    expect(lines.length).toBeGreaterThan(0)
+    for (const line of lines) {
+      const time = line.querySelector('time')
+      if (time) expect(new Date(time.dateTime).getTime()).toBeGreaterThan(NOW.getTime())
+      else expect(line).toHaveTextContent(/due now$/)
+    }
+  })
+
   it('shows the all-clear state when nothing is open but earlier items exist', async () => {
     const closedOnly = demoSeed(NOW).filter((e) =>
       ['RESOLVED', 'EXPIRED', 'CANCELLED'].includes(e.item.status),

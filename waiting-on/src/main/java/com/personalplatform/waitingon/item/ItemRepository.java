@@ -65,6 +65,15 @@ public class ItemRepository {
         return dsl.selectFrom(ITEMS).where(ITEMS.REPLY_TOKEN.eq(token)).fetchOptional(ItemRepository::map);
     }
 
+    /** System use only (follow-up reconciler): active items of every owner, in id order, one page after {@code afterId}. */
+    public List<WaitingItem> listActive(UUID afterId, int limit) {
+        Condition c = ITEMS.STATUS.in(ItemStatus.ACTIVE.stream().map(Enum::name).toList());
+        if (afterId != null) {
+            c = c.and(ITEMS.ID.gt(afterId));
+        }
+        return dsl.selectFrom(ITEMS).where(c).orderBy(ITEMS.ID.asc()).limit(limit).fetch(ItemRepository::map);
+    }
+
     public List<WaitingItem> list(String ownerUid, Collection<ItemStatus> statuses, int limit, int offset) {
         Condition c = ITEMS.OWNER_UID.eq(ownerUid);
         if (statuses != null && !statuses.isEmpty()) {

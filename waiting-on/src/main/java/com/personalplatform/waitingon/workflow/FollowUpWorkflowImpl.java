@@ -59,27 +59,34 @@ public class FollowUpWorkflowImpl implements FollowUpWorkflow {
     public FollowUpResult run(FollowUpInput input) {
         UUID itemId = input.itemId();
         EscalationPlan plan = input.plan();
-        startMillis = Workflow.currentTimeMillis();
+        // A restarted workflow (see FollowUpReconciler) keeps the item's original dates and skips what already ran.
+        startMillis = input.anchorMillis() != null ? input.anchorMillis() : Workflow.currentTimeMillis();
+        Stage resumeAt = input.resumeAt() != null ? input.resumeAt() : Stage.AWAITING_NUDGE;
+        stage = resumeAt;
 
-        if (!waitFor(NextAction.NUDGE, plan.nudgeAfterDays(), true)) {
-            return finish(itemId);
+        if (resumeAt.ordinal() < Stage.NUDGED.ordinal()) {
+            if (!waitFor(NextAction.NUDGE, plan.nudgeAfterDays(), true)) {
+                return finish(itemId);
+            }
+            if (!escalateNow) { // a refusal skips the friendly reminder
+                if (runStep(activities::sendNudge, itemId) == StepResult.ITEM_CLOSED) {
+                    return externallyClosed();
+                }
+                stage = Stage.NUDGED;
+            }
         }
-        if (!escalateNow) { // a refusal skips the friendly reminder
-            if (runStep(activities::sendNudge, itemId) == StepResult.ITEM_CLOSED) {
+
+        if (resumeAt.ordinal() < Stage.ESCALATED.ordinal()) {
+            if (!waitFor(NextAction.ESCALATE, plan.escalateAfterDays(), true)) {
+                return finish(itemId);
+            }
+            if (runStep(activities::draftEscalation, itemId) == StepResult.ITEM_CLOSED) {
                 return externallyClosed();
             }
-            stage = Stage.NUDGED;
+            stage = Stage.ESCALATED;
         }
 
-        if (!waitFor(NextAction.ESCALATE, plan.escalateAfterDays(), true)) {
-            return finish(itemId);
-        }
-        if (runStep(activities::draftEscalation, itemId) == StepResult.ITEM_CLOSED) {
-            return externallyClosed();
-        }
-        stage = Stage.ESCALATED;
-
-        if (plan.hasFinalNotice()) {
+        if (plan.hasFinalNotice() && resumeAt.ordinal() < Stage.FINAL_NOTICE.ordinal()) {
             if (!waitFor(NextAction.FINAL_NOTICE, plan.finalNoticeAfterDays(), false)) {
                 return finish(itemId);
             }

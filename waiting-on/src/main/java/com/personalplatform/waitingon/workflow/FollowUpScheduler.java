@@ -27,4 +27,13 @@ public interface FollowUpScheduler {
 
     /** Current stage and next action time, if the workflow exists and Temporal answers. */
     Optional<FollowUpState> state(UUID itemId);
+
+    /**
+     * Restarts the workflow of an active item that Temporal no longer knows (its history was lost, for example a dev
+     * server restarted without persistence), resuming at {@code resumeAt} on the item's original dates. Returns true
+     * when a workflow was started. Schedulers without durable workflows do nothing.
+     */
+    default boolean resumeIfMissing(WaitingItem item, Stage resumeAt) {
+        return false;
+    }
 }

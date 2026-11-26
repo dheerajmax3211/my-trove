@@ -5,6 +5,7 @@ import com.personalplatform.waitingon.item.WaitingItem;
 import com.personalplatform.waitingon.reply.ReplyOutcome;
 import com.personalplatform.waitingon.workflow.FollowUpInput;
 import com.personalplatform.waitingon.workflow.FollowUpScheduler;
+import com.personalplatform.waitingon.workflow.Stage;
 import com.personalplatform.waitingon.workflow.FollowUpState;
 import com.personalplatform.waitingon.workflow.FollowUpWorkflow;
 import io.temporal.client.WorkflowClient;
@@ -42,6 +43,24 @@ public class TemporalFollowUpScheduler implements FollowUpScheduler {
             LOG.info("Workflow for item {} already started", item.id());
         } catch (RuntimeException e) {
             throw new FollowUpUnavailableException("Could not start follow-up workflow", e);
+        }
+    }
+
+    @Override
+    public boolean resumeIfMissing(WaitingItem item, Stage resumeAt) {
+        if (state(item.id()).isPresent()) {
+            return false; // running, or closed but still known to Temporal
+        }
+        FollowUpWorkflow wf = client.newWorkflowStub(FollowUpWorkflow.class, WorkflowOptions.newBuilder()
+                .setWorkflowId(FollowUpWorkflow.workflowIdFor(item.id()))
+                .setTaskQueue(taskQueue)
+                .build());
+        try {
+            WorkflowClient.start(wf::run, new FollowUpInput(item.id(), item.plan(),
+                    item.createdAt().toInstant().toEpochMilli(), resumeAt));
+            return true;
+        } catch (WorkflowExecutionAlreadyStarted e) {
+            return false; // another instance resumed it first
         }
     }
 

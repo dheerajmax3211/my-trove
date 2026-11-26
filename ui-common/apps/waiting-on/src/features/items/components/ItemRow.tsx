@@ -29,10 +29,12 @@ function NextStep({ item }: { item: Item }) {
   const now = useClock()()
   const next = estimateNextStep(item, now)
   if (!next) return null
+  // A step whose date has passed is about to run (the follow-up service picks it up), never "next" in the past.
+  const due = next.at.getTime() <= now.getTime()
   return (
     <p className="wo-card-next">
       Next: <strong>{NEXT_ACTION_LABEL[next.action].toLowerCase()}</strong>{' '}
-      <time dateTime={next.at.toISOString()}>around {formatDate(next.at)}</time>
+      {due ? 'due now' : <time dateTime={next.at.toISOString()}>around {formatDate(next.at)}</time>}
     </p>
   )
 }

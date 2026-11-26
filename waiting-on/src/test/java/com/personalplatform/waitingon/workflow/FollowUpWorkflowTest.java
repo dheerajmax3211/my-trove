@@ -129,6 +129,51 @@ class FollowUpWorkflowTest {
                 .filter(e -> e.getEventType() == type).count();
     }
 
+    /** Starts a workflow the way FollowUpReconciler restarts a lost one. */
+    private FollowUpWorkflow resume(EscalationPlan plan, long anchorMillis, Stage at) {
+        FollowUpWorkflow wf = client.newWorkflowStub(FollowUpWorkflow.class, WorkflowOptions.newBuilder()
+                .setWorkflowId(FollowUpWorkflow.workflowIdFor(itemId)).setTaskQueue(QUEUE).build());
+        startedAt = anchorMillis;
+        WorkflowClient.start(wf::run, new FollowUpInput(itemId, plan, anchorMillis, at));
+        return wf;
+    }
+
+    // ---------------------------------------------------------------- resuming a lost workflow
+
+    @Test
+    void aResumedWorkflowSkipsStepsAlreadyTakenAndKeepsTheOriginalDates() {
+        // The item was created 5 days ago and already nudged; Temporal lost the workflow.
+        FollowUpWorkflow wf = resume(PLAN, env.currentTimeMillis() - 5 * DAY, Stage.NUDGED);
+        await(wf);
+
+        assertThat(activities.names()).containsExactly("draftEscalation", "sendFinalNotice", "closeItem");
+        assertAtDay(activities.call("draftEscalation"), 10);
+        assertAtDay(activities.call("sendFinalNotice"), 21);
+        assertAtDay(activities.call("closeItem"), 45);
+    }
+
+    @Test
+    void aResumedWorkflowRunsOverdueStepsAtOnceInsteadOfWaitingAgain() {
+        // Created 12 days ago, never nudged (the workflow was lost before day 3): nudge and escalation are both due.
+        long now = env.currentTimeMillis();
+        FollowUpWorkflow wf = resume(PLAN, now - 12 * DAY, Stage.AWAITING_NUDGE);
+        await(wf);
+
+        assertThat(activities.names()).containsExactly("sendNudge", "draftEscalation", "sendFinalNotice", "closeItem");
+        assertThat(activities.call("sendNudge").atMillis() - now).isLessThan(Duration.ofSeconds(30).toMillis());
+        assertThat(activities.call("draftEscalation").atMillis() - now).isLessThan(Duration.ofSeconds(30).toMillis());
+        assertAtDay(activities.call("sendFinalNotice"), 21);
+    }
+
+    @Test
+    void aResumedWorkflowPastTheFinalNoticeOnlyWaitsToExpire() {
+        FollowUpWorkflow wf = resume(PLAN, env.currentTimeMillis() - 30 * DAY, Stage.FINAL_NOTICE);
+        await(wf);
+
+        assertThat(activities.names()).containsExactly("closeItem");
+        assertAtDay(activities.call("closeItem"), 45);
+    }
+
     // ---------------------------------------------------------------- the schedule
 
     @Test
