@@ -2,6 +2,8 @@ package com.personalplatform.mcp.server;
 
 import com.personalplatform.mcp.tools.Caller;
 import com.personalplatform.mcp.tools.Downstream.DownstreamException;
+import com.personalplatform.mcp.tools.OwnerDelegation;
+import com.personalplatform.mcp.tools.OwnerDelegation.DelegationException;
 import com.personalplatform.mcp.tools.ToolInputException;
 import com.personalplatform.mcp.tools.TroveTool;
 import io.modelcontextprotocol.common.McpTransportContext;
@@ -19,9 +21,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Turns each {@link TroveTool} into an SDK tool specification and puts the consent checks in front of it:
- * the caller's token must carry the tool's product permission, and the caller must be a person (an API key's
- * service token does not act as its owner, so it has no product data to read). Both refusals are tool errors.
+ * Turns each {@link TroveTool} into an SDK tool specification and puts the consent checks in front of it: the
+ * caller's token must carry the tool's product permission. A person's call goes to the tool with their own token. An
+ * API key's call (its service token must carry the permission too, so a key without the scope never gets further) is
+ * first turned into its owner through auth's delegated-token endpoint, and the delegated token, which holds only what
+ * both the owner and the key hold, must carry the permission as well. Every refusal is a tool error.
  */
 @Component
 public class ToolRegistry {
@@ -32,9 +36,11 @@ public class ToolRegistry {
     private static final Logger log = LoggerFactory.getLogger(ToolRegistry.class);
 
     private final List<TroveTool> tools;
+    private final OwnerDelegation delegation;
 
-    public ToolRegistry(List<TroveTool> tools) {
+    public ToolRegistry(List<TroveTool> tools, OwnerDelegation delegation) {
         this.tools = List.copyOf(tools);
+        this.delegation = delegation;
     }
 
     public Set<String> names() {
@@ -69,14 +75,27 @@ public class ToolRegistry {
                     "This tool needs the permission '" + tool.requiredPermission() + "', which your token does not carry.",
                     Map.of("requiredPermission", tool.requiredPermission()));
         }
+        Caller actor = caller;
         if (caller.type() == Caller.Type.API_KEY) {
-            return ToolErrors.error(ToolErrors.API_KEY_NOT_SUPPORTED,
-                    "API keys can connect and list tools, but cannot read personal product data: a key's token does not "
-                            + "act as its owner. Sign in as yourself to use this tool.");
+            try {
+                actor = delegation.delegate(caller);
+            } catch (DelegationException e) {
+                return e.refused()
+                        ? ToolErrors.error(ToolErrors.DELEGATION_REFUSED, e.getMessage(),
+                                e.reason() == null ? Map.of() : Map.of("reason", e.reason()))
+                        : ToolErrors.error(ToolErrors.UNAVAILABLE, e.getMessage() + "; try again shortly.");
+            }
+            // The owner may lack the permission the key carries: the delegated token holds only what both hold.
+            if (!actor.permissions().contains(tool.requiredPermission())) {
+                return ToolErrors.error(ToolErrors.FORBIDDEN,
+                        "This tool needs the permission '" + tool.requiredPermission()
+                                + "', which the key's owner does not hold.",
+                        Map.of("requiredPermission", tool.requiredPermission()));
+            }
         }
         try {
             Map<String, Object> args = request.arguments() == null ? Map.of() : request.arguments();
-            TroveTool.ToolOutput out = tool.call(args, caller);
+            TroveTool.ToolOutput out = tool.call(args, actor);
             return CallToolResult.builder()
                     .addTextContent(out.text())
                     .structuredContent(out.structured())

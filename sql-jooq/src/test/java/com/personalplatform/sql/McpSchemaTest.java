@@ -61,6 +61,30 @@ class McpSchemaTest {
     }
 
     @Test
+    void anApiKeyRowRecordsTheAppAndTheOwnerItActsFor() throws Exception {
+        try (Connection c = dataSource.getConnection()) {
+            DSLContext dsl = DSL.using(c, SQLDialect.POSTGRES);
+            UUID id = UuidV7.next();
+            dsl.insertInto(TOOL_CALLS)
+                    .set(TOOL_CALLS.ID, id)
+                    .set(TOOL_CALLS.PRINCIPAL_TYPE, "API_KEY")
+                    .set(TOOL_CALLS.PRINCIPAL_ID, "app:0190f0a0-0000-7000-8000-0000000000aa")
+                    .set(TOOL_CALLS.ON_BEHALF_OF, "0190f0a0-0000-7000-8000-000000000001")
+                    .set(TOOL_CALLS.TOOL, "waiting_on_list_followups")
+                    .set(TOOL_CALLS.ARGUMENTS_HASH, "0".repeat(64))
+                    .set(TOOL_CALLS.RESULT_BYTES, 10)
+                    .set(TOOL_CALLS.OUTCOME, "OK")
+                    .set(TOOL_CALLS.DURATION_MS, 3)
+                    .execute();
+            var row = dsl.fetchOne(TOOL_CALLS, TOOL_CALLS.ID.eq(id));
+            assertThat(row.getPrincipalId()).isEqualTo("app:0190f0a0-0000-7000-8000-0000000000aa");
+            assertThat(row.getOnBehalfOf()).isEqualTo("0190f0a0-0000-7000-8000-000000000001");
+            assertThat(dsl.fetchOne(TOOL_CALLS, TOOL_CALLS.ID.eq(insert(dsl, "OK"))).getOnBehalfOf())
+                    .as("a person calling for themselves").isNull();
+        }
+    }
+
+    @Test
     void generatedTablesMatchTheDatabase() throws Exception {
         try (Connection c = dataSource.getConnection()) {
             DSLContext dsl = DSL.using(c, SQLDialect.POSTGRES);
