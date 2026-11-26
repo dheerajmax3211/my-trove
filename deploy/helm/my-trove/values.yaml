@@ -77,6 +77,7 @@ services:
   digital-legacy:   { module: digital-legacy,   port: 8087, managementPort: 9087, replicas: 1, env: {} }
   family-treasury:  { module: family-treasury,  port: 8088, managementPort: 9088, replicas: 1, env: {} }
   platform-service: { module: platform-service, port: 8089, managementPort: 9089, replicas: 1, env: {} }
+  mcp-server:       { module: mcp-server,       port: 8090, managementPort: 9090, replicas: 1, env: {} }
 
 resources:
   backend:

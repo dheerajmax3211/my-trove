@@ -11,7 +11,7 @@ STATE="$ROOT/dev/.state"
 mkdir -p "$STATE/logs" "$STATE/pids" "$STATE/blobs"
 
 # service:port, in start order
-ALL=(auth:8081 platform-service:8089 shared-service:8082 waiting-on:8083 consent-gateway:8084 home-pulse:8085 ask-your-life:8086 digital-legacy:8087 family-treasury:8088 gateway:8080)
+ALL=(auth:8081 platform-service:8089 shared-service:8082 waiting-on:8083 consent-gateway:8084 home-pulse:8085 ask-your-life:8086 digital-legacy:8087 family-treasury:8088 mcp-server:8090 gateway:8080)
 
 secret() { # secret <name>: a random value, created once and reused so restarts keep working
   local f="$STATE/$1"
@@ -73,6 +73,8 @@ wanted=("$@")
 for entry in "${ALL[@]}"; do
   name="${entry%%:*}"
   export MANAGEMENT_PORT=$(( ${entry##*:} + 1000 ))
+  # mcp-server's management port is 9090 in containers, but on this host the dev Prometheus already publishes 9090.
+  if [ "$name" = mcp-server ]; then export MANAGEMENT_PORT=9190; fi
   if [ ${#wanted[@]} -gt 0 ] && [[ ! " ${wanted[*]} " =~ " $name " ]]; then continue; fi
   jar="$(ls "$ROOT/$name"/target/*-SNAPSHOT.jar 2>/dev/null | head -1 || true)"
   [ -n "$jar" ] || { echo "no jar for $name: run ./mvnw -DskipTests package" >&2; exit 1; }

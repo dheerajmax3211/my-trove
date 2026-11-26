@@ -43,7 +43,7 @@ helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 - { name: GATEWAY_METERING_KAFKA_BOOTSTRAP_SERVERS, value: {{ $v.common.kafkaBootstrapServers | quote }} }
 # Service URIs use map keys with dashes, which environment variables cannot express; JSON keeps them intact.
 - name: SPRING_APPLICATION_JSON
-  value: {{ dict "gateway" (dict "cors" (dict "allowed-origins" (list $v.urls.workspace $v.urls.site)) "services" (dict "auth" (dict "uri" "http://auth:8081") "shared" (dict "uri" "http://shared-service:8082") "waiting-on" (dict "uri" "http://waiting-on:8083") "consent" (dict "uri" "http://consent-gateway:8084") "home-pulse" (dict "uri" "http://home-pulse:8085") "ask-your-life" (dict "uri" "http://ask-your-life:8086") "digital-legacy" (dict "uri" "http://digital-legacy:8087") "family-treasury" (dict "uri" "http://family-treasury:8088") "platform" (dict "uri" "http://platform-service:8089"))) | toJson | quote }}
+  value: {{ dict "gateway" (dict "cors" (dict "allowed-origins" (list $v.urls.workspace $v.urls.site)) "services" (dict "auth" (dict "uri" "http://auth:8081") "shared" (dict "uri" "http://shared-service:8082") "waiting-on" (dict "uri" "http://waiting-on:8083") "consent" (dict "uri" "http://consent-gateway:8084") "home-pulse" (dict "uri" "http://home-pulse:8085") "ask-your-life" (dict "uri" "http://ask-your-life:8086") "digital-legacy" (dict "uri" "http://digital-legacy:8087") "family-treasury" (dict "uri" "http://family-treasury:8088") "platform" (dict "uri" "http://platform-service:8089") "mcp" (dict "uri" "http://mcp-server:8090"))) | toJson | quote }}
 {{- end }}
 {{- if eq .name "auth" }}
 - name: APP_PLATFORM_KEY_ENCRYPTION_KEY
@@ -80,6 +80,13 @@ helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 - name: CONSENT_KEY_ENCRYPTION_KEY
   valueFrom: { secretKeyRef: { name: {{ $secret }}, key: CONSENT_KEY_ENCRYPTION_KEY } }
 - { name: CONSENT_ISSUER, value: {{ $v.urls.consentIssuer | quote }} }
+{{- end }}
+{{- if eq .name "mcp-server" }}
+# Tools call the product services directly with the caller's platform token.
+- { name: WAITING_ON_URL, value: "http://waiting-on:8083" }
+- { name: ASK_YOUR_LIFE_URL, value: "http://ask-your-life:8086" }
+- { name: HOME_PULSE_URL, value: "http://home-pulse:8085" }
+- { name: FAMILY_TREASURY_URL, value: "http://family-treasury:8088" }
 {{- end }}
 {{- if eq .name "digital-legacy" }}
 - { name: LEGACY_TRUSTEE_PORTAL_URL, value: {{ $v.urls.workspace | quote }} }

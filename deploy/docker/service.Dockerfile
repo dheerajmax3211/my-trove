@@ -4,7 +4,7 @@
 #   docker build -f deploy/docker/service.Dockerfile --build-arg MODULE=gateway -t my-trove/gateway .
 #
 # MODULE is the Maven module folder (gateway, auth, platform-service, shared-service, waiting-on, consent-gateway,
-# home-pulse, ask-your-life, digital-legacy, family-treasury).
+# home-pulse, ask-your-life, digital-legacy, family-treasury, mcp-server).
 # Pinned to a tag published for both amd64 (CI, most clusters) and arm64 (Apple silicon, Graviton).
 ARG JRE_IMAGE=eclipse-temurin:21.0.13_9-jre-noble
 

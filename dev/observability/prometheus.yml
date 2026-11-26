@@ -64,3 +64,10 @@ scrape_configs:
       - targets: ["host.docker.internal:9089"]
         labels:
           application: platform-service
+  - job_name: mcp-server
+    metrics_path: /actuator/prometheus
+    static_configs:
+      # dev/up.sh moves mcp-server's management port to 9190: Prometheus itself publishes 9090 on the host.
+      - targets: ["host.docker.internal:9190"]
+        labels:
+          application: mcp-server
