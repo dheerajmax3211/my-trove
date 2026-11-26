@@ -204,3 +204,58 @@ export function snippetFor(text: string, highlight: ReadonlySet<string>): string
     .join('')
   return `${start > 0 ? '… ' : ''}${body.trim()}${start + 220 < text.length ? ' …' : ''}`
 }
+
+/** Sentences of a passage: after . ! ? followed by whitespace, and at every line break. */
+export function sentencesOf(text: string): string[] {
+  return text
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((s) => s.trim())
+    .filter((s) => /[\p{L}\p{N}]/u.test(s))
+}
+
+export interface AnswerSentence {
+  text: string
+  passage: Passage
+}
+
+const ANSWER_MIN_SCORE = 0.3
+
+/**
+ * Extractive answer like the service's AnswerExtractor: the best sentence of the top three passages by
+ * similarity to the question (concept-aware here) plus a word-overlap bonus, minus a little per rank; a second
+ * sentence joins when it scores almost as well. Null when nothing clears the bar.
+ */
+export function answerFor(
+  q: string,
+  top: readonly Passage[],
+): { sentences: AnswerSentence[]; score: number } | null {
+  const queryVector = vector(q)
+  const queryStems = new Set(
+    words(q)
+      .filter((w) => !STOPWORDS.has(w))
+      .map(stem),
+  )
+  const scored = top.slice(0, 3).flatMap((passage, rankIndex) =>
+    sentencesOf(passage.text).map((text) => {
+      const stems = new Set(words(text).map(stem))
+      const overlap =
+        queryStems.size === 0
+          ? 0
+          : [...queryStems].filter((s) => stems.has(s)).length / queryStems.size
+      const score =
+        0.5 * cosine(queryVector, vector(text)) +
+        0.5 * cosine(queryVector, vector(passage.text)) +
+        0.15 * overlap -
+        0.05 * rankIndex
+      return { sentence: { text, passage }, score }
+    }),
+  )
+  scored.sort((a, b) => b.score - a.score)
+  const best = scored[0]
+  if (!best || best.score < ANSWER_MIN_SCORE) return null
+  const second = scored[1]
+  const sentences = [best.sentence]
+  if (second && second.score >= ANSWER_MIN_SCORE && best.score - second.score <= 0.05)
+    sentences.push(second.sentence)
+  return { sentences, score: Math.round(best.score * 1000) / 1000 }
+}

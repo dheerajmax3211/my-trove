@@ -12,7 +12,7 @@ function matchedBy(hit: SearchHit, mode: SearchMode): string[] {
   const meaning = mode !== 'keyword' && hit.explain?.semanticRank != null
   return [
     ...(keyword ? ['Has your words'] : []),
-    ...(meaning ? ['Similar wording (stand-in)'] : []),
+    ...(meaning ? ['Similar meaning'] : []),
   ]
 }
 

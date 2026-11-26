@@ -35,11 +35,34 @@ export interface SearchDebug {
   candidatePool: number
 }
 
+/** One sentence quoted verbatim from a document, with where it comes from. */
+export interface AnswerCitation {
+  text: string
+  documentId: string
+  title: string
+  sourceType: SourceType
+  chunkId: string
+  /** 0-based passage index within the document. */
+  chunkOrdinal: number
+}
+
+/**
+ * Extractive answer: the best-matching sentence(s) of the top results, quoted, never generated. Absent when no
+ * sentence matches well enough.
+ */
+export interface SearchAnswer {
+  /** The cited sentences joined by a space. Plain text: render as text, never as HTML. */
+  text: string
+  sentences: AnswerCitation[]
+  score: number
+}
+
 export interface SearchResponse {
   query: string
   /** The backend echoes the enum name, upper case. */
   mode: string
   k: number
+  answer?: SearchAnswer | null
   hits: SearchHit[]
   debug?: SearchDebug | null
 }

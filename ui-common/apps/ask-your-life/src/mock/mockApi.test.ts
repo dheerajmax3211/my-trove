@@ -112,4 +112,21 @@ describe('mock API honours the backend contract', () => {
     expect(hit?.explain).toBeDefined()
     expect((await call('/v1/search?q=emphasis')).body?.hits[0]?.explain).toBeUndefined()
   })
+
+  it('search returns an extractive answer quoted from the top passage, with its citation', async () => {
+    const { call } = client()
+    const response = await call('/v1/search?q=when+is+the+rent+due')
+    const body = response.body as unknown as {
+      answer?: { text: string; sentences: { title: string; chunkOrdinal: number; text: string }[] }
+    }
+    expect(body.answer?.sentences[0]?.text).toBe('Monthly rent is $1,850, due on the first of the month.')
+    expect(body.answer?.sentences[0]?.title).toBe('Apartment lease: 14 Elm Street')
+    expect(body.answer?.text).toContain('Monthly rent is $1,850')
+    const off = (await call('/v1/search?q=when+is+the+rent+due&answer=false')).body as unknown as {
+      answer?: unknown
+    }
+    expect(off.answer).toBeUndefined()
+    const none = (await call('/v1/search?q=zebra+crossing')).body as unknown as { answer?: unknown }
+    expect(none.answer).toBeUndefined()
+  })
 })

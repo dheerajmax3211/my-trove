@@ -114,8 +114,15 @@ text, including escaped `&lt;mark&gt;`.
 - Real: the typed API layer, request shapes, error handling (`ApiError`), polling, caching and invalidation.
 - Mocked in demo mode (`src/mock/`): the whole service. It reproduces the contract (paths, 202/200 outcomes, 400,
   401, 404, 409, 413 and 415 problem+json bodies, PENDING to INDEXED lifecycle, `<mark>` snippets, debug ranks), but
-  its search is a small stand-in: stemmed keyword matching, a hand-written concept list for "semantic" and
-  reciprocal rank fusion with k = 60. It says nothing about real relevance.
+  its search is a small imitation: stemmed keyword matching, a hand-written concept list for "semantic",
+  reciprocal rank fusion with k = 60, and a quoted `answer` picked the same way the service picks it (best sentence of
+  the top three passages). It says nothing about real relevance; the real service runs a local Model2Vec model.
+
+### The quoted answer
+
+`SearchResponse.answer` (when present) is shown above the results by `features/search/components/AnswerCard.tsx` as
+"From your documents", each sentence quoted verbatim with a link to its document and passage number, and a note that
+it is quoted, not written by an AI. It is plain text, rendered as React text nodes.
 
 ## Honest limitations
 

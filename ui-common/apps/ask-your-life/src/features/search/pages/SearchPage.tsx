@@ -15,6 +15,7 @@ import {
   stateFromParams,
   type SearchState,
 } from '../api/searchApi'
+import { AnswerCard } from '../components/AnswerCard'
 import { FirstUse } from '../components/FirstUse'
 import { Filters } from '../components/Filters'
 import { IdleHome } from '../components/IdleHome'
@@ -119,6 +120,7 @@ export function SearchPage() {
   else if (search.data)
     body = (
       <section aria-labelledby="results-heading">
+        {search.data.answer ? <AnswerCard answer={search.data.answer} /> : null}
         <h2 id="results-heading" className="ayl-results-heading" aria-live="polite">
           {search.data.hits.length === 1 ? '1 result' : `${search.data.hits.length} results`} for{' '}
           &quot;{state.q.trim()}&quot;
