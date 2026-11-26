@@ -2,10 +2,10 @@
 
 Predictive maintenance for the home. Smart plugs and ESP32 sensors report the power draw of appliances (fridge,
 air conditioner, water pump, washing machine). The `home-pulse` service learns each appliance's normal pattern and
-raises alerts before something fails. This app is the owner's view: add appliances, connect devices, read the
+raises alerts before something fails. This module is the owner's view: add appliances, connect devices, read the
 power charts, and act on alerts and reminders.
 
-Dev port **5184**. Backend: `personal-platform/home-pulse` (Spring Boot, port 8085).
+The workspace mounts it at `/app/home-pulse`. Backend: `personal-platform/home-pulse` (Spring Boot, port 8085).
 
 ## Screens
 
@@ -44,35 +44,22 @@ Hand-written SVG, no chart library (`src/features/readings`):
 
 ## Run it
 
-Demo mode (default, zero setup): stub sign-in (starts signed in) and an in-memory mock API.
+This package has no app or dev server of its own: the workspace mounts it at `/app/home-pulse`.
 
-```bash
-pnpm install
-pnpm --filter @platform/home-pulse dev        # http://localhost:5184
+```
+dev/web.sh workspace     # http://localhost:5190/app/home-pulse; add ?demo=1 for the in-memory mock (no backend)
 ```
 
-Against the real backend (service on 8085, Firebase Auth or its emulator):
-
-```bash
-# apps/home-pulse/.env.local
-VITE_FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099   # or VITE_FIREBASE_API_KEY + VITE_FIREBASE_PROJECT_ID
-pnpm --filter @platform/home-pulse dev
-```
-
-The dev server proxies `/api/*` to `http://localhost:8085/*` (the `/api` prefix is stripped, the service serves
-`/v1/...`). Set `VITE_API_BASE_URL` to call a service directly (it then needs CORS for this origin).
-
-| Variable                                              | Meaning                                                                            |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `VITE_USE_MOCK=true`                                  | Force demo mode even when Firebase is configured                                   |
-| `VITE_API_BASE_URL`                                   | Service base URL. Default `/api` (dev proxy)                                       |
-| `VITE_FIREBASE_*`, `VITE_FIREBASE_AUTH_EMULATOR_HOST` | Firebase Auth. Setting key + project id, or the emulator host, turns demo mode off |
-
-Checks, from the monorepo root: `pnpm lint && pnpm typecheck && pnpm test && pnpm --filter "@platform/home-pulse..." build`.
+Live mode needs the dev stack (`dev/up.sh`, gateway on :8080): the workspace's API client calls
+`<gateway>/api/home-pulse/v1/...`. Sign-in and `VITE_*` configuration belong to the workspace (`apps/workspace`).
+Device setup snippets show the ingest URL `<VITE_API_BASE_URL>/home-pulse` (default
+`http://localhost:8080/api/home-pulse`, `src/lib/ingest.ts`). `e2e/manual-readings.mjs` drives the workspace.
+Checks, from `ui-common`: `pnpm lint && pnpm typecheck && pnpm test`; the module is bundled by
+`pnpm --filter @platform/workspace build`.
 
 ## Mocked vs real
 
-Demo mode replaces the whole backend with `src/mock/mockApi.ts`, which follows the real owner API contract: same
+The workspace's demo mode (and every test) replaces the whole backend with `src/mock/mockApi.ts`, which follows the real owner API contract: same
 paths, status codes, Spring `ProblemDetail` error bodies, validation messages (`name must not be blank; type must
 not be null`), the 409 on a second active device, 409 when acknowledging a resolved alert, 404 for unknown ids,
 the reading resolution rules (raw up to 1 h, 1 min up to 2 d, 1 h up to 60 d, else 1 day; 400 days and 5000 points
@@ -93,16 +80,15 @@ part of this UI and not mocked.
   ("Kitchen fridge draws 14% more power than its normal while running"); if the evidence is missing or malformed it
   falls back to the service's own message.
 - Server validation errors (`field message; field message`) are mapped back onto form fields.
-- Alerts and health refresh every 60 seconds; cards and the nav count update after acknowledging.
+- Alerts and health refresh every 60 seconds; cards update after acknowledging.
 
 ## Limitations
 
 - Visual design was checked in the DOM and in tests only, not by eye in a browser or on a phone; contrast comes from
-  the platform tokens. Responsive CSS exists (cards reflow, drawer nav from AppShell) but was not looked at at 375px.
+  the platform tokens. Responsive CSS exists (cards reflow) but was not looked at at 375px by these tests.
 - Real-backend mode was not run end to end (no Firebase project or database here); the API layer is verified against
   the controller code and the mock, which is built from it.
 - Times use the browser's locale and time zone. Tests pin UTC and assert locale-independent wording.
 - "Current draw" is the latest one-minute reading from the last 15 minutes (the service has no live value); a
   quiet appliance shows "No recent reading".
 - The device list is assembled from one request per appliance (the service lists devices per appliance).
-- The production bundle is one ~620 kB chunk (Firebase included); no code splitting yet.

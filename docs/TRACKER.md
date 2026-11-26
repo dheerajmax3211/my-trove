@@ -85,7 +85,7 @@ Audit, things that exist but do nothing useful for a real user (fix order):
 7. Ask Your Life: "semantic" search is a hashing stand-in, no answers. FIX: Phase 4 (real embeddings + LLM answers).
 8. Feature flags: nothing reads them. FIX: wire two real flags into the workspace or label as developer-only.
 9. DEVELOPER persona has no screens until Phase 3. 
-10. Seven standalone product apps duplicate the workspace; large mock backends duplicate real ones. DECIDE: keep as demo mode or retire.
+10. Seven standalone product apps duplicate the workspace; large mock backends duplicate real ones. DONE (2026-11-26, brief 85): the standalone shells are retired; every product is a workspace module, the trustee portal is served by the workspace at `/trustee`, and the mocks stay for the workspace's `?demo=1` mode and the tests.
 11. Promo/decorative cards that promote nothing (being removed by the redesign agents under the NO POINTLESS UI rule).
 
 ## Phase 3: Developer platform

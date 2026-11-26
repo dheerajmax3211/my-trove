@@ -48,7 +48,7 @@ for (const key of wanted) {
   if (!persona) throw new Error(`unknown persona ${key}`);
   const context = await newContext(browser, { width: 390 });
   const page = await context.newPage();
-  await signInAs(page, BASE, persona, "chooser");
+  await signInAs(page, BASE, persona);
   for (const route of ROUTES) {
     const errors = collectErrors(page);
     await page.goto(`${BASE}${route}`, { waitUntil: "domcontentloaded" });

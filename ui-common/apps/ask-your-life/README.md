@@ -2,14 +2,14 @@
 
 One private search box across your own notes, documents and receipts. The service behind it
 (`personal-platform/ask-your-life`, port 8086) runs a hybrid of keyword and semantic search and keeps every
-user's content isolated; this app is its web front end.
+user's content isolated; this module is its web front end inside the workspace.
 
 ## In the workspace
 
-The app is also a workspace module (`src/module.tsx`, exported as `@platform/ask-your-life/module`). The workspace
+The product is a workspace module (`src/module.tsx`, exported as `@platform/ask-your-life/module`). The workspace
 mounts `productModule.Routes` under `/app/ask-your-life`, wraps it in `productModule.Providers`, and gives it an API
 client bound to `<gateway>/api/ask-your-life` with its own query cache. Every link goes through `ModuleLink` /
-`useModuleNavigate`, so the same screens work at the root (standalone) and under the base. The module adds a
+`useModuleNavigate`, so the screens work under any base. The module adds a
 Today feed (`useTodayItems`: documents that failed to index or are still indexing, each linking to the library) and
 `createDemoFetch` (the in-memory mock API below, which answers both `/api/v1/...` and `/api/ask-your-life/v1/...`).
 Recent searches are kept in this browser only (`localStorage`, per signed-in user) and can be cleared from the home.
@@ -17,7 +17,6 @@ Recent searches are kept in this browser only (`localStorage`, per signed-in use
 ## Screens
 
 ```
-Sign in (RequireAuth gate; Google / email link)
 └─ App shell: sidebar Search | Add content | Library, theme switch, sign out
    ├─ /          Search home
    │             - large search field, focused on arrival; "/" focuses it from anywhere
@@ -43,49 +42,28 @@ Every screen has loading (skeletons or spinners), empty and error (readable mess
 
 ## Run it
 
-Demo mode needs nothing but this repo (open `http://localhost:5185/?empty=1` to start with an empty library and see the first-run screen):
+This package has no app or dev server of its own: the workspace mounts it at `/app/ask-your-life`.
 
 ```
-pnpm install
-pnpm --filter @platform/ask-your-life dev      # http://localhost:5185
+dev/web.sh workspace     # http://localhost:5190/app/ask-your-life; add ?demo=1 for the in-memory mock (no backend)
 ```
 
-With no Firebase configuration the app starts in **demo mode**: a stub sign-in (already signed in as the demo
-user; sign out and use "Continue with Google") and an in-memory mock of the real API, seeded with eight sample
-documents. Things to try: search `smoke detector`, `"smoke detector" -paint` in Keyword mode, `vehicle cost` in
-Semantic mode (finds the car invoice without the words), a note containing `FAIL-INDEXING` (ends as Failed), or
-upload a PDF (answers 415 exactly like the service does today).
+Live mode needs the dev stack (`dev/up.sh`, gateway on :8080): the workspace's API client calls
+`<gateway>/api/ask-your-life/v1/...`. Sign-in and `VITE_*` configuration belong to the workspace (`apps/workspace`).
+The workspace's demo mode uses an in-memory mock of the real API seeded with eight sample documents. Things to try:
+search `smoke detector`, `"smoke detector" -paint` in Keyword mode, `vehicle cost` in Semantic mode (finds the car
+invoice without the words), a note containing `FAIL-INDEXING` (ends as Failed), or upload a PDF (answers 415 exactly
+like the service does today).
+Checks, from `ui-common`: `pnpm lint && pnpm typecheck && pnpm test`; the module is bundled by
+`pnpm --filter @platform/workspace build`.
 
-### Against the real backend
+## Tests
 
-1. Start the service: `./mvnw -pl ask-your-life spring-boot:run` (see its README; needs Postgres with pgvector).
-2. Configure Firebase in `.env.local` (see `.env.example`): either the emulator
-   (`VITE_FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099`) or a real project (`VITE_FIREBASE_API_KEY`,
-   `VITE_FIREBASE_PROJECT_ID`, ...). The service must accept tokens for the same project.
-3. `pnpm --filter @platform/ask-your-life dev`. Requests go to `/api/v1/...`; the Vite dev server proxies `/api`
-   to `http://localhost:8086` and strips the `/api` prefix (the service has no context path).
-
-### Environment variables
-
-| Variable                                                                                                                                     | Meaning                                                                              |
-| -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `VITE_USE_MOCK=true`                                                                                                                         | Force demo mode even when Firebase is configured.                                    |
-| `VITE_FIREBASE_AUTH_EMULATOR_HOST`, `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_APP_ID` | Firebase Auth. Any of the emulator host, or key + project id, switches to real mode. |
-| `VITE_API_BASE_URL`                                                                                                                          | API base URL. Default `/api` (proxied in dev). Set it for a deployed build.          |
-
-Demo mode is used when `VITE_USE_MOCK=true` or Firebase is not configured. Otherwise the app runs in real mode.
-
-## Checks
-
-```
-pnpm lint && pnpm typecheck && pnpm test && pnpm --filter @platform/ask-your-life build
-```
-
-Tests live next to the code and run against the mock API through the real UI (Testing Library + user-event): search
+Tests live next to the code and mount the module as the workspace does, against the mock API, through the real UI (Testing Library + user-event): search
 in every mode, empty results, filters and the exact query string, highlight safety with hostile snippets, the "Why
 this result" dialog, add note to ready to findable (including a stale cached search being refreshed), upload,
 duplicate / update / unsupported (415) / too large (413) / failed indexing, delete with confirmation, library
-paging and filtering, replace content, first-use and sign-out, the `/` shortcut. Pure logic (snippet parsing,
+paging and filtering, replace content, first use, the `/` shortcut. Pure logic (snippet parsing,
 query building, explanations, validation, error mapping) and the mock's contract are unit-tested too.
 
 ## How the pieces map to the backend
@@ -134,6 +112,5 @@ it is quoted, not written by an AI. It is plain text, rendered as React text nod
 - **PDF is not supported** by the service (415). The message says so and suggests pasting the text. The file picker
   does not offer PDFs, but a user can still choose one, and the server's answer is shown.
 - Date filters use the browser's local day boundaries; the mock and real service may differ at the edges by time zone.
-- Browser-level behaviour (real Firebase sign-in, the Vite proxy against the live service, visual layout and dark
-  mode, the mobile drawer) has not been exercised by automated tests: jsdom has no layout.
-- The production bundle is about 600 kB (187 kB gzipped), mostly Firebase pulled in by `@platform/auth-web`.
+- Browser-level behaviour (real sign-in, the live service, visual layout and dark mode) is not exercised by these
+  unit tests: jsdom has no layout. The workspace's `dev/qa/` scripts cover the module in a real browser.

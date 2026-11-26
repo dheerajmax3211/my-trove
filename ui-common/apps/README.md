@@ -1,76 +1,54 @@
 # apps/
 
-One folder per product web app. Each is its own Vite + React SPA that **depends on the shared packages and
-contains only product code**: routes, screens, domain hooks and copy. Nothing generic belongs here; if a second
-product needs it, move it to `packages/`.
+Three runnable apps and seven product modules.
 
-Apps today: `gallery` (living documentation and the reference for the wiring below) and one app per product:
-`hub` (5181), `waiting-on` (5182), `consent` (5183), `home-pulse` (5184), `ask-your-life` (5185),
-`digital-legacy` (5186) and `family-treasury` (5187). Each runs in a zero-setup demo mode (stub sign-in plus an
-in-memory mock of its backend) with `pnpm --filter @platform/<app> dev`; see the app's own README for real mode.
+- `workspace` (dev port 5190): the signed-in My-Trove app. It hosts every product as a module under
+  `/app/<id>`, the account and developer pages, the admin console (`@platform/admin-console`), and Digital Legacy's
+  public trustee portal at `/trustee`. `?demo=1` is a zero-setup demo mode: a stub identity and each module's
+  in-memory mock API, never the network.
+- `site` (5191): the public site.
+- `gallery`: living documentation of the design system (`pnpm dev` at the root).
 
-## Adding a product app (example: `apps/waiting-on`)
+Product modules, each a package that the workspace imports and bundles from source (no Vite app, no dev server,
+no `build` script of its own): `waiting-on`, `consent`, `home-pulse`, `ask-your-life`, `digital-legacy`,
+`family-treasury` and `hub` (whose `core` module is the Household area: households, reminders, files, activity).
+Each exports `productModule` from `@platform/<product>/module`; Digital Legacy also exports its trustee portal from
+`@platform/digital-legacy/trustee`. The standalone product apps that used to run on ports 5181-5187 were retired
+on 2026-11-26: the workspace replaces all of them.
 
-1. **Create the folder** with the same shape as the gallery:
+## Adding a product module (example: `apps/waiting-on`)
+
+1. **Create the folder**:
 
    ```
    apps/waiting-on/
-   ├── package.json        name "@platform/waiting-on", "private": true, scripts dev/build/typecheck
-   ├── index.html          copy the theme-flash inline script from apps/gallery/index.html
-   ├── vite.config.ts      react() + the dev-only '@platform/source' condition (copy from gallery)
+   ├── package.json        name "@platform/waiting-on", "private": true, scripts { typecheck },
+   │                       exports { "./module": "./src/module.tsx" }
    ├── tsconfig.json       extends ../../tsconfig.base.json; "types": ["vite/client", "@testing-library/jest-dom/vitest"]
-   ├── .env.example        VITE_FIREBASE_* and VITE_API_BASE_URL
    └── src/
-       ├── main.tsx        import '@platform/ui/styles.css' first
-       ├── App.tsx         providers + routes
+       ├── module.tsx      export const productModule: ProductModule (from @platform/workspace-kit)
+       ├── routes.tsx      the pages, with module-relative paths; imports the module's CSS
+       ├── mock/           an in-memory mock of the service, for createDemoFetch and the tests
        └── features/       one folder per feature (screens, hooks, api calls)
    ```
 
-2. **Depend on the packages** (exact versions for third-party deps, `workspace:*` for ours), then run `pnpm install`:
+2. **Depend on the packages** (exact versions for third-party deps, `workspace:*` for ours), then run `pnpm install`
+   and add the package to `apps/workspace/package.json` and `apps/workspace/src/modules/registry.ts`. Use the same
+   versions as the rest of the workspace (`pnpm check:versions` enforces this).
 
-   ```json
-   "dependencies": {
-     "@platform/api-client": "workspace:*",
-     "@platform/auth-web": "workspace:*",
-     "@platform/ui": "workspace:*",
-     "@tanstack/react-query": "5.108.0",
-     "react": "19.3.1",
-     "react-dom": "19.3.1",
-     "react-router-dom": "7.18.6"
-   }
-   ```
-
-   Use the same versions as the rest of the workspace (`pnpm check:versions` enforces this).
-
-3. **Wire the providers** once in `App.tsx` (see `apps/gallery/src/demo/DemoApp.tsx` for a running example):
-
-   ```tsx
-   const auth = createFirebaseAuthClient(getFirebaseConfigFromEnv(import.meta.env))
-   const api = createApiClient({
-     baseUrl: import.meta.env.VITE_API_BASE_URL,
-     getToken: (force) => auth.getIdToken(force),
-     onUnauthorized: () => void auth.signOut(),
-   })
-
-   <ThemeProvider>
-     <AuthProvider client={auth}>
-       <ApiProvider client={api}>
-         <ToastProvider>
-           <RequireAuth loading={<Spinner />} fallback={<SignIn />}>
-             <AppShell ...>{routes}</AppShell>
-           </RequireAuth>
-         </ToastProvider>
-       </ApiProvider>
-     </AuthProvider>
-   </ThemeProvider>
-   ```
+3. **Fill in `ProductModule`**: `id`, `service` (the gateway route: the module's API client is bound to
+   `<gateway>/api/<service>`, so paths start at `/v1`), `title`, `nav` (module-relative), `Routes`, and optionally
+   `Providers` (product-only context), `useTodayItems` and `createDemoFetch`. The workspace supplies sign-in, the
+   session (`useWorkspaceSession`), the API client and query cache, theme, toasts and the router.
 
 4. **Conventions**
    - Style only with `@platform/ui` components and `--pp-*` token variables; no raw colors, no new UI libraries.
      Missing component? Add it to `@platform/ui` (with tests and a gallery page) rather than building it locally.
    - Call the backend only through `useApiQuery` / `useApiMutation` / the shared client, so auth headers, token
      refresh and `ApiError` handling stay uniform.
-   - Gate routes with `RequireAuth`. Local dev uses the Firebase Auth emulator (`VITE_FIREBASE_AUTH_EMULATOR_HOST`).
-   - Tests live next to the code (`*.test.tsx`) and are picked up automatically by the root `vitest` run.
-   - Root `pnpm dev` runs the gallery; run a product app with `pnpm --filter @platform/waiting-on dev`.
-   - `pnpm build` at the root builds every package then every app; keep each app's build green.
+   - Link with `ModuleLink` / `ModuleNavLink` / `useModulePath`, never absolute paths, so the module works under
+     any base.
+   - Tests live next to the code (`*.test.tsx`) and are picked up by the root `vitest` run. Mount the module the
+     way the workspace does (each product's `src/test*/` helper shows how: the workspace's providers around
+     `productModule.Providers` and `productModule.Routes`, against the module's mock).
+   - Run it with `dev/web.sh workspace` and open http://localhost:5190/app/waiting-on (or `?demo=1`).

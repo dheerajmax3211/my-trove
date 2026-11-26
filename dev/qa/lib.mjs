@@ -82,34 +82,23 @@ export async function corsShim(context) {
 /**
  * Signs in as a seeded persona on the app at `base`.
  *
- * - "chooser" (the workspace): "Continue with Google" -> "Sign in as <Label>, <email>", the real dev chooser.
- * - "session" (the standalone product shells): their sign-in screen has no chooser, and the dev link is only held
- *   in memory, so the harness stores the persona's address under the dev client's session key and reloads. The
- *   dev client then restores the session with the same /token call the chooser makes. Used only against localhost.
+ * The workspace's sign-in: "Continue with Google" -> "Sign in as <Label>, <email>", the real dev chooser.
  *
  * Resolves once the sign-in screen is gone.
  */
-export async function signInAs(page, base, persona, mode = "chooser") {
+export async function signInAs(page, base, persona) {
   await page.goto(`${base}/`, { waitUntil: "networkidle" });
   const google = page.getByRole("button", { name: "Continue with Google" });
   if (!(await google.count())) {
     // Already signed in (the session survived from an earlier visit in this context).
     return;
   }
-  if (mode === "session") {
-    await page.evaluate(
-      (email) => localStorage.setItem("pp.auth.devIdpSession", email),
-      persona.email,
-    );
-    await page.goto(`${base}/`, { waitUntil: "networkidle" });
-  } else {
-    await google.first().click();
-    await page
-      .getByRole("button", {
-        name: new RegExp(`^Sign in as ${persona.label}, ${persona.email}$`),
-      })
-      .click();
-  }
+  await google.first().click();
+  await page
+    .getByRole("button", {
+      name: new RegExp(`^Sign in as ${persona.label}, ${persona.email}$`),
+    })
+    .click();
   await page.waitForLoadState("networkidle");
   // A first sign-in can show the welcome wizard; skip it so the pages under test are what render.
   // The wizard appears once the account has loaded, so wait briefly for it. An account that already skipped or

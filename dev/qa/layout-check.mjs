@@ -5,7 +5,7 @@
 //
 //   node dev/qa/layout-check.mjs                       all targets, defaults below
 //   QA_ONLY=waiting-on node dev/qa/layout-check.mjs    one target
-//   QA_BASE_WAITING_ON=http://localhost:5182 ...       point a target at another server
+//   QA_BASE_WORKSPACE=http://localhost:5391 ...        point every target at another workspace server
 //
 // Exits 1 if any page overflows horizontally at 390px or throws an uncaught page error.
 // A route written as "FIRST:/prefix" visits the first link on the page whose href starts with /prefix.
@@ -23,11 +23,24 @@ import {
   slug,
 } from "./lib.mjs";
 
-// Default ports are the ones this worktree serves (5381-5387, 5391). Override any with QA_BASE_<NAME>, e.g. the canonical 5190 from dev/web.sh.
+// Every product is a module of the workspace (`dev/web.sh`, port 5190); override with QA_BASE_WORKSPACE.
+const WS = process.env.QA_BASE_WORKSPACE || "http://localhost:5190";
+const mod = (id, routes) => ({
+  name: id === "core" ? "household" : id,
+  base: WS,
+  signin: "chooser",
+  persona: "owner",
+  start: `/app/${id}`,
+  routes: routes.map((r) =>
+    r.startsWith("FIRST:")
+      ? `FIRST:/app/${id}${r.slice("FIRST:".length)}`
+      : `/app/${id}${r}`,
+  ),
+});
 const TARGETS = [
   {
     name: "workspace",
-    base: process.env.QA_BASE_WORKSPACE || "http://localhost:5391",
+    base: WS,
     signin: "chooser",
     persona: "owner",
     routes: ["/", "/account"],
@@ -35,7 +48,7 @@ const TARGETS = [
   {
     // The admin console as the ADMIN persona (admin@example.test): the module lives at /app/admin in the workspace.
     name: "admin-console",
-    base: process.env.QA_BASE_WORKSPACE || "http://localhost:5391",
+    base: WS,
     signin: "chooser",
     persona: "admin",
     routes: [
@@ -48,61 +61,20 @@ const TARGETS = [
       "/app/admin/plans",
     ],
   },
+  mod("waiting-on", ["", "/new", "FIRST:/items/"]),
+  mod("consent", ["/requests", "/grants", "/vault", "/clients", "/history", "/audit"]),
+  mod("home-pulse", ["/devices", "/alerts", "/reminders", "/appliances/new"]),
+  mod("ask-your-life", ["/add", "/library"]),
+  mod("digital-legacy", ["/vault", "/trustees", "/policy", "/timeline"]),
+  mod("family-treasury", ["FIRST:/h/"]),
+  mod("core", ["", "/households", "/reminders", "/files", "/activity"]),
   {
-    name: "waiting-on",
-    base: process.env.QA_BASE_WAITING_ON || "http://localhost:5382",
-    signin: "session",
+    // Digital Legacy's trustee portal: public, no sign-in.
+    name: "trustee-portal",
+    base: WS,
+    signin: "none",
     persona: "owner",
-    routes: ["/", "/new", "FIRST:/items/"],
-  },
-  {
-    name: "consent",
-    base: process.env.QA_BASE_CONSENT || "http://localhost:5383",
-    signin: "session",
-    persona: "owner",
-    routes: [
-      "/requests",
-      "/grants",
-      "/vault",
-      "/clients",
-      "/history",
-      "/audit",
-    ],
-  },
-  {
-    name: "home-pulse",
-    base: process.env.QA_BASE_HOME_PULSE || "http://localhost:5384",
-    signin: "session",
-    persona: "owner",
-    routes: ["/devices", "/alerts", "/reminders", "/appliances/new"],
-  },
-  {
-    name: "ask-your-life",
-    base: process.env.QA_BASE_ASK_YOUR_LIFE || "http://localhost:5385",
-    signin: "session",
-    persona: "owner",
-    routes: ["/add", "/library"],
-  },
-  {
-    name: "digital-legacy",
-    base: process.env.QA_BASE_DIGITAL_LEGACY || "http://localhost:5386",
-    signin: "session",
-    persona: "owner",
-    routes: ["/vault", "/trustees", "/policy", "/timeline"],
-  },
-  {
-    name: "family-treasury",
-    base: process.env.QA_BASE_FAMILY_TREASURY || "http://localhost:5387",
-    signin: "session",
-    persona: "owner",
-    routes: ["FIRST:/h/"],
-  },
-  {
-    name: "hub",
-    base: process.env.QA_BASE_HUB || "http://localhost:5381",
-    signin: "session",
-    persona: "owner",
-    routes: ["/"],
+    routes: ["/trustee", "/trustee/combine"],
   },
 ];
 
@@ -120,8 +92,10 @@ try {
     const persona = PERSONAS[target.persona];
     // Sign in once at the first size, then reuse the session (storage) for the other sizes and schemes.
     const signed = await newContext(browser, { width: 390 });
-    const signPage = await signed.newPage();
-    await signInAs(signPage, target.base, persona, target.signin);
+    if (target.signin !== "none") {
+      const signPage = await signed.newPage();
+      await signInAs(signPage, target.base, persona);
+    }
     const state = await signed.storageState();
     await signed.close();
 
@@ -138,7 +112,9 @@ try {
           let path = route;
           if (route.startsWith("FIRST:")) {
             const prefix = route.slice("FIRST:".length);
-            await page.goto(`${target.base}/`, { waitUntil: "networkidle" });
+            await page.goto(`${target.base}${target.start ?? "/"}`, {
+              waitUntil: "networkidle",
+            });
             await settle(page, 600);
             const href = await page.evaluate(
               (p) =>

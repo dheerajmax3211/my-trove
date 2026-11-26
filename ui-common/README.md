@@ -1,7 +1,8 @@
 # platform-frontend (`ui-common`)
 
-The single frontend monorepo for the personal platform. Every product's web app lives in `apps/`;
-everything they share (design tokens, UI components, auth, API client) lives in `packages/`.
+The single frontend monorepo for the personal platform. The web apps and the product modules live in `apps/`;
+everything they share (design tokens, UI components, auth, API client, the workspace-module contract) lives in
+`packages/`. Every product runs inside the workspace (`apps/workspace`); there are no standalone product apps.
 
 ```
 ui-common/
@@ -11,8 +12,11 @@ ui-common/
 │   ├── auth-web/     @platform/auth-web   Firebase Auth wrapper: provider, hooks, route guard
 │   └── api-client/   @platform/api-client typed fetch + TanStack Query helpers
 └── apps/
-    ├── gallery/      @platform/gallery    living docs + signed-in demo shell (the only app today)
-    └── README.md     how to add a product app (e.g. apps/waiting-on)
+    ├── workspace/    @platform/workspace  the signed-in app: every product as a module (:5190)
+    ├── site/         @platform/site       the public site (:5191)
+    ├── gallery/      @platform/gallery    living docs + signed-in demo shell
+    ├── <product>/    @platform/<product>  seven product modules the workspace mounts (no dev server of their own)
+    └── README.md     how to add a product module (e.g. apps/waiting-on)
 ```
 
 ## Quick start
@@ -38,7 +42,7 @@ To try real auth, copy `apps/gallery/.env.example` to `.env.local` and set
 ## Architecture
 
 ```
-            ┌────────────────────────── apps/* (one Vite + React SPA per product) ───────────────────────────┐
+            ┌───────────── apps/* (workspace, site, gallery; product modules mounted by the workspace) ──────────┐
             │                                                                                                  │
    @platform/ui ───────────┐   @platform/auth-web ──────────────┐   @platform/api-client ───────────────┐    │
    components + base CSS   │   AuthProvider, useAuth, RequireAuth│   createApiClient, ApiError, hooks    │    │
@@ -138,5 +142,5 @@ Accessibility is a property of the components, not a checklist for apps.
    interface. `@platform/ui` is DOM-only by design; RN gets its own `ui-native` package consuming the same tokens.
 2. Playwright + axe accessibility checks in CI against the gallery build.
 3. Publish packages (changesets) once a second repo needs them; today apps consume them via the workspace.
-4. First product app: `apps/waiting-on` (see `apps/README.md`).
+4. Adding a product module: see `apps/README.md` (example: `apps/waiting-on`).
 5. Visual regression snapshots of the gallery (light + dark) for token and CSS changes.

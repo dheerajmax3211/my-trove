@@ -39,7 +39,7 @@ TypeScript · Vite · TanStack Query · Vitest
 ├── digital-legacy/          Dead-man's switch, Shamir secret sharing, end-to-end encrypted       :8087
 ├── family-treasury/         Double-entry household ledger                                        :8088
 ├── mcp-server/              MCP tools for AI agents: consent-scoped, audited, read-only          :8090
-├── ui-common/               Frontend monorepo: tokens, UI kit, auth-web, api-client, gallery + 7 web apps (:5181-5187)
+├── ui-common/               Frontend monorepo: tokens, UI kit, auth-web, api-client; the workspace (:5190, every product as a module), the public site (:5191), the gallery
 ├── deploy/                  Container images, Helm chart, single-host Compose, kind smoke test, ZAP rules
 ├── dev/                     Local stack: compose (Postgres+Timescale+pgvector, Temporal), dev identity provider, scripts
 └── docs/handoffs/           Integration notes written while each service and app was built
@@ -61,8 +61,9 @@ dev/up.sh                                          # local identity provider + a
 cd ui-common && pnpm install && cd .. && dev/web.sh                 # workspace http://localhost:5190, public site http://localhost:5191
 ```
 
-Open the workspace and click "Continue with Google": you are signed in as the local owner (`dev@example.test`); typing any other email under "Email me a sign-in link" signs you in as a separate, ordinary member, which is how to see the persona-aware navigation. `dev/e2e-phase1.sh` then proves the platform layer end to end (33 checks). Every app also has a zero-setup demo mode
-(stub sign-in and an in-memory mock API): run any app without a `.env.local`. Details, ports and how sign-in works:
+Open the workspace and click "Continue with Google": you are signed in as the local owner (`dev@example.test`); typing any other email under "Email me a sign-in link" signs you in as a separate, ordinary member, which is how to see the persona-aware navigation. `dev/e2e-phase1.sh` then proves the platform layer end to end (33 checks). The workspace also has a zero-setup demo
+mode (stub sign-in and each product's in-memory mock API): open http://localhost:5190/?demo=1. Trustees open Digital
+Legacy invites at http://localhost:5190/trustee, with no account. Details, ports and how sign-in works:
 [`dev/README.md`](dev/README.md). To use a real Firebase project instead: [`dev/FIREBASE.md`](dev/FIREBASE.md).
 
 ## Build and test

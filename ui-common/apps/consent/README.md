@@ -6,7 +6,7 @@ only), watch what they read and revoke at will. Every access lands in a tamper-e
 verify.
 
 Only the Firebase-authenticated **owner API** (`/v1/owner/**`) is used. The OAuth and gateway endpoints are for the
-third-party apps and are not part of this UI.
+third-party apps and are not part of this UI. The workspace mounts this module at `/app/consent`.
 
 ## Screen map
 
@@ -27,45 +27,30 @@ the UI and by the API.
 
 ## Run it
 
+This package has no app or dev server of its own: the workspace mounts it at `/app/consent`.
+
 ```
-pnpm install
-pnpm --filter @platform/consent dev        # http://localhost:5183
+dev/web.sh workspace     # http://localhost:5190/app/consent; add ?demo=1 for the in-memory mock (no backend)
 ```
 
-### Demo mode (default, zero setup)
-
-With no Firebase config (or `VITE_USE_MOCK=true`) the app uses a stub sign-in ("Continue as the demo user") and an
-in-memory mock gateway seeded with a believable vault, three apps, two pending requests, one grant with read history and
-a denied request. Everything is in memory: a reload resets it.
-
-Apps talk to the gateway, not to this UI, so the sidebar has **Demo controls** that play the app's part: _Simulate an
-access request_, _Simulate a data read_ and _Tamper with the audit log_ (so you can see the broken-chain state).
-
-### Against the real gateway
-
-1. Run `consent-gateway` on `:8084` (see its README; needs Postgres and `FIREBASE_PROJECT_ID`).
-2. Copy `.env.example` to `.env.local` and set the Firebase values (or `VITE_FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099`).
-3. `pnpm --filter @platform/consent dev`. The browser calls `/api/v1/owner/...`; the Vite dev proxy strips `/api` and
-   forwards to `http://localhost:8084`.
-
-| Variable                                                          | Meaning                                                                          |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `VITE_USE_MOCK`                                                   | `true` forces demo mode even if Firebase is configured                           |
-| `VITE_FIREBASE_API_KEY`, `_PROJECT_ID`, `_AUTH_DOMAIN`, `_APP_ID` | Firebase web config; enables real mode                                           |
-| `VITE_FIREBASE_AUTH_EMULATOR_HOST`                                | `host:port` of the Auth emulator; enables real mode (demo key/project filled in) |
-| `VITE_API_BASE_URL`                                               | Gateway base URL. Default `/api` (dev proxy). See the CORS note below            |
+Live mode needs the dev stack (`dev/up.sh`, gateway on :8080): the workspace's API client calls
+`<gateway>/api/consent/v1/...`. Sign-in and `VITE_*` configuration belong to the workspace (`apps/workspace`).
+The workspace's demo mode uses an in-memory mock gateway seeded with a believable vault, three apps, two pending
+requests, one grant with read history and a denied request; a reload resets it. (The standalone app's "Demo controls",
+which played a third-party app's part, were retired with it; the mock still has `simulateAccessRequest`,
+`simulateRead` and `tamperAudit` for tests.)
+Checks, from `ui-common`: `pnpm lint && pnpm typecheck && pnpm test`; the module is bundled by
+`pnpm --filter @platform/workspace build`.
 
 ## Layout
 
 ```
 src/
-  runtime.ts            picks demo vs real: auth client + api client + query client
-  App.tsx, layout/      providers, shell, nav (pending badge), demo controls, route focus
-  auth/                 sign-in page
+  module.tsx, routes.tsx, demo.ts, today.ts   the workspace module, its pages, demo fetch, Today feed
   shared/               api types + paths, lib (errors, scopes, json, format, audit wording), common components
   features/<feature>/   api (types/pure logic), hooks (useApiQuery/useApiMutation), components, pages  (+ *.test.tsx)
   mock/                 in-memory gateway: backend.ts (routes), chain.ts (hash-chained audit log), http.ts (problem+json)
-  test/utils.tsx        renderApp(): whole app against the mock, no latency, no retries
+  test/utils.tsx        renderApp(): mounts the module as the workspace does, against the mock, no latency, no retries
 ```
 
 ## What is mocked and what is real
@@ -96,8 +81,8 @@ storage or logged. Closing the dialog (or reloading) loses it for good; the answ
   request -> narrow scopes + duration + reads -> approve -> grant appears narrowed; widening blocked; sensitivity
   withholding; deny with note and confirmation; already-decided conflict; expired requests; revoke (and the refusal on
   the next read); client registration with the secret shown once and gone after closing and after a reload; rotate;
-  disable (grants revoked); audit verify OK and each broken state; dashboard; history paging and filtering; sign-in,
-  sign-out, focus on route change, 401 -> sign-in; every list's error + retry and empty state;
+  disable (grants revoked); audit verify OK and each broken state; dashboard; history paging and filtering; not-found;
+  repeated 401 signs the session out; every list's error + retry and empty state;
 - the API layer against the mock contract (request shapes, query encoding, error mapping, validation field errors);
 - pure logic: scope matching, JSON rules, durations, approval validation and visibility, tree building, audit wording.
 
@@ -105,9 +90,8 @@ storage or logged. Closing the dialog (or reloading) loses it for good; the answ
 
 - **Not verified against the real gateway or real Firebase.** The contract comes from reading the Java controllers and
   the mock was written to match; a live end-to-end run was not done.
-- **Not looked at in a browser.** Layout (375px), dark mode and contrast follow the design tokens and AppShell but were
-  not visually checked here; only DOM behaviour is covered by tests.
-- The gateway has no CORS configuration, so an absolute `VITE_API_BASE_URL` only works behind a same-origin proxy.
+- **Not looked at in a browser by these tests.** Layout (375px), dark mode and contrast follow the design tokens; the
+  unit tests cover DOM behaviour only (the workspace's `dev/qa/` scripts check layout in a real browser).
 - Disabling a client is permanent (the gateway has no re-enable endpoint). `redirectUri` is not exposed (stored but
   unused by the gateway). The approval dialog cannot change the allowed-hours window (it is shown on the request).
 - "Past requests" shows what the gateway returns (latest 200). History paging asks for one extra row to know whether an

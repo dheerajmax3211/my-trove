@@ -19,8 +19,7 @@ dev/up.sh                       # or: dev/up.sh auth shared-service
 dev/e2e-phase1.sh        # needs dev/up.sh in dev-identity-provider mode (the default)
 
 # 3. the web apps (each app's .env.local already points at the identity provider)
-dev/web.sh               # the workspace (5190) and the public site (5191)
-dev/web.sh all           # also the seven standalone product apps (5181-5187)
+dev/web.sh               # the workspace (5190, every product inside it) and the public site (5191)
 ```
 
 Stop with `dev/down.sh` and `docker compose -f dev/docker-compose.yml stop`. Logs: `dev/.state/logs/<service>.log`.

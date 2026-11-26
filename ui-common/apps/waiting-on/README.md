@@ -1,10 +1,10 @@
-# Waiting On (web app)
+# Waiting On (workspace module)
 
-Package `@platform/waiting-on`, dev port **5182**.
+Package `@platform/waiting-on`, mounted by the workspace at `/app/waiting-on`.
 
 Tracks the things you are waiting for from other people: refunds, insurance claims, expense reimbursements,
 approvals, deliveries. Every item carries a follow-up schedule that the `waiting-on` service runs for weeks
-(friendly nudge, formal escalation letter, optional final notice, then expiry). This app is the front end for
+(friendly nudge, formal escalation letter, optional final notice, then expiry). This module is the front end for
 that service (`/v1/items/**`, port 8083).
 
 ## Screens
@@ -14,7 +14,6 @@ that service (`/v1/items/**`, port 8083).
 /new               Add something    form + live explanation of the follow-up schedule it will create
 /items/:id         Item             details, live follow-up status, actions, reply address, draft letters, timeline
 *                  Not found
-(signed out)       Sign in          Google or email link (stub in demo mode)
 ```
 
 - **Waiting list (home)**: a dark summary band (how many items are past their date, open items, overdue, the next
@@ -41,49 +40,29 @@ that service (`/v1/items/**`, port 8083).
 `src/module.tsx` exports `productModule` (`@platform/workspace-kit`): `Routes` (`src/routes.tsx`, paths relative),
 `Providers` (the clock), `nav`, `useTodayItems` (`src/today.ts`: overdue items, items due within 3 days and items
 whose next follow-up is within 3 days, most urgent first) and `createDemoFetch` (the in-memory mock, reachable at
-`<gateway>/api/waiting-on/v1/...`). All links use `ModuleLink`, `ModuleNavLink` and `useModuleNavigate`, so the same
-pages run standalone (empty base) and under `/app/waiting-on`. The standalone `App.tsx` wraps the same routes in its
-own layout with `data-product="waiting-on"` on its root.
+`<gateway>/api/waiting-on/v1/...`). All links use `ModuleLink`, `ModuleNavLink` and `useModuleNavigate`, so the
+pages work under any base. The workspace supplies sign-in, the API client, theme and toasts, and sets
+`data-product="waiting-on"` around the module (the product accent).
 
 ## Run it
 
-Demo mode needs nothing but the workspace:
+This package has no app or dev server of its own: the workspace mounts it at `/app/waiting-on`.
 
 ```
-pnpm install
-pnpm --filter @platform/waiting-on dev        # http://localhost:5182
+dev/web.sh workspace     # http://localhost:5190/app/waiting-on; add ?demo=1 for the in-memory mock (no backend)
 ```
 
-Demo mode signs you in as the stub demo user and serves an in-memory mock of the service with seven items in
-different states (plus one owned by someone else, to show the 404 behaviour). State resets on reload.
-
-Against the real service:
-
-1. Start Postgres, a Temporal dev server (or set `TEMPORAL_ENABLED=false`) and the service on port 8083 (see the
-   service README).
-2. Create `apps/waiting-on/.env.local` from `.env.example` with a Firebase project (or only
-   `VITE_FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099` for the emulator).
-3. `pnpm --filter @platform/waiting-on dev`. Vite proxies `/api/*` to `http://localhost:8083/*`.
-
-## Environment
-
-| variable                                                                                                 | meaning                                                         |
-| -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `VITE_USE_MOCK=true`                                                                                     | force demo mode even when Firebase is configured                |
-| `VITE_API_BASE_URL`                                                                                      | service base URL, default `/api` (the dev proxy)                |
-| `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_APP_ID` | Firebase web config                                             |
-| `VITE_FIREBASE_AUTH_EMULATOR_HOST`                                                                       | `host:port` of the Auth emulator (enables real mode on its own) |
-
-Demo mode is the default whenever Firebase is not configured. Production hosting must serve `index.html` for
-unknown paths (the app uses browser history routing) and route `/api` to the service.
+Live mode needs the dev stack (`dev/up.sh`, gateway on :8080): the workspace's API client calls
+`<gateway>/api/waiting-on/v1/...`. Sign-in and `VITE_*` configuration belong to the workspace (`apps/workspace`).
+The workspace's demo mode serves an in-memory mock of the service with seven items in different states (plus one
+owned by someone else, to show the 404 behaviour); state resets on reload.
+Checks, from `ui-common`: `pnpm lint && pnpm typecheck && pnpm test`; the module is bundled by
+`pnpm --filter @platform/workspace build`.
 
 ## Layout
 
 ```
 src/
-  App.tsx, main.tsx, runtime.ts      providers and demo/real wiring
-  auth/                              sign-in screen
-  layout/                            standalone AppShell frame (the workspace has its own)
   module.tsx, routes.tsx, today.ts   the workspace module, relative routes, Today feed
   lib/                               dates, clock, error text, clipboard
   components/                        CopyButton, ErrorState
@@ -94,7 +73,7 @@ src/
     components/ rows, forms, cards, dialogs, timeline, letters
     pages/      ItemsPage, NewItemPage, ItemDetailPage, NotFoundPage
   mock/         in-memory service (backend.ts), letter templates, seed data
-  testing/      render harness (fixed clock, request log, failure injection)
+  testing/      harness: mounts the module as the workspace does (fixed clock, request log, failure injection)
 ```
 
 ## Mocked vs real
@@ -108,10 +87,11 @@ mock: items never advance from OPEN to NUDGED by themselves, and inbound replies
 
 ## Tests
 
-`pnpm test` at the repo root runs them. They render the whole app against the mock with a fixed clock: first use,
+`pnpm test` at the repo root runs them. They mount the module the way the workspace does, against the mock with a
+fixed clock: first use,
 filters, create (including client and server validation), customised schedule, item page, timeline order, live
 follow-up, snooze, resolve, cancel confirmation, letters per stage with clipboard, reply address, 404 for another
-user's item, list failure with retry, network failure, 409, 401 sign-out. Separate tests cover the API layer
+user's item, list failure with retry, network failure, 409, 401 signs the session out. Separate tests cover the API layer
 (request shapes, error mapping) and the pure logic (plans, validation, dates, error text).
 
 ## Limitations
@@ -123,6 +103,5 @@ user's item, list failure with retry, network failure, 409, 401 sign-out. Separa
 - The service answers validation failures without field names, so a rejected create shows a form-level message;
   field errors appear only if the service starts sending an `errors` member.
 - Letters are drafted for the user to send; the service does not email anything yet, and the app says so.
-- Not verified: the real service end to end, Firebase sign-in, a real browser, the 375px layout and dark mode by
-  eye (they use only tokens and the responsive shell, but were not looked at). The production bundle is about
-  600 kB because Firebase is included.
+- Not verified here: the real service end to end, Firebase sign-in, the 375px layout and dark mode by eye (they use
+  only tokens). Inside the workspace these are covered by the workspace's own checks (`dev/qa/`).
