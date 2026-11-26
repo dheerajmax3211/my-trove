@@ -88,8 +88,8 @@ export function RequestCard({ request, attributes, onApprove, onDeny }: RequestC
 
       {open && request.expiresAt ? (
         <p className="muted request-clock">
-          If you do nothing it expires {formatRelative(request.expiresAt)}. Nothing is shared
-          until you approve.
+          If you do nothing it expires {formatRelative(request.expiresAt)}. Nothing is shared until
+          you approve.
         </p>
       ) : null}
       {onApprove || onDeny ? (

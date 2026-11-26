@@ -41,8 +41,8 @@ export function FollowUpCard({ item, onRetry }: { item: Item; onRetry: () => voi
         {planned ? (
           <p className="wo-muted">
             By the plan, the next step is {NEXT_ACTION_LABEL[planned.action].toLowerCase()} around{' '}
-            <time dateTime={planned.at}>{formatDateTime(new Date(planned.at))}</time>. This
-            estimate does not include snoozes.
+            <time dateTime={planned.at}>{formatDateTime(new Date(planned.at))}</time>. This estimate
+            does not include snoozes.
           </p>
         ) : null}
         <Button variant="secondary" size="sm" onClick={onRetry}>

@@ -149,8 +149,9 @@ describe('buildTodayItems', () => {
   it('puts the request that expires soonest first', () => {
     const items = buildTodayItems(
       [
-        request({ id: 'new', createdAt: new Date(NOW).toISOString() }),
-        request({ id: 'old', createdAt: new Date(NOW - 5 * DAY).toISOString() }),
+        // the gateway's deadline decides the order, not when the request was created
+        request({ id: 'new', expiresAt: new Date(NOW + 7 * DAY).toISOString() }),
+        request({ id: 'old', expiresAt: new Date(NOW + 2 * DAY).toISOString() }),
       ],
       [],
       NOW,
