@@ -32,5 +32,6 @@ public record ApplianceHealth(
     public record Last24h(double avgWatts, double maxWatts, double energyKwh, Double dutyPct, long minutesWithData) {}
 
     public record Service(boolean underWarranty, LocalDate warrantyEndDate, Long daysToWarrantyEnd,
-                          LocalDate lastServiceDate, LocalDate nextServiceDate, boolean serviceOverdue) {}
+                          LocalDate lastServiceDate, LocalDate nextServiceDate, boolean serviceOverdue,
+                          Long daysToNextService) {}
 }
