@@ -5,7 +5,7 @@
 #
 # Vite inlines VITE_* values at build time, so each environment gets its own build. Firebase web config is public
 # by design (it identifies the project; security comes from Firebase Auth and the backend), so build args are fine.
-FROM node:22.23.5-alpine3.23 AS build
+FROM node:26.13.1-alpine3.23 AS build
 ARG APP
 ARG VITE_API_BASE_URL
 ARG VITE_FIREBASE_API_KEY
