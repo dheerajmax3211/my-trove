@@ -134,12 +134,13 @@ class UsageMeteringTest extends GatewayTestBase {
                 : backends.platform().echo(r));
         planLimits().reloadNow();
 
-        get("/api/waiting-on/v1/items", "u|limited|FREE|products:use");
-        Event e = eventFor(get("/api/waiting-on/v1/items", "u|limited|FREE|products:use"));
+        // plans limit API keys (people in the workspace get the interactive ceiling instead)
+        get("/api/platform/v1/usage/me", "svc|limited|FREE|usage:read:self");
+        Event e = eventFor(get("/api/platform/v1/usage/me", "svc|limited|FREE|usage:read:self"));
 
         assertThat(e.number("status")).isEqualTo(429);
         assertThat(e.get("rateLimited")).isEqualTo(true);
-        assertThat(e.text("principalId")).isEqualTo("limited");
+        assertThat(e.text("principalId")).isEqualTo("app:limited");
         assertThat(e.number("responseBytes")).isPositive();
     }
 

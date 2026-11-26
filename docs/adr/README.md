@@ -11,3 +11,4 @@ decisions log (`docs/TRACKER.md`). Format: context, decision, consequences.
 | [0004](0004-best-effort-usage-metering.md) | Usage events to Kafka are best effort and never block a request |
 | [0005](0005-private-management-port.md) | Actuator on a private management port |
 | [0006](0006-helm-without-bundled-infrastructure.md) | The Helm chart does not bundle databases or brokers |
+| [0007](0007-plans-meter-programmatic-use.md) | Plans meter programmatic use; people in the workspace get a fair-use ceiling and no monthly quota |

@@ -15,27 +15,14 @@ export interface UsageMe {
 
 const number = new Intl.NumberFormat('en')
 
-export type MeterState = 'ok' | 'near' | 'over'
-
-export function meterState(used: number, limit: number): MeterState {
-  if (used >= limit) return 'over'
-  return used / limit >= 0.8 ? 'near' : 'ok'
-}
-
 function startOfMonthUtc(now: Date): Date {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
 }
 
-function resetLabel(now: Date): string {
-  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1))
-  return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(
-    next,
-  )
-}
-
 /**
- * Requests used against the plan's monthly limit: the page's one black card. Every failure shows a
- * sentence and leaves the rest of the page alone.
+ * The plan and this month's activity: the page's one black card. Plans limit apps and API keys; a person
+ * using the workspace is never cut off by them (gateway ADR 0007), so the figure is activity, not a quota.
+ * Every failure shows a sentence and leaves the rest of the page alone.
  */
 export function PlanUsage({ span = 5 }: { span?: number }) {
   const session = useWorkspaceSession()
@@ -99,59 +86,25 @@ export function PlanUsage({ span = 5 }: { span?: number }) {
   } else {
     const used = usage.data.totalRequests
     const series = (usage.data.series ?? []).map((point) => point.requests)
-    if (!plan) {
-      body = (
-        <p className={styles.note}>
-          {number.format(used)} requests this month. This plan has no limit we can show.
-        </p>
-      )
-    } else {
-      const state = meterState(used, plan.perMonth)
-      const percent = Math.min(100, Math.round((used / plan.perMonth) * 100))
-      body = (
-        <>
-          <div className={styles.figure}>
-            <BigStat
-              value={used}
-              locale="en"
-              {...(state === 'ok' ? {} : { delta: state === 'over' ? 'Over' : 'Near limit' })}
-              trend={state === 'over' ? 'down' : 'up'}
-              caption={`of ${number.format(plan.perMonth)} requests this month`}
-            />
-          </div>
-          <div
-            className={styles.track}
-            role="meter"
-            aria-label="Requests used this month"
-            aria-valuemin={0}
-            aria-valuemax={plan.perMonth}
-            aria-valuenow={Math.min(used, plan.perMonth)}
-            aria-valuetext={`${number.format(used)} of ${number.format(plan.perMonth)} requests, ${percent} percent`}
-            data-state={state}
-          >
-            <span className={styles.fill} style={{ ['--_pct' as string]: percent / 100 }} />
-          </div>
-          <p className={styles.caption} data-state={state}>
-            {state === 'over'
-              ? `You are over the monthly limit. Requests are refused until it resets on ${resetLabel(runtime.now())}.`
-              : state === 'near'
-                ? `${percent}% used. Close to the monthly limit; it resets on ${resetLabel(runtime.now())}.`
-                : `${percent}% used. Resets on ${resetLabel(runtime.now())}.`}
-          </p>
-          {series.length > 1 ? (
-            <Sparkline
-              className={styles.spark}
-              data={series}
-              width={320}
-              height={56}
-              animate
-              tone={state === 'ok' ? 'accent' : state === 'near' ? 'brass' : 'danger'}
-              label="Requests per day this month"
-            />
-          ) : null}
-        </>
-      )
-    }
+    body = (
+      <>
+        <div className={styles.figure}>
+          <BigStat value={used} locale="en" caption="requests across your products this month" />
+        </div>
+        <p className={styles.caption}>Using your workspace is never limited by your plan.</p>
+        {series.length > 1 ? (
+          <Sparkline
+            className={styles.spark}
+            data={series}
+            width={320}
+            height={56}
+            animate
+            tone="accent"
+            label="Requests per day this month"
+          />
+        ) : null}
+      </>
+    )
   }
 
   return (
@@ -164,8 +117,8 @@ export function PlanUsage({ span = 5 }: { span?: number }) {
     >
       {plan ? (
         <p className={styles.limits}>
-          Up to {number.format(plan.perMinute)} requests a minute and {number.format(plan.perMonth)}{' '}
-          a month.
+          For apps and API keys: up to {number.format(plan.perMinute)} requests a minute and{' '}
+          {number.format(plan.perMonth)} a month.
         </p>
       ) : null}
       {body}

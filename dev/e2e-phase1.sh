@@ -69,14 +69,17 @@ check "owner restores the user"              200 "$(curl -s -o /dev/null -w '%{h
 SUSP_T3=$(token "$SUSP_E")
 check "restored user can work again"         200 "$(status "$SUSP_T3" /api/shared/v1/households)"
 
-echo "== Rate limiting (FREE plan: 120 requests/minute)"
-GOT429=0; HDR=""
-for i in $(seq 1 135); do
+echo "== Rate limiting (a person in the workspace: 600/minute ceiling, no monthly quota; plans limit API keys)"
+GOT429=0; GOT200=0; HDR=""
+FIRST_LIMIT=$(curl -s -o /dev/null -D - -H "Authorization: Bearer $BURST_T" "$GW/api/auth/v1/me" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-ratelimit-limit"{print $2}')
+check "a FREE member gets the interactive ceiling" 600 "${FIRST_LIMIT:-none}"
+for i in $(seq 1 900); do
   code=$(curl -s -o /dev/null -D /tmp/e2e-hdr.$$ -w '%{http_code}' -H "Authorization: Bearer $BURST_T" "$GW/api/auth/v1/me")
-  if [ "$code" = 429 ]; then GOT429=$((GOT429+1)); HDR=$(tr -d '\r' < /tmp/e2e-hdr.$$); fi
+  if [ "$code" = 429 ]; then GOT429=$((GOT429+1)); HDR=$(tr -d '\r' < /tmp/e2e-hdr.$$); elif [ "$code" = 200 ]; then GOT200=$((GOT200+1)); fi
 done
 rm -f /tmp/e2e-hdr.$$
-if [ "$GOT429" -ge 1 ]; then ok "burst of 135 produced $GOT429 x 429"; else bad "burst produced no 429" "0 of 135"; fi
+if [ "$GOT200" -gt 120 ]; then ok "not cut off at the FREE plan's 120 ($GOT200 x 200)"; else bad "member cut off at the plan limit" "$GOT200 x 200"; fi
+if [ "$GOT429" -ge 1 ]; then ok "burst of 900 still hit the ceiling ($GOT429 x 429)"; else bad "burst produced no 429" "0 of 900"; fi
 echo "$HDR" | grep -qi '^retry-after:' && ok "429 carries Retry-After" || bad "429 carries Retry-After" "header missing"
 check "other users are unaffected"           200 "$(status "$MEMBER_T" /api/auth/v1/me)"
 

@@ -2,6 +2,8 @@ package com.personalplatform.gateway.ratelimit;
 
 import com.personalplatform.gateway.ClientIp;
 import com.personalplatform.gateway.GatewayAttributes;
+import com.personalplatform.gateway.config.GatewayProperties;
+import com.personalplatform.gateway.security.PrincipalType;
 import com.personalplatform.gateway.security.CallerIdentity;
 import java.time.Clock;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -12,8 +14,14 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * After the exchange: applies the per-minute limit for the caller's plan (keyed by principal id, or by the TCP peer
- * address for anonymous and passthrough callers) and then the monthly quota for identified principals.
+ * After the exchange: applies a per-minute limit (keyed by principal id, or by the TCP peer address for anonymous and
+ * passthrough callers) and then the monthly quota.
+ *
+ * <p>Plans meter programmatic use. API keys and consent clients get their plan's per-minute limit and monthly quota.
+ * A signed-in person using the workspace gets a per-minute ceiling for abuse protection only (the higher of the
+ * interactive ceiling and their plan's limit) and no monthly quota: one page of the workspace fans out to several
+ * services, and nobody should be locked out of their own records for having browsed them. Their requests are still
+ * metered for analytics. See docs/adr/0007-plans-meter-programmatic-use.md.
  */
 @Component
 public class RateLimitFilter implements GlobalFilter, Ordered {
@@ -25,12 +33,15 @@ public class RateLimitFilter implements GlobalFilter, Ordered {
     private final PlanLimits plans;
     private final QuotaClient quota;
     private final Clock clock;
+    private final int interactivePerMinute;
 
-    public RateLimitFilter(RateLimiter limiter, PlanLimits plans, QuotaClient quota, Clock clock) {
+    public RateLimitFilter(RateLimiter limiter, PlanLimits plans, QuotaClient quota, Clock clock,
+            GatewayProperties props) {
         this.limiter = limiter;
         this.plans = plans;
         this.quota = quota;
         this.clock = clock;
+        this.interactivePerMinute = props.rateLimit().interactivePerMinute();
     }
 
     @Override
@@ -46,13 +57,17 @@ public class RateLimitFilter implements GlobalFilter, Ordered {
         }
         String key = identity.authenticated() ? "p:" + identity.principalId() : ipKey(exchange);
         String plan = identity.authenticated() ? identity.plan() : PlanLimits.DEFAULT_PLAN;
-        RateLimiter.Decision decision = limiter.tryConsume(key, plans.requestsPerMinute(plan));
+        boolean interactive = identity.authenticated() && identity.type() == PrincipalType.USER;
+        int perMinute = interactive
+                ? Math.max(interactivePerMinute, plans.requestsPerMinute(plan))
+                : plans.requestsPerMinute(plan);
+        RateLimiter.Decision decision = limiter.tryConsume(key, perMinute);
         if (!decision.allowed()) {
             return RateLimiter.reject(exchange, decision);
         }
         RateLimiter.describe(exchange, decision);
 
-        if (identity.authenticated()) {
+        if (identity.authenticated() && !interactive) {
             QuotaClient.Verdict verdict = quota.admit(identity.principalId());
             if (verdict.exceeded()) {
                 return RateLimiter.rejectQuota(exchange, verdict.limit(),

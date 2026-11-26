@@ -18,8 +18,20 @@ class RateLimitTest extends GatewayTestBase {
     private static final String QUOTA_TYPE = "https://my-trove.dev/problems/quota-exceeded";
     private static final String RATE_TYPE = "https://my-trove.dev/problems/rate-limited";
 
+    /** API keys as auth's exchange turns them into service tokens; the route below is open to keys with this permission. */
+    private static final String FREE_KEY = "svc|app-free|FREE|usage:read:self";
+    private static final String PRO_KEY = "svc|app-pro|PRO|usage:read:self";
+
+    /** A person using the workspace (user token) on a product route. */
     private ResponseSpec call(String credential) {
         return client.get().uri("/api/waiting-on/v1/items")
+                .header(HttpHeaders.AUTHORIZATION, bearer(credential))
+                .exchange();
+    }
+
+    /** A program using an API key, on the route API keys may call. */
+    private ResponseSpec api(String credential) {
+        return client.get().uri("/api/platform/v1/usage/me")
                 .header(HttpHeaders.AUTHORIZATION, bearer(credential))
                 .exchange();
     }
@@ -29,9 +41,9 @@ class RateLimitTest extends GatewayTestBase {
     }
 
     @Test
-    void aFreePrincipalIsLimitedAfter120RequestsAMinuteWhileAProPrincipalIsNot() {
+    void aFreeApiKeyIsLimitedAfter120RequestsAMinuteWhileAProKeyIsNot() {
         for (int i = 1; i <= 120; i++) {
-            ResponseSpec r = call(Backends.MEMBER);
+            ResponseSpec r = api(FREE_KEY);
             if (i == 1) {
                 r.expectHeader().valueEquals("X-RateLimit-Limit", "120").expectHeader().valueEquals("X-RateLimit-Remaining", "119");
             } else {
@@ -39,7 +51,7 @@ class RateLimitTest extends GatewayTestBase {
             }
         }
 
-        call(Backends.MEMBER)
+        api(FREE_KEY)
                 .expectStatus().isEqualTo(429)
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)
                 .expectHeader().exists(HttpHeaders.RETRY_AFTER)
@@ -51,21 +63,50 @@ class RateLimitTest extends GatewayTestBase {
                 .jsonPath("$.status").isEqualTo(429);
 
         // the limited request was never forwarded
-        assertThat(backends.service("waiting-on").received()).hasSize(120);
+        assertThat(backends.platform().received().stream().filter(r -> r.path().equals("/v1/usage/me"))).hasSize(120);
 
         for (int i = 1; i <= 130; i++) {
-            assertThat(status(call(Backends.PRO))).as("pro request %d", i).isEqualTo(200);
+            assertThat(status(api(PRO_KEY))).as("pro request %d", i).isEqualTo(200);
         }
+    }
+
+    @Test
+    void aPersonInTheWorkspaceGetsTheInteractiveCeilingNotTheFreePlanLimit() {
+        // A FREE member browsing the workspace is not cut off at the plan's 120: one page fans out to several services.
+        for (int i = 1; i <= 600; i++) {
+            ResponseSpec r = call(Backends.MEMBER);
+            if (i == 1) {
+                r.expectHeader().valueEquals("X-RateLimit-Limit", "600");
+            } else {
+                assertThat(status(r)).as("request %d", i).isEqualTo(200);
+            }
+        }
+        // ...but there is still a ceiling, so a runaway script with a stolen session cannot flood the platform.
+        call(Backends.MEMBER).expectStatus().isEqualTo(429).expectHeader().exists(HttpHeaders.RETRY_AFTER)
+                .expectBody().jsonPath("$.type").isEqualTo(RATE_TYPE);
+    }
+
+    @Test
+    void aPersonInTheWorkspaceIsNeverStoppedByTheMonthlyQuota() {
+        backends.platform().handler(r -> r.path().startsWith("/internal/")
+                ? backends.internal(r, Backends.SEED_PLANS, "{\"plan\":\"FREE\",\"monthlyLimit\":10000,\"used\":10000}")
+                : backends.platform().echo(r));
+
+        for (int i = 0; i < 5; i++) {
+            call(Backends.MEMBER).expectStatus().isOk();
+        }
+        // the quota is not even looked up for an interactive session
+        assertThat(backends.platform().received().stream().filter(r -> r.path().startsWith("/internal/v1/quota/"))).isEmpty();
     }
 
     @Test
     void anotherPrincipalIsUnaffectedByAnExhaustedOne() {
         for (int i = 0; i < 121; i++) {
-            status(call(Backends.MEMBER));
+            status(api(FREE_KEY));
         }
-        call(Backends.MEMBER).expectStatus().isEqualTo(429);
+        api(FREE_KEY).expectStatus().isEqualTo(429);
 
-        call("u|dave|FREE|products:use").expectStatus().isOk()
+        api("svc|app-other|FREE|usage:read:self").expectStatus().isOk()
                 .expectHeader().valueEquals("X-RateLimit-Remaining", "119");
     }
 
@@ -108,11 +149,11 @@ class RateLimitTest extends GatewayTestBase {
         planLimits().reloadNow();
 
         for (int i = 0; i < 3; i++) {
-            call(Backends.MEMBER).expectStatus().isOk();
+            api(FREE_KEY).expectStatus().isOk();
         }
-        call(Backends.MEMBER).expectStatus().isEqualTo(429).expectHeader().valueEquals("X-RateLimit-Limit", "3");
+        api(FREE_KEY).expectStatus().isEqualTo(429).expectHeader().valueEquals("X-RateLimit-Limit", "3");
         // PRO keeps its seed value because the response did not mention it
-        call(Backends.PRO).expectStatus().isOk().expectHeader().valueEquals("X-RateLimit-Limit", "600");
+        api(PRO_KEY).expectStatus().isOk().expectHeader().valueEquals("X-RateLimit-Limit", "600");
         assertThat(backends.platform().received().get(0).header("x-internal-key")).isEqualTo(Backends.INTERNAL_KEY);
     }
 
@@ -121,8 +162,11 @@ class RateLimitTest extends GatewayTestBase {
         backends.platform().handler(r -> Reply.problem(503, "down"));
         planLimits().reloadNow();
 
-        call(Backends.MEMBER).expectStatus().isOk().expectHeader().valueEquals("X-RateLimit-Limit", "120");
-        call(Backends.PRO).expectStatus().isOk().expectHeader().valueEquals("X-RateLimit-Limit", "600");
+        // the keys' route is served by the (down) platform-service itself, so only the limit header matters here
+        api(FREE_KEY).expectHeader().valueEquals("X-RateLimit-Limit", "120");
+        api(PRO_KEY).expectHeader().valueEquals("X-RateLimit-Limit", "600");
+        api("svc|app-dev|DEVELOPER|usage:read:self").expectHeader().valueEquals("X-RateLimit-Limit", "1200");
+        // a DEVELOPER-plan person in the workspace gets their plan's higher limit, not the interactive ceiling
         call("u|erin|DEVELOPER|products:use").expectStatus().isOk()
                 .expectHeader().valueEquals("X-RateLimit-Limit", "1200");
     }
@@ -134,22 +178,22 @@ class RateLimitTest extends GatewayTestBase {
                 : backends.platform().echo(r));
 
         // the first request admits and warms the quota cache in the background; it never waits for platform-service
-        call(Backends.MEMBER).expectStatus().isOk();
+        api(FREE_KEY).expectStatus().isOk();
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
                 assertThat(backends.platform().received().stream().filter(r -> r.path().startsWith("/internal/v1/quota/")))
                         .hasSize(1));
         backends.platform().received().stream().filter(r -> r.path().startsWith("/internal/v1/quota/"))
-                .forEach(r -> assertThat(r.path()).isEqualTo("/internal/v1/quota/alice"));
+                .forEach(r -> assertThat(r.path()).isIn("/internal/v1/quota/app:app-free", "/internal/v1/quota/app%3Aapp-free"));
 
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
-                call(Backends.MEMBER)
+                api(FREE_KEY)
                         .expectStatus().isEqualTo(429)
                         .expectHeader().exists(HttpHeaders.RETRY_AFTER)
                         .expectHeader().valueEquals("X-RateLimit-Remaining", "0")
                         .expectBody().jsonPath("$.type").isEqualTo(QUOTA_TYPE));
 
-        // another principal has its own quota
-        call("u|frank|FREE|products:use").expectStatus().isOk();
+        // another key has its own quota
+        api("svc|app-frank|FREE|usage:read:self").expectStatus().isOk();
     }
 
     @Test

@@ -17,7 +17,7 @@ export function Pricing() {
     <>
       <PageIntro
         title="Plans set limits. Nothing is charged."
-        lead="Free, Pro and Developer differ in how many requests you can make and how many API keys and webhooks you can hold. There are no prices, no card form and no invoices, because billing is simulated."
+        lead="Free, Pro and Developer differ in how many requests your apps and API keys can make and how many keys and webhooks you can hold. Using the workspace yourself is never limited by a plan, only by a fair-use ceiling of 600 requests a minute. There are no prices, no card form and no invoices, because billing is simulated."
         actions={<CtaPair size="lg" />}
       />
 

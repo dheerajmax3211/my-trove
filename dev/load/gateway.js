@@ -116,11 +116,12 @@ export function steady(data) {
 }
 
 export function probe(data) {
-  // A fresh user no steady VU uses. 200 requests back to back against a 120/min bucket.
+  // A fresh user no steady VU uses. A signed-in person gets the gateway's interactive ceiling (600/min, not the
+  // FREE plan's 120, which limits API keys), so 800 requests back to back must still meet it.
   const t = signIn(`loadtest-probe-${data.runId}@example.test`);
   if (!t) return;
   const requests = [];
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < 800; i++) {
     requests.push(['GET', `${BASE_URL}${READ_PATHS[0]}`, null,
       { headers: { Authorization: `Bearer ${t}` }, tags: { endpoint: 'gateway' }, timeout: '20s' }]);
   }

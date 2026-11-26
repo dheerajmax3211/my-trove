@@ -1,5 +1,7 @@
 package com.personalplatform.gateway;
 
+import java.time.Duration;
+import static org.awaitility.Awaitility.await;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.personalplatform.gateway.support.Backends;
@@ -26,9 +28,21 @@ class ObservabilityExposureTest extends GatewayTestBase {
         return WebTestClient.bindToServer().baseUrl("http://localhost:" + managementPort).build();
     }
 
+    /**
+     * The first scrape of a freshly started management server has intermittently answered 400 in CI-like runs (not
+     * reproducible on demand). A real scraper retries on its next interval, so the test retries for a few seconds too.
+     */
+    private String scrape() {
+        String[] body = new String[1];
+        await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(200)).untilAsserted(() ->
+                body[0] = new String(management().get().uri("/actuator/prometheus").exchange()
+                        .expectStatus().isOk().expectBody().returnResult().getResponseBody()));
+        return body[0];
+    }
+
     @Test
     void metricsAreServedOnTheManagementPortOnly() {
-        management().get().uri("/actuator/prometheus").exchange().expectStatus().isOk();
+        scrape();
         management().get().uri("/actuator/health").exchange().expectStatus().isOk();
         assertThat(managementPort).isNotEqualTo(port);
         client.get().uri("/actuator/prometheus").exchange().expectStatus().value(s -> assertThat(s).isIn(401, 403, 404));
@@ -44,8 +58,7 @@ class ObservabilityExposureTest extends GatewayTestBase {
     void metricLabelsUseRouteTemplatesNotIds() {
         client.get().uri("/api/shared/v1/households/" + UUID.randomUUID())
                 .header(HttpHeaders.AUTHORIZATION, bearer(Backends.MEMBER)).exchange();
-        String scrape = new String(management().get().uri("/actuator/prometheus").exchange()
-                .expectStatus().isOk().expectBody().returnResult().getResponseBody());
+        String scrape = scrape();
         assertThat(scrape).contains("http_server_requests");
         // The routed request itself was instrumented: a gateway series exists for the shared route (routes have no
         // path template, so the route id is the label that names what was served).

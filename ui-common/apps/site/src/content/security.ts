@@ -62,7 +62,7 @@ export const controls: readonly SecurityControl[] = [
   {
     id: 'limits',
     title: 'Rate limits and quotas',
-    what: 'The gateway limits each caller by plan, per minute and per month, and answers 429 with a Retry-After header and a problem body.',
+    what: 'The gateway limits apps and API keys by plan, per minute and per month; people using the workspace get a fair-use ceiling of 600 a minute and no monthly cap. Either way the answer is 429 with a Retry-After header and a problem body.',
     detail:
       'Limits are kept in memory in one gateway process, which is right for one instance and not for several.',
     proof: ['gateway', 'dev/e2e-phase1.sh'],

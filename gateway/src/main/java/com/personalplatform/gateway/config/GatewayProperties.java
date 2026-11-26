@@ -111,10 +111,12 @@ public record GatewayProperties(
      * @param platformTimeout budget for one platform-service call (made in the background, never on a request)
      * @param failureBackoff  wait before retrying a failed platform-service call
      * @param maxStale        a usage figure older than this is ignored (fail open)
+     * @param interactivePerMinute per-minute ceiling for signed-in people using the workspace (abuse protection only;
+     *                        plans and the monthly quota apply to API keys and consent clients)
      * @param maxBuckets      bound on live per-principal rate-limit buckets and cached quota entries
      */
     public record RateLimit(Duration planRefresh, Duration quotaCacheTtl, Duration platformTimeout,
-            Duration failureBackoff, Duration maxStale, Integer maxBuckets) {
+            Duration failureBackoff, Duration maxStale, Integer maxBuckets, Integer interactivePerMinute) {
 
         public RateLimit {
             planRefresh = planRefresh == null ? Duration.ofMinutes(5) : planRefresh;
@@ -123,6 +125,7 @@ public record GatewayProperties(
             failureBackoff = failureBackoff == null ? Duration.ofSeconds(15) : failureBackoff;
             maxStale = maxStale == null ? Duration.ofMinutes(10) : maxStale;
             maxBuckets = maxBuckets == null ? 100_000 : maxBuckets;
+            interactivePerMinute = interactivePerMinute == null ? 600 : interactivePerMinute;
         }
     }
 
@@ -172,7 +175,7 @@ public record GatewayProperties(
         cors = cors == null ? new Cors(null) : cors;
         exchange = exchange == null ? new Exchange(null, null, null) : exchange;
         internal = internal == null ? new Internal(null) : internal;
-        rateLimit = rateLimit == null ? new RateLimit(null, null, null, null, null, null) : rateLimit;
+        rateLimit = rateLimit == null ? new RateLimit(null, null, null, null, null, null, null) : rateLimit;
         metering = metering == null ? new Metering(null, null, null, null, null) : metering;
     }
 

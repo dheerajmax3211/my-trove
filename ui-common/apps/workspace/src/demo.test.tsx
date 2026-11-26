@@ -57,12 +57,9 @@ describe('demo mode', () => {
     expect(screen.getByText('Demo data')).toBeInTheDocument()
   })
 
-  it('answers the workspace usage meter from memory', async () => {
+  it('answers the workspace usage figure from memory', async () => {
     renderDemo('MEMBER', { modules: modules() })
-    expect(await screen.findByRole('meter', { name: 'Requests used this month' })).toHaveAttribute(
-      'aria-valuemax',
-      '10000',
-    )
+    expect(await screen.findByText('requests across your products this month')).toBeInTheDocument()
     expect(network).not.toHaveBeenCalled()
   })
 

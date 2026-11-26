@@ -144,7 +144,7 @@ describe('plan and usage', () => {
           : json(body)
         : undefined
 
-  it('shows requests used against the monthly limit of the plan', async () => {
+  it("shows this month's activity, not a quota: the workspace is never limited by the plan", async () => {
     renderLive({
       persona: 'MEMBER',
       handler: usage({
@@ -157,46 +157,42 @@ describe('plan and usage', () => {
     })
     const plan = await screen.findByRole('region', { name: 'Your plan' })
     expect(await within(plan).findByText('4,210')).toBeInTheDocument()
-    expect(within(plan).getByText('of 10,000 requests this month')).toBeInTheDocument()
+    expect(within(plan).getByText('requests across your products this month')).toBeInTheDocument()
+    expect(
+      within(plan).getByText('Using your workspace is never limited by your plan.'),
+    ).toBeInTheDocument()
     expect(within(plan).getByText('Free')).toBeInTheDocument()
-    const meter = within(plan).getByRole('meter', { name: 'Requests used this month' })
-    expect(meter).toHaveAttribute('aria-valuenow', '4210')
-    expect(meter).toHaveAttribute('aria-valuemax', '10000')
-    expect(meter).toHaveAttribute('data-state', 'ok')
-    expect(within(plan).getByText(/42% used\. Resets on December 1/)).toBeInTheDocument()
+    expect(within(plan).queryByRole('meter')).not.toBeInTheDocument()
   })
 
-  it('uses the limits of the plan the user is on', async () => {
+  it('states the plan limits as applying to apps and API keys', async () => {
     renderLive({
       me: () => meFor('MEMBER', { plan: 'PRO' }),
       handler: usage({ totalRequests: 100_000 }),
     })
     const plan = await screen.findByRole('region', { name: 'Your plan' })
-    expect(await within(plan).findByText('of 200,000 requests this month')).toBeInTheDocument()
-    expect(within(plan).getByText(/600 requests a minute and 200,000 a month/)).toBeInTheDocument()
+    expect(
+      await within(plan).findByText(
+        /For apps and API keys: up to 600 requests a minute and 200,000 a month/,
+      ),
+    ).toBeInTheDocument()
   })
 
   it('asks for the usage of the current month only', async () => {
     const { fetchMock } = renderLive({ handler: usage({ totalRequests: 1 }) })
-    await screen.findByText('of 10,000 requests this month')
+    await screen.findByText('requests across your products this month')
     const call = fetchMock.mock.calls.find(([u]) => urlOf(u).includes('/platform/v1/usage/me'))
     expect(urlOf(call![0])).toBe(
       'http://localhost:8080/api/platform/v1/usage/me?from=2026-11-01T00%3A00%3A00.000Z',
     )
   })
 
-  it('warns near the limit and states the consequence over it, in words', async () => {
-    const near = renderLive({ handler: usage({ totalRequests: 9000 }) })
-    expect(await screen.findByText(/90% used\. Close to the monthly limit/)).toBeInTheDocument()
-    expect(screen.getByRole('meter')).toHaveAttribute('data-state', 'near')
-    near.unmount()
-
+  it('never warns a person in the workspace about a limit, however busy the month', async () => {
     renderLive({ handler: usage({ totalRequests: 12_000 }) })
+    expect(await screen.findByText('12,000')).toBeInTheDocument()
     expect(
-      await screen.findByText(/You are over the monthly limit\. Requests are refused/),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('meter')).toHaveAttribute('data-state', 'over')
-    expect(screen.getByRole('meter')).toHaveAttribute('aria-valuenow', '10000')
+      screen.queryByText(/over the monthly limit|refused|Close to the monthly limit/),
+    ).not.toBeInTheDocument()
   })
 
   it.each([
