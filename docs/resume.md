@@ -28,7 +28,7 @@ PostgreSQL/TimescaleDB/pgvector, React 19, TypeScript, Kubernetes)
 - Hardened delivery: images that run as non-root on read-only filesystems; a Helm chart with default-deny
   NetworkPolicies; CI that scans every image with Trivy, emits CycloneDX SBOMs, installs the chart on a kind cluster
   and runs an OWASP ZAP baseline; a build-time Content-Security-Policy; a STRIDE threat model and ADRs.
-- Kept quality measurable: about 1,460 backend tests against real databases and brokers (Testcontainers) and 2,200
+- Kept quality measurable: about 1,516 backend tests against real databases and brokers (Testcontainers) and 2,301
   frontend tests, plus live end-to-end scripts for every product.
 
 ## Talking points (for interviews)

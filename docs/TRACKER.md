@@ -134,6 +134,16 @@ Briefs 80-85 in `docs/superpowers/briefs/` (reports 81-85 alongside). Agents in 
 - [x] 85 Standalone product app shells retired (workspace mounts every product; demo-mode mock APIs kept for `?demo=1`; trustee portal moved into the workspace at `/trustee/*`). UI e2e for Waiting On/Consent/Ask now runs through the workspace (10/10).
 - Size after: Java main 33.6k (was 30.5k), test 27.5k; TS non-test 72.6k (was 76.1k), of which 9.2k is demo-mode mock APIs.
 
+## Pending items finished (2026-11-27)
+- [x] 86 API keys act for their owner: service tokens carry `act`; auth issues 5-minute delegated tokens with the intersection of owner and key permissions; mcp-server audits app and owner. `dev/e2e-mcp.sh` 24/24 live.
+- [x] 87 `ml-service` (Python in Docker): seasonal baseline + calibrated residual score; home-pulse falls back to MAD; alerts say which model decided. Held-out simulator faults: ML precision 0.98 / recall 0.79 vs MAD 1.00 / 0.57 (simulated data only; see MODEL_CARD).
+- [x] 88 `contracts/`: 62 JSON Schemas checked against both the services and the demo mocks (3 mock drifts fixed); `dev/e2e-personas-browser.mjs` 27/27 live.
+- [x] 89 Trove Assistant in the workspace over the MCP tools (intent routing, no generative model, audited, DEVELOPER/ADMIN/OWNER); `dev/e2e-assistant.mjs` 12/12 live.
+- [x] Architecture diagrams (`docs/architecture.md`), resume bullets (`docs/resume.md`), CI annotates failing tests publicly.
+- [x] Merged worktrees and branches removed (only `main`).
+- [ ] Follow-up: on the developer API-key page, values typed in the first second after opening can be lost (seen only by an automated browser; cause not found).
+- [ ] Needs the owner: a public deployment (a server and Firebase web config), the Dependabot PRs (review on GitHub), the CI backend failure on GitHub (named by the new annotation step after the next push).
+
 ## Decisions log
 - 2026-11-21: Gateway + platform token chosen over library-only RBAC and over a service mesh (design doc §4).
 - 2026-11-21: Workspace app hosts products as modules (not micro-frontends).

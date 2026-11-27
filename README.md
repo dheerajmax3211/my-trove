@@ -72,11 +72,11 @@ Legacy invites at http://localhost:5190/trustee, with no account. Details, ports
 Backend tests use Testcontainers, so Docker must be running:
 
 ```bash
-./mvnw clean verify                # all modules: 1,460 tests against real Postgres, Timescale, pgvector and Kafka containers
+./mvnw clean verify                # all modules: 1,516 tests against real Postgres, Timescale, pgvector and Kafka containers
 ./mvnw -pl waiting-on -am verify   # one service plus what it needs
 ```
 
-Frontend: `cd ui-common && pnpm install && pnpm lint && pnpm typecheck && pnpm test && pnpm build` (2,200 tests).
+Frontend: `cd ui-common && pnpm install && pnpm lint && pnpm typecheck && pnpm test && pnpm build` (2,301 tests).
 CI runs both on every push (`.github/workflows/ci.yml`). A second workflow (`release.yml`) builds an image per service
 and web app, scans each with Trivy, writes a CycloneDX SBOM, installs the Helm chart on a kind cluster, smoke-tests it
 through the gateway, runs an OWASP ZAP baseline, and pushes the images to GHCR from `main`.
