@@ -32,7 +32,7 @@ jobs:
       # ...and keep the surefire/failsafe reports so the exact failing test can be read from the run.
       - name: Upload test reports on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-test-reports
           path: |
