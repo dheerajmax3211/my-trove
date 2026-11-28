@@ -27,7 +27,7 @@ jobs:
     name: Helm chart (lint, render, schema)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: azure/setup-helm@v4
         with: { version: v3.19.5 }
       - run: helm lint deploy/helm/my-trove -f deploy/kind/values-kind.yaml --set image.tag=ci
@@ -44,7 +44,7 @@ jobs:
     name: Build service jars
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 21, cache: maven }
       # Tests run in ci.yml; this job only packages (the jOOQ generator still starts a Postgres container).
@@ -81,7 +81,7 @@ jobs:
           - { name: workspace, kind: web }
           - { name: site, kind: web }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v4
         if: matrix.kind == 'service'
         with: { name: jars }
@@ -137,7 +137,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v4
         with: { name: jars }
       - uses: azure/setup-helm@v4
